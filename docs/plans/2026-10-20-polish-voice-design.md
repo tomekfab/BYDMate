@@ -110,6 +110,10 @@ Before declaring the APK ready, run the relevant JVM tests and Android build, th
 - Gosia's model card describes a Polish, single-speaker, CC0 dataset, but distribution must also retain the selected artifact's model notices and Piper/espeak notices. Verify these and exact asset checksums before packaging or publishing model downloads.
 - No changes to factory BYD voice control, cloud account ownership, vehicle firmware, remote app access, trip features, or whole-app localization. Custom automation authored by the user remains their responsibility and is not automatically translated.
 
+## Phone-first OpenClaw check
+
+User refinement on 2026-10-20: verify OpenClaw on an Android phone or emulator before installing in the car. Provide a settings connection test that accepts Polish typed text and displays the response using the production paired transport, independently of active voice-profile selection. Text chat must work without vehicle access or speech models, require the same explicit online opt-in, and never dispatch vehicle actions. Optional Polish audio requires downloaded Gosia; it does not require ASR models or full Polish-profile activation. This isolates pairing/network checks from native recognition. Phone success does not establish car networking, offline speech speed or vehicle-action correctness.
+
 ## Evidence read
 
 - Read-only SSH environment checks above and installed OpenClaw documentation: `docs/gateway/openai-http-api.md`, `docs/gateway/protocol/auth.md`, and `docs/web/webchat.md` in `/opt/homebrew/lib/node_modules/openclaw` on the Mini.
