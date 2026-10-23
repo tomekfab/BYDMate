@@ -42,7 +42,7 @@ class LlmAgentBackend @Inject constructor(
         onDelta: ((String) -> Unit)?,
     ): Result<AgentReply> {
         val primary = connections.primary()
-            ?: return Result.failure(LlmError("Агент не настроен: заполните адрес, API-ключ и модель в Настройки, Интеграции"))
+            ?: return Result.failure(LlmError("Agent nie jest skonfigurowany: uzupełnij adres, klucz API i model w Ustawieniach, Integracjach"))
         var forwarded = false
         val guarded: ((String) -> Unit)? = onDelta?.let { cb -> { d -> forwarded = true; cb(d) } }
 
@@ -95,7 +95,7 @@ class LlmAgentBackend @Inject constructor(
             if (forwarded) return interrupted(result)
         }
         // Still an empty/error reply after every attempt: hand it back as-is, success and all —
-        // AgentOrchestrator turns a blank answer into "Пустой ответ модели" itself, same as
+        // AgentOrchestrator turns a blank answer into "Pusta odpowiedź modelu" itself, same as
         // before this retry existed, instead of a new LlmError text here.
         if (result.isSuccess) return result
         val cause = result.exceptionOrNull()
@@ -103,7 +103,7 @@ class LlmAgentBackend @Inject constructor(
     }
 
     private fun interrupted(result: Result<AgentReply>): Result<AgentReply> =
-        Result.failure(LlmError("Ответ оборвался, попробуй ещё раз", result.exceptionOrNull()))
+        Result.failure(LlmError("Odpowiedź została przerwana, spróbuj ponownie", result.exceptionOrNull()))
 
     private suspend fun call(
         conn: LlmConnection,
@@ -143,10 +143,10 @@ class LlmAgentBackend @Inject constructor(
 
     private fun userMessage(e: Throwable?): String = when {
         e is LlmHttpException && (e.code == 401 || e.code == 403) ->
-            "Ключ подключения не подходит, проверь настройки"
-        e is LlmHttpException && e.code == 429 -> "Лимит запросов исчерпан, попробуй позже"
-        e is LlmHttpException && e.code >= 500 -> "Сервер модели недоступен, попробуй позже"
-        else -> "Нет связи с сервером, скажи простую команду"
+            "Klucz połączenia jest nieprawidłowy, sprawdź ustawienia"
+        e is LlmHttpException && e.code == 429 -> "Limit żądań został wyczerpany, spróbuj później"
+        e is LlmHttpException && e.code >= 500 -> "Serwer modelu jest niedostępny, spróbuj później"
+        else -> "Brak połączenia z serwerem, powiedz proste polecenie"
     }
 
     companion object {

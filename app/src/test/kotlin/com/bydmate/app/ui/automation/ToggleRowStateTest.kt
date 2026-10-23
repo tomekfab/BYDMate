@@ -14,8 +14,8 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Sentry and the cluster projection have a three-state row: Вкл, Выкл, Переключить. Picking
- * «Переключить» stores a toggle action, and the row must still be the one that edits it —
+* Sentry and the cluster projection have a three-state row: on, off, toggle. Picking
+* Toggle stores a toggle action, and the row must still be the one that edits it —
  * otherwise the two other states are unreachable and the action can only be deleted.
  */
 @RunWith(RobolectricTestRunner::class)
@@ -40,7 +40,7 @@ class ToggleRowStateTest {
     @Test fun `catalog toggles keep the target dropdown as their editor`() {
         assertNull(toggleRowSpecFor(toggleAction(ActionDispatcher.TOGGLE_TRUNK)))
         assertNull(toggleRowSpecFor(toggleAction(ActionDispatcher.TOGGLE_CLIMATE)))
-        assertNull(toggleRowSpecFor(ActionDef("开后备箱", "Багажник", kind = "param")))
+        assertNull(toggleRowSpecFor(ActionDef("开后备箱", "Bagażnik", kind = "param")))
     }
 
     @Test fun `on then toggle then off ends up where a fresh off would`() {

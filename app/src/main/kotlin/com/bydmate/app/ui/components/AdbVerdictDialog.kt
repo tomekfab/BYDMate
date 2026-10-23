@@ -37,7 +37,7 @@ internal fun adbVerdictText(v: AdbVerdict): String = when (v) {
     AdbVerdict.OK -> ""
 }
 
-/** «ADB не включён» is red; the other verdicts are yellow like the other header lines. */
+/** «ADB nie włączony» is red; the other verdicts are yellow like the other header lines. */
 internal fun adbVerdictColor(v: AdbVerdict): Color = if (v == AdbVerdict.NOT_ENABLED) SocRed else SocYellow
 
 /** The primary button of [AdbVerdictDialog]. */

@@ -9,10 +9,9 @@ import com.bydmate.app.data.vehicle.HelperBootstrap
 import com.bydmate.app.data.vehicle.HelperClient
 import com.bydmate.app.ui.widget.WidgetController
 import com.bydmate.app.ui.widget.WidgetPreferences
-import com.bydmate.app.voice.GigaAmModelManager
+import com.bydmate.app.voice.PolishModelManager
 import com.bydmate.app.voice.TtsModelManager
 import com.bydmate.app.voice.TtsVoiceCatalog
-import com.bydmate.app.voice.online.TtsRouter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -22,7 +21,7 @@ class AndroidPostRestoreProbes(
     private val settingsRepository: SettingsRepository,
     private val helperBootstrap: HelperBootstrap,
     private val helperClient: HelperClient,
-    private val gigaAmModelManager: GigaAmModelManager,
+    private val polishModelManager: PolishModelManager,
     private val ttsModelManager: TtsModelManager,
 ) : PostRestoreProbes {
 
@@ -35,9 +34,8 @@ class AndroidPostRestoreProbes(
             voice = voice.getBoolean(SettingsRepository.KEY_VOICE_ENABLED, false),
             agent = settingsRepository.isAgentEnabled(),
             tts = voice.getBoolean(SettingsRepository.KEY_TTS_ENABLED, false),
-            ttsOffline = voice.getString("tts_source", TtsRouter.OFFLINE) !in ONLINE_TTS_SOURCES,
-            ttsVoiceId = voice.getString("tts_voice", TtsModelManager.DEFAULT_VOICE_ID)
-                ?: TtsModelManager.DEFAULT_VOICE_ID,
+            ttsOffline = true,
+            ttsVoiceId = TtsVoiceCatalog.GOSIA.id,
             nativeAssistantDisabled =
                 settingsRepository.getString(SettingsRepository.KEY_DISABLE_NATIVE_ASSISTANT, "") == "true",
         )
@@ -48,7 +46,7 @@ class AndroidPostRestoreProbes(
     override fun hasPermission(name: String): Boolean =
         context.checkSelfPermission(name) == PackageManager.PERMISSION_GRANTED
 
-    override fun asrModelReady(): Boolean = gigaAmModelManager.isReady()
+    override fun asrModelReady(): Boolean = polishModelManager.isReady()
 
     override fun ttsVoiceReady(voiceId: String): Boolean = ttsModelManager.isReady(TtsVoiceCatalog.byId(voiceId))
 
@@ -56,10 +54,4 @@ class AndroidPostRestoreProbes(
         helperBootstrap.ensureRunning() && helperClient.grantOverlayPermission()
 
     override suspend fun attachWidget() = withContext(Dispatchers.Main) { WidgetController.attach(context, "post_restore") }
-
-    private companion object {
-        // Ids of the online backends wired into TtsRouter in VoiceModule; any other source value
-        // (including a legacy one) speaks through the downloaded offline voice.
-        val ONLINE_TTS_SOURCES = setOf("gemini", "minimax")
-    }
 }

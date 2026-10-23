@@ -28,7 +28,7 @@ import javax.inject.Singleton
  * Always-on journal of what the app did and why: the driver pressed PTT, the phrase went to the
  * agent, the tool asked Overpass, Overpass answered 406, the tool failed. One short line per
  * state change or decision, linked by `by=#id` to the event that caused it, so a log shared
- * after the fact shows the chain behind a failure — including everything before «Запись логов»
+ * after the fact shows the chain behind a failure — including everything before "Log recording"
  * was pressed (the recorder starts with `logcat -c`).
  *
  * Bounded: the newest [maxEvents] events within [maxBytes], in one file in filesDir. An event

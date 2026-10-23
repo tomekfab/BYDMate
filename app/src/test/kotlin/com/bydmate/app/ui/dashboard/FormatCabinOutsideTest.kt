@@ -3,7 +3,7 @@ package com.bydmate.app.ui.dashboard
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-/** One slot on Главная carries both temperatures (#210); a missing outside reading must not
+/** One Dashboard slot carries both temperatures (#210); a missing outside reading must not
  *  change what a car without it showed before. */
 class FormatCabinOutsideTest {
 

@@ -61,19 +61,19 @@ class VoiceJournalTest {
         val file = File(tmp.root, VoiceJournal.FILE_NAME)
         val full = VoiceJournalEntry(
             timestampMs = 1_700_000_000_000L,
-            transcript = "что с окнами",
+            transcript = "co z oknami",
             route = VoiceJournalEntry.Route.AGENT,
-            detail = "Окна закрыты",
+            detail = "Okna zamknięte",
             outcome = VoiceJournalEntry.Outcome.ERROR,
-            reason = "нет сети",
+            reason = "brak sieci",
             tools = listOf(AgentToolOutcome("vehicle_control", true), AgentToolOutcome("read_state", false)),
-            answer = "Окна закрыты",
+            answer = "Okna zamknięte",
             command = "windows_close_all",
             refusal = VoiceRefusal.UNRECOGNIZED,
             asrMs = 310L,
             dispatchMs = 1_200L,
         )
-        val bare = entry("открой окна").copy(timestampMs = 5L, route = VoiceJournalEntry.Route.REFUSED)
+        val bare = entry("otwórz okna").copy(timestampMs = 5L, route = VoiceJournalEntry.Route.REFUSED)
         journal(file).apply { add(bare); add(full) }
 
         assertEquals(listOf(full, bare), journal(file).entries.value)
@@ -123,20 +123,20 @@ class VoiceJournalTest {
 
     @Test fun `long transcript, command and reason are cut to the field bound in memory and on disk`() {
         val file = File(tmp.root, VoiceJournal.FILE_NAME)
-        val long = "а".repeat(VoiceJournal.MAX_FIELD_CHARS + 100)
-        journal(file).add(entry(long).copy(command = long, reason = long, answer = "ответ"))
+        val long = "a".repeat(VoiceJournal.MAX_FIELD_CHARS + 100)
+        journal(file).add(entry(long).copy(command = long, reason = long, answer = "odpowiedź"))
 
         val e = journal(file).entries.value.single()
         assertEquals(VoiceJournal.MAX_FIELD_CHARS, e.transcript.length)
         assertEquals(VoiceJournal.MAX_FIELD_CHARS, e.command?.length)
         assertEquals(VoiceJournal.MAX_FIELD_CHARS, e.reason?.length)
-        assertEquals("ответ", e.answer)
+        assertEquals("odpowiedź", e.answer)
     }
 
     @Test fun `fifty long agent answers are cut, persisted and read back`() {
         val file = File(tmp.root, VoiceJournal.FILE_NAME)
-        val answer = "ж".repeat(3_000)
-        val long = "а".repeat(VoiceJournal.MAX_FIELD_CHARS)
+        val answer = "ż".repeat(3_000)
+        val long = "a".repeat(VoiceJournal.MAX_FIELD_CHARS)
         val writer = journal(file)
         repeat(VoiceJournal.MAX) {
             writer.add(entry("$it $long").copy(route = VoiceJournalEntry.Route.AGENT, detail = answer, answer = answer,
@@ -172,7 +172,7 @@ class VoiceJournalTest {
 
     @Test fun `stored fields over the bound are cut on load`() {
         val file = File(tmp.root, VoiceJournal.FILE_NAME)
-        val long = "а".repeat(VoiceJournal.MAX_TEXT_CHARS + 100)
+        val long = "a".repeat(VoiceJournal.MAX_TEXT_CHARS + 100)
         file.writeText(org.json.JSONArray(listOf(VoiceJournal.toJson(entry(long).copy(answer = long)))).toString())
 
         val e = journal(file).entries.value.single()

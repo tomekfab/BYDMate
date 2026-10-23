@@ -12,7 +12,7 @@ import org.junit.Test
  */
 class RuleListLayoutTest {
 
-    // Four labeled list buttons, ru «Дублировать» the widest label: 1.0 ~83dp, 1.3 ~108dp.
+// Four labeled list buttons, with Duplicate as the widest label: 1.0 ~83dp, 1.3 ~108dp.
     private val labeled10 = (58.dp + 83.dp) * 4 + 18.dp
     private val labeled13 = (58.dp + 108.dp) * 4 + 18.dp
     private val minText10 = 240.dp

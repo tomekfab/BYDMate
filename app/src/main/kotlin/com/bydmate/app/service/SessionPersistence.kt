@@ -25,7 +25,7 @@ data class PersistedSession(
      * (process killed inside the grace window, or DiLink rebooted before idle-close
      * could fire). If the last-active tick was longer ago than the idle-close
      * threshold, treat the session as dead — otherwise the widget anchor is
-     * ancient and trip time renders as "11 ч" on the next ignition-on.
+     * ancient and trip time renders as "11 h" on the next ignition-on.
      */
     fun isStale(now: Long, idleCloseMs: Long): Boolean {
         return now - lastActiveTs >= idleCloseMs

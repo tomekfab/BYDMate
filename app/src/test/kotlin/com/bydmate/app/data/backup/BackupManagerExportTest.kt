@@ -8,6 +8,9 @@ import com.bydmate.app.camera.BlindSpotPreferences
 import com.bydmate.app.data.autoservice.AdbRestorePreferencesImpl
 import com.bydmate.app.data.local.database.AppDatabase
 import com.bydmate.app.util.AppStrings
+import com.bydmate.app.voice.openclaw.FakeSecretCipher
+import com.bydmate.app.voice.openclaw.OpenClawConversationStore
+import com.bydmate.app.voice.openclaw.OpenClawIdentityStore
 import com.bydmate.app.hud.HudController
 import com.bydmate.app.split.SplitPreferencesImpl
 import io.mockk.every
@@ -255,6 +258,50 @@ class BackupManagerExportTest {
             BackupManager.deserializePrefs(z.getInputStream(z.getEntry("prefs.json")).readBytes().decodeToString())
         }
         assertEquals(mapOf("voice_enabled" to true), exported["voice"])
+    }
+
+    @Test
+    fun `export after OpenClaw pairing carries no credential or conversation`() {
+        every { appDatabase.query("PRAGMA wal_checkpoint(TRUNCATE)", null) } answers { checkpointCursor(busy = 0) }
+        val token = "oc-device-token-SECRET-91"
+        fun fullManager() = BackupManager(
+            context, appDatabase, AppStrings(context), BackupManager.PREFS_FILES, BackupManager.EXCLUDED_PREFS_KEYS,
+        )
+        fun entries(zip: File): Map<String, ByteArray> = ZipFile(zip).use { z ->
+            z.entries().asSequence().associate { it.name to z.getInputStream(it).readBytes() }
+        }
+        fun ByteArray.has(needle: ByteArray) = needle.isNotEmpty() && (0..size - needle.size).any { s -> needle.indices.all { this[s + it] == needle[it] } }
+
+        // Control: the scan below does find a secret that sits in an allow-listed prefs file.
+        val voicePrefs = context.getSharedPreferences("voice", Context.MODE_PRIVATE)
+        voicePrefs.edit().putString("leak", token).commit()
+        assertTrue(entries(fullManager().export())["prefs.json"]!!.has(token.toByteArray()))
+        voicePrefs.edit().clear().commit()
+
+        // Provision fake credentials and a conversation exactly where production keeps them.
+        val identityStore = OpenClawIdentityStore.create(context, FakeSecretCipher())
+        val identity = identityStore.getOrCreateIdentity()
+        identityStore.saveDeviceToken(token)
+        val sessionKey = OpenClawConversationStore.create(context).sessionKey("pl")
+        val stored = File(context.noBackupFilesDir, OpenClawIdentityStore.DIRECTORY_NAME)
+        assertTrue(File(stored, OpenClawIdentityStore.FILE_NAME).isFile)
+        assertTrue(File(stored, OpenClawConversationStore.FILE_NAME).isFile)
+
+        val archive = entries(fullManager().export(BackupPart.ALL))
+
+        val secrets = listOf(
+            token, identity.deviceId, sessionKey,
+            identity.seed.joinToString("") { "%02x".format(it) },
+            java.util.Base64.getEncoder().encodeToString(identity.seed),
+            java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(identity.seed),
+        ).map { it.toByteArray() } + listOf(identity.seed, File(stored, OpenClawIdentityStore.FILE_NAME).readBytes())
+        for ((name, bytes) in archive) {
+            for (secret in secrets) assertFalse("$name holds an OpenClaw secret", bytes.has(secret))
+        }
+        assertFalse(archive["prefs.json"]!!.decodeToString().lowercase().contains("openclaw"))
+        assertFalse(archive.keys.any { it.lowercase().contains("openclaw") })
+        // The live files are untouched by the export.
+        assertEquals(token, identityStore.deviceToken())
     }
 
     @Test

@@ -110,7 +110,7 @@ fun renderPlanFor(
 fun freeformBounds(geo: ClusterGeometry): IntArray =
     intArrayOf(geo.xOffset, geo.yOffset, geo.xOffset + geo.width, geo.yOffset + geo.height)
 
-/** The other projection state — drives the steering-wheel toggle (приборка ↔ центр). */
+/** The other projection state — drives the steering-wheel toggle (zestaw wskaźników ↔ centrum). */
 fun nextMode(current: ClusterMode): ClusterMode =
     if (current == ClusterMode.FULLSCREEN) ClusterMode.OFF else ClusterMode.FULLSCREEN
 
@@ -125,7 +125,7 @@ fun shouldRecoverCompositor(markerSet: Boolean, mode: ClusterMode, autoContainer
     markerSet && mode == ClusterMode.OFF && autoContainer
 
 /**
- * #85/#62: power-down (18 -> pause -> 0) is an ИПЦ write too - it must only be sent when OUR
+ * #85/#62: power-down (18 -> pause -> 0) is an IPC write too - it must only be sent when OUR
  * write-ahead marker shows this app powered the compositor up. Platforms with no cluster
  * display (Song family, DiLink 3-4) never set the marker, so their cluster stays untouched.
  */
@@ -137,7 +137,7 @@ fun shouldPowerDownCompositor(markerSet: Boolean): Boolean = markerSet
  * cluster by hand: on firmware that shows the projection display inside a native widget (VV,
  * 2026-08-28) the 16 flips the cluster into full projection mode and hides ADAS, and no exit
  * sequence (18 alone or 18 -> 0) restores the widget without a manual tab switch. The camera
- * window sits on the same display, in the same crop, so it is visible there without any ИПЦ write.
+ * window sits on the same display, in the same crop, so it is visible there without any IPC write.
  * The mirrored main-screen fallback never needs the compositor either.
  */
 fun cameraNeedsCompositor(autoContainer: Boolean, clusterWindowAttached: Boolean, clusterOnMainScreen: Boolean): Boolean =

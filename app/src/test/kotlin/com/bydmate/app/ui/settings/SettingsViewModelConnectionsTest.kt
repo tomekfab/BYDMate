@@ -38,6 +38,9 @@ import com.bydmate.app.data.vehicle.HelperBootstrap
 import com.bydmate.app.data.vehicle.HelperClient
 import com.bydmate.app.data.vehicle.SeatChannelStore
 import com.bydmate.app.service.UpdateChecker
+import com.bydmate.app.voice.openclaw.OpenClawAssistant
+import com.bydmate.app.voice.openclaw.OpenClawConnectionCoordinator
+import com.bydmate.app.voice.openclaw.OpenClawRecoveryState
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -45,6 +48,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -63,7 +67,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Wave J: connection state, selectors and the "Проверить" (test connection) action on
+* Wave J: connection state, selectors and the Test action on
  * [SettingsViewModel]. Setup mirrors [SettingsViewModelTest]'s Robolectric/mockk factory.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -79,6 +83,11 @@ class SettingsViewModelConnectionsTest {
     private val agentOrchestrator: AgentOrchestrator = mockk(relaxed = true)
     private val llmConnectionResolver: LlmConnectionResolver = mockk(relaxed = true)
     private val openRouterClient: OpenRouterClient = mockk(relaxed = true)
+    private val openClawAssistant: OpenClawAssistant = mockk(relaxed = true)
+    private val openClawRecovery = MutableStateFlow<OpenClawRecoveryState>(OpenClawRecoveryState.Idle)
+    private val openClawConnectionCoordinator: OpenClawConnectionCoordinator = mockk(relaxed = true) {
+        io.mockk.every { recovery } returns openClawRecovery
+    }
 
     @Before
     fun setUp() {
@@ -245,7 +254,6 @@ class SettingsViewModelConnectionsTest {
         val backupManager = mockk<BackupManager>(relaxed = true)
         val ttsModelManager = mockk<com.bydmate.app.voice.TtsModelManager>(relaxed = true)
         val ttsEngine = mockk<com.bydmate.app.voice.TtsEngine>(relaxed = true)
-        val gigaAmModelManager = mockk<com.bydmate.app.voice.GigaAmModelManager>(relaxed = true)
         val continuousAsr = mockk<com.bydmate.app.voice.ContinuousAsr>(relaxed = true)
         val voiceController = mockk<com.bydmate.app.voice.VoiceController>(relaxed = true)
 
@@ -269,8 +277,6 @@ class SettingsViewModelConnectionsTest {
             chargingStateStore = com.bydmate.app.data.charging.ChargingStateStore(settingsRepo),
             catchUpJournal = com.bydmate.app.data.charging.CatchUpJournal(settingsRepo),
             ttsModelManager = ttsModelManager,
-            ruStressMarker = com.bydmate.app.voice.RuStressMarker { null },
-            gigaAmModelManager = gigaAmModelManager,
             continuousAsr = continuousAsr,
             ttsEngine = ttsEngine,
             voiceController = voiceController,
@@ -323,10 +329,30 @@ class SettingsViewModelConnectionsTest {
             clusterMusicBridge = mockk(relaxed = true),
             vehicleWriteLogDao = mockk(relaxed = true),
             vehicleKindMonitor = mockk(relaxed = true),
+            voiceLanguageSetup = mockk(relaxed = true) {
+                io.mockk.every { state } returns kotlinx.coroutines.flow.MutableStateFlow(
+                    com.bydmate.app.voice.VoiceLanguageState(),
+                )
+            },
+            openClawAssistant = openClawAssistant,
+            openClawConnectionCoordinator = openClawConnectionCoordinator,
+            remoteDiagnostics = mockk(relaxed = true),
+            assistantProbe = mockk(relaxed = true),
         )
     }
 
     // --- Tests ---
+
+    @Test fun `manual OpenClaw reconnect uses the shared coordinator queue`() = runTest {
+        val vm = buildViewModel()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        vm.reconnectOpenClaw()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        coVerify(exactly = 1) { openClawConnectionCoordinator.requestManualReconnect() }
+        coVerify(exactly = 0) { openClawAssistant.reconnect() }
+    }
 
     @Test fun `saveZaiApiKey persists and updates state`() = runTest {
         val vm = buildViewModel()
@@ -396,7 +422,7 @@ class SettingsViewModelConnectionsTest {
     @Test fun `testConnection reports round trip on success`() = runTest {
         val conn = LlmConnection(id = "zai", label = "z.ai", baseUrl = "https://api.z.ai/api/paas/v4", apiKey = "zk", model = "glm-4.7-flash")
         coEvery { llmConnectionResolver.get("zai") } returns conn
-        val message = JSONObject().put("role", "assistant").put("content", "готов")
+        val message = JSONObject().put("role", "assistant").put("content", "gotowe")
         coEvery { openRouterClient.chatRaw(conn.baseUrl, conn.apiKey, conn.model, any<JSONArray>(), null) } returns
             Result.success(message)
 
@@ -467,7 +493,7 @@ class SettingsViewModelConnectionsTest {
         val gate = CompletableDeferred<Unit>()
         coEvery { openRouterClient.chatRaw(any(), any(), any(), any<JSONArray>(), null) } coAnswers {
             gate.await()
-            Result.success(JSONObject().put("role", "assistant").put("content", "готов"))
+            Result.success(JSONObject().put("role", "assistant").put("content", "gotowe"))
         }
 
         val vm = buildViewModel()
@@ -524,7 +550,7 @@ class SettingsViewModelConnectionsTest {
         assertEquals("sk-or-v1-abc", settingsDao.map[SettingsRepository.KEY_OPENROUTER_API_KEY])
     }
 
-    // --- Wave O T11: custom connection model list + Russian network errors ---
+    // --- Wave O T11: custom connection model list + localized network errors ---
 
     @Test fun `loadCustomModels fetches and stores model list`() = runTest {
         val vm = buildViewModel()
@@ -545,7 +571,7 @@ class SettingsViewModelConnectionsTest {
         assertEquals(null, vm.uiState.value.customModelsError)
     }
 
-    @Test fun `loadCustomModels with UnknownHostException shows Russian DNS error`() = runTest {
+    @Test fun `loadCustomModels with UnknownHostException shows localized DNS error`() = runTest {
         val vm = buildViewModel()
         testDispatcher.scheduler.advanceUntilIdle()
 
@@ -568,7 +594,7 @@ class SettingsViewModelConnectionsTest {
 
     // --- Wave O T11 fix round 1: unwrap causes + stale list ---
 
-    @Test fun `loadCustomModels with wrapped UnknownHostException shows Russian DNS error`() = runTest {
+    @Test fun `loadCustomModels with wrapped UnknownHostException shows localized DNS error`() = runTest {
         val vm = buildViewModel()
         testDispatcher.scheduler.advanceUntilIdle()
 

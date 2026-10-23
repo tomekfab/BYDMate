@@ -68,9 +68,6 @@ import com.bydmate.app.service.UpdateChecker
 import com.bydmate.app.ui.charges.ChargesScreen
 import com.bydmate.app.ui.automation.AutomationScreen
 import com.bydmate.app.ui.dashboard.DashboardScreen
-import com.bydmate.app.ui.settings.DonateDialog
-import com.bydmate.app.ui.settings.DonateEntry
-import com.bydmate.app.ui.settings.DonationReminder
 import com.bydmate.app.ui.settings.SettingsScreen
 import com.bydmate.app.ui.settings.UpdateDialog
 import com.bydmate.app.ui.settings.UpdateState
@@ -110,8 +107,8 @@ fun AppNavigation(
 
     if (startDestination == null) return // Loading
 
-    // Автоматическая проверка обновлений при запуске приложения.
-    // UpdateChecker сам throttle-ит запросы (10 мин между реальными походами в GitHub).
+    // Check for updates automatically when the app starts.
+    // UpdateChecker throttles requests itself (10 min between actual GitHub calls).
     val autoCheckContext = LocalContext.current
     val autoCheckScope = rememberCoroutineScope()
     var autoUpdateInfo by remember { mutableStateOf<UpdateChecker.UpdateInfo?>(null) }
@@ -123,20 +120,6 @@ fun AppNavigation(
             autoCheckContext.packageManager.getPackageInfo(autoCheckContext.packageName, 0).versionName ?: "?"
         }.getOrDefault("?")
     }
-    // Donation prompt: from the second entry of a new version onward (the first entry is taken
-    // by the post-install reminder), at most once per version, never after opt-out. Shown
-    // before the update dialog — support first, then offer the update once it is dismissed.
-    var showDonation by remember { mutableStateOf(false) }
-    LaunchedEffect(startDestination) {
-        if (startDestination == "dashboard" &&
-            UpdateChecker.getLastSeenVersion(autoCheckContext) == currentAppVersion &&
-            DonationReminder.shouldShow(autoCheckContext, currentAppVersion)
-        ) {
-            DonationReminder.markSeen(autoCheckContext, currentAppVersion)
-            showDonation = true
-        }
-    }
-
     LaunchedEffect(Unit) {
         if (!UpdateChecker.isAutoCheckEnabled(autoCheckContext)) return@LaunchedEffect
         try {
@@ -146,10 +129,10 @@ fun AppNavigation(
                 autoUpdateState = UpdateState.Available(version = info.version, notes = info.releaseNotes)
             }
         } catch (_: Exception) {
-            // тихо игнорируем — оффлайн, rate-limit и т.п.
+            // Ignore silently — offline, rate limit, and similar cases.
         }
     }
-    if (!showDonation) autoUpdateState?.let { dialogState ->
+    autoUpdateState?.let { dialogState ->
         UpdateDialog(
             currentVersion = currentAppVersion,
             state = dialogState,
@@ -159,14 +142,14 @@ fun AppNavigation(
                 autoUpdateDownloadJob = autoCheckScope.launch {
                     try {
                         updateChecker.downloadAndInstall(autoCheckContext, info) { progress ->
-                            // Игнорируем поздний прогресс после отмены (нажат Закрыть),
-                            // иначе закрытый диалог «воскресает» в Downloading.
+                            // Ignore late progress after cancellation (Close pressed),
+                            // otherwise a closed dialog returns in Downloading.
                             if (isActive) {
                                 autoUpdateState = UpdateState.Downloading(info.version, progress)
                             }
                         }
                     } catch (e: CancellationException) {
-                        throw e // кооперативная отмена из onDismiss, не ошибка
+                        throw e // cooperative cancellation from onDismiss, not an error
                     } catch (e: Exception) {
                         autoUpdateState = UpdateState.Error(e.message ?: "Download failed")
                     }
@@ -181,7 +164,7 @@ fun AppNavigation(
         )
     }
 
-    // Post-install reminder: первый запуск новой версии → напомнить про Disable background Apps.
+    // Post-install reminder: first launch of a new version reminds about Disable background Apps.
     var showPostInstallReminder by remember {
         mutableStateOf(UpdateChecker.getLastSeenVersion(autoCheckContext) != currentAppVersion)
     }
@@ -195,16 +178,8 @@ fun AppNavigation(
         )
     }
 
-    if (showDonation) {
-        DonateDialog(
-            entry = DonateEntry.AUTO,
-            onDismiss = { showDonation = false },
-            onAlreadySupported = {
-                DonationReminder.setOptedOut(autoCheckContext)
-                showDonation = false
-            },
-        )
-    }
+    // The assistant's alias suggestion: one app-wide Save / Dismiss confirmation, whichever screen is open.
+    com.bydmate.app.ui.settings.AliasProposalHost()
 
     val isWelcome = currentDestination?.route == "welcome"
     // Grows past NavBarHeight only once a large text size makes the label too tall for it.
@@ -322,7 +297,7 @@ fun AppNavigation(
             }
             composable("tariff_periods") { entry ->
                 // The settings entry's own view model: the periods list, the recalc status and
-                // the summary line under the «Открыть» button all live in that one instance.
+                // the summary line under the «Otwórz» button all live in that one instance.
                 val settingsEntry = remember(entry) { navController.getBackStackEntry(Screen.Settings.route) }
                 com.bydmate.app.ui.settings.TariffPeriodsScreen(
                     onBack = { navController.popBackStack() },

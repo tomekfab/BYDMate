@@ -66,7 +66,7 @@ class HudController @Inject constructor(
         const val KEY_SPEED_SIGN = "hud_speed_sign"
         const val KEY_MODE = "hud_mode"
 
-        /** The way hints go to the glass («Способ вывода на стекло»). Way 1 (default, 3.19.0): the
+        /** The way hints go to the glass («Sposób wyświetlania na szybę»). Way 1 (default, 3.19.0): the
          *  frames alone, the car's navigation status is never raised. Way 2 (3.19.1 + CAN): [HudArming]
          *  raises it while a route is guided (#266) and [HudWayChannels] writes the CAN guidance
          *  fields. Way 3: way 2 plus OpenBYD's LAUNCHER_MAP_CN family. */

@@ -6,10 +6,10 @@
     "name": "Future",
     "trigger_logic": "AND",
     "triggers": [
-      {"param":"Speed","chineseName":"车速","operator":">","value":"7","displayName":"Скорость","kind":"param"}
+      {"param":"Speed","chineseName":"车速","operator":">","value":"7","displayName":"Prędkość","kind":"param"}
     ],
     "actions": [
-      {"command":"","displayName":"Телепорт","kind":"teleport","payload":"{}"}
+      {"command":"","displayName":"Teleport","kind":"teleport","payload":"{}"}
     ],
     "cooldown_seconds": 60,
     "require_park": false,

@@ -58,13 +58,13 @@ class AgentToolsStatsSummaryTest {
 
     @Test fun stats_summary_week_serializes_metrics() = runTest {
         coEvery { insightsManager.dynamicsFor(7) } returns listOf(
-            DynamicMetric(label = "Расход", current = "18.2 кВтч/100", previous = "19.0",
+            DynamicMetric(label = "Zużycie", current = "18.2 kWh/100", previous = "19.0",
                 changePct = -4.2, sentiment = "good", section = null, kind = "consumption"))
         val out = JSONObject(tools().execute(call("get_stats_summary", "{}")))
         val arr = out.getJSONArray("metrics")
         assertEquals(1, arr.length())
-        assertEquals("Расход", arr.getJSONObject(0).getString("label"))
-        assertEquals("18.2 кВтч/100", arr.getJSONObject(0).getString("current"))
+        assertEquals("Zużycie", arr.getJSONObject(0).getString("label"))
+        assertEquals("18.2 kWh/100", arr.getJSONObject(0).getString("current"))
         assertEquals(-4.2, arr.getJSONObject(0).getDouble("change_pct"), 0.01)
     }
 

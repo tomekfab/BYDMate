@@ -26,20 +26,20 @@ internal fun per100Cell(
     }
 }
 
-/** The «л» cell: litres of the trip, «—» when either counter edge was missing. */
+/** The "l" cell: litres of the trip, "—" when either counter edge was missing. */
 internal fun litersCell(fuelLiters: Double?): String = fuelLiters?.let { "%.1f".format(it) } ?: "—"
 
 /**
- * Weights of the trip table on Главная: время | длит. | км | кВт·ч | (л) | /100 | валюта.
- * The «л» column exists only on a hybrid; EV and UNKNOWN keep today's six columns.
+ * Weights of the trip table on Dashboard: time | duration | km | kWh | (l) | /100 | currency.
+ * The "l" column exists only on a hybrid; EV and UNKNOWN keep today's six columns.
  */
 internal fun columnWeights(kind: VehicleKind): List<Float> =
     if (kind == VehicleKind.HYBRID) listOf(2.5f, 1f, 1f, 1f, 1f, 1f, 1f)
     else listOf(2.5f, 1f, 1f, 1f, 1f, 1f)
 
 /**
- * Widths (dp) of the Поездки columns after the time cell: длит. | км | SOC | кВт·ч | (л) | /100 | валюта.
- * A hybrid gets the «л» column and a wider «/100» that holds «4.4 л».
+ * Widths (dp) of the Trips columns after the time cell: duration | km | SOC | kWh | (l) | /100 | currency.
+ * A hybrid gets the "l" column and a wider "/100" that holds "4.4 l".
  */
 internal fun tripsColumnWidthsDp(kind: VehicleKind): List<Int> =
     if (kind == VehicleKind.HYBRID) listOf(44, 48, 58, 44, 44, 56, 56)

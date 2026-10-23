@@ -452,7 +452,7 @@ class DashboardViewModel @Inject constructor(
                     insightSummary = cached.summary,
                     insightDynamics = cached.dynamics,
                     // Cached insight dynamics are always weekly — reset the chip so
-                    // it doesn't show a stale "Месяц" selection over weekly data.
+                    // it doesn't show a stale "Month" selection over weekly data.
                     insightPeriodDays = 7,
                     insightInsights = cached.insights,
                     insightTone = cached.tone,

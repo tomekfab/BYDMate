@@ -71,6 +71,8 @@ object NavGuidanceHub {
         // Where the held maneuver was read (#294): Source name and the raw input behind the code.
         val maneuverSource: String = "",
         val maneuverRaw: String = "",
+        /** Owner is appended so existing positional constructors stay source-compatible. */
+        val owner: NavAppId = NavAppId.NONE,
     )
 
     /** Rich notification payload (donor listener merge). applyCamera=false is the
@@ -110,34 +112,54 @@ object NavGuidanceHub {
     /** [hudWay] label of the gateway-less path (#301, Amap adapter to the cluster card); not a way from settings. */
     const val WAY_AMAP_CLUSTER = 10
 
+    /** Reads dropped because another app held a live route (sticky first-live-owner); zeroed by [reset]. */
+    @Volatile var foreignReadsDropped: Long = 0L
+        private set
+
+    /** True once the current owner stint's first dropped foreign read was traced: one line per stint. */
+    private var conflictTraced = false
+
     /** Trace id of the last guidance-off line: the cause a disarm that follows it links to. */
     @Volatile var lastOffTraceId: Long = 0L
         private set
 
     /** Returns a deactivated copy with PNG/camera fields cleared. Used in all places
-     *  where active is set to false so HUD/agent never see a stale camera overlay. */
-    private fun deactivated(s: Snapshot): Snapshot = s.copy(
-        active = false,
-        maneuverPng = null,
-        cameraAlert = "",
-        cameraDistanceMeters = 0,
-        cameraIconPng = null,
-    )
+     *  where active is set to false so HUD/agent never see a stale camera overlay.
+     *  A route of another app keeps nothing but [Snapshot.lastUpdateMs] (the ended route's duration
+     *  in [routeSummary]): Yandex's partial reads merge into whatever the hub holds, so a left-over
+     *  Waze or Google field would surface in the next Yandex route. A Yandex route's fields stay, as before. */
+    private fun deactivated(s: Snapshot): Snapshot = if (s.owner != NavAppId.YANDEX) {
+        Snapshot(lastUpdateMs = s.lastUpdateMs)
+    } else {
+        s.copy(
+            active = false,
+            maneuverPng = null,
+            cameraAlert = "",
+            cameraDistanceMeters = 0,
+            cameraIconPng = null,
+            owner = NavAppId.NONE,
+        )
+    }
 
     // @Synchronized because expiry writes back: an unsynchronized write here could
     // clobber a concurrent update() with a stale copy.
     @Synchronized
     fun snapshot(nowMs: Long = System.currentTimeMillis()): Snapshot {
         var s = current
-        if (s.active && nowMs - s.lastUpdateMs > ACTIVE_TIMEOUT_MS) {
+        if (s.active && nowMs - s.lastUpdateMs > timeoutFor(s.owner)) {
             val ended = s
             s = deactivated(s)
             current = s
-            Log.i(TAG, "guidance inactive: no source updated for ${ACTIVE_TIMEOUT_MS / 1000}s")
+            Log.i(TAG, "guidance inactive: no source updated for ${timeoutFor(s.owner) / 1000}s")
             traceOff(OFF_SILENCE, ended, nowMs)
         }
         if (s.speedLimit > 0 && nowMs - s.speedLimitMs > SPEED_LIMIT_TIMEOUT_MS) {
             s = s.copy(speedLimit = 0)
+            current = s
+        }
+        if (nonYandexDetailsExpired(s, nowMs)) {
+            s = s.copy(maneuverGaode = 0, maneuverGaodeMs = 0L, distanceMeters = 0,
+                maneuverPng = null, maneuverSource = "", maneuverRaw = "")
             current = s
         }
         // A maneuver is never overwritten by a "no maneuver" read (the field-wise merge
@@ -164,12 +186,84 @@ object NavGuidanceHub {
         return maneuverExpiryArmed || !s.active
     }
 
+    private fun nonYandexDetailsExpired(s: Snapshot, nowMs: Long): Boolean {
+        if (!s.active || s.owner == NavAppId.YANDEX) return false
+        if (nowMs - s.lastUpdateMs <= 10_000L) return false
+        return s.maneuverGaode > 0 || s.distanceMeters > 0
+    }
+
     /** The stored active flag as it is, without applying any expiry: for field diagnostics that
      *  must not write hub state the way [snapshot] does. */
     fun isActiveNow(): Boolean = current.active
 
+    /** True only while this app owns a live route. Used to stop Yandex diagnostics touching another app. */
+    fun isOwnedBy(owner: NavAppId): Boolean = current.active && current.owner == owner
+
+    /** Test/internal seam for future parser adapters. It intentionally is not called by production
+     * Google Maps or Waze inputs in this milestone. */
+    @Synchronized
+    fun publishForTest(owner: NavAppId, read: NavRead, nowMs: Long = System.currentTimeMillis()) {
+        publish(owner, read, nowMs)
+    }
+
+    /** App-aware complete-read path. A non-Yandex read must prove guidance with an arrow or a
+     * positive maneuver distance; once accepted it atomically replaces every old field. */
+    @Synchronized
+    fun publish(owner: NavAppId, read: NavRead, nowMs: Long = System.currentTimeMillis()) {
+        if (owner == NavAppId.NONE) return
+        if (owner == NavAppId.YANDEX) {
+            update(NavGuidance(read.maneuverGaode, read.distanceMeters, read.road, read.etaSeconds,
+                read.totalDistMeters, read.speedLimit), Source.A11Y, nowMs)
+            return
+        }
+        if (read.maneuverGaode <= 0 && read.distanceMeters <= 0) return
+        if (foreignOwnerLive(owner, nowMs)) {
+            countForeignDrop(owner, nowMs)
+            return
+        }
+        val old = current
+        val handover = old.active && old.owner != owner
+        if (!old.active) {
+            traceOnOwner(owner, nowMs)
+        } else if (handover) {
+            traceOwnerChange(old.owner, owner)
+            stats.reset(nowMs)
+        } else {
+            stats.refreshed(nowMs - old.lastUpdateMs)
+        }
+        current = Snapshot(
+            active = true, maneuverGaode = read.maneuverGaode, maneuverGaodeMs = nowMs,
+            distanceMeters = read.distanceMeters, road = read.road, etaSeconds = read.etaSeconds,
+            totalDistMeters = read.totalDistMeters, speedLimit = read.speedLimit,
+            speedLimitMs = if (read.speedLimit > 0) nowMs else 0L, lastUpdateMs = nowMs, owner = owner,
+        )
+        maneuverExpiryArmed = false
+        nextStreet = ""
+        distanceSource = null
+    }
+
+    /** A parser's explicit reroute clears the old maneuver immediately, but not route ownership. */
+    @Synchronized
+    fun reroute(owner: NavAppId, nowMs: Long = System.currentTimeMillis()) {
+        val s = current
+        if (!s.active || s.owner != owner) return
+        current = s.copy(maneuverGaode = 0, maneuverGaodeMs = 0L, distanceMeters = 0,
+            maneuverPng = null, maneuverSource = "", maneuverRaw = "", lastUpdateMs = nowMs)
+        maneuverExpiryArmed = false
+    }
+
+    /** End only the route selected by [owner]. A stale app callback cannot end another route. */
+    @Synchronized
+    fun end(owner: NavAppId, nowMs: Long = System.currentTimeMillis()) {
+        val s = current
+        if (!s.active || s.owner != owner) return
+        current = deactivated(s)
+        traceOff("ended", s, nowMs)
+    }
+
     @Synchronized
     fun update(data: NavGuidance, source: Source, nowMs: Long = System.currentTimeMillis()) {
+        if (!takeYandexOwnership(data, nowMs)) return
         val prev = dropOnDistanceJump(
             dropOnStreetChange(current, data.maneuverGaode, if (data.roadIsNextStreet) data.road else "", source),
             data.maneuverGaode, data.distanceMeters, source, nowMs,
@@ -183,21 +277,87 @@ object NavGuidanceHub {
         }
         if (source == Source.A11Y) stats.a11yGuidance++
         countRead(prev, data.maneuverGaode, data.distanceMeters)
-        current = prev.copy(
-            active = true,
-            maneuverGaode = if (data.maneuverGaode > 0) data.maneuverGaode else prev.maneuverGaode,
-            maneuverGaodeMs = if (data.maneuverGaode > 0) nowMs else prev.maneuverGaodeMs,
-            maneuverSource = if (data.maneuverGaode > 0) source.label() else prev.maneuverSource,
-            maneuverRaw = if (data.maneuverGaode > 0) data.maneuverRaw else prev.maneuverRaw,
-            distanceMeters = if (data.distanceMeters > 0) data.distanceMeters else prev.distanceMeters,
-            road = data.road.ifEmpty { prev.road },
-            etaSeconds = if (data.etaSeconds > 0) data.etaSeconds else prev.etaSeconds,
-            totalDistMeters = if (data.totalDistMeters > 0) data.totalDistMeters else prev.totalDistMeters,
-            speedLimit = if (data.speedLimit > 0) data.speedLimit else prev.speedLimit,
-            speedLimitMs = if (data.speedLimit > 0) nowMs else prev.speedLimitMs,
-            lastUpdateMs = nowMs,
-        )
+        current = mergedYandexSnapshot(prev, data, source, nowMs)
         if (source == Source.A11Y) lastA11yMs = nowMs
+    }
+
+    private fun mergedYandexSnapshot(
+        prev: Snapshot,
+        data: NavGuidance,
+        source: Source,
+        nowMs: Long,
+    ): Snapshot = prev.copy(
+        active = true,
+        owner = NavAppId.YANDEX,
+        maneuverGaode = if (data.maneuverGaode > 0) data.maneuverGaode else prev.maneuverGaode,
+        maneuverGaodeMs = if (data.maneuverGaode > 0) nowMs else prev.maneuverGaodeMs,
+        maneuverSource = if (data.maneuverGaode > 0) source.label() else prev.maneuverSource,
+        maneuverRaw = if (data.maneuverGaode > 0) data.maneuverRaw else prev.maneuverRaw,
+        distanceMeters = if (data.distanceMeters > 0) data.distanceMeters else prev.distanceMeters,
+        road = data.road.ifEmpty { prev.road },
+        etaSeconds = if (data.etaSeconds > 0) data.etaSeconds else prev.etaSeconds,
+        totalDistMeters = if (data.totalDistMeters > 0) data.totalDistMeters else prev.totalDistMeters,
+        speedLimit = if (data.speedLimit > 0) data.speedLimit else prev.speedLimit,
+        speedLimitMs = if (data.speedLimit > 0) nowMs else prev.speedLimitMs,
+        lastUpdateMs = nowMs,
+    )
+
+    /** A positive Yandex read may replace a foreign route that is no longer live; empty reads cannot,
+     *  and a live foreign route keeps the hub (the read is dropped and counted). */
+    private fun takeYandexOwnership(data: NavGuidance, nowMs: Long): Boolean {
+        val old = current
+        if (!old.active || old.owner == NavAppId.YANDEX) return true
+        if (data.maneuverGaode <= 0 && data.distanceMeters <= 0) return false
+        if (foreignOwnerLive(NavAppId.YANDEX, nowMs)) {
+            countForeignDrop(NavAppId.YANDEX, nowMs)
+            return false
+        }
+        takeFromStaleForeign(old, nowMs)
+        return true
+    }
+
+    /** Yandex starts over on a foreign route that went silent past its timeout but still reads
+     *  `active` (nothing called [snapshot] yet): the whole old snapshot goes, no field of it is merged in. */
+    private fun takeFromStaleForeign(old: Snapshot, nowMs: Long) {
+        traceOwnerChange(old.owner, NavAppId.YANDEX)
+        current = Snapshot(active = true, lastUpdateMs = nowMs, owner = NavAppId.YANDEX)
+        stats.reset(nowMs)
+        nextStreet = ""
+        distanceSource = null
+    }
+
+    /** A Yandex notification meets a foreign owner that is still `active`. True when the post must
+     *  go no further: a post without a maneuver or distance is a silent no-op (as before the sticky
+     *  rule), a positive one is dropped and counted while the owner is live. A positive post after the
+     *  owner's timeout takes the hub over as a whole and goes on (false). */
+    private fun foreignOwnerKeepsHub(rich: RichUpdate, nowMs: Long): Boolean {
+        val owned = current
+        if (!owned.active || owned.owner == NavAppId.YANDEX) return false
+        if (rich.maneuverGaode <= 0 && rich.distanceMeters <= 0) return true
+        if (foreignOwnerLive(NavAppId.YANDEX, nowMs)) {
+            countForeignDrop(NavAppId.YANDEX, nowMs)
+            return true
+        }
+        takeFromStaleForeign(owned, nowMs)
+        return false
+    }
+
+    /** Another app owns a route that is still live: `lastUpdateMs` against the owner's timeout,
+     *  `<=` as [snapshot]'s `>` expiry. Not `active`, which stays true after silence until [snapshot] runs. */
+    private fun foreignOwnerLive(newOwner: NavAppId, nowMs: Long): Boolean {
+        val s = current
+        return s.active && s.owner != NavAppId.NONE && s.owner != newOwner &&
+            nowMs - s.lastUpdateMs <= timeoutFor(s.owner)
+    }
+
+    /** A positive read from [app] that a live foreign owner kept off the hub: counted always,
+     *  traced once per owner stint. */
+    private fun countForeignDrop(app: NavAppId, nowMs: Long) {
+        foreignReadsDropped++
+        if (conflictTraced) return
+        conflictTraced = true
+        Trace.event(TraceArea.HUD, "owner-conflict", "owner" to current.owner.name, "dropped" to app.name)
+        Log.i(TAG, "foreign read dropped: ${current.owner} is live, ${app.name} kept off (at $nowMs)")
     }
 
     /**
@@ -208,6 +368,7 @@ object NavGuidanceHub {
      */
     @Synchronized
     fun updateFromNotification(rich: RichUpdate, nowMs: Long = System.currentTimeMillis()) {
+        if (foreignOwnerKeepsHub(rich, nowMs)) return
         // #170: the first player notification after Alice interrupts guidance often has
         // no navigation payload at all (extras fallback returns an all-empty RichUpdate).
         // Activating the hub on that carries no maneuver/distance, so displayDistance()
@@ -253,6 +414,7 @@ object NavGuidanceHub {
         )
         current = base.copy(
             active = true,
+            owner = NavAppId.YANDEX,
             lastUpdateMs = nowMs,
             cameraAlert = if (rich.applyCamera) rich.cameraAlert else prev.cameraAlert,
             cameraDistanceMeters = when {
@@ -320,10 +482,13 @@ object NavGuidanceHub {
      *  the donor counts such a read as guidance): refreshes the liveness of a route that is
      *  active and not yet expired; never starts or revives one, and touches no other field. */
     @Synchronized
-    fun keepAlive(nowMs: Long = System.currentTimeMillis()) {
-        maneuverExpiryArmed = true
+    fun keepAlive(nowMs: Long = System.currentTimeMillis()) = keepAlive(NavAppId.YANDEX, nowMs)
+
+    @Synchronized
+    fun keepAlive(owner: NavAppId, nowMs: Long = System.currentTimeMillis()) {
         val s = current
-        if (!s.active || nowMs - s.lastUpdateMs > ACTIVE_TIMEOUT_MS) return
+        if (!s.active || s.owner != owner || nowMs - s.lastUpdateMs > timeoutFor(s.owner)) return
+        if (owner == NavAppId.YANDEX) maneuverExpiryArmed = true
         stats.kept++
         stats.refreshed(nowMs - s.lastUpdateMs)
         current = s.copy(lastUpdateMs = nowMs)
@@ -333,11 +498,15 @@ object NavGuidanceHub {
      *  the guidance notification is gone and nothing refreshed the hub for
      *  ACTIVE_TIMEOUT_MS. Fresh state = no-op. */
     @Synchronized
-    fun deactivateFromNotificationGrace(nowMs: Long = System.currentTimeMillis()) {
-        maneuverExpiryArmed = true
+    fun deactivateFromNotificationGrace(nowMs: Long = System.currentTimeMillis()) =
+        deactivateFromNotificationGrace(NavAppId.YANDEX, nowMs)
+
+    @Synchronized
+    fun deactivateFromNotificationGrace(owner: NavAppId, nowMs: Long = System.currentTimeMillis()) {
         val s = current
-        if (!s.active) return
-        if (nowMs - s.lastUpdateMs < ACTIVE_TIMEOUT_MS) return
+        if (!s.active || s.owner != owner) return
+        if (nowMs - s.lastUpdateMs < timeoutFor(s.owner)) return
+        if (owner == NavAppId.YANDEX) maneuverExpiryArmed = true
         current = deactivated(s)
         Log.i(TAG, "guidance inactive: notification removed, grace expired")
         traceOff(OFF_NOTIF_GRACE, s, nowMs)
@@ -349,13 +518,16 @@ object NavGuidanceHub {
     /** NavA11yFeed: a navigator read without guidance. */
     @Synchronized
     fun countA11yNoGuidance() {
-        maneuverExpiryArmed = true
-        if (current.active) stats.a11yNoGuidance++
+        if (current.active && current.owner == NavAppId.YANDEX) {
+            maneuverExpiryArmed = true
+            stats.a11yNoGuidance++
+        }
     }
 
     /** NavA11yFeed: navigator events flow but no window can be read ([blind] true), or it reads again. */
     @Synchronized
     fun a11yBlind(blind: Boolean, nowMs: Long = System.currentTimeMillis()) {
+        if (current.active && current.owner != NavAppId.YANDEX) return
         a11yBlindNow = blind
         maneuverExpiryArmed = true
         if (!current.active) return
@@ -365,14 +537,19 @@ object NavGuidanceHub {
     /** The notification listener: a navigator post that carried nothing for the hub. */
     @Synchronized
     fun countNotifEmpty() {
-        maneuverExpiryArmed = true
-        if (current.active) stats.notifEmpty++
+        if (current.active && current.owner == NavAppId.YANDEX) {
+            maneuverExpiryArmed = true
+            stats.notifEmpty++
+        }
     }
 
     /** HudPushLoop: one guidance frame and its fireEvent rc. */
     @Synchronized
-    fun countFrame(rc: Int) {
-        if (current.active) stats.frame(rc)
+    fun countFrame(rc: Int) = countFrame(NavAppId.YANDEX, rc)
+
+    @Synchronized
+    fun countFrame(owner: NavAppId, rc: Int) {
+        if (current.active && current.owner == owner) stats.frame(rc)
     }
 
     /** The route-summary fields of the current route, or of the last one once it ended, as one
@@ -391,15 +568,30 @@ object NavGuidanceHub {
     }
 
     private fun traceOn(source: Source, nowMs: Long) {
+        conflictTraced = false
         stats.reset(nowMs)
         // A route that starts while the a11y feed is blind (guided by notifications) counts it from here.
         if (a11yBlindNow) stats.blind(nowMs)
         Trace.event(TraceArea.HUD, "guidance-on", "src" to source.label())
     }
 
+    private fun traceOnOwner(owner: NavAppId, nowMs: Long) {
+        conflictTraced = false
+        stats.reset(nowMs)
+        Trace.event(TraceArea.HUD, "guidance-on", "src" to owner.name.lowercase())
+    }
+
+    private fun traceOwnerChange(from: NavAppId, to: NavAppId) {
+        conflictTraced = false
+        Trace.event(TraceArea.HUD, "guidance-owner-change", "from" to from.name, "to" to to.name)
+    }
+
+    private fun timeoutFor(owner: NavAppId): Long = if (owner == NavAppId.YANDEX) ACTIVE_TIMEOUT_MS else 30_000L
+
     /** The route's end, then its summary linked to it; [ended] is the route's last active state. */
     @Suppress("SpreadOperator") // one copy per route
     private fun traceOff(reason: String, ended: Snapshot, nowMs: Long) {
+        conflictTraced = false
         val endMs = ended.lastUpdateMs
         val id = Trace.event(
             TraceArea.HUD, "guidance-off", "reason" to reason,
@@ -423,6 +615,8 @@ object NavGuidanceHub {
         nextStreet = ""
         distanceSource = null
         maneuverExpiryArmed = false
+        foreignReadsDropped = 0L
+        conflictTraced = false
         stats.reset(0L)
     }
 

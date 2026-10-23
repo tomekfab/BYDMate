@@ -57,8 +57,8 @@ class AgentToolsRangeToDestTest {
     private fun call(name: String, args: String) = AgentToolCall("1", name, args)
 
     @Test fun range_to_dest_enough_when_range_exceeds_distance() = runTest {
-        // GPS Минск (53.9, 27.56), назначение geocode -> Орша (54.508, 30.42): ~198 км прямой,
-        // ~247 км с коэффициентом 1.25. range 400 км -> enough=true.
+// Origin (53.9, 27.56), geocoded destination (54.508, 30.42): about 198 km direct,
+// about 247 km with the 1.25 factor. Range 400 km -> enough=true.
         tools.locationProvider = { 53.9 to 27.56 }
         coEvery { places.getAllSnapshot() } returns emptyList()
         coEvery { weather.geocode("Орша") } returns
@@ -88,15 +88,15 @@ class AgentToolsRangeToDestTest {
     }
 
     @Test fun range_to_dest_prefers_saved_place_over_geocode() = runTest {
-        // Place "Дача" (54.2, 28.3) in the repository -> geocode is never called.
+// A saved place at (54.2, 28.3) prevents a geocoder call.
         tools.locationProvider = { 53.9 to 27.56 }
         coEvery { places.getAllSnapshot() } returns listOf(
-            PlaceEntity(name = "Дача", lat = 54.2, lon = 28.3, radiusM = 100),
+            PlaceEntity(name = "Działka", lat = 54.2, lon = 28.3, radiusM = 100),
         )
         every { gate.vehicleSnapshot() } returns AgentToolsReadTest.snapshot(soc = 80, totalElec = 1000.0)
         coEvery { range.estimate(80, 1000.0) } returns 400.0
-        val out = JSONObject(tools.execute(call("range_to_destination", """{"destination":"дача"}""")))
-        assertEquals("Дача", out.getString("destination"))
+        val out = JSONObject(tools.execute(call("range_to_destination", """{"destination":"działka"}""")))
+        assertEquals("Działka", out.getString("destination"))
         coVerify(exactly = 0) { weather.geocode(any()) }
     }
 
@@ -110,9 +110,9 @@ class AgentToolsRangeToDestTest {
     @Test fun range_to_dest_unknown_destination_errors() = runTest {
         tools.locationProvider = { 53.9 to 27.56 }
         coEvery { places.getAllSnapshot() } returns emptyList()
-        coEvery { weather.geocode("Тьмутаракань") } returns
-            Result.failure(RuntimeException("город не найден"))
-        val out = JSONObject(tools.execute(call("range_to_destination", """{"destination":"Тьмутаракань"}""")))
+        coEvery { weather.geocode("Tmutarakań") } returns
+            Result.failure(RuntimeException("nie znaleziono miasta"))
+        val out = JSONObject(tools.execute(call("range_to_destination", """{"destination":"Tmutarakań"}""")))
         assertTrue(out.has("error"))
     }
 

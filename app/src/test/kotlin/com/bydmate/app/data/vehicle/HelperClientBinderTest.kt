@@ -508,7 +508,7 @@ class HelperClientBinderTest {
      * The daemon error branch writes the full protocol reply (status=-1, totalLength=0, empty chunk)
      * so the client reads status and returns ReadError — NOT BinderAbsent. Before Q4-1 fix the
      * daemon wrote only writeInt(-1); the client saw dataAvail()<8, returned null, and mapped to
-     * BinderAbsent ("демон недоступен") — the exact lie F-9 was written to eliminate.
+* BinderAbsent (daemon unavailable) — the exact lie F-9 was written to eliminate.
      */
     @Test
     fun `dumpFids returns ReadError when daemon replies status negative`() = runBlocking {

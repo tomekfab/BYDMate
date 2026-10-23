@@ -114,7 +114,7 @@ fun PostRestoreDialog(viewModel: PostRestoreViewModel) {
                                 stringResource(R.string.post_restore_download),
                                 tts,
                                 stringResource(R.string.settings_tts_download_failed),
-                            ) { viewModel.downloadTts(item.voiceId) }
+                            ) { viewModel.downloadTts() }
                         }
                     }
                     if (PostRestoreNotice.REBOOT in current.notices) {

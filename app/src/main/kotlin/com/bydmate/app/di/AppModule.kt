@@ -651,12 +651,12 @@ object AppModule {
         settingsRepository: SettingsRepository,
         helperBootstrap: com.bydmate.app.data.vehicle.HelperBootstrap,
         helperClient: com.bydmate.app.data.vehicle.HelperClient,
-        gigaAmModelManager: com.bydmate.app.voice.GigaAmModelManager,
+        polishModelManager: com.bydmate.app.voice.PolishModelManager,
         ttsModelManager: com.bydmate.app.voice.TtsModelManager,
     ): com.bydmate.app.data.backup.PostRestoreCheck = com.bydmate.app.data.backup.PostRestoreCheck(
         state = ctx.getSharedPreferences(com.bydmate.app.data.backup.PostRestoreCheck.PREFS_NAME, Context.MODE_PRIVATE),
         probes = com.bydmate.app.data.backup.AndroidPostRestoreProbes(
-            ctx, settingsRepository, helperBootstrap, helperClient, gigaAmModelManager, ttsModelManager,
+            ctx, settingsRepository, helperBootstrap, helperClient, polishModelManager, ttsModelManager,
         ),
     )
 

@@ -26,7 +26,7 @@ import org.robolectric.annotation.Config
 
 /**
  * R6: the picker title must reach the overlay view, and every title must be translated
- * in all four shipped locales (a missing values-xx entry silently falls back to Russian).
+ * in all four shipped locales (a missing values-xx entry silently falls back to Polish).
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29])
@@ -130,13 +130,13 @@ class SplitPickerTitleI18nTest {
 
     @Test fun `left and right titles are translated in every locale`() {
         val expectedLeft = mapOf(
-            "ru" to "Выберите приложение для левой панели",
+            "ru" to "Wybierz aplikację do lewego panelu",
             "en" to "Choose an app for the left pane",
             "pt" to "Escolha um aplicativo para o painel esquerdo",
             "zh" to "选择左侧分屏的应用",
         )
         val expectedRight = mapOf(
-            "ru" to "Выберите приложение для правой панели",
+            "ru" to "Wybierz aplikację do prawego panelu",
             "en" to "Choose an app for the right pane",
             "pt" to "Escolha um aplicativo para o painel direito",
             "zh" to "选择右侧分屏的应用",
@@ -169,11 +169,11 @@ class SplitPickerTitleI18nTest {
         )
         for (res in titles) {
             val ru = localized("ru").getString(res)
-            assertTrue("Russian title must not be blank", ru.isNotBlank())
+            assertTrue("Polish fallback title must not be blank", ru.isNotBlank())
             for (lang in listOf("en", "pt", "zh")) {
                 val text = localized(lang).getString(res)
                 assertTrue("[$lang] title must not be blank", text.isNotBlank())
-                assertTrue("[$lang] title falls back to the Russian string: $text", text != ru)
+                assertTrue("[$lang] title falls back to the Polish string: $text", text != ru)
             }
         }
     }

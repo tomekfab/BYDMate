@@ -15,7 +15,7 @@ class ButtonPressTriggerTest {
         assertEquals("button", t.param)
         assertEquals("==", t.operator)
         assertEquals("", t.chineseName)
-        assertEquals("Кнопка 3", t.displayName)
+        assertEquals("Przycisk 3", t.displayName)
         assertNull(t.placeId)
         assertNull(t.placeName)
     }

@@ -12,7 +12,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * «Переключить» moved from its own kind entry in the add-action list into the catalog,
+* Toggle moved from its own kind entry in the add-action list into the catalog,
  * next to each on/off pair. The stored row must not have moved with it: a rule saved by
  * v3.16 and a rule created by the new catalog have to be the same four fields.
  */
@@ -50,7 +50,7 @@ class ToggleCatalogCompatTest {
     }
 
     @Test fun `all targets are reachable — catalog plus the two control rows`() {
-        // Sentry and cluster projection have their own on/off rows, where «Переключить»
+// Sentry and cluster projection have their own on/off rows, where Toggle
         // is the third state instead of a catalog entry.
         val inCatalog = catalogToggles.mapNotNull { it.toggleTarget }.toSet()
         val onControlRows = setOf(ActionDispatcher.TOGGLE_SENTRY, ActionDispatcher.TOGGLE_CLUSTER)

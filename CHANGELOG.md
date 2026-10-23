@@ -1,1437 +1,1437 @@
 # Changelog
 
-Все заметные изменения BYDMate перечислены здесь.
+All notable BYDMate changes are documented here.
 
-Формат основан на [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/), версионирование следует [Semantic Versioning](https://semver.org/lang/ru/).
+The format is based on [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/), and versioning follows [Semantic Versioning](https://semver.org/lang/ru/).
 
-Полные релизы с APK: <https://github.com/AndyShaman/BYDMate/releases>.
+Full releases with APKs: <https://github.com/AndyShaman/BYDMate/releases>.
 
 ## [Unreleased]
 
 ## [4.0.1] - 2026-10-14
 
-### Новое
-- Готовый лог можно отправить в свой Telegram-бот: после остановки записи логов в настройках появляется кнопка «Отправить в Telegram», а с галочкой «Отправлять записанный лог в Telegram» лог уходит в бот сам, когда запись закончилась (#324).
+### Added
+- A completed log can be sent to your Telegram bot. After log recording stops, Settings shows a “Wyślij do Telegrama” button. With “Wyślij zapisany log do Telegrama” selected, the log is sent automatically when recording ends (#324).
 
-### Исправления
-- Ссылка «изменить» рядом с ценой топлива на Главной открывает экран тарифов, а не просто настройки (#184).
-- Магнитолы на Android 14: исправлена ошибка, из-за которой приложение не понимало часть ответов машины (#329).
-- Отчёт в Telegram «машина выключена» больше не приходит, когда машину заводят: если сесть в уже включённую машину и нажать тормоз и кнопку старта, приложение принимало этот момент за выключение и слало лишний отчёт. Теперь выключение определяется так же, как его определяет сама машина.
+### Fixed
+- The “edytuj” link next to the fuel price on Home opens the tariffs screen instead of general Settings (#184).
+- Android 14 head units: fixed an issue that prevented the app from understanding some vehicle responses (#329).
+- The “car is off” Telegram report no longer arrives when the car is started. If someone entered an already-on car and pressed the brake and Start button, the app treated that moment as shutdown and sent an extra report. Shutdown is now determined the same way as by the car itself.
 
 ## [4.0.0] - 2026-10-11
 
-### Новое
-- Гибриды DM-i и DM-o (Song Pro, Song Plus, Tang L, Seal U, Leopard 5, Leopard 7, Leopard 8, Sealion 06 и другие): приложение само понимает, что машина гибрид, по её же счётчикам, настроек и профилей для этого нет. На главной под шкалой заряда показывается запас хода на батарее от машины вместо нашего расчёта, появляется карточка «Топливо» с уровнем бака и запасом на топливе, по тапу подробности: обороты двигателя, пробег на ДВС и на батарее, литры за всё время. В виджете уровень бака и запас на топливе. В «Технике» обороты и карточка «Топливо». Расход за период считается как на приборке: л/100 и кВт·ч/100 на все километры. В поездках новая колонка «л», у поездки с бензином в колонке «/100» литры на 100 км, у электрической как раньше кВт·ч; литры берутся по счётчику машины на границах поездки, и если приложение не видело одну из границ, стоит прочерк, чужой бензин поездке не приписывается. Цена литра задаётся в тарифных периодах, как тариф на электричество: заправились дороже, добавьте период с даты заправки; стоимость поездки складывается из электричества и топлива. ABRP на гибриде получает мощность батареи, а не стрелку приборки; голосовой помощник и отчёт в Telegram знают про бак и запас на топливе. Поддержка первая: часть величин может показывать прочерк, пока не соберём дампы с разных машин. На электромобилях ничего не изменилось. Спасибо baileileicn и bolatbekb за дампы (#184).
-- Автоматизация и голосовой помощник: действия «Подогрев батареи: включить» и «выключить». Это тот же подогрев, что в штатном меню машины «Энергия», «Заряд и разряд»: он нужен, чтобы батарея быстрее заряжалась в мороз. Работает на электромобилях, у которых этот пункт есть в штатном меню. Машина сама не даёт его включить, если батарея тёплая или подключён зарядный кабель, и правило напишет причину. На машине в мороз ещё не проверено, ждём отзывов (#311).
-- Автоматизация и голосовой помощник: действия «Экран: выключить» и «Экран: включить». Гаснет только центральный экран: музыка и приложение продолжают работать, а касание экрана включает его снова. Пригодится, чтобы правило при закрытии машины гасило экран. На машинах пока не проверено (#275).
-- ABRP: вернулась настройка «Отправлять координаты в ABRP», по умолчанию выключена. Она для одного случая: следить за машиной в ABRP с телефона, когда ABRP в самой машине не запущен, например машину взял кто-то другой. Если ABRP открыт в машине, настройку лучше не включать: он берёт GPS сам, и метка на карте начинает прыгать между двумя источниками. Спасибо @ptuchik (#302).
+### Added
+- DM-i and DM-o hybrids (Song Pro, Song Plus, Tang L, Seal U, Leopard 5, Leopard 7, Leopard 8, Sealion 06, and others): the app identifies a hybrid from the car’s own counters; no setting or profile is required. On Home, the battery range reported by the car appears under the charge gauge instead of our estimate. A “Paliwo” card shows tank level and fuel range; tap for engine RPM, ICE and battery mileage, and lifetime litres. The widget also shows tank level and fuel range. “Pojazd” shows RPM and the “Paliwo” card. Period consumption is calculated like the instrument panel: l/100 and kWh/100 across all kilometres. Trips has a new “l” column. For petrol trips, the “/100” column shows litres per 100 km; for electric trips, it still shows kWh. Litres are read from the car’s counter at trip boundaries; if the app did not see a boundary, a dash is shown and another vehicle’s fuel is not attributed to the trip. Set the litre price in tariff periods, like the electricity tariff: if you refuel at a higher price, add a period from the refuelling date. Trip cost combines electricity and fuel. On a hybrid, ABRP receives battery power rather than the instrument-panel needle; the voice assistant and Telegram report know about the tank and fuel range. This is initial support: some values can show a dash until dumps from more cars are collected. Nothing changes for electric vehicles. Thanks to baileileicn and bolatbekb for the dumps (#184).
+- Automation and voice assistant: “Ogrzewanie baterii: włącz” and “wyłącz” actions. This is the same heating available in the car’s standard “Energia” > “Ładowanie i rozładowanie” menu; it helps the battery charge faster in frost. It works on electric vehicles that have this menu item. The car itself will not enable it if the battery is warm or a charging cable is connected, and the rule will state the reason. It has not yet been tested in a car during frost; feedback is welcome (#311).
+- Automation and voice assistant: “Ekran: wyłącz” and “Ekran: włącz” actions. Only the central screen turns off; music and the app keep running, and touching the screen turns it on again. A rule can use this to turn off the screen when the car is closed. It has not yet been tested in cars (#275).
+- ABRP: restored the “Wysyłaj współrzędne do ABRP” setting, disabled by default. It is for tracking the car in ABRP from a phone when ABRP is not running in the car, for example when someone else is using it. Do not enable this setting when ABRP is open in the car: it obtains GPS itself and the map marker starts switching between the two sources. Thanks to @ptuchik (#302).
 
-### Исправления
-- Облако BYD через Wi-Fi: если сервер BYD не пускает машину, строка под настройкой так и пишет и подсказывает, что нужен китайский VPN. Раньше это было неотличимо от «облако не ответило». Приложение теперь ждёт ответа облака до 30 секунд, а не 5. Подсказка к настройке исправлена: нужен Wi-Fi, а машинам на новых серверах BYD ещё и китайский VPN, лучше на роутере (#310).
-- Подсказки навигатора на приборке машин с DiLink 3.0: вместо «-1» теперь показываются расстояние до манёвра и остаток пути, а время в пути пишется как «3 min», без китайского знака «分» (#301).
-- Стрелка манёвра на HUD и приборке: после пройденного поворота больше не остаётся рядом с расстоянием до следующего манёвра, а на стоящей машине не пропадает, пока навигатор молчит (#294, #301).
-- Виджет на машинах, где приборка и проекционные экраны живут своими приложениями (Leopard 8, DiLink 5.1): их фоновые окна приложение принимало за смену приложения на центральном экране. Из-за этого виджет в режиме «только на главном экране» пропадал сам по себе, а без этого режима мог всплыть поверх YouTube или приложения из списка «скрывать в этих приложениях». Теперь смена приложения засчитывается, только когда его окно действительно видно на центральном экране; камера как раньше (#303).
+### Fixed
+- BYD Cloud over Wi-Fi: when the BYD server rejects the car, the text below the setting now says so and advises that a Chinese VPN is required. Previously this was indistinguishable from “chmura nie odpowiedziała”. The app now waits up to 30 seconds for the cloud response instead of 5. The setting hint is corrected: Wi-Fi is required, and cars on newer BYD servers also need a Chinese VPN, preferably on the router (#310).
+- Navigation prompts on the instrument panel in DiLink 3.0 cars: distance to the manoeuvre and remaining route are now shown instead of “-1”, and travel time is shown as “3 min”, without the Chinese sign “分” (#301).
+- The manoeuvre arrow on the HUD and instrument panel no longer remains next to the next-manoeuvre distance after a completed turn. In a stationary car, it remains until the navigator speaks again (#294, #301).
+- Widget on cars where the instrument panel and projection displays run in their own apps (Leopard 8, DiLink 5.1): the app treated their background windows as an app change on the central screen. As a result, the widget could disappear in “tylko na ekranie głównym” mode, or without that mode appear over YouTube or an app in the “ukryj w tych aplikacjach” list. An app change now counts only when its window is actually visible on the central screen; camera behaviour is unchanged (#303).
 
 ## [3.20.0] - 2026-10-08
 
-### Новое
-- Telegram-бот можно подключить к закрытой группе, а не только к личному чату: добавьте бота в группу и отправьте там `/start@имя_бота КОД`. Отчёты и копии данных тогда приходят всем в группе, например второму водителю (#307).
-- Автоматизация: температура климата, вентилятор, подогрев и обдув сидений, окна, холодильник и громкость настраиваются одной строкой с ползунком и кнопками «минус» и «плюс» вместо набора отдельных плиток. Температура от 16 до 33 °C (33 бывает на Seagull, спасибо BASM за PR #300), вентилятор 1–7, сиденья «выкл» и 1–5, окно 0–100 % шагом 10, холодильник от −6 до +6 °C на охлаждение и 35–50 °C на обогрев. Старые правила открываются в новом виде с прежним значением (#305).
-- Waze как навигатор для маршрутов: выбирается в Настройках, «Навигатор для маршрутов». Действие «Маршрут», голосовые команды и поиск по карте открывают его по прямой ссылке; если Waze не установлен, маршрут уходит в Яндекс Навигатор. Голосовой агент теперь ждёт именно то приложение, куда ушёл маршрут: раньше маршрут, построенный в 2ГИС, он считал несостоявшимся (#305).
-- Облако BYD через Wi-Fi: новая настройка под «Восстанавливать ADB» для машин с родной китайской SIM, у которых нет мобильной связи. Пока машина в Wi-Fi с интернетом, приложение BYD на телефоне видит её: приходят обновления по воздуху, работают NFC-ключ и управление с телефона. Машины со своей мобильной связью настройка не трогает, а при выключении приложение возвращает прежние настройки связи (#310).
+### Added
+- A Telegram bot can now be connected to a private group, not only a personal chat. Add the bot to the group and send `/start@nazwa_bota KOD`. Reports and data copies then reach everyone in the group, for example a second driver (#307).
+- Automation: climate temperature, fan, seat heating and ventilation, windows, refrigerator, and volume are configured in one row with a slider and “minus” and “plus” buttons instead of separate tiles. Temperature is 16–33 °C (33 is available on Seagull; thanks to BASM for PR #300), fan 1–7, seats “off” and 1–5, window 0–100% in steps of 10, refrigerator −6 to +6 °C for cooling and 35–50 °C for heating. Existing rules open in the new form with their previous value (#305).
+- Waze as the route navigator: select it in Settings under “Nawigator tras”. The “Trasa” action, voice commands, and map search open it by direct link; if Waze is not installed, the route goes to Yandex Navigator. The voice agent now waits for the app receiving the route; it previously treated a route built in 2GIS as failed (#305).
+- BYD Cloud over Wi-Fi: a new setting below “Przywróć ADB” for cars with a native Chinese SIM but no mobile connection. While the car has Wi-Fi internet, the BYD phone app can see it: OTA updates, NFC key, and phone control work. The setting does not affect cars with their own mobile connection and restores the previous connection settings when disabled (#310).
 
-### Исправления
-- Вывод 2ГИС на приборку из разделённого экрана: раньше, если 2ГИС перезапускался при переносе, приборка оставалась тёмной, вывод считался включённым, а после возврата 2ГИС снова оказывался в половине экрана, и так по кругу. Теперь приложение через 3 секунды проверяет, что 2ГИС действительно на приборке, иначе честно выключает вывод, а при возврате открывает приложение на весь экран (#288).
-- Камера слепых зон на Yuan Up (DiLink 3.0): приложение больше не считает камеру недоступной, когда её классы лежат в отдельном файле прошивки, а не в общем списке. Теперь оно подгружает их само; в журнале камеры видно, нашёлся ли этот файл (#299).
-- Действие «Медиа: играть» больше не будит штатный китайский плеер, который остался на паузе после того, как заиграло другое приложение, например радио. Если того приложения уже нет, действие честно отвечает «Нет запущенного плеера» (#275).
-- Голосовой агент с женским голосом больше не говорит «Выполнил» и «Не понял»: готовые фразы подтверждения теперь согласованы с выбранным полом помощника (#306).
-- Машины без HUD-шлюза (вывода на лобовое стекло нет, например DiLink 3.0): при включённой «Проекции на лобовое (HUD)» подсказки Яндекс Навигатора теперь идут в штатную карточку навигации на приборке. Раньше на таких машинах переключатель ничего не делал. Машины с HUD-шлюзом это не затрагивает, у них всё работает как прежде (#301).
+### Fixed
+- 2GIS output to the instrument panel from split screen: if 2GIS restarted during transfer, the panel stayed dark, output was still marked enabled, and on return 2GIS went back to half-screen. After 3 seconds, the app now verifies that 2GIS is on the panel; otherwise it disables output, and on return opens the app full-screen (#288).
+- Blind-spot camera on Yuan Up (DiLink 3.0): the app no longer treats the camera as unavailable when its classes are in a separate firmware file. It loads them automatically; the camera log shows whether the file was found (#299).
+- The “Media: play” action no longer wakes the native Chinese player left paused after another app, such as radio, began playing. If that app is no longer running, the action reports “Brak uruchomionego odtwarzacza” (#275).
+- A voice agent using a female voice no longer says male-form confirmations: predefined confirmation phrases now match the selected assistant gender (#306).
+- Cars without an HUD gateway (no windscreen output, for example DiLink 3.0): with “Projekcja na szybę (HUD)” enabled, Yandex Navigator prompts now go to the native navigation card on the instrument panel. This switch previously did nothing on these cars. Cars with an HUD gateway are unchanged (#301).
 
 ## [3.19.9] - 2026-10-06
 
-### Новое
-- HUD на лобовом стекле можно включать и выключать из автоматизации (действия «HUD: включить» и «HUD: выключить» в разделе «Свет») и голосом: «включи худ», «выключи худ», «включи проекцию на стекле», «выключи проекцию на лобовом». Работает и на ходу, например чтобы погасить HUD на тёмной дороге или по времени суток. На машине без HUD действие честно сообщит, что HUD нет (#292).
+### Added
+- Windscreen HUD can be enabled and disabled from automation (“HUD: włącz” and “HUD: wyłącz” in “Światła”) and by voice: “włącz HUD”, “wyłącz HUD”, “włącz projekcję na szybie”, or “wyłącz projekcję na szybie”. It works while driving, for example to turn off HUD on a dark road or by time of day. On a car without HUD, the action reports that HUD is unavailable (#292).
 
-### Исправления
-- Действия автоматизации «Медиа: пауза» и «Медиа: играть» больше не запускают штатный китайский плеер, когда ничего не играет, а при плеере на паузе управляют им (#275).
-- Вывод Навигатора на приборку из разделённого экрана: раньше, если Навигатор стоял в половине разделённого экрана, приборка оставалась тёмной, а вывод считался включённым. Теперь приложение переносит Навигатор на приборку отдельной командой, а если перенести не вышло, выключает вывод (#288).
-- Камера слепых зон теперь включается только вместе с поворотником и больше не работает постоянно на скорости: магнитола загружена меньше.
-- Вывод приложения на приборку кнопкой, когда приложение ещё не запущено: картинка на приборке больше не становится крупной после неудачного первого запуска, а окно приложения больше не остаётся куском на основном экране. Если приложение не удержалось на приборке, оно открывается на основном экране целиком, а вывод выключается.
+### Fixed
+- “Media: pause” and “Media: play” automation actions no longer start the native Chinese player when nothing is playing; when it is paused, they control it (#275).
+- Navigator output to the instrument panel from split screen: if Navigator occupied half the split screen, the panel stayed dark while output was marked enabled. The app now transfers Navigator to the panel with a separate command and disables output if the transfer fails (#288).
+- The blind-spot camera now activates only with a turn signal and no longer runs continuously while driving, reducing head-unit load.
+- When output to the instrument panel is requested before the app starts, the panel image no longer enlarges after a failed first start and the app window no longer remains partial on the main screen. If the app does not remain on the panel, it opens full-screen on the main screen and output is disabled.
 
 ## [3.19.8] - 2026-10-06
 
-### Новое
-- Плавающий виджет можно показывать только на главном экране: в остальных приложениях он прячется сам (#296).
+### Added
+- The floating widget can be shown only on the Home screen; it hides itself in other apps (#296).
 
-### Исправления
-- TRIP 1 и TRIP 2 попадают в отчёт в Telegram и без сброса: счётчик, который ни разу не сбрасывали, идёт с пометкой «за всё время», как на Главной. Раньше такой счётчик в отчёт не попадал, хотя галочка стояла.
-- Выбор валюты перенесён в Настройки, «Приложение», «Единицы и валюта», где его и ищут. Раньше он стоял в «Батарея и тарифы» (#293).
-- Android 10: правила «Запуск BYDMate» больше не срабатывают второй раз, когда приложение само перезапускается, чтобы заработали кнопки руля.
-- Трек на приборке теперь виден на машинах с новым интерфейсом приборки (Leopard 3 и другие после обновления): раньше карточка оставалась пустой. На остальных машинах ничего не меняется.
-- HUD на лобовом стекле: после смены улицы больше не держится старая стрелка, а у самого поворота не появляется китайская надпись вместо метров (#294).
-- Диагностический лог стал подробнее по подсказкам на лобовом стекле, приборке, автоматизации и кнопкам руля и при этом в разы меньше: меньше нагрузки на магнитолу во время записи.
+### Fixed
+- TRIP 1 and TRIP 2 are included in Telegram reports even without reset. A counter never reset is labelled “od początku”, as on Home. It previously did not appear in the report despite being selected.
+- Currency selection moved to Settings > “Aplikacja” > “Jednostki i waluta”, where users expect it; it was previously in “Bateria i taryfy” (#293).
+- Android 10: “Uruchom BYDMate” rules no longer run a second time when the app restarts itself to restore steering-wheel buttons.
+- The track is now visible on the instrument panel in cars with the new panel interface (Leopard 3 and others after update); the card was previously empty. Other cars are unchanged.
+- Windscreen HUD no longer keeps an old arrow after a street change, or shows Chinese text instead of metres at the turn (#294).
+- The diagnostic log has more detail on windscreen and instrument-panel prompts, automation, and steering-wheel buttons, while being much smaller and reducing head-unit load during recording.
 
 ## [3.19.7] - 2026-10-05
 
-### Новое
-- Трек на приборке показывается не только для Яндекса: название и исполнитель берутся из любого плеера, для которого штатная прошивка оставляет карточку пустой (Spotify, интернет-радио, моды Яндекс Музыки и другие). Свои плееры и Bluetooth прошивка по-прежнему заполняет сама. Переключатель переименован в «Трек на приборке». Спасибо @vladh91 (#289).
+### Added
+- The instrument-panel track is shown not only for Yandex: title and artist come from any player for which native firmware leaves the card empty (Spotify, internet radio, Yandex Music mods, and others). Native players and Bluetooth are still filled by the firmware itself. The switch is renamed “Utwór na zegarach”. Thanks to @vladh91 (#289).
 
-### Исправления
-- На гибридах в «Технике» вместо остатка 0 кВт·ч теперь прочерк, если машина этих данных не отдаёт.
-- Условие «Питание» убрано из автоматизаций: правила с ним почти никогда не срабатывали. Сохранённые правила переведены сами: «включено» и «движение» стали «Запуск BYDMate», а «Шторка при движении» ждёт передачу D. Правила, которые могли сработать только на выключенной машине, удалены. Шаблоны «Зимний старт» и «Летнее охлаждение» теперь срабатывают при запуске BYDMate.
-- Карточка музыки на приборке больше не мигает между играющим интернет-радио и Яндекс Музыкой на паузе и не показывает старый трек Яндекса с паузы, когда играет или только что играл другой плеер: пока никто не играет, карточка остаётся за последним плеером. Спасибо @vladh91 (#96, #289).
-- Пока открыт штатный обзор 360, камера слепых зон выключается и не нагружает головное устройство. Раньше она продолжала работать в фоне, и обзор 360 мог тормозить.
-- Режим проекции «Расширенный»: уменьшение картинки на приборке больше не отключается после одного случайного закрытия приложения. Приложение сначала запускается ещё раз с уменьшением, и только после повторного закрытия выводится без него.
-- Когда Яндекс Навигатор выведен на приборку, стрелка и расстояние на стекле теперь читаются и тогда, когда Навигатор перед поворотом показывает подсказку в другом виде. Раньше в эти минуты стрелка сбрасывалась и расстояние замирало (#199).
-- В описании настройки разделения экрана на треть и две трети теперь сказано, что штатная кнопка разделения по-прежнему делит экран пополам (#284).
+### Fixed
+- On hybrids, “Pojazd” now shows a dash instead of remaining 0 kWh when the car does not report this data.
+- The “Zasilanie” automation condition was removed because its rules almost never ran. Saved rules were migrated: “włączone” and “jazda” became “Uruchom BYDMate”, and “Roleta podczas jazdy” waits for gear D. Rules that could run only while the car was off were removed. “Zimowy start” and “Letnie chłodzenie” templates now run when BYDMate starts.
+- The instrument-panel music card no longer flickers between playing internet radio and paused Yandex Music, or shows an old paused Yandex track while another player is playing or has just played. When no player is playing, the card remains with the last player. Thanks to @vladh91 (#96, #289).
+- While native 360 view is open, the blind-spot camera turns off and does not load the head unit. It previously kept running in the background and could slow 360 view.
+- In “Rozszerzony” projection mode, shrinking the instrument-panel image is no longer disabled after one accidental app close. The app first restarts with shrinking; only a second close outputs without it.
+- When Yandex Navigator is on the instrument panel, the windscreen arrow and distance are now readable even when Navigator shows a different prompt form before a turn. Previously, the arrow reset and distance froze then (#199).
+- The description of one-third/two-thirds screen split now states that the native split button still divides the screen in half (#284).
 
 ## [3.19.6] - 2026-10-02
 
-### Новое
-- Название трека и исполнитель из Яндекс Музыки и из музыки в Яндекс Навигаторе (Алиса) показываются в карточке музыки на приборке. Раньше машина оставляла эту карточку пустой. Включается переключателем «Трек Яндекса на приборке» в Настройках, раздел «Дисплей», по умолчанию выключен. Спасибо @vladh91 (#272). В итоговом виде на машинах пока не проверено.
-- HUD, способ 3 передаёт машине больше. Кроме стрелки, метров и улицы он теперь сообщает оставшееся время и расстояние до конца маршрута и время прибытия, а стрелку, метры и улицу отправляет ещё и вторым путём. Если в способе 2 на стекле видны метры и улица, а стрелки нет, попробуйте способ 3. Способы 1 и 2 не изменились. На машинах пока не проверено.
-- HUD понимает больше манёвров Навигатора: подсказки на английском, номер съезда с кольца словами («второй съезд»), «круто влево», «плавно вправо», «кольцевая развязка» и другие. Манёвры, которые приложение понимало раньше, читаются так же. На машинах пока не проверено.
-- В лог записывается больше сведений о том, почему на стекле пропала подсказка или не появилась стрелка.
+### Added
+- Track title and artist from Yandex Music and music in Yandex Navigator (Alice) appear in the instrument-panel music card. The car previously left this card empty. Enable it with the “Utwór Yandex na zegarach” switch in Settings > “Wyświetlacz”; it is disabled by default. Thanks to @vladh91 (#272). The final result has not yet been verified in cars.
+- HUD method 3 sends more to the car. In addition to arrow, metres, and street, it now sends remaining route time and distance and arrival time; it also sends arrow, metres, and street by a second route. If method 2 shows metres and street but no arrow on the windscreen, try method 3. Methods 1 and 2 are unchanged. Not yet verified in cars.
+- HUD understands more Navigator manoeuvres: English prompts, a roundabout exit stated in words (“drugi zjazd”), “ostro w lewo”, “łagodnie w prawo”, “rondo”, and others. Existing supported manoeuvres are read as before. Not yet verified in cars.
+- Logs record more detail on why a windscreen prompt disappeared or an arrow did not appear.
 
-### Исправления
-- HUD не гаснет через 10 секунд после того, как приложение перестало видеть подсказку в окне Навигатора: теперь он ждёт до полутора минут. Из-за этого после отмены маршрута последнее расстояние и улица могут оставаться на стекле до полутора минут. На машинах пока не проверено (#199).
-- На машинах без сервисов Google уведомление Навигатора «Установите сервисы Google Play» больше не включает HUD без маршрута и не показывается на стекле вместо улицы (#198).
-- «Проверка HUD»: если проверка не запустилась или прервалась (идёт маршрут, машина едет, нет связи с машиной), приложение говорит об этом в отдельном окне и подсказывает, что сделать. Раньше об этом сообщала только мелкая строка под кнопкой.
+### Fixed
+- HUD no longer turns off 10 seconds after the app stops seeing a prompt in the Navigator window; it now waits up to 90 seconds. After route cancellation, the last distance and street can therefore remain on the windscreen for up to 90 seconds. Not yet verified in cars (#199).
+- On cars without Google services, the Navigator notification “Zainstaluj usługi Google Play” no longer enables HUD without a route or appears on the windscreen instead of the street (#198).
+- “Test HUD”: if the test does not start or is interrupted (route active, car moving, or no car connection), the app reports this in a separate window and explains what to do. Previously only small text below the button reported it.
 
 ## [3.19.5] - 2026-10-01
 
-### Новое
-- Отчёт в Telegram: по желанию счётчики TRIP 1 и TRIP 2 (отдельные галочки)
-- В одно правило автоматизации теперь можно добавить до 20 действий, раньше было до 10.
-- Новое действие автоматизации «Закрыть приложение»: правило полностью закрывает выбранное приложение. Маршрут или музыка, которые в нём не сохранены, при этом пропадут (#280).
-- Новые действия автоматизации «Медиа: играть» и «Медиа: пауза»: правило ставит на паузу или продолжает то, что играет в уже запущенном плеере. Если ни один плеер не запущен, шаг не выполнится и это будет видно в журнале. Чтобы запустить плеер, поставьте перед этим шагом «Запуск приложения» (#212, #275).
+### Added
+- Optional TRIP 1 and TRIP 2 counters in Telegram reports (separate checkboxes).
+- An automation rule can now contain up to 20 actions, increased from 10.
+- New “Zamknij aplikację” automation action: the rule fully closes the selected app. Any unsaved route or music in it is lost (#280).
+- New “Media: play” and “Media: pause” automation actions: a rule pauses or resumes what is playing in an already-running player. If no player is running, the step does not run and the log shows this. To start a player, put “Uruchom aplikację” before this step (#212, #275).
 
-### Исправления
-- HUD, способы 2 и 3: если приложение закрылось посреди маршрута, при следующем запуске оно снимает статус навигации и на тех машинах, где не смогло прочитать раскладку приборки. Раньше карточка навигации могла остаться на приборке поверх проекции.
-- HUD, способы 2 и 3: манёвр «плавно направо» показывается на приборке и стекле стрелкой направо. Раньше машина рисовала его как «плавно налево».
-- Вывод на приборку на машинах с Android 12, где приложение само не видит экран приборки (например, Han и Tang 2024): теперь этот экран находится. Раньше вывод сразу прерывался, потому что экран приборки не находился. На машинах пока не проверено (#199).
+### Fixed
+- HUD methods 2 and 3: if the app closed during a route, on its next start it now clears navigation status even on cars where it could not read the instrument-panel layout. The navigation card could previously remain over the projection.
+- HUD methods 2 and 3: the “łagodnie w prawo” manoeuvre now appears as a right arrow on the instrument panel and windscreen. The car previously drew it as “łagodnie w lewo”.
+- Instrument-panel output on Android 12 cars where the app cannot itself see the panel screen (for example Han and Tang 2024): the screen is now found. Output previously stopped immediately because it was not found. Not yet verified in cars (#199).
 
 ## [3.19.4] - 2026-09-30
 
-### Новое
-- Фразы «включи Яндекс Музыку», «запусти Яндекс Мьюзик» и просто «Яндекс Музыка» включают «Мою волну» сразу, без облачного помощника.
-- В настройках HUD вместо двух режимов теперь три способа вывода подсказок на стекло. Способ 1 стоит по умолчанию и работает как раньше: подсказки идут на стекло, приборку приложение не трогает. Способ 2 работает как прежний режим 2 и ещё передаёт стрелку, метры и улицу в карточку навигации на приборке, улица там пишется латиницей. Способ 3 пробный: всё как в способе 2, и ещё одним путём, которым по умолчанию пользуется OpenBYD. Способы 2 и 3 новые и на машинах пока не проверены. Когда маршрут заканчивается, способ меняется или HUD выключается, приложение убирает со стекла и приборки всё, что выводило.
-- В «Проверке HUD» появился четвёртый шаг с ещё одним способом вывода. На стекле по очереди появляются числа 111, 222, 333 и 444. В конце проверка спрашивает, какое число было видно, и сама выбирает способ. Если стекло ничего не показало, приложение попросит прислать лог.
+### Added
+- The Polish commands “włącz Yandex Music”, “uruchom Yandex Music”, and “Yandex Music” start “My Wave” directly, without the cloud agent.
+- HUD settings now provide three windscreen-guidance methods instead of two. Method 1 is the default and works as before: guidance goes to the windscreen and the app does not touch the instrument panel. Method 2 also sends the arrow, distance, and street (in Latin script) to the panel navigation card. Experimental method 3 adds the path OpenBYD uses by default. Methods 2 and 3 have not yet been tested in cars. The app clears all windscreen and panel output when a route ends, the method changes, or HUD is disabled.
+- HUD Check has a fourth step for the additional output method. The windscreen shows 111, 222, 333, and 444 in turn; the check asks which number was visible and selects the method. If nothing appeared, the app asks for a log.
 
-### Исправления
-- После «Проверки HUD» тестовое расстояние 333 м стирается со стекла так, как этого ждёт машина. Раньше на части автомобилей оно держалось на стекле до выключения машины. Стрелка на шаге с 333 м теперь тоже указывает налево, как и задумано.
-- Окно больше не опускается само после стоянки, когда машину снова включают. Повторные «проветрить» и «половина» срабатывают с первого раза: после каждой команды окну на часть приложение снимает её с машины так же, как штатный голосовой помощник BYD.
+### Fixed
+- After HUD Check, the test distance of 333 m is cleared from the windscreen as the car expects. It could remain until the car was switched off. The arrow at the 333 m step now also points left as intended.
+- A window no longer lowers itself after parking when the car is switched on again. Repeated Polish “wentylacja” and “połowa” commands now work first time: after every partial-window command, the app clears it from the car as the stock BYD voice assistant does.
 
 ## [3.19.3] - 2026-09-29
 
-### Новое
-- В настройках голосового агента появился переключатель «Закрывать агента после выполненной команды», по умолчанию он выключен. Когда он включён, после выполненной команды или ответа агент закрывается сам. Если агент задал вопрос, он дождётся ответа (#226).
-- Агента можно закрыть словами: «закрой агента», «выключись», «всё, спасибо, отдыхай». Просьба уходит модели, поэтому нужен интернет.
+### Added
+- Voice-agent settings now include the off-by-default “Close agent after a completed command” switch. When enabled, the agent closes after completing a command or replying; if it asks a question, it waits for the answer (#226).
+- The agent can be closed with Polish phrases such as “zamknij agenta”, “wyłącz się”, or “wszystko, dziękuję, odpocznij”. The request goes to the model, so it needs internet access.
 
-### Исправления
-- В запись логов попадает работа камер слепых зон: когда включали и выключали переключатель, когда приложение открывало и закрывало камеру и почему, какие события приходили от камеры. Там же видно, когда машина сообщала, что перестроение по поворотнику недоступно. Время в журнале камеры теперь показано обычными часами.
-- Повторная команда открыть окно на часть (проветривание, наполовину) теперь срабатывает и там, где машина раньше её пропускала, а стекло оставалось на месте.
-- Фразы «климат авто» и «климат в автомате» теперь переключают климат в автоматический режим, а не только включают его (#268).
-- После «Проверки HUD» тестовое название дороги теперь стирается со стекла и на машинах, которые раньше не выполняли стирание.
-- Вывод приложений и камер на приборку снова работает во время маршрута, как в 3.19.0. В карточке HUD появился выбор режима. Режим 1 стоит по умолчанию: подсказки идут на стекло, приборку приложение не трогает. Режим 2 на время маршрута переводит машину в режим навигации, его стоит попробовать, если в режиме 1 стекло пустое (#266).
-- Кнопка руля, назначенная только в автоматизации, снова работает после выключения и включения машины на магнитолах с Android 10 (#262).
-- На магнитолах с Android 10 виджет после включения машины больше не пропадает на полминуты: приложение возвращается за пару секунд.
+### Fixed
+- Log recordings now include blind-spot camera activity: switch changes, camera open and close events and reasons, received camera events, and lane-change-assist unavailability. Camera-journal times now use ordinary clock time.
+- Repeating a partial-window command (vent or half-open) now works where the car previously ignored it.
+- The Polish phrases “klimat auto” and “klimat automatyczny” now switch climate to automatic mode, rather than only turning it on (#268).
+- HUD Check now clears its test road name on cars that previously did not clear it.
+- App and camera projection to the instrument panel works again during a route, as in 3.19.0. The HUD card now offers a mode: default mode 1 leaves the panel untouched; mode 2 puts the car into navigation mode for the route and may help if mode 1 leaves the windscreen empty (#266).
+- A steering-wheel button assigned only to automation works again after an ignition cycle on Android 10 head units (#262).
+- On Android 10 head units, the widget no longer disappears for half a minute after the car starts; the app returns within seconds.
 
 ## [3.19.2] - 2026-09-29
 
-### Новое
-- Помощник сразу отвечает на простые вопросы о машине: какая температура снаружи и в салоне, какой заряд, какой запас хода и на сколько стоит климат. Ответ берётся из данных машины, поэтому звучит без задержки. Если машина не сообщает нужное значение, вопрос, как и раньше, уходит облачному помощнику.
+### Added
+- The assistant now answers simple vehicle questions immediately from car data: outside and cabin temperature, charge, range, and climate cost. If the car does not provide a value, the question still goes to the cloud assistant.
 
-### Исправления
-- Кнопка на руле, которая на одно нажатие шлёт два кода, теперь назначается на помощника целиком: приложение запоминает оба кода, первый запускает помощника, второй больше не достаётся штатному. Кнопку нужно назначить заново в настройках голоса.
-- В запись логов попадают все нажатия кнопок руля, в том числе те, которые приложение не перехватывает: по логу видно, какие коды шлёт кнопка.
-- Ключ OpenRouter сохраняется без случайных пробелов и переноса строки в начале и в конце, как у остальных подключений.
-- При выводе навигатора на приборку в логах больше не повторяется строка об освобождении старого экрана, которого давно нет (#259).
-- Шаг «Вывод на приборку» в автоматизации ждёт появления картинки до 15 секунд. Раньше он ждал 5 секунд и на медленном запуске навигатора сообщал об ошибке, хотя вывод срабатывал (#263).
-- Кнопка «Проверка HUD» переехала в настройки HUD, рядом с переключателем «Навигация на HUD». В описании сказано, что надписи на стекле во время проверки тестовые и пропадут после неё.
-- В настройках HUD появилось пояснение: пока ведётся маршрут, на приборке слева появляется стрелка навигации, это нормально.
-- После «Проверки HUD» в запись логов попадает, приняла ли машина очистку тестовых надписей.
-- В запись логов не попадают клавиши подключённой клавиатуры, которыми набирают текст: буквы, цифры и знаки. Кнопки руля, громкость и управление музыкой записываются как раньше.
-- В запись логов попадает, что именно запустило приложение и когда оно само перезапускалось, чтобы вернуть кнопку руля: по логу видно, почему после включения машины приложение стартовало с задержкой.
+### Fixed
+- A steering-wheel button that sends two key codes per press is now assigned to the assistant as one button. The app learns both codes; the first starts the assistant and the second no longer reaches the stock system. Reassign the button in Voice settings.
+- Log recordings now include every steering-wheel button press, including presses the app does not intercept, so the sent codes are visible.
+- OpenRouter keys, like other connection values, are saved without accidental leading or trailing whitespace and line breaks.
+- Logs no longer repeatedly report releasing a long-gone old screen when projecting a navigator to the instrument panel (#259).
+- The automation “Project to instrument panel” step now waits up to 15 seconds for an image. It previously waited 5 seconds and reported an error during a slow navigator launch even though projection worked (#263).
+- The HUD Check button moved to HUD settings beside the “Navigation on HUD” switch. Its description states that windscreen text during the check is temporary and disappears afterwards.
+- HUD settings now explain that the left side of the instrument panel shows a navigation arrow while a route is active.
+- After HUD Check, log recordings show whether the car accepted removal of the test text.
+- Log recordings exclude typing keys on a connected keyboard: letters, digits, and symbols. Steering-wheel buttons, volume, and music controls are recorded as before.
+- Log recordings now show what launched the app and when it restarted itself to restore the steering-wheel button, so delayed startup after ignition is visible.
 
 ## [3.19.1] - 2026-09-28
 
-### Новое
-- Отчёт в Telegram стал нагляднее: состояние машины, последняя поездка и открытые двери отдельными блоками, ссылка на карту в конце без большой карточки.
-- В отчёте в Telegram появился пробег машины. Он включён сразу, в том числе в уже настроенном отчёте при выключении; убрать его можно в списке «Что попадает в отчёт». В уже созданных автоматизациях пробег не добавляется сам.
-- Под отчётом с местом на карте теперь приходит ещё и точка: она открывается в картах на телефоне одним нажатием и приходит без звука. Ссылка на карту в самом отчёте осталась.
-- Запись логов теперь сохраняет и короткую историю того, что происходило в приложении до её начала: причину ошибки видно, даже если запись включили уже после неё.
-- Помощник находит зарядки рядом и по пути: в Беларуси он говорит, свободна ли станция сейчас, какая у неё мощность и цена, а в дороге ищет станции впереди по ходу движения. Выберите станцию, и помощник сразу построит до неё маршрут.
-- В настройках, в разделе «Авто и батарея», появился выбор разъёма для зарядки: GB/T, CCS2, Type2 или CHAdeMO. Помощник ищет зарядки с этим разъёмом.
-- В настройках, в разделе «Сервис и данные», появилась кнопка «Проверка HUD»: полторы минуты на лобовом стекле идут тестовые подсказки, маршрут не нужен. Включите запись логов, снимите стекло на видео и пришлите логи вместе с видео: так видно, какой способ вывода подсказок работает на вашей машине.
+### Added
+- Telegram reports now use separate blocks for vehicle state, last trip, and open doors, with an unexpanded map link at the end.
+- Telegram reports now include the odometer by default, including existing power-off reports. Remove it in “What is included in the report”; existing automations are unchanged.
+- A silent map pin now follows a location report and opens in phone maps with one tap. The report’s map link remains.
+- Log recording now retains a short pre-recording event history, so an earlier error cause is visible.
+- The assistant finds nearby and along-route chargers. In Belarus it reports availability, power, and price; select one to navigate to it.
+- Car & Battery settings now let you select GB/T, CCS2, Type2, or CHAdeMO; the assistant uses that connector when searching.
+- Service & Data now has HUD Check: it shows test guidance on the windscreen for 90 seconds without a route. Record logs, film the windscreen, and send both to identify the working method.
 
-### Исправления
-- В поездках за день и за неделю вместо пустого списка теперь написано, что поездок пока нет и текущая появится после завершения.
-- В списке поездок снова видно время окончания поездки: оно не помещалось в колонку и пропадало, особенно на крупном тексте.
-- Помощник включает подогрев и вентиляцию сиденья на первый уровень, если уровень не назван. Раньше он мог выбрать третий, а на машинах с двумя уровнями такая команда не проходила (#254).
-- Помощник снова слышит фразу, которую вы начинаете сразу после его ответа, без паузы. В 3.19.0 такая фраза могла пропасть целиком. Пока помощник говорит, он не слушает: перебить его по имени можно, пока он думает над ответом, а во время ответа уже нельзя.
-- Виджет и окно камеры слепых зон больше не пропадают, когда на экране появляется окно парковочных датчиков.
-- Помощник снова отвечает на вопрос «где я» и находит зарядки рядом: основной сервер карт перестал отвечать приложению, это исправлено. Если основной сервер перегружен, на вопрос «где я» помощник отвечает по запасному: называет населённый пункт и улицу, но без расстояния до центра.
-- На DiLink 3.0 и DiLink 4.0 помощник больше не теряет первые слова фразы. Сигнал начала звучит, когда помощник уже готов слушать, а до этого на экране видно «Думаю».
-- На DiLink 3.0 и DiLink 4.0 голос помощника звучит на громкости навигации: у него своя громкость, и громкость музыки из-за него больше не меняется.
-- На DiLink 3.0 и DiLink 4.0 переключатель «Отключить штатный голосовой помощник» отключает и штатное голосовое окно BYD, поэтому кнопка на руле больше не достаётся штатному помощнику. Вернуть всё обратно можно тем же переключателем.
-- После обновления приложение запускается само, открывать его вручную больше не нужно.
-- Перед отключением штатного голосового помощника приложение предупреждает: помощник отключается в системе машины, поэтому перед удалением BYDMate выключите этот переключатель. Там же написано, как вернуть помощника, если приложение уже удалено: после новой установки переключатель показывает, что помощник отключён, и его достаточно выключить.
-- Подсказки навигатора на лобовом стекле: пока идёт маршрут, приложение включает на машине режим навигации для HUD, а после маршрута возвращает всё как было.
-- Стрелка манёвра на лобовом стекле больше не пропадает через полминуты, если машина стоит на светофоре или в пробке, а навигатор всё ещё показывает поворот.
-- Проверка HUD останавливается, если машина тронулась: тестовые подсказки сразу пропадают со стекла, а настройки HUD возвращаются как были. Если проверку прервало выключение машины или в конце на приборке была открыта камера, прежний вид HUD возвращается сам, даже если «Навигация на HUD» выключена или на машине недоступна.
+### Fixed
+- Empty day and week trip lists now say there are no trips yet and the current trip appears after it ends.
+- Trip lists show the end time again at every text size.
+- Unqualified seat heat and ventilation commands use level 1 (#254).
+- The assistant again hears a phrase started immediately after its reply. Naming it can interrupt while it is thinking, not while it is speaking.
+- The widget and blind-spot-camera window no longer disappear behind the parking-sensor window.
+- “Where am I?” and nearby-charger search work again. When the primary map server is overloaded, the fallback reports locality and street without distance to the centre.
+- On DiLink 3.0/4.0, the ready tone now plays only when the assistant is ready to listen; “Thinking” is shown before that.
+- On DiLink 3.0/4.0, assistant speech uses navigation volume and no longer changes music volume.
+- On DiLink 3.0/4.0, “Disable stock voice assistant” also disables BYD’s stock voice window; use the same switch to restore it.
+- The app starts itself after an update.
+- Before disabling the stock assistant, the app explains how to restore it before uninstalling BYDMate or after reinstalling.
+- The app enables HUD navigation mode during a route and restores the previous state afterwards.
+- Windscreen manoeuvre arrows no longer vanish after 30 seconds while stopped at a light or in traffic.
+- HUD Check stops when the car moves, immediately removes test guidance, and restores HUD settings. It also restores the prior HUD state after an ignition interruption or an ending panel camera, even when HUD navigation is disabled or unavailable.
 
 ## [3.19.0] - 2026-09-27
 
-### Новое
-- Помощник отвечает на вопросы «где я» и «что рядом»: называет ближайшие деревни и города по карте, с расстоянием и стороной света. Если определить место не удалось, он так и говорит, а не придумывает названия.
-- Помощника можно перебить, пока он говорит: назовите его по имени в начале фразы, он замолчит и будет слушать. Остальное, что прозвучит во время его ответа, он пропускает.
-- Режим движения переключается из автоматизаций, голосом («режим эко», «спортивный режим», «режим снег») и через помощника: ЭКО, Норма и Спорт в любой момент, снег, песок, грязь, горы и умный режим на скорости до 15 км/ч. Приложение проверяет, что режим действительно сменился, и сообщает, если машина его не поддерживает. Вернулся шаблон «Эко при низком заряде» (#253).
-- Отчёт в Telegram при выключении машины: включается в Настройках, там же выбирается, что попадает в отчёт. Он уходит в первые секунды после выключения, а если связи нет, приходит при следующем включении. В автоматизациях появилось действие «Отправить отчёт в Telegram».
-- Обе камеры слепых зон можно показывать на приборке, главный экран остаётся свободным: настройка «Обе камеры на приборку» (#240).
-- Вкладка «Автоматизация» стала понятнее. Каждое правило написано словами, видно, когда оно сработало в последний раз и чем закончилось, у каждого правила свой журнал. Редактор условий и действий проще и с крупными кнопками, окно подтверждения больше и с полосой обратного отсчёта.
-- Разовое условие «Один раз: дата и время»: правило выполнится один раз и выключится само.
-- В условиях появились ремни задних пассажиров.
+### Added
+- The assistant answers “where am I?” and “what is nearby?” with mapped nearby villages and cities, distance, and direction; it says when it cannot determine a location.
+- Name the assistant at the start of a phrase to interrupt its speech and make it listen; speech spoken during its reply is ignored.
+- Drive mode can be changed from automations, Polish voice commands, and the assistant: ECO, Normal, and Sport anytime; Snow, Sand, Mud, Mountain, and Smart below 15 km/h. The app verifies the change and reports unsupported modes. The “Eco at low charge” template returns (#253).
+- Power-off Telegram reports can be enabled and configured in Settings. They send seconds after power-off, or at the next start without connectivity. Automations now include “Send Telegram report”.
+- “Both cameras on instrument panel” shows both blind-spot cameras on the panel and leaves the main screen free (#240).
+- Automation is clearer: rules are written out, show their last result, and have individual logs; the condition/action editor and confirmation dialog are larger and simpler.
+- The one-time “Date and time” condition runs a rule once, then disables it.
+- Conditions now include rear-passenger seat belts.
 
-### Исправления
-- Помощник знает текущее время. Раньше на вопрос «сколько времени» он мог уверенно ответить что угодно.
-- Если помощник уже не помнит начало долгого разговора, он говорит, что не помнит, а не утверждает, что такого вопроса не было.
-- Короткие фразы, которые помощник говорит перед долгим поиском, стали проще и звучат чище. Сохранённые записи онлайн-голоса один раз синтезируются заново.
-- У части поездок пропадала температура за бортом. Теперь она сохраняется и у поездок, которые приложение завершило при следующем включении (#250).
-- На машинах, где поездки записывает само приложение, поездка могла потеряться, если приложение перезапускалось в пути. Теперь начало поездки сохраняется надёжно.
-- Условие «Режим движения» в автоматизациях показывало «Внедорожный» там, где машина сообщает режим «Снег».
-- На Android 10 восстановление ADB после перезагрузки недоступно: в настройках это теперь сказано прямо, приложение не тратит время на попытки и подсказывает, как включить ADB по инструкции (#251).
-- Условие «Багажник» правильно различает открыт, закрыт и в движении.
-- Условие по ремню переднего пассажира на Leopard 3 срабатывало само по себе. Теперь оно читает тот же сигнал, что и лампа ремня на приборке.
-- Открытие окон, люка и багажника из автоматизаций, голосом и через помощника проверяет скорость в момент команды. Если скорость узнать не удалось, открытие не выполняется.
-- В логах для диагностики больше нет номеров телефонов, координат и ссылок из ваших правил.
+### Fixed
+- The assistant now knows the current time.
+- When it no longer remembers the start of a long conversation, it says so instead of denying the question existed.
+- Short phrases before a long search are simpler and clearer; saved online-voice clips are resynthesized once.
+- Outside temperature is retained for all trips, including trips closed at the next start (#250).
+- App-recorded trips no longer disappear if the app restarts during the journey.
+- The automation Drive Mode condition no longer labels Snow as Off-road.
+- Android 10 now clearly states that post-reboot ADB restoration is unavailable and points to the ADB guide (#251).
+- The Boot condition distinguishes open, closed, and moving.
+- The Leopard 3 front-passenger seat-belt condition reads the same signal as the panel indicator.
+- Opening windows, sunroof, and boot via automations, voice, or the assistant checks current speed and refuses if it cannot read it.
+- Diagnostic logs no longer contain phone numbers, coordinates, or links from your rules.
 
 ## [3.18.2] - 2026-09-25
 
-### Новое
-- Автоматизации можно расставить в своём порядке: долгое нажатие на правило поднимает его, дальше его можно перетащить на новое место. Работает и списком, и сеткой, порядок сохраняется (#249).
-- Плавающий виджет прячется, пока открыты настройки машины, и возвращается, когда их закрыли.
-- Голосовой помощник отвечает быстрее. При прямом подключении к MiniMax ответ начинает звучать раньше, не дожидаясь озвучки всей фразы. Связь с сервисами готовится уже при нажатии кнопки микрофона. Короткие фразы помощника с онлайн-голосом озвучиваются один раз и хранятся в памяти машины, заново после смены голоса или персоны.
-- Перед командами, которые выполняются дольше обычного, помощник говорит короткую фразу, чтобы не было паузы в тишине.
-- Для новых пользователей модель помощника по умолчанию Gemini 3.5 Flash Lite.
+### New
+- You can arrange automations in your preferred order: long-press a rule to lift it, then drag it to a new position. This works in both list and grid views, and the order is saved (#249).
+- The floating widget hides while vehicle settings are open and returns when they close.
+- The voice assistant responds faster. With a direct MiniMax connection, it starts speaking the reply before the whole sentence is synthesized. Service connections are prepared as soon as you press the microphone button. Short assistant phrases with the online voice are synthesized once and stored in vehicle memory; they are regenerated after you change the voice or persona.
+- Before commands that take longer than usual, the assistant says a short phrase to avoid a silent pause.
+- For new users, the default assistant model is Gemini 3.5 Flash Lite.
 
-### Исправления
-- Помощник на моделях Gemini отвечает примерно на секунду быстрее: убрана лишняя задержка на каждом вопросе.
-- Если модель вернула пустой ответ с ошибкой, помощник сам повторяет запрос.
-- Подсказка «ADB не включён» и шаг ADB в мастере первого запуска описывали включение через настройки Android, на машинах BYD так не работает. Теперь они ведут на инструкцию на GitHub и честно говорят, что без ADB доступна только история поездок. Справка о восстановлении ADB после перезагрузки больше не просит нажимать ALLOW вручную: при включённом восстановлении BYDMate подтверждает этот диалог сам.
-- Причины ошибок в автоматизациях (тестовый запуск, журнал правила, кнопка запуска у отдельного действия) показываются на языке интерфейса, раньше они всегда были по-русски (#242).
-- Периоды «Нед», «Мес» и «Год» на Главной, в Поездках и Зарядках теперь календарные: неделя с понедельника, месяц с 1-го числа, год с 1 января. Раньше неделя начиналась с того же дня недели, что сегодня, а месяц и год на Главной и в Поездках считались от сегодняшней даты.
-- Окно поездки: подписи групп заменены тонкими линиями, колонке цифр нужно меньше места и на крупном тексте её реже приходится прокручивать.
+### Fixed
+- The assistant on Gemini models responds about one second faster: an unnecessary delay on each question was removed.
+- If a model returns an empty response with an error, the assistant retries the request automatically.
+- The “ADB is not enabled” hint and the ADB step in the first-run wizard described enabling it through Android settings, which does not work in BYD vehicles. They now link to the GitHub instructions and clearly say that only trip history is available without ADB. The ADB-recovery help after a restart no longer asks you to press ALLOW manually: when recovery is enabled, BYDMate confirms this dialog itself.
+- Automation error reasons (test run, rule log, and the start button for an individual action) are shown in the interface language; they were previously always in Russian (#242).
+- The “Week”, “Month”, and “Year” periods on Home, Trips, and Charging are now calendar periods: the week starts on Monday, the month on the first day, and the year on 1 January. Previously, the week started on the same weekday as today, while the month and year on Home and Trips were calculated from today’s date.
+- Trip window: group labels were replaced with thin lines, the number column needs less space, and scrolling it is needed less often with large text.
 
 ## [3.18.1] - 2026-09-25
 
-### Новое
-- Главная: последних поездок всегда шесть на обычном и крупном тексте, список заканчивается вровень с карточками TRIP. Нижняя панель вкладок стала ниже, на всех экранах стало больше места.
-- Автоматизация: правила можно смотреть компактным списком или карточками в три колонки, переключатель в шапке, выбор запоминается. У каждого правила видно, сколько раз и когда оно срабатывало. Кнопки «Изменить», «Дублировать», «Поделиться» и «Удалить» крупные и с подписями, на узком экране подписи сменяются значками.
-- Поездки: окно поездки переделано. В шапке дата и день недели, есть кнопка закрытия. Карта стала уже, колонка цифр шире, строки собраны в группы: пробег, время, энергия, деньги, погода. Новое: одометр на старте и на финише, время в движении, стоимость на 100 км, изменение заряда в процентах и температура за бортом в начале и в конце. Одометр пишется только для новых поездок (#246).
+### New
+- Home: there are always six recent trips with normal and large text, and the list ends level with the TRIP cards. The bottom tab bar is shorter, leaving more space on every screen.
+- Automation: rules can be viewed as a compact list or three-column cards; the switch is in the header and your choice is remembered. Each rule shows how often and when it ran. The “Edytuj”, “Duplikuj”, “Udostępnij”, and “Usuń” buttons are large and labeled; on a narrow screen, labels change to icons.
+- Trips: the trip window was redesigned. Its header shows the date and weekday and includes a close button. The map is narrower, the number column is wider, and rows are grouped by distance, time, energy, money, and weather. New data: odometer at start and finish, driving time, cost per 100 km, charge change in percent, and outside temperature at the start and finish. The odometer is recorded only for new trips (#246).
 
-### Исправления
-- Триггер «Запуск BYDMate» срабатывает при каждом включении машины, в том числе после короткой остановки. Если приложение запустилось до включения экрана, срабатывание ждёт, пока экран включится.
-- Окно «Помощник BYDMate не запустился» подсказывает, где включить запись логов, вместо кнопки, которой нет в приложении.
-- Настройки → Виджет: если сплит выключен, а левое нажатие на виджет осталось в режиме сплита, его снова можно переключить на запуск приложения (#188).
-- Окна: на машинах, где положение стекла не читается, команда открыть окно на процент больше не отправляется повторно с поправкой на 1% (#242).
+### Fixed
+- The “Start BYDMate” trigger runs every time the vehicle starts, including after a short stop. If the app starts before the display turns on, the trigger waits for the display.
+- The “BYDMate assistant did not start” window shows where to enable log recording instead of a button that does not exist in the app.
+- Settings → Widget: if split mode is disabled and the widget’s left tap remains in split mode, you can switch it back to launch the app (#188).
+- Windows: on vehicles where the window position cannot be read, the command to open a window to a percentage is no longer repeated with a 1% adjustment (#242).
 
 ## [3.18.0] - 2026-09-24
 
-### Новое
-- Автоматизация и голос: действие «Подогрев руля» вкл/выкл и переключение (на машинах с подогревом руля; результат проверяется чтением состояния, на машине без подогрева действие честно сообщает об этом). Команда не проверена на реальной машине с подогревом, ждём отзывов
-- Техника: в «Лимитах BMS» добавлена строка «макс. мощность разряда» (та же цифра, что у диагностических сканеров), «доступная мощность батареи» осталась, подсказка объясняет, что все три числа читаются у BMS и чем они различаются (#241)
-- Строка состояния на Главной и в Настройках теперь показывает, почему не работает управление машиной: ADB не включён, ADB выключился после перезагрузки, нет доступа к ADB или не запустился помощник; по нажатию открывается подсказка с действием. В визарде первого запуска появился шаг «ADB» с проверкой подключения.
-- Настройки → Размер текста: обычный, крупный или очень крупный для экранов приложения и окон голосового агента (виджет и приборка не меняются).
-- Главная: счётчики TRIP 1 и TRIP 2 могут сбрасываться сами после зарядки: после любой, только AC, только DC или только после зарядки до 100%. Настройка своя у каждого счётчика и выбирается прямо в окне счётчика; ручной сброс долгим нажатием остаётся (#235).
-- Настройки → Конфигурация: одна кнопка «Сохранить конфигурацию» вместо экспорта CSV, экспорта конфигурации и ручного бэкапа. Можно выбрать, что сохранить: таблицы (поездки, зарядки), настройки машины и приложения вместе с тарифами, ключи и токены; ключи по умолчанию не сохраняются. Файл кладётся в Download, а если подключён Telegram-бот, копия уходит и туда. При восстановлении можно вернуть только нужные части, остальное останется как есть (#238).
-- Автосохранение по расписанию (ежедневно, еженедельно или ежемесячно) при запуске машины: в Download хранятся 5 последних копий, каждая приходит в ваш Telegram-бот, состав копии выбирается чипами (#237, #238).
-- Telegram-бот подключается по шагам: токен, код, готово; ошибки видны сразу под кнопкой.
-- У записи логов, регистратора датчиков и каталога fid'ов появились подсказки «?»: для чего это и как пользоваться.
-- После восстановления бэкапа на чистой установке приложение само возвращает право показывать виджет поверх других приложений, а что осталось (микрофон, контакты, модели голоса, перезагрузка магнитолы), показывает в одном окне
-- Автоматизация: кнопка «Места» переехала из Настроек в шапку экрана, рядом с «Журналом»; добавлять и править точки теперь можно прямо там
-- Автоматизацией можно поделиться: кнопка «Поделиться» на карточке и в редакторе сначала показывает, что попадёт в файл, и по «Продолжить» сохраняет правило в bydmate_rule_<имя>.json в Download и открывает системное окно «Поделиться», имя файла приходит всплывающим сообщением. Номера телефонов, имена контактов и привязки к вашим местам в файл не попадают. Из ссылок удаляются логин с паролем и параметры, похожие на ключи (token, api_key, sig и подобные; обычные параметры остаются); сам адрес проверьте перед отправкой. Ссылки javascript:, data:, пустые и адреса, которые не удалось разобрать, сохраняются пустыми. Тексты уведомлений и фраз, запросы агенту и точки маршрутов остаются, их стоит проверить перед отправкой
-- Кнопка «Импорт» добавляет автоматизацию из такого файла: сначала показывает правило с настоящими параметрами: «все условия» или «любое условие», а у действий номер и автодозвон, адрес ссылки, команда машине, текст запроса, куда на самом деле поведёт маршрут (домой, на работу, поиск или точка) и что будет после запуска («Поехали» обещается только там, где приложение нажмёт его само). Просит выбрать место и контакт, если их не нашлось, и по умолчанию добавляет правило выключенным. Правило со ссылкой, адрес которой нужно ввести заново, добавляется только выключенным, а если из ссылки удалены параметры, похожие на ключи, окно просит проверить адрес. Файлы с чрезмерной вложенностью или слишком длинными строками не принимаются
-- В редакторе автоматизации появилась кнопка «Тестовый запуск»: выполняет все действия сразу, не дожидаясь условия, и не засчитывает срабатывание. Открытие окон, люка и переднего багажника и отпирание дверей без свежих данных о скорости (не старше 10 секунд при работающем сервисе) пропускаются, нераспознанная команда пропускается с пояснением, закрытие редактора останавливает запуск
-- Голос: журнал голосовых команд теперь хранится между перезапусками и попадает в дамп с тем, что услышала магнитола, какой командой это стало и почему отказано
-- Голос: фраза автоматизации срабатывает, только когда сказана целиком; слова вроде «пожалуйста» не мешают
-- Голос: офлайн-команды теперь только на русском, английский словарь убран
-- Голос: встроенные команды теперь это закреплённый список частых русских фраз: окна и люк, подогрев и вентиляция сидений, руль, зеркала, климат, вентилятор, громкость, замки, багажник и свет. Фраза выполняется офлайн, только если сказана целиком и так, как в списке; вежливые слова вроде «пожалуйста» не мешают. Всё остальное уходит облачному агенту, если он включён, а без него получает ответ «не понял»
-- Голос: «режим проветривания» (можно с «включи») открывает все окна на проветривание и приподнимает люк, «выключи режим проветривания» закрывает окна и люк
-- Голос: окна и люк открываются на долю («наполовину», «на 50 процентов», «чуть-чуть», «полностью»); процент приводится к ближайшему поддерживаемому положению вниз, окно никогда не откроется шире названного
+### New
+- Automation and voice: an “Ogrzewanie kierownicy” action can turn the steering-wheel heating on, off, or toggle it (on vehicles with steering-wheel heating; the result is checked by reading its state, and on a vehicle without heating the action clearly reports this). The command has not been tested on a real vehicle with steering-wheel heating; feedback is welcome.
+- Technical: “maks. moc rozładowania” was added to “Limity BMS” (the same value shown by diagnostic scanners), “dostępna moc baterii” remains, and the hint explains that all three values are read from the BMS and how they differ (#241).
+- The status line on Home and in Settings now shows why vehicle control is unavailable: ADB is not enabled, ADB was disabled after a restart, ADB access is unavailable, or the assistant did not start; tapping it opens a hint with an action. The first-run wizard now has an “ADB” step that checks the connection.
+- Settings → Text size: normal, large, or extra large for app screens and voice-agent windows (the widget and instrument panel do not change).
+- Home: TRIP 1 and TRIP 2 counters can reset automatically after charging: after any session, AC only, DC only, or only after charging to 100%. Each counter has its own setting, selected directly in its window; long-press manual reset remains (#235).
+- Settings → Configuration: one “Zapisz konfigurację” button replaces CSV export, configuration export, and manual backup. You can select what to save: tables (trips, charging), vehicle and app settings with tariffs, and keys and tokens; keys are not saved by default. The file is placed in Download, and a copy is also sent there if a Telegram bot is connected. During restore, you can restore only the required parts and leave the rest unchanged (#238).
+- Scheduled automatic backup (daily, weekly, or monthly) when the vehicle starts: Download keeps the five latest copies, each is sent to your Telegram bot, and chips select the backup contents (#237, #238).
+- The Telegram bot connects step by step: token, code, done; errors appear directly under the button.
+- Log recording, the sensor recorder, and the FID catalog now have “?” hints that explain their purpose and use.
+- After restoring a backup on a clean installation, the app restores permission to show the widget over other apps and displays the remaining items (microphone, contacts, voice models, and head-unit restart) in one window.
+- Automation: the “Miejsca” button moved from Settings to the screen header next to “Dziennik”; you can now add and edit points there.
+- You can share an automation: the “Udostępnij” button on the card and in the editor first shows what will go into the file, then “Kontynuuj” saves the rule as bydmate_rule_<name>.json in Download and opens the system “Udostępnij” window; a toast shows the file name. Phone numbers, contact names, and links to your places are excluded. Links have logins with passwords and key-like parameters removed (token, api_key, sig, and similar; normal parameters remain); check the address before sending. javascript:, data:, empty, and unparseable links are saved empty. Notification text and phrases, agent requests, and route points remain and should be checked before sending.
+- The “Importuj” button adds an automation from this file: it first shows the rule with its actual parameters—“wszystkie warunki” or “dowolny warunek”—and, for actions, the number and auto-dial, link address, vehicle command, request text, where the route will actually go (home, work, search, or point), and what happens after it starts (“Jedziemy” is promised only where the app taps it itself). It asks you to select a place and contact if they were not found, and adds the rule disabled by default. A rule with a link whose address must be entered again is added only disabled; if key-like parameters were removed from the link, the window asks you to check the address. Files with excessive nesting or overly long lines are rejected.
+- The automation editor now has a “Test run” button: it executes all actions immediately without waiting for the condition and does not count the run. Opening windows, the sunroof, and the front trunk, and unlocking doors without fresh speed data (no older than 10 seconds while the service is running) are skipped; an unrecognized command is skipped with an explanation; closing the editor stops the run.
+- Voice: the voice-command log is now retained between restarts and included in the dump with what the head unit heard, the command it became, and why it was refused.
+- Voice: an automation phrase runs only when spoken in full; words such as “proszę” do not interfere.
+- Voice: offline commands are now only in Polish; the English vocabulary was removed.
+- Voice: built-in commands are now a fixed list of frequent Polish phrases: windows and sunroof, seat heating and ventilation, steering wheel, mirrors, climate, fan, volume, locks, trunk, and lights. A phrase runs offline only if spoken in full and exactly as in the list; polite words such as “proszę” do not interfere. Everything else goes to the cloud agent when it is enabled; without it, the response is “nie rozumiem”.
+- Voice: “tryb wietrzenia” (also with “włącz”) opens all windows for ventilation and raises the sunroof; “wyłącz tryb wietrzenia” closes the windows and sunroof.
+- Voice: windows and the sunroof open by a fraction (“do połowy”, “na 50 procent”, “odrobinę”, “całkowicie”); the percentage is rounded down to the nearest supported position, and a window never opens wider than stated.
 
-### Исправления
-- Голос: команда из списка уходила в облако, если предыдущий ответ агента заканчивался вопросом: шутка агента после выполненной команды открывала окно уточнения. Теперь окно уточнения открывается только на настоящий вопрос, когда агент спросил вместо действия
-- Окна: команда открыть окно на процент («проветрить», «наполовину») пропадала, если предыдущая команда этому окну была с тем же процентом: машина принимает запись, но стекло не трогается. Теперь, если стекло не сдвинулось, команда один раз повторяется со значением на 1% больше, и окно едет
-- Главная: список последних поездок показывает только те строки, что помещаются целиком, обрезанной нижней строки больше нет ни на одном размере текста
-- Значок подсказки «?» на Технике и в Настройках больше не выезжает из кружка на крупном тексте (векторная иконка вместо буквы)
-- Голос: словарь встроенных команд не загружался на машине (регулярное выражение загрузчика принималось JVM, но отвергалось движком Android), и все фразы уходили агенту; исправлено, в лог пишутся результат загрузки, самопроверка при старте и слова, для которых не нашлось команды
-- Виджет: если за поездку пока не насчитано ни одного кВт·ч, вместо «0,0 кВт·ч/100 км» показывается среднее прошлой поездки, как и при сбое счётчика BMS
-- Восстановление ADB: системный диалог «Разрешить отладку по Wi-Fi» теперь подтверждается автоматически, когда включён тумблер восстановления (на точках доступа телефона MAC-адрес меняется при каждом включении, и «Всегда разрешать» не помогало)
-- Техника: подсказки «Остаток» и «Здоровье батареи» объясняют, что обе цифры считает сама машина и почему они не сходятся между собой
-- Старые APK обновлений в папке Download удаляются при запуске приложения. Файл установленной версии и более новые остаются
-- Бэкап теперь включает тумблер восстановления ADB, слепые зоны, сплит и HUD; служебные метки проекции на приборку в него больше не попадают
-- Статусы и сообщения, которые формирует приложение в фоне (проверка Telegram-бота, запись логов, автоматизации, голос), теперь на языке приложения, а не системы
-- Автоматизация: правка выключенного правила больше не включает его, а сохранение правила, которое уже удалили, не создаёт его молча: приложение говорит «Правило уже удалено» и предлагает сохранить черновик как новое правило или закрыть редактор
-- Триггер «Запуск BYDMate» снова срабатывает после каждого включения машины: выключение машины запоминается по сигналу ACC_OFF, старт определяется по включению экрана планшета, а не по сну системы, и долгая пауза в обработке правил при включённом экране больше не запускает его посреди поездки (#177)
-- Голос: офлайн-команды работают при любом языке интерфейса, модель понимает русскую речь; сообщение «выберите язык: Русский» убрано
+### Fixed
+- Voice: a command from the list went to the cloud if the previous agent response ended with a question: an agent joke after a completed command opened the clarification window. The clarification window now opens only for a real question, when the agent asked instead of performing an action.
+- Windows: the command to open a window to a percentage (“ventilate”, “halfway”) disappeared if the previous command for that window had the same percentage: the vehicle accepted the write but the glass did not move. If the glass does not move, the command is now repeated once with a value 1% higher, and the window moves.
+- Home: the recent-trip list shows only fully visible rows; there is no longer a cut-off bottom row at any text size.
+- The “?” hint icon in Technical and Settings no longer protrudes from its circle with large text (a vector icon is used instead of a letter).
+- Voice: the built-in command vocabulary did not load on the vehicle (the loader’s regular expression was accepted by the JVM but rejected by the Android engine), so all phrases went to the agent; this is fixed, and the log records the load result, startup self-check, and words for which no command was found.
+- Widget: if no kWh has yet been counted for the trip, the previous trip’s average is shown instead of “0.0 kWh/100 km”, as it is when the BMS counter fails.
+- ADB recovery: the system “Allow Wi-Fi debugging” dialog is now confirmed automatically when the recovery toggle is enabled (on phone hotspots the MAC address changes at every activation, so “Always allow” did not help).
+- Technical: the “Remaining” and “Battery health” hints explain that the vehicle calculates both values itself and why they do not match.
+- Old update APKs in the Download folder are removed when the app starts. The installed version’s file and newer files remain.
+- Backup now includes the ADB-recovery toggle, blind spots, split mode, and HUD; internal projection markers for the instrument panel are no longer included.
+- Statuses and messages generated by the app in the background (Telegram-bot check, log recording, automations, and voice) are now in the app language rather than the system language.
+- Automation: editing a disabled rule no longer enables it, and saving a rule that was already deleted no longer recreates it silently: the app says “Rule already deleted” and offers to save the draft as a new rule or close the editor.
+- The “Start BYDMate” trigger runs again after every vehicle start: vehicle shutdown is recorded by the ACC_OFF signal, startup is determined by the tablet display turning on rather than system sleep, and a long pause in rule processing while the display is on no longer starts it mid-trip (#177).
+- Voice: offline commands work with any interface language; the model understands Polish speech, and the “choose language: Polish” message was removed.
 
 ## [3.17.5] - 2026-09-22
 
-### Новое
-- Мастер первого запуска: первым шагом выбирается язык приложения, дальше только ёмкость батареи, валюта и два базовых тарифа (дом и быстрая зарядка), автозапуск последним шагом (#227)
+### New
+- First-run wizard: select the app language first, then only battery capacity, currency, and two base tariffs (home and fast charging); autostart is the final step (#227).
 
-### Исправления
-- Настройки: восстановление из резервной копии снова работает на DiLink 3.0. Вместо системного выбора файла приложение само показывает список своих архивов из папки «Загрузки» (#223)
-- Автоматизации: правило с триггером «Запуск BYDMate» больше не срабатывает повторно, когда система перезапускает приложение посреди поездки; при этом оно снова срабатывает после реального включения машины, даже если приложение пережило сон (#177)
-- Батарея: «Полных циклов» на экранах «Техника» и «Зарядки» считается с поправкой на состояние батареи (SoH); подпись показывает, на какую ёмкость делили (#224)
-- Диагностика: в лог пишется каждый кадр, отправленный на HUD при смене манёвра, с кодом ответа прошивки; раньше по одному логу нельзя было понять, ушли ли кадры на стекло (#198)
+### Fixed
+- Settings: restoring from a backup works again on DiLink 3.0. Instead of the system file picker, the app shows its own archives from the “Pobrane” folder (#223).
+- Automations: a rule with the “Start BYDMate” trigger no longer runs again when the system restarts the app mid-trip; it still runs again after an actual vehicle start, even if the app survived sleep (#177).
+- Battery: “Full cycles” on the Technical and Charging screens is calculated with battery health (SoH) taken into account; the label shows the capacity used for the division (#224).
+- Diagnostics: the log records every frame sent to the HUD when the maneuver changes, with the firmware response code; previously a single log could not show whether frames reached the windshield (#198).
 
 ## [3.17.4] - 2026-09-20
 
-### Новое
-- Остаток энергии батареи в кВт·ч по данным BMS
-- В дамп диагностики добавлена проба параметров ДВС для гибридов (#184)
+### New
+- Remaining battery energy in kWh from BMS data.
+- A sample of internal-combustion-engine parameters for hybrids was added to the diagnostic dump (#184).
 
-### Исправления
-- Загрузка модели распознавания речи больше не выглядит зависшей на 99%. Распаковка архива теперь отдельный этап со своим прогрессом и подписью «Распаковка…»: на DiLink 3 она честно занимает несколько минут, раньше всё это время полоса стояла на 99% без единого признака жизни
-- Перед загрузкой модели проверяется свободное место. Если его мало, приложение сразу скажет, сколько нужно и сколько есть, вместо того чтобы качать 226 МБ и упасть с невнятной ошибкой в самом конце
-- Слепые зоны: теги камер запрашиваются у самой прошивки, если известные не подошли; журнал поиска камеры в дампе
-- Слепые зоны: при ошибке камеры пауза 3 с держится, пока поворотник зажат (окна больше не мигают); на машине без камер окна не показываются
+### Fixed
+- Downloading the speech-recognition model no longer looks stuck at 99%. Archive extraction is now a separate stage with its own progress and “Rozpakowywanie…” label: on DiLink 3 it genuinely takes several minutes, whereas the bar previously stayed at 99% throughout without any sign of activity.
+- Free space is checked before downloading a model. If there is too little, the app immediately says how much is required and available instead of downloading 226 MB and failing with an unclear error at the end.
+- Blind spots: camera tags are requested from the firmware itself if known tags do not work; the camera-search log is in the dump.
+- Blind spots: after a camera error, the 3-second pause remains while the turn signal is held (windows no longer flicker); windows are not shown on vehicles without cameras.
 
 ## [3.17.3] - 2026-09-18
 
-### Исправления
-- Слепые зоны: камера снова открывается на машинах, где прошивка держит скорость под другим адресом (Song с DiLink 4.0). Раньше на таких машинах она молчала и ничего не писала в лог
-- Батарея: «Полных циклов» теперь считается по счётчику BMS, а не по зарядкам, записанным приложением, и строка переехала в карточку «Батарея · история». У машины с большим пробегом цифра была занижена в разы
-- Окна: правое заднее окно на DiLink 3.0 (Yuan UP) снова читается, адрес из каталога прошивки больше не отбрасывается
+### Fixed
+- Blind spots: the camera opens again on vehicles where the firmware keeps speed at a different address (Song with DiLink 4.0). Previously it stayed silent and wrote nothing to the log on these vehicles.
+- Battery: “Full cycles” is now calculated from the BMS counter rather than charging sessions recorded by the app, and the row moved to the “Battery · history” card. The value was underestimated several times on vehicles with high mileage.
+- Windows: the right rear window on DiLink 3.0 (Yuan UP) can be read again; its address from the firmware catalog is no longer discarded.
 
 ## [3.17.2] - 2026-09-18
 
-### Исправления
-- Автоматизации: при выборе значения из списка (передача, поворотник и другие) выбранный оператор больше не сбрасывается на «равно»
-- Голос: правило, запущенное голосом, больше не обрывается, когда исчезает окно ассистента; пауза и действия после неё выполняются до конца, ассистент отвечает «Выполняю» в начале
-- Диагностика: в дампе появился блок «слепые зоны» (включено, порог скорости, взведено и почему, последний поворотник)
-- Поездки: температура за бортом на старте и на финише теперь сохраняется у поездок из бортовой базы машины (Leopard 3 и другие машины с energydata); раньше она не записывалась, и экран «Расход и температура» не набирал поездок
+### Fixed
+- Automations: when selecting a value from a list (gear, turn signal, and others), the selected operator no longer resets to “equals”.
+- Voice: a rule started by voice no longer stops when the assistant window disappears; the pause and subsequent actions complete, and the assistant says “Wykonuję” at the start.
+- Diagnostics: the dump now contains a “blind spots” block (enabled, speed threshold, armed state and reason, last turn signal).
+- Trips: outside temperature at the start and finish is now saved for trips from the vehicle’s onboard database (Leopard 3 and other vehicles with energydata); it was previously not recorded, so the “Consumption and temperature” screen had no trips.
 
 ## [3.17.1] - 2026-09-17
 
-### Новое
-- Настройки: в «Навигатор для маршрутов» добавлены Яндекс Карты. Голосовые маршруты, поиск и точки без слова «в картах» идут в выбранное приложение (#200)
+### New
+- Settings: Yandex Maps was added to “Navigator for routes”. Voice routes, searches, and points without the words “in Maps” go to the selected app (#200).
 
-### Исправления
-- Автоматизации: правила на передачу, поворотники, двери, окна, багажники, ремни и другие датчики проверяются в момент события от машины, а не по опросу; аварийка на заднюю передачу включается без задержки до 5 секунд
-- Настройки: «Тарифы и периоды» открываются отдельным экраном в стиле «Техники», все поля видны без прокрутки, закрывается кнопкой «Назад»
+### Fixed
+- Automations: rules for gear, turn signals, doors, windows, trunks, seat belts, and other sensors are checked when the vehicle event occurs rather than by polling; hazard lights for reverse gear turn on without a delay of up to five seconds.
+- Settings: “Tariffs and periods” opens as a separate Technical-style screen with all fields visible without scrolling and closes with “Back”.
 
 ## [3.17.0] - 2026-09-16
 
-### Новое
-- Тарифы стали историей цен: в настройках «Тарифы и периоды» открываются отдельным окном, в каждом периоде своя дата начала, цена дома и на быстрых зарядках, потери и правило расчёта поездок
-- Тариф можно поменять задним числом: добавьте период с нужной датой, и все зарядки и поездки после неё пересчитаются сами
-- Стоимость зарядки считается с потерями: в машину влилось меньше, чем намотал счётчик, по умолчанию 10% на домашней зарядке и 5% на быстрой
-- В карточке зарядки появилось поле «Счётчик»: впишите показание, и эта зарядка посчитается по нему. По нескольким таким замерам приложение подскажет ваши реальные потери
-- Кнопка «Считать по периоду» в карточке зарядки возвращает запись с ручной ценой в общий расчёт
-- Экспорт CSV: в поездках и зарядках добавились тариф и потери, тарифные периоды выгружаются отдельным файлом
-- Автоматизации: «Переключить» появилось у режима охраны: одно действие ставит машину на охрану и снимает с неё
-- Автоматизации: «Переключить» больше не отдельный пункт в списке действий. Теперь это третий вариант рядом с самим действием: в списке команд строка «Багажник: переключить», а у режима охраны и вывода на приборку кнопка «Переключить» рядом с «Включить» и «Выключить». Ранее созданные правила работают как раньше
-- Главная: в одном слоте показываются обе температуры, в салоне и за бортом (#210). Если машина не сообщает наружную, слот выглядит как раньше
-- Голосовой ассистент умеет вести в Яндекс Карты: скажите «в картах» в команде маршрута, поиска или показа точки (#200, по патчу пользователя, проверьте работу Карт). Без этих слов всё идёт в Навигатор как раньше
+### New
+- Tariffs are now a price history: Settings → “Tariffs and periods” opens in a separate window, with each period having its own start date, home and fast-charging price, losses, and trip-calculation rule.
+- You can change a tariff retrospectively: add a period with the required date, and all later charging sessions and trips recalculate automatically.
+- Charging cost includes losses: less energy enters the vehicle than the meter records—10% for home charging and 5% for fast charging by default.
+- The charging card now has a “Meter” field: enter a reading and this charging session is calculated from it. From several such measurements, the app suggests your actual losses.
+- The “Calculate by period” button in the charging card returns a record with a manual price to the general calculation.
+- CSV export: trips and charging sessions now include the tariff and losses; tariff periods export to a separate file.
+- Automations: “Toggle” is available for security mode: one action arms and disarms the vehicle.
+- Automations: “Toggle” is no longer a separate item in the action list. It is now a third option next to the action itself: the command list shows “Trunk: toggle”, while security mode and instrument-panel output have a “Toggle” button next to “On” and “Off”. Previously created rules keep working as before.
+- Home: one slot shows both temperatures, cabin and outside (#210). If the vehicle does not report outside temperature, the slot looks as before.
+- The voice assistant can navigate with Yandex Maps: say “in Maps” in a route, search, or show-point command (#200; from a user patch—check Maps operation). Without those words, everything goes to Navigator as before.
 
-### Исправления
-- Кнопка «Пересчитать все поездки» убрана: пересчёт запускается сам при изменении тарифа
+### Fixed
+- The “Recalculate all trips” button was removed: recalculation starts automatically when the tariff changes.
 
 ## [3.16.0] - 2026-09-16
 
-### Новое
-- Голос, агент и автоматизации: «наполовину» и «проветривание» теперь работают для любого отдельного окна и для передних/задних пар
-- Камеры слепых зон: окно камеры на экране можно поставить вертикально, тумблер «Окно камеры вертикально» в настройках камер (#207)
-- Автоматизации: действие «Переключить» для багажника, переднего багажника, люка, замков и вывода на приборку: одна кнопка виджета открывает и закрывает. Состояние берётся из машины
-- Виджет: на выдвижных кнопках вместо цифр можно показать иконку. Иконка выбирается в правиле с триггером «Нажатие кнопки»
-- Приложение реагирует на поворотники, передачу, датчики слепых зон, двери, окна и багажники в тот момент, когда машина о них сообщает
-- Маршруты при разделённом экране: ассистент сам сворачивает разделение, строит маршрут и возвращает панели на место
-- Скажите «поехали на работу» — ассистент нажмёт «Поехали» за вас. На «построй маршрут домой» он только построит маршрут, кнопку нажмёте сами
-- ABRP получает заданную температуру климата, напряжение и ток батареи, а на зарядке — реальную мощность зарядки со знаком минус
-- Техника: в карточке батареи появилась строка «Полных циклов» с подписью, из какой суммы она посчитана
-- Поездки: чип «Температура» открывает экран «Расход и температура» — точка на каждую поездку, медианы по холоду, межсезонью и теплу и одна фраза-вывод
-- Поездки теперь запоминают температуру за бортом на старте и на финише, а точки маршрута — высоту над уровнем моря
-- Автоматизация: длинные списки команд и параметров свёрнуты по разделам. Открыт только раздел с текущим выбором, остальные разворачиваются тапом по заголовку
-- Автоматизация: действие «Переключить» теперь умеет аварийку, климат, подогрев и обдув сидений водителя и пассажира. Выключенное сиденье включается на ступени, которую вы задавали последней
+### New
+- Voice, agent, and automations: “halfway” and “ventilate” now work for any individual window and for front/rear pairs.
+- Blind-spot cameras: the on-screen camera window can be vertical; use the “Vertical camera window” toggle in camera settings (#207).
+- Automations: a “Toggle” action for the trunk, front trunk, sunroof, locks, and instrument-panel output: one widget button opens and closes. The state comes from the vehicle.
+- Widget: extended buttons can show an icon instead of a number. Select the icon in a rule with the “Button press” trigger.
+- The app reacts to turn signals, gear, blind-spot sensors, doors, windows, and trunks when the vehicle reports them.
+- Routes in split screen: the assistant collapses split view, builds the route, and restores the panels.
+- Say “jedziemy do pracy” and the assistant presses “Jedziemy” for you. With “wyznacz trasę do domu”, it only builds the route and you press the button yourself.
+- ABRP receives the set climate temperature, battery voltage and current, and, when charging, the actual charging power with a minus sign.
+- Technical: the battery card now has a “Full cycles” row that states which sum it uses for its calculation.
+- Trips: the “Temperature” chip opens the “Consumption and temperature” screen—one point per trip, medians for cold, mild, and warm weather, and a single conclusion sentence.
+- Trips now save outside temperature at the start and finish, and route points save altitude above sea level.
+- Automation: long command and parameter lists are collapsed by section. Only the section containing the current selection is open; tap another heading to expand it.
+- Automation: the “Toggle” action now supports hazard lights, climate, and driver and passenger seat heating and ventilation. A switched-off seat turns on at the last level you selected.
 
-### Исправления
-- Зарядка на заведённой машине снова записывается: штекер теперь определяется по двум дополнительным датчикам, а не только по прежнему, который на заведённой машине молчит
-- Окна: если команда «открыть/закрыть» принята, но стекло не поехало, приложение само повторяет её процентной командой (DiLink 3.0, #197)
-- Камеры слепых зон: окошко камеры уходит с экрана сразу, как только появляется штатный круговой обзор
-- ABRP больше не получает координаты от приложения: машина на карте перестанет прыгать между нашей точкой и GPS головного устройства. Настройка «Отправлять координаты в ABRP» убрана, для вебхука всё осталось как было
+### Fixed
+- Charging on a running vehicle is recorded again: the plug is now detected by two additional sensors rather than only the previous one, which is silent when the vehicle is running.
+- Windows: if an “open/close” command is accepted but the glass does not move, the app repeats it automatically as a percentage command (DiLink 3.0, #197).
+- Blind-spot cameras: the camera window leaves the screen as soon as the native 360 view appears.
+- ABRP no longer receives coordinates from the app: the car on the map will stop jumping between our point and the head unit’s GPS. The “Send coordinates to ABRP” setting was removed; the webhook remains unchanged.
 
 ## [3.15.5] - 2026-09-14
 
-### Новое
-- Техника: карточки можно расставить в своём порядке. Удерживайте карточку и перетащите её на место другой, порядок сохранится
-- Тарифы: добавлена валюта AMD (֏, армянский драм) (#205)
-- Автоматизация: действия «Вентилятор 1…7» и направление обдува (лицо / ноги / стекло) в правилах и у агента (#201)
+### New
+- Technical: you can arrange cards in your preferred order. Hold a card and drag it onto another card’s position; the order is saved.
+- Tariffs: AMD currency was added (֏, Armenian dram) (#205).
+- Automation: “Fan 1…7” actions and airflow direction (face / feet / windshield) are available in rules and to the agent (#201).
 
-### Исправления
-- Техника: в карточке «Моторы и инверторы» сверху идут температуры, обороты и педали, а доля переднего и заднего мотора ушла вниз, к процентам
-- Голосовой ассистент отвечает быстрее: запрос к модели стал меньше, постоянная часть подсказки кэшируется на стороне сервиса, а запрос уходит к самому быстрому провайдеру модели
-- Новым пользователям по умолчанию подставляется более быстрая и умная модель Gemini 3.8 Flash (у кого модель уже выбрана, ничего не меняется)
-- В записи логов теперь есть список правил автоматизации: условия и типы действий, чтобы разбирать жалобы «правило не срабатывает» (#177)
-- В записи логов появился раздел про голосового ассистента: последние обращения, какие команды он выполнял и что ответил, плюс модель и подключение. Так разбираются жалобы «ассистент сказал готово, а ничего не произошло»
-- Ассистент больше не говорит «готово», если стекло не тронулось с места: после команды окном приложение проверяет, поехало ли оно, и честно сообщает, какое именно окно не сработало (#97). Проверка всех окон идёт разом, поэтому «закрой окна» почти не стало дольше
-- Ассистент честно отвечает, если проекция на приборку не включилась, и больше не молчит до пятнадцати секунд, ожидая ответа приборки. Он также объясняет причину, когда не получилось поменять панели сплита местами
-- Ассистент видит больше данных о машине: доля переднего и заднего мотора, лимиты BMS, температуры шин, текущее направление обдува и состояние камер слепых зон
-- Ассистент умеет добавлять в правила действия «На главный экран» и «YouTube»
-- Ассистент не додумывает автоматизации: если непонятен триггер, порог или действие, он задаёт один уточняющий вопрос, а после создания правила проговаривает его целиком
-- Ассистент помнит последние разговоры за сегодня: можно вернуться в машину через пару часов и спросить «а сколько там до дома было». Назавтра память дня очищается сама
-- В настройках можно забыть один факт о водителе, а не только весь список сразу
-- Ответ ассистента больше не обрезается тремя строками: плашка растёт под длинный ответ, до половины экрана. Если голос выключен, плашка держится дольше, чтобы ответ успели прочитать
-- Если модель упёрлась в лимит длины, ответ заканчивается многоточием, а в логах видно причину обрыва
-- Когда ассистента перебивают по имени, недописанный ответ исчезает с экрана, а не висит обрывком
-- Подсказки в настройках голоса говорят, что сделать; README: настройка агента по шагам экрана
+### Fixed
+- Technical: the “Motors and inverters” card now shows temperatures, RPM, and pedals at the top, while the front and rear motor shares moved down next to the percentages.
+- The voice assistant responds faster: the model request is smaller, the constant part of the prompt is cached by the service, and the request goes to the fastest model provider.
+- New users get the faster and smarter Gemini 3.8 Flash model by default (nothing changes for users who already selected a model).
+- Log recording now includes a list of automation rules—their conditions and action types—to investigate “rule does not run” reports (#177).
+- Log recording now includes a voice-assistant section: recent requests, commands it ran, and its replies, plus the model and connection. This helps investigate “the assistant said done, but nothing happened” reports.
+- The assistant no longer says “done” if the window did not move: after a window command, the app checks whether it moved and clearly reports which window failed (#97). All windows are checked at once, so “close windows” takes almost no longer.
+- The assistant clearly replies if instrument-panel projection did not turn on and no longer stays silent for up to fifteen seconds waiting for an instrument-panel response. It also explains why split panels could not be swapped.
+- The assistant sees more vehicle data: front and rear motor share, BMS limits, tire temperatures, current airflow direction, and blind-spot camera state.
+- The assistant can add “Go to home screen” and “YouTube” actions to rules.
+- The assistant does not infer automations: if the trigger, threshold, or action is unclear, it asks one clarifying question and, after creating the rule, states it in full.
+- The assistant remembers today’s latest conversations: you can return to the vehicle after a couple of hours and ask “what was the distance home?”. The day’s memory clears automatically the next day.
+- In Settings, you can forget one fact about the driver rather than only the entire list at once.
+- The assistant response is no longer limited to three lines: its panel grows for a long response, up to half the screen. If voice is disabled, the panel stays longer so you can read the reply.
+- If a model reaches its length limit, the reply ends with an ellipsis and the logs show the reason it stopped.
+- When the assistant is interrupted by name, the unfinished reply disappears from the screen rather than remaining as a fragment.
+- Voice-settings hints explain what to do; README: agent setup by screen steps.
 
 ## [3.15.4] - 2026-09-14
 
-### Новое
-- Техника: в карточке «Моторы и инверторы» строка «мощность» с долей переднего и заднего мотора в процентах (двухмоторные машины).
-- Камеры слепых зон прячутся, пока на экране родная кругозорка (360), и возвращаются после её закрытия, если поворотник ещё включён.
+### New
+- Technical: the “Motors and inverters” card has a “power” row with front and rear motor shares in percent (dual-motor vehicles).
+- Blind-spot cameras hide while the native 360 view is on screen and return after it closes if the turn signal is still on.
 
-### Исправления
-- Техника: подсказка «Лимиты BMS» объясняет, почему на разгоне мощность выше «доступной».
+### Fixed
+- Technical: the “BMS limits” hint explains why acceleration power is higher than “available” power.
 
 ## [3.15.3] - 2026-09-12
 
-### Новое
-- Настройки: выбор навигатора для маршрутов и поиска на карте, Яндекс Навигатор или 2ГИС (#190)
+### New
+- Settings: select Yandex Navigator or 2GIS for routes and map searches (#190).
 
-### Исправления
-- Вывод на приборку и работа с окнами на DiLink 3.0/4.0 (Android 10): приложение не находило запущенные приложения и не могло перенести навигатор на приборку
-- Техника: для машин без заднего мотора температура заднего мотора и инвертора показывала -40, теперь показывается прочерк
-- Поездки: если прошивка записала в поездку невозможный расход (десятки тысяч кВт·ч за одну поездку), приложение больше не берёт это число в статистику, а считает расход по изменению заряда. Уже сохранённые поездки пересчитываются один раз после обновления, статистика за неделю, месяц и год и инсайты перестают «взрываться»
-- Плавающий виджет прячется, пока на главном экране показана камера слепой зоны, и возвращается, когда камера закрывается
-- Главная: надпись «ADB не отвечает» заменена на «Данные машины недоступны», она относилась к чтению данных машины, а не к подключению ADB
-- Song Plus и другие машины на DiLink 3.0/4.0: адреса параметров теперь берутся из каталога прошивки, а не из констант Leopard 3, поэтому заряд, пробег и остальные данные машины появляются на Главной и в Технике; если каталог не удалось прочитать при запуске, приложение повторяет попытку само
-- Song Plus и другие машины, где адрес пробега берётся из каталога прошивки: пробег показывался в 10 раз меньше (8647 вместо 86472 км); теперь масштаб выбирается по адресу
-- DiLink 3.0 (Yuan Plus, Song Plus и похожие): если служба приложения запускалась дольше обычного, её ответ отбрасывался и команды в машину (сиденья, шторка, окна, климат) переставали работать до перезапуска; теперь поздний ответ принимается
-- DiLink 3.0 (Yuan Plus, Song Plus и похожие): после перезапуска приложения команды в машину (сиденья, шторка, окна, климат) переставали работать до перезагрузки планшета; теперь приложение заново подхватывает уже работающую службу команд, не перезапуская её
-- Yuan Plus и другие машины на DiLink 3.0: приложение больше не выдаёт себе разрешение на настройки при каждом запуске, если оно уже выдано, лишняя команда мешала запуску службы команд (#64); в запись логов теперь попадают строки подключения к ADB, раньше они терялись из-за неверного имени тега
+### Fixed
+- Instrument-panel output and window operation on DiLink 3.0/4.0 (Android 10): the app did not find running apps and could not move Navigator to the instrument panel.
+- Technical: on vehicles without a rear motor, rear-motor and inverter temperature showed -40; a dash is now shown.
+- Trips: if firmware recorded impossible consumption for a trip (tens of thousands of kWh in one trip), the app no longer uses that value in statistics and calculates consumption from charge change. Saved trips recalculate once after the update; weekly, monthly, and yearly statistics and insights no longer “explode”.
+- The floating widget hides while a blind-spot camera is shown on the home screen and returns when the camera closes.
+- Home: “ADB is not responding” was replaced with “Vehicle data unavailable”; it refers to reading vehicle data, not the ADB connection.
+- Song Plus and other DiLink 3.0/4.0 vehicles: parameter addresses now come from the firmware catalog rather than Leopard 3 constants, so charge, mileage, and other vehicle data appear on Home and in Technical; if the catalog cannot be read at startup, the app retries automatically.
+- Song Plus and other vehicles whose mileage address comes from the firmware catalog: mileage was shown ten times lower (8647 instead of 86472 km); scaling is now selected by address.
+- DiLink 3.0 (Yuan Plus, Song Plus, and similar): if the app service started later than usual, its response was discarded and vehicle commands (seats, shade, windows, climate) stopped working until restart; late responses are now accepted.
+- DiLink 3.0 (Yuan Plus, Song Plus, and similar): after the app restarted, vehicle commands (seats, shade, windows, climate) stopped working until the tablet restarted; the app now reattaches to the already running command service without restarting it.
+- Yuan Plus and other DiLink 3.0 vehicles: the app no longer grants itself Settings permission at every startup when it is already granted; the extra command prevented the command service from starting (#64). Log recording now includes ADB connection lines, which were previously lost because of an incorrect tag name.
 
 ## [3.15.2] - 2026-09-11
 
-### Новое
-- Тарифы: добавлена валюта KGS (сом), по просьбе из Кыргызстана (#191)
+### New
+- Tariffs: KGS currency (som) was added at a request from Kyrgyzstan (#191).
 
-### Исправления
-- Восстановление ADB: приложение забирает нужное разрешение при любом живом подключении к ADB, а не только при запуске; в лог пишется ответ системы, если разрешение не выдано
-- Приборка: на DiLink 4.0 (Song Plus 2021 и похожие) приложение теперь находит экран приборки, который прошивка скрывает от приложений, и выводит навигатор на него напрямую. Если прошивка не даёт закрепить окно на приборке с первого раза, приложение повторяет попытку после переноса
+### Fixed
+- ADB recovery: the app obtains the required permission on any live ADB connection, not only at startup; the system response is written to the log if permission is not granted.
+- Instrument panel: on DiLink 4.0 (Song Plus 2021 and similar), the app now finds the instrument-panel display that firmware hides from apps and sends Navigator to it directly. If firmware does not let the window be pinned on the first attempt, the app tries again after moving it.
 
 ## [3.15.1] - 2026-09-10
 
-### Новое
-- Слепые зоны: левое окошко камеры теперь можно поставить отдельно. По умолчанию оно стоит зеркально правому, кнопка «Положение левой камеры» под тумблером «Обе камеры на главный экран» задаёт ему своё место. Ширина у обоих окошек общая
+### New
+- Blind spots: the left camera window can now be positioned separately. By default it mirrors the right window; the “Left camera position” button under the “Both cameras on home screen” toggle sets its position. Both windows share the same width.
 
-### Исправления
-- Приборка: навигатор отправляется на приборку и возвращается на главный экран без перезапуска, если прошивка это позволяет. Раньше на части машин (Sea Lion 07) навигатор при отправке перезапускался и терял маршрут. Если мягкий возврат не подтвердился, приложение возвращает навигатор прежним способом с перезапуском
-- Голосовые команды: включение подогрева одного сиденья по имени водителя или пассажира больше не включает оба сиденья сразу
-- Запас хода на виджете больше не падает в ноль из-за одного сбойного замера расхода
-- Окна: команды «открыть» и «закрыть» теперь уходят в машину отдельной командой, а не как положение 100 и 0 процентов. Это должно помочь на машинах, где окна не реагировали на команды приложения (DiLink 3.0). Проветривание, «наполовину» и ползунки положения работают как раньше
+### Fixed
+- Instrument panel: Navigator is sent to the instrument panel and returns to the home screen without restart when firmware permits it. Previously, on some vehicles (Sea Lion 07), Navigator restarted and lost the route when sent. If a soft return is not confirmed, the app returns Navigator by the previous method with a restart.
+- Voice commands: turning on heating for one seat by the driver’s or passenger’s name no longer turns on both seats at once.
+- Widget range no longer drops to zero because of one faulty consumption measurement.
+- Windows: “open” and “close” commands are now sent to the vehicle as separate commands rather than as 100% and 0% positions. This should help on vehicles where windows did not respond to app commands (DiLink 3.0). Ventilate, “halfway”, and position sliders work as before.
 
 ## [3.15.0] - 2026-09-09
 
-### Новое
-- Восстановление ADB после перезагрузки. На прошивках со сборки 2606 и новее ADB отключается при каждой перезагрузке планшета, и всё управление машиной перестаёт работать. Тумблер «Восстанавливать ADB после перезагрузки» в разделе «Система машины» (по умолчанию выключен): после загрузки приложение само поднимает ADB, обычно за 10-30 секунд после подключения к Wi-Fi. Нужен Wi-Fi (домашняя сеть или раздача с телефона), на новой сети один раз подтвердить системный диалог. Рядом с тумблером значок «?» с инструкцией и строка состояния. Если ADB у вас и так переживает перезагрузку, тумблер не нужен. Спасибо @RBGboost за идею и тесты на машине
-- Приборка: у некоторых при выводе карты на приборку она занимала не весь экран. Для этого в разделе «Экран» добавлен тумблер «Полный экран приборки». По умолчанию выключен, если карта и так на всю приборку, включать не нужно
-- Поддержать проект: добавлен способ «картой через ЮMoney» рядом с USDT
+### New
+- ADB recovery after restart. On firmware builds 2606 and later, ADB is disabled at every tablet restart and all vehicle control stops working. The “Restore ADB after restart” toggle in “Vehicle system” (disabled by default) lets the app restore ADB after boot, usually 10–30 seconds after Wi-Fi connects. Wi-Fi is required (a home network or phone hotspot); confirm the system dialog once on a new network. Next to the toggle are a “?” icon with instructions and a status line. If ADB already survives restarts for you, the toggle is not needed. Thanks to @RBGboost for the idea and vehicle testing.
+- Instrument panel: for some users, the map did not use the full display when sent to the instrument panel. The “Instrument-panel full screen” toggle was added to “Display”. It is disabled by default; if the map already fills the instrument panel, do not enable it.
+- Support the project: “card via YooMoney” was added next to USDT.
 
 ## [3.14.3] - 2026-09-07
 
-### Новое
-- Слепые зоны: тумблер «Обе камеры на главный экран» для машин, где левая камера на приборке мешает (#183)
+### New
+- Blind spots: a “Both cameras on home screen” toggle for vehicles where the left camera on the instrument panel gets in the way (#183).
 
-### Исправления
-- Запись логов: строка decode rejected попадает в файл (#180)
-- Камеры слепых зон: при выключенном тумблере «Сразу показывать на приборке» камера больше не переводит приборку в режим проекции, ADAS и штатный виджет остаются на месте (DiLink 5.0, проверено тестировщиком)
+### Fixed
+- Log recording: the `decode rejected` line is included in the file (#180).
+- Blind-spot cameras: when the “Show on instrument panel immediately” toggle is disabled, the camera no longer switches the instrument panel to projection mode; ADAS and the native widget remain in place (DiLink 5.0, verified by a tester).
 
 ## [3.14.2] - 2026-09-06
 
-### Новое
-- Настройки, «Данные приложения»: тумблер «Тихое уведомление в шторке». Уведомление BYDMate уходит в свёрнутый список без значка в строке состояния. Совсем убрать его нельзя, Android требует уведомление для работы в фоне (#86)
-- Техника: полоса разброса ячеек, зоны перегрева у температур моторов и инверторов, шины видом сверху с подсветкой отклонения давления
+### New
+- Settings → “App data”: a “Quiet notification in shade” toggle. The BYDMate notification moves to the collapsed list without a status-bar icon. It cannot be removed entirely because Android requires a notification for background operation (#86).
+- Technical: a cell-spread bar, overheating zones for motor and inverter temperatures, and a top view of tires that highlights pressure deviation.
 
-### Исправления
-- DiLink 3.0 и 4.0 (Android 10): приложение падало при выключении и включении машины, когда система отключала GPS. Из-за этого падения кнопки руля (голосовой помощник, аварийка по кнопке, проекция) переставали работать до перезагрузки планшета. Теперь падения нет, а если после включения машины система всё-таки не подключила службу кнопок руля, приложение через 10 секунд после старта один раз перезапускает само себя и служба возвращается без перезагрузки планшета. В этот момент виджет на секунду пропадает, а запись логов ненадолго прерывается, это нормально. На DiLink 5.0 поведение не менялось
-- Техника: строка «макс. мощность разряда» переименована в «доступная мощность батареи» (это другой параметр BMS), полоски лимитов убраны
-- Приборка на DiLink 3/4: если дисплей приборки не найден, приложение один раз за запуск пишет в лог расширенную диагностику (свойства прошивки, список дисплеев, сервисы проекции), чтобы разобрать причину по обычной записи логов
+### Fixed
+- DiLink 3.0 and 4.0 (Android 10): the app crashed when the vehicle turned off and on and the system disconnected GPS. After this crash, steering-wheel buttons (voice assistant, button-triggered hazard lights, projection) stopped working until the tablet restarted. The crash is fixed. If the system still does not connect the steering-wheel-button service after the vehicle starts, the app restarts itself once 10 seconds after startup and the service returns without a tablet restart. At that moment, the widget disappears for one second and log recording pauses briefly; this is normal. Behavior on DiLink 5.0 did not change.
+- Technical: the “maximum discharge power” row was renamed “available battery power” (it is a different BMS parameter), and the limit bars were removed.
+- Instrument panel on DiLink 3/4: if the instrument-panel display is not found, the app writes extended diagnostics once per startup to the log (firmware properties, display list, projection services) to investigate the cause using a regular log recording.
 
 ## [3.14.1] - 2026-09-05
 
-### Новое
-- Автоматизация: у действия «Пауза» появились варианты 30 сек и 1 мин, не нужно ставить несколько пауз по 10 сек подряд
-- Запись логов продолжается после выключения и включения машины: если запись была включена, приложение дописывает в тот же файл после перезапуска, пока не истекут 2 часа с первого старта. Так в лог попадают проблемы самого старта (автоматизации на запуск, кнопки руля)
+### New
+- Automation: the “Pause” action now has 30-second and 1-minute options, so you do not need several consecutive 10-second pauses.
+- Log recording continues after the vehicle turns off and on: if recording was enabled, the app continues writing to the same file after restart until two hours have elapsed from the first start. This captures startup problems themselves (startup automations and steering-wheel buttons).
 
-### Исправления
-- Экран «Техника»: у строк «мощность» и «мощность батареи» были одинаковые подсказки. Теперь «мощность» объясняет мощность на моторах, а «мощность батареи» дополнена расшифровкой второго числа (%/ч)
-- Чат с агентом (отладка): клавиатура закрывала поле ввода, теперь экран сжимается и строка ввода остаётся видна
-- HUD: после активации Алисы на стекле вспыхивало «11м» без манёвра. Пустое уведомление плеера больше не включает подсказки навигации (#170)
+### Fixed
+- Technical screen: the “power” and “battery power” rows had identical hints. “Power” now explains motor power, and “battery power” includes an explanation of the second number (%/h).
+- Agent chat (debug): the keyboard covered the input field; the screen now resizes and the input row remains visible.
+- HUD: after activating Alice, “11 m” flashed on the windshield without a maneuver. An empty player notification no longer enables navigation prompts (#170).
 
 ## [3.14.0] - 2026-09-05
 
-### Новое
-- Экран «Техника»: тап по карточке батареи на Главной открывает полный экран живых параметров машины, сгруппированных по карточкам: батарея сейчас (напряжение и ток HV, мощность батареи в Вт и %/ч, изоляция), лимиты BMS на заряд и разряд, разброс ячеек, моторы и инверторы (температуры, обороты, педали), климат (компрессор, кондиционер, температуры), шины (давление и температура), история батареи (SoH, пробег и энергия за всё время, средний SOC). У каждого непонятного параметра значок «?» с подсказкой простым языком (#153)
-- Карточка батареи на Главной показывает пять ячеек: SoH, температура батареи, бортовая сеть 12 В, разброс ячеек в мВ и сопротивление изоляции в МОм. Диалог «Здоровье батареи» заменён экраном «Техника»
-- На машинах, где параметр не отдаётся, строка показывает «—», а пустые карточки скрываются
+### New
+- Technical screen: tapping the battery card on Home opens a full screen of live vehicle parameters grouped into cards: battery now (HV voltage and current, battery power in W and %/h, insulation), BMS charge and discharge limits, cell spread, motors and inverters (temperatures, RPM, pedals), climate (compressor, air conditioning, temperatures), tires (pressure and temperature), and battery history (SoH, lifetime mileage and energy, average SOC). Each unclear parameter has a “?” icon with a plain-language hint (#153).
+- The battery card on Home shows five cells: SoH, battery temperature, 12 V onboard network, cell spread in mV, and insulation resistance in MΩ. The “Battery health” dialog was replaced by the Technical screen.
+- On vehicles where a parameter is unavailable, its row shows “—”, and empty cards are hidden.
 
 ## [3.13.2] - 2026-08-28
 
-### Новое
-- Виджет: настройка «Скрывать в приложениях» со списком установленных приложений, в которых плавающая панель прячется (например, браузер во время видео). Тумблер «Скрывать при YouTube» работает как раньше (#171)
-- Интеграции, подключение «Своё»: поле «Доп. параметры запроса (JSON)», содержимое подмешивается в каждый запрос к серверу, например {"thinking": false}, чтобы выключить рассуждения у DeepSeek-подобных моделей (#167)
+### New
+- Widget: a “Hide in apps” setting with a list of installed apps where the floating panel hides (for example, the browser during video). The “Hide for YouTube” toggle works as before (#171).
+- Integrations, “Custom” connection: an “Additional request parameters (JSON)” field whose content is added to every request to the server, for example {"thinking": false}, to disable reasoning on DeepSeek-like models (#167).
 
-### Исправления
-- Голосовой агент: если основное подключение не выбрано или не заполнено, а настроено, например, только «Своё», агент берёт первое настроенное подключение вместо ошибки «не настроен» (#172)
+### Fixed
+- Voice agent: if the primary connection is not selected or filled in, but only “Custom”, for example, is configured, the agent uses the first configured connection instead of showing the “not configured” error (#172).
 
 ## [3.13.1] - 2026-08-26
 
-### Исправления
-- DiLink 3.0 (Yuan Plus, Song PRO и другие машины на Android 10): команды в машину снова работают. Прошивка запрещает служебному процессу регистрироваться в системе, теперь он передаёт канал приложению напрямую; заодно ушёл цикл перезапусков, из-за которого виджет стартовал по 20-30 секунд (#64, #148)
-- В дампе диагностики после успешного запуска служебного процесса больше не висит старая запись об ошибке запуска
-- Камеры слепых зон: если картинка застыла (поток с камеры остановился, а окно держало последний кадр), приложение само закрывает и заново открывает камеру в течение пары секунд. Раньше помогало только выключить и включить функцию в настройках
-- Запись логов теперь включает строки контроллера камер слепых зон, а в дампе диагностики есть журнал открытия и закрытия камеры
-- В дампе диагностики появился живой снимок данных машины (передача, скорость, состояние питания, SOC), чтобы разбирать триггеры автоматизации по передаче на DiLink 3.0 (#64)
-- Обновление: в начале скачивания показывалось «0%%» вместо «0%» (#164)
-- Автоматизации: в поле «Пауза между срабатываниями» Backspace теперь удаляет и последнюю цифру, поле можно очистить целиком (#163)
-- Автоматизации: у условий по параметру (скорость, SOC и т.п.) кнопка удаления и стрелки порядка больше не уезжают за край карточки (#165)
+### Fixed
+- DiLink 3.0 (Yuan Plus, Song PRO, and other Android 10 vehicles): vehicle commands work again. Firmware prevents the service process from registering in the system, so it now passes the channel directly to the app; this also removed a restart loop that made the widget take 20–30 seconds to start (#64, #148).
+- The diagnostic dump no longer retains an old service-process startup error after the process starts successfully.
+- Blind-spot cameras: if the image freezes (the camera stream stops while the window holds the last frame), the app closes and reopens the camera within a couple of seconds. Previously, only turning the feature off and on in Settings helped.
+- Log recording now includes blind-spot camera-controller lines, and the diagnostic dump has a camera-open and -close log.
+- The diagnostic dump now contains a live snapshot of vehicle data (gear, speed, power state, SOC) to investigate gear-based automation triggers on DiLink 3.0 (#64).
+- Update: the start of a download showed “0%%” instead of “0%” (#164).
+- Automations: in the “Pause between runs” field, Backspace now also deletes the last digit, so the field can be cleared completely (#163).
+- Automations: for parameter conditions (speed, SOC, etc.), the delete button and ordering arrows no longer extend beyond the card edge (#165).
 
 ## [3.13] - 2026-08-24
 
-### Новое
-- Новая иконка приложения: объёмная батарея с жёлтой молнией
-- Вебхук телеметрии: те же живые данные, что уходят в ABRP (SOC, мощность, температуры, одометр, давление шин, состояние зарядки), можно отправлять POST-запросом в JSON на свой сервер. Настройки - Вебхук: URL, необязательный секрет (заголовок Authorization: Bearer), отдельный тумблер координат. Ритм тот же: раз в секунду в движении, раз в 8 секунд на зарядке, раз в 30 секунд на стоянке; работает независимо от ABRP (#159, #16)
-- README (ru/en/zh) актуализирован под текущие версии: разделение экрана на UI7, клавиша руля, память агента, вебхук, новые разделы настроек; свежие скриншоты, в том числе настройки проекции, сплита, голосового агента и слепых зон с пояснениями, инфографика виджета
+### New
+- New app icon: a three-dimensional battery with a yellow lightning bolt.
+- Telemetry webhook: the same live data sent to ABRP (SOC, power, temperatures, odometer, tire pressure, charging state) can be sent as a JSON POST request to your server. Settings → Webhook: URL, optional secret (Authorization: Bearer header), and a separate coordinates toggle. The cadence is unchanged: once per second while driving, every 8 seconds while charging, and every 30 seconds while parked; it works independently of ABRP (#159, #16).
+- README (ru/en/zh) was updated for the current versions: split screen on UI7, steering-wheel button, agent memory, webhook, and new Settings sections; new screenshots, including projection, split, voice-agent, and blind-spot settings with explanations, plus widget infographics.
 
-### Исправления
-- Сообщения защиты по скорости (окна, люк, отпирание дверей, передний багажник, запрещённая команда) и отказы голосового агента «Скорость неизвестна» / «Требуется паркинг» переведены на язык приложения, раньше показывались только по-русски (#162)
+### Fixed
+- Speed-safety messages (windows, sunroof, door unlocking, front trunk, prohibited command) and voice-agent refusals—“Speed unknown” / “Parking required”—are now translated into the app language; they were previously shown only in Russian (#162).
 
 ## [3.12.1] - 2026-08-24
 
-### Исправления
-- Камера слепых зон по поворотнику снова видна поверх карты, спроецированной на приборку: окно проекции могло перекрывать окно камеры (они живут на одном экране, и порядок определяется очерёдностью создания), теперь камера замечает пересоздание проекции и заново поднимается поверх неё
-- При выключении камеры слепых зон на приборке водитель больше не видит чёрный экран приборки около секунды: штатная рамка приборки возвращается до отключения нашего слоя, и момент гашения не заметен
+### Fixed
+- A turn-signal blind-spot camera is visible again above the map projected to the instrument panel: the projection window could cover the camera window (they live on the same display and creation order determines their order). The camera now detects projection recreation and raises itself above it again.
+- When a blind-spot camera is turned off on the instrument panel, the driver no longer sees a black screen for about one second: the native instrument-panel frame returns before our layer is disabled, making the blanking moment unnoticeable.
 
 ## [3.12] - 2026-08-19
 
-### Новое
-- Камеры слепых зон по поворотнику: минимальная скорость срабатывания теперь может быть 0 км/ч (раньше не ниже 5), камера показывается и на месте
-- Разделение экрана на прошивках с новым интерфейсом UI7 (приходит с обновлением, на Leopard 3 это V1.6): панели 1/3 и 2/3, разделитель и жест обмена теперь родные, BYDMate только запускает выбранную пару приложений и возвращает приложение в его панель. На прежних прошивках механизм разделения не изменился
-- Колёсико громкости на руле: новая настройка, при которой нажатие ставит воспроизведение на паузу и продолжает его, а не переключает источник звука (как стало на прошивках UI7). По умолчанию выключено
-- Настройки: новый подраздел «Система машины» в разделе «Сервис и данные» (туда переехал тумблер колёсика). На прошивке UI7 там же кнопка «Язык интерфейса машины»: открывает скрытый штатный диалог BYD с полным списком языков (русский, украинский, польский и другие), с предупреждением про автопарковку. Сам язык меняет прошивка, приложение ничего не записывает
-- Автоматизация: триггер «Клавиша руля». Нажмите любую клавишу руля в режиме обучения и повесьте на неё любое действие, включая запуск приложения. Удалили или выключили правило, и клавиша снова работает по заводу
-- Голосовой агент: память о водителе. Скажите агенту, как вас зовут или что вы обычно предпочитаете (температура в салоне, музыка, маршруты), и он будет помнить это между разговорами; «забудь …» убирает факт. Список фактов и кнопка «Забыть всё» в настройках агента. Факты хранятся только на мультимедиа и попадают лишь в запрос к выбранной вами модели
-- Голосовой агент: новые команды: точка доступа, аварийка; закрыть и переключить разделение экрана теперь доступны и в автоматизациях, создаваемых голосом; «открой медиацентр», «открой телефон», «открой Яндекс Карты» запускают штатный плеер BYD, штатный экран звонков и Яндекс Карты
+### New
+- Turn-signal blind-spot cameras: the minimum activation speed can now be 0 km/h (previously at least 5), so the camera also shows while stationary.
+- Split screen on firmware with the new UI7 interface (arrives with an update; V1.6 on Leopard 3): 1/3 and 2/3 panels, the divider, and the swap gesture are now native; BYDMate only starts the selected app pair and returns an app to its panel. The split mechanism is unchanged on earlier firmware.
+- Steering-wheel volume wheel: a new setting where a press pauses and resumes playback instead of switching the audio source (as on UI7 firmware). Disabled by default.
+- Settings: a new “Vehicle system” subsection in “Service and data” (the wheel toggle moved there). On UI7 firmware, it also has a “Vehicle interface language” button: it opens a hidden native BYD dialog with the full list of languages (Russian, Ukrainian, Polish, and others), with a warning about auto-parking. Firmware changes the language; the app writes nothing.
+- Automation: a “Steering-wheel button” trigger. Press any steering-wheel button in learning mode and assign any action to it, including launching the app. Delete or disable the rule and the button returns to its factory behavior.
+- Voice agent: driver memory. Tell the agent your name or what you usually prefer (cabin temperature, music, routes), and it remembers this between conversations; “forget …” removes a fact. The agent settings have a fact list and “Forget all” button. Facts are stored only on the head unit and are included only in requests to the model you selected.
+- Voice agent: new commands for hotspot and hazard lights; closing and toggling split screen are now also available in automations created by voice; “open media center”, “open phone”, and “open Yandex Maps” launch the native BYD player, native calls screen, and Yandex Maps.
 
-### Исправления
-- Голосовой агент отвечает быстрее: модели с режимом размышлений (Gemini 3 через OpenRouter, GLM через z.ai) получают запрос с отключённым размышлением; при сбое сети агент больше не молчит до двух минут: повтор запускается только в первые 10 секунд, запасная модель в первые 20; неизменная часть запроса больше не меняется от фразы к фразе, чтобы провайдер брал её из кэша
-- Голосовой агент: синтез речи прогревается при запуске сервиса, короткие частые реплики озвучиваются из кэша, первый ответ звучит без паузы на загрузку модели
-- Голосовой агент: больше не утверждает, что машина чисто электрическая (на гибридах приложение видит только батарею), говорит «ожидает подтверждения на экране», пока вы не подтвердили опасную команду, и знает, что триггер «Клавиша руля» настраивается только в приложении
-- Голосовой агент: в состояние машины добавлен возраст данных, агент предупреждает, если показания устарели
-- Приборка на прошивках UI7: навигатор и камера слепых зон снова показываются на экране приборки в любом режиме приборки (Simple, ADAS, Maps), а не только в ADAS. Приложение само переводит приборку в режим карты на время показа и возвращает прежний вид после выключения; на прежних прошивках ничего не меняется; боковые карточки приборки (давление в шинах слева, компас/часы/музыка справа) на время показа прячутся, как при родной настройке «скрывать меню приборки», и возвращаются после выключения; по нажатию кнопок на руле прошивка по-прежнему показывает их на 15 секунд
-- Описание тумблера «Скрыть встроенный голосовой помощник» теперь говорит, что вместе с помощником пропадает и приложение Shortcuts (быстрые команды), и как вернуть оба: выключить тумблер и перезагрузить мультимедиа
+### Fixed
+- The voice agent responds faster: models with reasoning mode (Gemini 3 through OpenRouter, GLM through z.ai) receive requests with reasoning disabled; during network failure, the agent no longer stays silent for up to two minutes—retries start only in the first 10 seconds and the fallback model in the first 20; the unchanged part of the request no longer varies between phrases, allowing providers to use their cache.
+- Voice agent: speech synthesis warms up when the service starts, short frequent replies are spoken from cache, and the first reply sounds without a pause for model loading.
+- Voice agent: it no longer states that the vehicle is purely electric (on hybrids the app sees only the battery), says “waiting for confirmation on screen” until you confirm a dangerous command, and knows that the “Steering-wheel button” trigger is configured only in the app.
+- Voice agent: vehicle state now includes data age; the agent warns when readings are stale.
+- Instrument panel on UI7 firmware: Navigator and the blind-spot camera are again shown on the instrument-panel display in any instrument-panel mode (Simple, ADAS, Maps), not only ADAS. The app switches the panel to map mode while showing them and restores the previous view after disabling; earlier firmware is unchanged. Side cards (tire pressure on the left, compass/clock/music on the right) hide while showing, as with the native “hide instrument-panel menu” setting, and return afterward; firmware still shows them for 15 seconds when steering-wheel buttons are pressed.
+- The “Hide built-in voice assistant” toggle description now says that the Shortcuts app (quick commands) also disappears with the assistant and how to restore both: turn off the toggle and restart the head unit.
 
 ## [3.11.9] - 2026-08-17
 
-### Исправления
-- Разделение экрана: устранён сбой первой попытки запуска после включения зажигания (#139). Приложению при холодном старте нужно время на создание окна, а подтверждающая проверка объявляла неудачу слишком рано; теперь панели ждут появления окна до 3 секунд, вторая попытка больше не нужна
-- Поездки: на машинах с давно «замершей» штатной базой поездок (файл не обновлялся больше месяца) встроенная запись поездок включается уже после пары первых поездок, а не через несколько дней (#148)
+### Fixed
+- Split screen: fixed the first launch attempt after ignition turns on (#139). On a cold start, the app needs time to create a window, but the verification check declared failure too early; panels now wait up to three seconds for the window, so a second attempt is no longer needed.
+- Trips: on vehicles with a long-frozen native trip database (file unchanged for more than a month), built-in trip recording starts after the first couple of trips rather than after several days (#148).
 
 ## [3.11.8] - 2026-08-15
 
-### Исправления
-- HUD: возвращён значок ограничения скорости на стекле (#150). В 3.11.6 знак стали передавать числом через штатное поле кадра, но стекло из числа ничего не рисует - значок пропал; рисованный знак вернулся, как было в 3.11.5
+### Fixed
+- HUD: the speed-limit icon was restored on the windshield (#150). In 3.11.6, the sign was sent as a number through the native frame field, but the windshield draws nothing from that number, so the icon disappeared; the drawn sign returned as in 3.11.5.
 
 ## [3.11.7] - 2026-08-10
 
-### Исправления
-- Разделение экрана: устранён редкий сценарий, когда на полностью исправной машине разделение навсегда объявлялось «недоступно на прошивке этой машины» (#147). Системная настройка оконного режима теперь записывается заново при каждом запуске разделения, а ошибочная пометка «не поддерживается» на заведомо совместимых прошивках сбрасывается автоматически
-- Приборка: если навигатор закрывается системой через несколько секунд после перевода на приборку, приложение теперь это замечает и один раз перезапускает его сразу на приборке; навигатор, легально открытый на главном экране, при этом не трогается (#134)
-- Разделение экрана: первая попытка запуска реже ошибочно объявляется неудачной - подтверждающее чтение состояния панелей повторяется при задержке ответа, а в журнал пишется точная причина сбоя (#139)
+### Fixed
+- Split screen: fixed a rare scenario where split screen was permanently declared “unavailable on this vehicle’s firmware” on a fully working vehicle (#147). The system window-mode setting is now rewritten each time split screen starts, and the incorrect “unsupported” mark on known-compatible firmware resets automatically.
+- Instrument panel: if Navigator is closed by the system a few seconds after being moved to the panel, the app now detects this and restarts it once directly on the panel; Navigator legitimately opened on the home screen is not touched (#134).
+- Split screen: the first launch attempt is less often falsely declared failed—the verification read of panel state repeats after a delayed response, and the log records the exact failure reason (#139).
 
-### Новое
-- Диагностика: в дамп настроек добавлена секция состояния разделения экрана (системный флаг, счётчик загрузок, вердикт по прошивке) - ускоряет разбор полевых обращений
+### New
+- Diagnostics: the settings dump now includes a split-screen state section (system flag, boot count, firmware verdict), speeding up investigation of field reports.
 
 ## [3.11.6] - 2026-08-10
 
-### Исправления
-- HUD: коды анимированной стрелки на стекле приведены к заводским значениям. Раньше «налево» отправлялось кодом «слегка налево», а конец маршрута - кодом «налево»; на кольцевых развязках и у финиша анимированная стрелка теперь корректно гасится вместо ложного «поворота налево» (#94)
-- HUD: знак ограничения скорости передаётся числом через штатное поле кадра вместо встраивания картинки - надёжнее на разных прошивках; включается прежним тумблером
-- HUD: подсказка с дистанцией до манёвра меньше 11 метров больше не пропадает со стекла
-- HUD: подключение к системному сервису проекции укреплено: исключён сценарий, при котором привязка могла уронить системный процесс прошивки; добавлен запасной путь поиска сервиса для других прошивок
+### Fixed
+- HUD: animated-arrow codes on the windshield now use factory values. Previously “left” was sent with the “slight left” code and end of route with the “left” code; at roundabouts and at the destination, the animated arrow now correctly disappears rather than showing a false “left turn” (#94).
+- HUD: the speed-limit sign is sent as a number through the native frame field rather than embedding an image, which is more reliable on different firmware; it uses the same toggle as before.
+- HUD: a prompt with a maneuver distance below 11 meters no longer disappears from the windshield.
+- HUD: connection to the system projection service was strengthened: a scenario where binding could crash the firmware system process was removed, and a fallback service-discovery path was added for other firmware.
 
-### Новое
-- Диагностика: при смене манёвра в журнал HUD пишется структура окна навигатора (раз в 30 секунд) - для будущей поддержки подсказок полос движения
+### New
+- Diagnostics: when a maneuver changes, the HUD log records the Navigator window structure (once every 30 seconds) for future lane-guidance support.
 
 ## [3.11.5] - 2026-08-10
 
-### Новое
-- Режим «Родное разделение»: в настройках разделения экрана можно выбрать механизм - окна BYDMate (1/3+2/3) или штатное разделение прошивки. Родное работает и там, где наш вариант недоступен (DiLink 5.1): на прошивках с поддержкой третей открывает панели 1/3+2/3, на остальных делит пополам с системным выбором второго приложения (#139)
+### New
+- “Native split” mode: split-screen settings can select BYDMate windows (1/3+2/3) or the firmware’s native split. Native split also works where our option is unavailable (DiLink 5.1): on firmware supporting thirds, it opens 1/3+2/3 panels; on others, it splits in half with the system’s second-app picker (#139).
 
-### Исправления
-- HUD больше не гаснет через полторы минуты после перевода навигатора на приборку: когда окно навигатора скрыто системой (вывод на приборку запасным способом), подсказки теперь читаются напрямую из событий навигатора (DiLink 5.1, Sea Lion 07; #134)
+### Fixed
+- HUD no longer turns off 90 seconds after Navigator is moved to the instrument panel: when the Navigator window is hidden by the system (fallback instrument-panel output), prompts are now read directly from Navigator events (DiLink 5.1, Sea Lion 07; #134).
 
 ## [3.11.3] - 2026-08-10
 
-### Исправления
-- Проекция на HUD больше не гаснет при сворачивании навигатора: недоступное для чтения окно перестало считаться завершением маршрута, подсказки на стекле держатся до реального конца ведения (#144)
-- Перевод навигатора на приборку на прошивках без поддержки нужного оконного режима (DiLink 5.1) больше не сбрасывает активное ведение: приложение сначала проверяет режим безопасным способом и не пересоздаёт окно навигатора впустую (#139)
-- Разделение экрана: если перезагрузка машины не помогает, приложение это запоминает и честно сообщает «недоступно на прошивке этой машины» вместо вечной просьбы перезагрузиться; бесполезные повторные попытки, перезапускавшие навигатор и музыку, прекращаются (#139)
+### Fixed
+- HUD projection no longer turns off when Navigator is minimized: an unreadable window is no longer treated as route completion, so windshield prompts remain until navigation genuinely ends (#144).
+- Moving Navigator to the instrument panel on firmware without the required window-mode support (DiLink 5.1) no longer cancels active navigation: the app first checks the mode safely and does not needlessly recreate the Navigator window (#139).
+- Split screen: if restarting the vehicle does not help, the app remembers this and clearly reports “unavailable on this vehicle’s firmware” rather than endlessly asking you to restart; useless repeated attempts that restarted Navigator and music stop (#139).
 
 ## [3.11.2] - 2026-08-08
 
-### Исправления
-- HUD: на круговых перекрёстках анимированная стрелка больше не показывает поворот налево — на подъезде к кольцу теперь передаётся правильный код «въезд на кольцо», номер съезда сохраняется (#94)
-- Вывод на приборку в Расширенном режиме: устранено «падение» навигатора при повторном выводе — приложение теперь дожидается, пока пересозданное системой окно станет видимым, вместо преждевременного отката (из-за отката также гас HUD, так как запасной путь вывода невидим для чтения подсказок; Sea Lion 07, #134)
+### Fixed
+- HUD: at roundabouts, the animated arrow no longer shows a left turn—the correct “enter roundabout” code is now sent when approaching, and the exit number is retained (#94).
+- Instrument-panel output in Extended mode: fixed Navigator “crashing” when output again—the app now waits for the system-recreated window to become visible instead of rolling back too early (the rollback also turned off HUD because fallback output is invisible for reading prompts; Sea Lion 07, #134).
 
 ## [3.11.1] - 2026-08-05
 
-### Исправления
-- Кнопка «Запись логов» больше не сбрасывается при закрытии окна: если запись идёт, при повторном открытии приложения кнопка показывает «Остановить запись» (запись и раньше продолжалась, но выглядела остановленной)
-- Разделённый экран на прошивках, отличных от приёмочной Leopard 3: панели создаются в режиме, который не рушится от касания, поверх окон не появляются системные кнопки (#130)
-- Подогрев и вентиляция сидений: приложение больше не доверяет ответу «успех» от прошивки, а проверяет фактическое включение по статусу сиденья водителя и при расхождении переключается на резервный канал управления (#74, #98, #109)
-- Масштаб изображения на приборке в Расширенном режиме больше не закрывает 2GIS и другие приложения: масштабирование выполняется через размер виртуального экрана, без смены плотности на лету (спасибо Chpohan, #121)
-- Ошибка запуска помощника теперь называет конкретную причину, включая выключенную отладку ADB, вместо общего «недоступен» (#133)
+### Fixed
+- The “Log recording” button no longer resets when its window closes: if recording is running, reopening the app shows “Stop recording” (recording already continued before, but appeared stopped).
+- Split screen on firmware other than the acceptance-test Leopard 3: panels are created in a mode that does not break on touch, and system buttons do not appear over windows (#130).
+- Seat heating and ventilation: the app no longer trusts a firmware “success” response; it checks the actual state from the driver-seat status and switches to a fallback control channel on a mismatch (#74, #98, #109).
+- Image scaling on the instrument panel in Extended mode no longer covers 2GIS and other apps: scaling uses virtual-display size without changing density at runtime (thanks Chpohan, #121).
+- The assistant startup error now states the specific cause, including disabled ADB debugging, rather than general “unavailable” (#133).
 
-### Новое
-- Диагностический дамп пополнен журналами для разбора полевых проблем: переходы разделённого экрана, события приборки, история манёвров HUD, журнал команд сидений с результатом проверки (#94, #134, #135)
+### New
+- The diagnostic dump now includes logs for investigating field issues: split-screen transitions, instrument-panel events, HUD maneuver history, and a seat-command log with verification result (#94, #134, #135).
 
 ## [3.11] - 2026-08-05
 
-### Новое
-- Ручной расчёт запаса хода: в настройках батареи можно выбрать метод «Ручной» и задать таблицу расхода в зависимости от температуры батареи (5 точек, +20…−20 °C, опционально запас хода на 100% заряда). По умолчанию остаётся автоматический расчёт по истории поездок (спасибо Dmitrijsmok, #136)
-- Польский язык интерфейса
-- Белорусский язык интерфейса
-- Валюта расчёта стоимости: польский злотый (zł)
+### New
+- Manual range calculation: battery settings can select the “Manual” method and set a consumption table by battery temperature (5 points, +20…−20 °C, optional range at 100% charge). Automatic calculation from trip history remains the default (thanks Dmitrijsmok, #136).
+- Polish interface language.
+- Belarusian interface language.
+- Cost-calculation currency: Polish złoty (zł).
 
-### Исправления
-- Китайский и португальский переводы дополнены недостающими строками (разделы «Дисплей», камеры слепых зон, расчёт запаса хода) — раньше эти места показывались по-русски
-- Стартовые шаблоны автоматизации для польского и португальского интерфейса создаются по-английски, а не по-русски (для белорусского остаются русские названия)
+### Fixed
+- Chinese and Portuguese translations now include missing strings (Display, blind-spot cameras, and range calculation); these places were previously shown in Russian.
+- Default automation templates for the Polish and Portuguese interfaces are created in English rather than Russian (Belarusian keeps Russian names).
 
 ## [3.10] - 2026-08-03
 
-### Новое
-- Камеры слепых зон: при включении поворотника картинка с боковой камеры автоматически появляется на приборке и в окне на экране. Куда выводить, положение и размер окна настраиваются в новом разделе настроек «Дисплей», окно ставится на место перетаскиванием. Если сзади-сбоку обнаружена машина, окно подсвечивается оранжевой рамкой. Функция по умолчанию выключена, включается в настройках
-- В описании проекта на GitHub появилась памятка «Что делать при ошибках»: перезагрузка головного устройства, снятие логов и каталог fid'ов
+### New
+- Blind-spot cameras: when a turn signal is on, the side-camera image automatically appears on the instrument panel and in an on-screen window. A new “Display” Settings section configures its destination, position, and size, and you can drag the window into place. If a vehicle is detected to the rear side, an orange frame highlights the window. The feature is disabled by default and can be enabled in Settings.
+- The GitHub project description now has a “What to do when errors occur” guide: restart the head unit, capture logs, and save the FID catalog.
 
-### Исправления
-- Стрелка манёвра на проекционном дисплее (HUD) больше не залипает после пройденного поворота
-- 2GIS больше не закрывается при выводе на приборку (спасибо danijar2000, #131)
+### Fixed
+- The maneuver arrow on the head-up display (HUD) no longer sticks after a completed turn.
+- 2GIS no longer closes when sent to the instrument panel (thanks danijar2000, #131).
 
 ## [3.9.3] - 2026-07-30
 
-### Исправления
-- Окна на DiLink 3.0 (Song Plus и другие машины со старой прошивкой): команды окон теперь идут через канал управления, который существует в этих прошивках: открыть, закрыть, наполовину, проветривание. На DiLink 5.0 путь команд не изменился (#79)
-- Показание правого заднего окна на DiLink 3.0 читается из правильного параметра прошивки, раньше триггеры автоматизации по этому окну видели мусор (#79)
-- Триггер «Люк» в автоматизации заработал: подключён живой параметр процента открытия люка (раньше триггер был в списке, но никогда не срабатывал)
-- Режимы езды в правилах автоматизации исправлены: ECO, SPORT, NORMAL и Внедорожный теперь соответствуют реальным кодам машины (раньше NORMAL и SNOW были указаны неверно и правила по ним не работали); момент переключения режима больше не даёт ложных срабатываний; голосовой агент называет текущий режим для всех режимов. Уже сохранённые правила с режимом NORMAL обновляются автоматически при первом запуске
+### Fixed
+- Windows on DiLink 3.0 (Song Plus and other vehicles with old firmware): window commands now use the control channel available on this firmware—open, close, halfway, and ventilate. The command path on DiLink 5.0 is unchanged (#79).
+- The right rear-window reading on DiLink 3.0 now comes from the correct firmware parameter; automation triggers for this window previously saw junk (#79).
+- The “Sunroof” automation trigger now works: the live parameter for sunroof opening percentage is connected (the trigger was previously listed but never ran).
+- Driving modes in automation rules were fixed: ECO, SPORT, NORMAL, and Off-road now match actual vehicle codes (NORMAL and SNOW were previously incorrect, so rules for them did not work); switching modes no longer causes false activations; the voice agent names the current mode for every mode. Saved rules using NORMAL update automatically on first run.
 
-### Новое
-- В диагностический дамп добавлены секции состояния демона записи (для машин, где не работают команды, #64) и параметров сидений (для машин, где команды сидений принимаются без эффекта, #74, #98, #109)
+### New
+- The diagnostic dump now has sections for recording-daemon state (for vehicles where commands do not work, #64) and seat parameters (for vehicles where seat commands are accepted without effect, #74, #98, #109).
 
 ## [3.9.2] - 2026-07-30
 
-### Исправления
-- Проекция навигации (HUD и приборка) больше не гаснет при свёрнутом навигаторе: разрешение на чтение уведомлений теперь выдаётся официальным системным способом (на части прошивок старый способ система молча сбрасывала), а во время ведения по маршруту приложение само проверяет и восстанавливает его (#105)
-- Анимированная стрелка HUD показывает верное направление: таблица кодов иконок переписана по кодам системного приёмника; раньше поворот направо рисовался как «плавно налево», прямо и круговое движение как «налево», финиш как «съезд с кольца». Для нумерованных съездов с кольца передаётся номер съезда (#94, #116)
-- В диагностический дамп добавлена история восстановления разрешений (для разбора логов)
+### Fixed
+- Navigation projection (HUD and instrument panel) no longer turns off when Navigator is minimized: notification-reading permission is now granted through the official system method (the system silently reset the old method on some firmware), and during route navigation the app checks and restores it itself (#105).
+- The HUD animated arrow shows the correct direction: the icon-code table was rewritten from system-receiver codes; right turns previously drew as “slight left”, straight and roundabout movement as “left”, and destination as “roundabout exit”. For numbered roundabout exits, the exit number is sent (#94, #116).
+- Permission-recovery history was added to the diagnostic dump (for log investigation).
 
 ## [3.9.1] - 2026-07-30
 
-### Исправления
-- Разделение экрана: обе панели снова реагируют на касания (раньше работала только одна, вторую перекрывал невидимый щит системы).
+### Fixed
+- Split screen: both panels respond to touch again (previously only one worked; the other was covered by an invisible system shield).
 
-### Изменено
-- Над окнами панелей снова видна системная полоска окна с кнопками закрытия и разворота. Это цена исправления касаний: кнопки работают штатно, закрытие панели предлагает выбор замены.
+### Changed
+- The system window bar with close and expand buttons is visible above panel windows again. This is the cost of fixing touch: the buttons work natively, and closing a panel offers a replacement picker.
 
 ## [3.9] - 2026-07-29
 
-### Новое
-- Разделение экрана 1/3+2/3: два freeform-окна на DiLink, управление пилюлей внизу (поменять стороны, приложения, пикер замены, выход в полный экран). Запуск с виджета, автоматизации и голосовой командой. Тумблер в настройках, секция «Разделение экрана» (по умолчанию выключено).
-- Каталог fid'ов: кнопка «Сохранить каталог fid'ов» в Настройки → Данные — выгружает в Download каталог имён и номеров параметров прошивки для поддержки других моделей (без VIN и личных данных).
-- Подсказка «?» у секции «Разделение экрана»: как включить и запускать.
+### New
+- 1/3+2/3 split screen: two freeform windows on DiLink, controlled by the pill at the bottom (swap sides, apps, replacement picker, exit to full screen). Start it from the widget, automation, or voice command. The toggle is in Settings → “Split screen” (disabled by default).
+- FID catalog: the “Save FID catalog” button in Settings → Data exports a catalog of firmware parameter names and numbers to Download to support other models (without VIN or personal data).
+- A “?” hint at “Split screen” explains how to enable and start it.
 
 ## [3.8.1] - 2026-07-23
 
-### Исправления
-- Индикация разбаланса ячеек учитывает заряд: предупреждения только в диагностической зоне SOC 20-80% (жёлтым от 50 мВ, красным от 90 мВ, по методике проверки BYD). У полного заряда большой разброс ячеек - нормальная физика LFP, поэтому «Здоровье батареи», карточка батареи на главной и инсайты больше не пугают красным (#113)
+### Fixed
+- Cell-imbalance indication takes charge into account: warnings appear only in the diagnostic SOC 20–80% zone (yellow from 50 mV, red from 90 mV, according to the BYD test method). At full charge, large cell spread is normal LFP physics, so “Battery health”, the Home battery card, and insights no longer alarm you in red (#113).
 
 ## [3.8] - 2026-07-23
 
-### Новое
-- Счётчики TRIP 1 и TRIP 2 на главной, как в машине: пробег, расход в кВт·ч (включая стоянку), время в пути и стоимость с момента сброса; сброс долгим нажатием, подробности по касанию. Карточка «Стоянка» убрана: её данные теперь внутри счётчиков
-- Примечание: после обновления поверх идущей поездки счётчики Trip начинают живой отсчёт со следующей поездки (одноразовый эффект первой сессии)
-- Голосовой агент отвечает, сколько батареи останется до конца маршрута (расчёт по среднему расходу приложения)
-- HUD: запасной канал вывода (стандартный Amap-broadcast, как у OpenBYD), включается сам только на машинах с сервисом Amap; расширенная диагностика HUD в дампе (счётчики кадров, коды ответов, параллельные HUD-приложения)
+### New
+- TRIP 1 and TRIP 2 counters on Home, as in the vehicle: distance, consumption in kWh (including parking), travel time, and cost since reset; long-press to reset and tap for details. The “Parking” card was removed; its data is now in the counters.
+- Note: after updating during an active trip, Trip counters start live counting from the next trip (a one-time first-session effect).
+- The voice agent says how much battery remains at the end of a route (calculated from the app’s average consumption).
+- HUD: a fallback output channel (standard Amap broadcast, as in OpenBYD) activates automatically only on vehicles with the Amap service; the dump has extended HUD diagnostics (frame counters, response codes, parallel HUD apps).
 
-### Исправления
-- Голосовые команды «выключи/отключи подогрев (обдув) сиденья» снова выполняются мгновенно, без обращения к AI-агенту; «подогрев сидений» теперь включает и выключает оба передних кресла
-- Голосовой агент больше не называет машину гибридом: она электромобиль
-- HUD: круговые перекрёстки показывают правильный съезд (1-й...10-й) вместо «прямо», стрелка на кольце больше не крутится в другую сторону (#94)
+### Fixed
+- Voice commands to “turn off/disable seat heating (ventilation)” run instantly again without calling the AI agent; “seat heating” now turns both front seats on and off.
+- The voice agent no longer calls the vehicle a hybrid: it is an electric vehicle.
+- HUD: roundabouts show the correct exit (1st...10th) rather than “straight”, and the arrow in the roundabout no longer turns the wrong way (#94).
 
 ## [3.7] - 2026-07-21
 
-### Новое
-- HUD и проекция на приборку продолжают вести маршрут при свёрнутом Яндекс Навигаторе: данные читаются из его уведомления (порт проверенных решений @RBGboost, автора донорского приложения yandexhud)
-- Предупреждения о камерах на HUD: значок камеры и расстояние до неё вместо стрелки манёвра, пока Навигатор показывает камеру
-- Яндекс Карты теперь тоже источник ведения для HUD, приборки и голосового агента (наравне с Навигатором)
-- Бегущая строка на HUD: при остатке маршрута больше 3 км рядом с улицей показываются оставшееся время и время прибытия
-- Голосовой агент называет остаток пути и времени по маршруту даже при свёрнутом Навигаторе
-- Режим проекции на приборку: «Заводской» (по умолчанию, системные настройки машины не меняются) и «Расширенный» (навигатор на приборке, его видят агент и HUD; включается через диалог с объяснением и путём возврата к заводу). У тех, кто уже пользовался проекцией, прежний режим сохраняется автоматически
-- ABRP: необязательная отправка координат и курса машины в телеметрию (тумблер в настройках, по умолчанию выключен) - для установок, где стрелка машины в ABRP отстаёт от реального положения
-- Ключи API в настройках теперь скрыты звёздочками, кнопка с глазом показывает значение
+### New
+- HUD and instrument-panel projection continue route guidance when Yandex Navigator is minimized: data is read from its notification (a port of proven solutions by @RBGboost, author of the donor yandexhud app).
+- Camera warnings on HUD: a camera icon and its distance replace the maneuver arrow while Navigator shows a camera.
+- Yandex Maps is now also a navigation source for HUD, instrument panel, and the voice agent (alongside Navigator).
+- HUD ticker: when more than 3 km remains, remaining time and arrival time appear next to the street.
+- The voice agent states remaining route distance and time even when Navigator is minimized.
+- Instrument-panel projection mode: “Factory” (default; vehicle system settings do not change) and “Extended” (Navigator on the instrument panel, visible to the agent and HUD; enabled through a dialog that explains it and the path back to factory). For users already using projection, the previous mode is retained automatically.
+- ABRP: optional sending of vehicle coordinates and heading in telemetry (a Settings toggle, disabled by default), for installations where the car arrow in ABRP lags the real position.
+- API keys in Settings are now hidden with asterisks; the eye button shows the value.
 
-### Исправления
-- Режим «Заводской» возвращает системную настройку оконного режима к заводскому значению: после переключения и перезагрузки ДиЛинка сторонние приложения проекции снова работают как до установки BYDMate
+### Fixed
+- “Factory” mode returns the system window-mode setting to its factory value: after switching and restarting DiLink, third-party projection apps work again as they did before BYDMate was installed.
 
 ## [3.6.3] - 2026-07-20
 
-### Новое
-- Диагностический дамп: секция состояния HUD (включён, поддержка SOME/IP, статус подключения)
-- Диагностический дамп: секция состояния кнопки руля (служба спецвозможностей, настройки голосовой кнопки и проекции)
-- Пауза между срабатываниями автоматизации теперь может быть от 1 секунды (раньше минимум 30)
+### New
+- Diagnostic dump: HUD state section (enabled, SOME/IP support, connection status).
+- Diagnostic dump: steering-wheel-button state section (accessibility service, voice-button and projection settings).
+- The pause between automation runs can now be as short as 1 second (previously at least 30).
 
-### Исправления
-- Исправлен чёрный прямоугольник на приборной панели после попытки проекции на машинах без кластерного дисплея (Song, DiLink 3/4): раньше он сохранялся до перезагрузки
+### Fixed
+- Fixed a black rectangle on the instrument panel after a projection attempt on vehicles without a cluster display (Song, DiLink 3/4); it previously remained until restart.
 
 ## [3.6.2] - 2026-07-19
 
-### Новое
-- Действие автоматизации «Точка доступа Wi-Fi»: автоматическое включение или выключение точки доступа по любому триггеру, например при запуске машины (#100)
+### New
+- “Wi-Fi hotspot” automation action: automatically turns the hotspot on or off for any trigger, for example when the vehicle starts (#100).
 
-### Исправления
-- Повреждённая модель голоса больше не приводит к бесконечному циклу перезапусков приложения (Sea Lion 07): если модель распознавания или озвучки оказалась битой (например, из-за обрыва питания при скачивании), приложение само обнаружит это, удалит её и предложит скачать заново
-- Исправлен редкий сбой всего приложения при мгновенном появлении и скрытии всплывающих окон (индикатор голосового агента, уведомления автоматизаций)
-- Голосовые команды про вентиляцию и подогрев «всех сидений» больше не включают вентиляцию салона: фразы со словом «сидений» теперь корректно передаются AI-агенту, который управляет обоими сиденьями
-- Команды «открыть/закрыть все окна» отправляются с небольшим интервалом между окнами: на части машин (Song L) первая команда из плотной пачки терялась и окно водителя не реагировало
-- В диагностический лог добавлен список дисплеев системы: поможет разобраться, почему на Song-семействе и DiLink 3/4 не работает проекция на приборку
+### Fixed
+- A damaged voice model no longer causes an endless app restart loop (Sea Lion 07): if the recognition or speech-synthesis model is corrupt (for example, because power was lost during download), the app detects it, removes it, and offers to download it again.
+- Fixed a rare crash of the whole app when pop-up windows appear and disappear immediately (voice-agent indicator and automation notifications).
+- Voice commands for ventilation and heating of “all seats” no longer turn on cabin ventilation: phrases with the word “seats” are now correctly sent to the AI agent, which controls both seats.
+- “Open/close all windows” commands are sent with a small interval between windows: on some vehicles (Song L), the first command in a dense batch was lost and the driver window did not respond.
+- The diagnostic log now includes a list of system displays to help investigate why instrument-panel projection does not work on the Song family and DiLink 3/4.
 
 ## [3.6.1] - 2026-07-16
 
-ВАЖНО: после обновления обязательно заново скачайте модель распознавания голоса: Настройки, раздел Голос-агент, кнопка «Скачать (226 МБ)». Старая модель этой версией больше не используется, и до перекачки голосовой агент не распознаёт речь.
+IMPORTANT: after updating, download the speech-recognition model again: Settings → Voice agent → “Download (226 MB)”. This version no longer uses the old model, and the voice agent does not recognize speech until you download it again.
 
-### Новое
-- Голосовая модель распознавания обновлена до GigaAM v3: заметно точнее на спонтанной речи и речи при играющей музыке. После обновления зайдите в Настройки, раздел Голос-агент, и заново скачайте модель распознавания
-- В окне «Здоровье батареи» (тап по батарее на главном экране) появился средний уровень заряда: с последней зарядки и за всё время. Значок «?» рядом с заголовком объясняет, как это интерпретировать и почему для LFP-батареи полезно держать средний заряд пониже
-- В описании на GitHub опубликован полный список быстрых голосовых команд, работающих без агента и без интернета
+### New
+- The speech-recognition voice model was updated to GigaAM v3: it is noticeably more accurate on spontaneous speech and speech with music playing. After updating, go to Settings → Voice agent and download the recognition model again.
+- The “Battery health” window (tap the battery on Home) now shows average charge level since the last charge and across all time. The “?” icon next to the heading explains how to interpret it and why a lower average charge is useful for an LFP battery.
+- The GitHub description now publishes a complete list of quick voice commands that work without the agent and internet.
 
-### Исправления
-- Честное сообщение об ошибке голосового помощника: если выбран нерусский язык голоса, приложение теперь объясняет, что распознавание понимает только русскую речь, и подсказывает настройку, вместо ложного «модель не загружена»
-- Определение неживой базы поездок (машины, где файл energydata остался от старой прошивки и не обновляется) снова работает: счётчик поездок поверх замороженного файла не накапливался, и приложение не переключалось на собственную запись поездок
+### Fixed
+- An accurate voice-assistant error: if a non-Russian voice language is selected, the app now explains that recognition understands only Russian speech and points to the setting instead of falsely saying “model not downloaded”.
+- Detection of an inactive trip database (vehicles where the energydata file remains from old firmware and does not update) works again: the trip counter on top of the frozen file did not increase, so the app did not switch to its own trip recording.
 
 ## [3.6] - 2026-07-16
 
-### Новое
-- Подсказки Яндекс Навигатора на проекционном дисплее (HUD): манёвр, дистанция, улица, время прибытия и знак ограничения скорости через штатную шину автомобиля. Тумблеры в Настройках, раздел «Дисплей»; нужна комплектация с HUD, на машинах без шины SOME/IP функция отключается сама. Эта часть приложения стала возможной благодаря @RBGboost: реверс протокола и исходная реализация (YandexHUD) - его код и его заслуга. Поблагодарить его можно в Telegram: @RBGboost
-- Проекция на приборку: навигатор теперь запускается на системном дисплее приборки, поэтому голосовой агент и HUD видят маршрут во время проекции. Приложение выбирает способ проекции само, отдельной настройки нет; при выключении проекции навигатор на секунду перезапускается. Нужна однократная перезагрузка ДиЛинка после обновления (долгое зажатие колёсика громкости; просто заглушить машину недостаточно), до неё автоматически используется старый режим. Так как вывод больше не идёт через виртуальный дисплей, положение и размер окна на приборке могут отличаться от прежних - при необходимости отрегулируйте их заново ползунками в Настройках
-- Настройка «Автовключение приборки» переименована в «Сразу показывать на приборке» и получила понятное описание (автоматический перевод приборки в режим проекции)
-- После обновления при первом запуске проекции на экране появится подсказка о необходимости однократной перезагрузки ДиЛинка (раньше её можно было увидеть только в Настройках)
-- Запись логов теперь захватывает диагностику системного помощника, проекции на приборку и чтения маршрута; для этого приложение автоматически получает системное разрешение READ_LOGS (полностью действует со следующего запуска приложения)
+### New
+- Yandex Navigator prompts on the head-up display (HUD): maneuver, distance, street, arrival time, and speed-limit sign through the vehicle’s native bus. Toggles are in Settings → “Display”; HUD equipment is required, and the feature disables itself on vehicles without the SOME/IP bus. This part of the app was made possible by @RBGboost: the protocol reverse engineering and original implementation (YandexHUD) are his code and contribution. You can thank him on Telegram: @RBGboost.
+- Instrument-panel projection: Navigator now starts on the system instrument-panel display, so the voice agent and HUD see the route during projection. The app selects the projection method itself; there is no separate setting, and Navigator restarts for one second when projection is disabled. One DiLink restart is required after updating (long-press the volume wheel; simply turning off the vehicle is not enough); until then, the old mode is used automatically. Because output no longer uses a virtual display, the instrument-panel window position and size may differ from before—adjust them again with the Settings sliders if needed.
+- The “Instrument-panel auto-on” setting was renamed “Show on instrument panel immediately” and now has a clear description (automatically switches the instrument panel to projection mode).
+- After updating, the first projection start shows an on-screen hint that a one-time DiLink restart is needed (previously visible only in Settings).
+- Log recording now captures diagnostics for the system assistant, instrument-panel projection, and route reading; to do this, the app automatically obtains the READ_LOGS system permission (fully active from the next app start).
 
-### Исправления
-- Голосовой агент теперь видит данные ведения Навигатора, даже когда тот свёрнут или спроецирован на приборку (раньше только с открытым на центральном экране Навигатором)
-- Голосовой агент: громкость, установленная командой во время сессии, больше не откатывается к прежней после закрытия агента; «прибавь/убавь громкость» во время сессии считается от реальной громкости музыки, а не от приглушённой
+### Fixed
+- The voice agent now sees Navigator guidance data even when it is minimized or projected to the instrument panel (previously only when Navigator was open on the central screen).
+- Voice agent: volume set by a command during a session no longer returns to its previous value after the agent closes; “increase/decrease volume” during a session uses the actual music volume rather than the muted volume.
 
 ## [3.5.3] - 2026-07-14
 
-### Новое
-- Голосовой агент: «поехали домой» и «на работу» строят маршрут по Месту BYDMate или по адресу, сохранённому в самом Навигаторе
-- Голосовой агент: «покажи на карте» показывает точку без построения маршрута
-- Голосовой агент: «сколько ехать», «какой следующий поворот», «когда приедем» отвечают по данным ведения Навигатора (манёвр, улица, остаток пути, время прибытия) вместе с зарядом и запасом хода; лимит скорости и номер съезда, когда Навигатор на экране
-- Настройки: постоянная кнопка открытия системной настройки автозапуска (раньше только из диалога после обновления)
-- Настройки: скрытие плавающего виджета, пока на экране YouTube (вкл/выкл, по умолчанию выключено)
-- Настройки реорганизованы: новый раздел «Сервис и данные», места редактируются прямо в настройках без отдельного экрана, единый стиль всех переключателей и кнопок, у каждой настройки появилась подсказка
+### New
+- Voice agent: “jedziemy do domu” and “do pracy” build a route to a BYDMate Place or an address saved in Navigator itself.
+- Voice agent: “pokaż na mapie” shows a point without building a route.
+- Voice agent: “ile jechać”, “jaki następny skręt”, and “kiedy dojedziemy” answer from Navigator guidance data (maneuver, street, remaining distance, arrival time) together with charge and range; speed limit and exit number are included when Navigator is on screen.
+- Settings: a persistent button to open the system autostart setting (previously only from the after-update dialog).
+- Settings: hide the floating widget while YouTube is on screen (on/off, disabled by default).
+- Settings were reorganized: a new “Service and data” section, Places can be edited directly in Settings without a separate screen, all toggles and buttons use one style, and every setting has a hint.
 
-### Исправления
-- Голосовой агент больше не путает построение маршрута с поиском на карте («поехали домой» открывало поиск вместо маршрута)
-- Голосовой агент: километраж, который называется сразу после построения маршрута, теперь озвучивается как примерный (это оценка по прямой, она расходилась с точной цифрой Навигатора)
+### Fixed
+- The voice agent no longer confuses route building with map search (“jedziemy do domu” opened search rather than a route).
+- Voice agent: the distance stated immediately after a route is built is now spoken as approximate (it is a straight-line estimate that differed from Navigator’s exact figure).
 
 ## [3.5.2] - 2026-07-12
 
-### Новое
-- Приложение стало почти в 3 раза меньше: 29 МиБ вместо 81 (включено сжатие кода, удалён устаревший голосовой движок Vosk - распознавание давно работает на новом движке)
-- Действие автоматизации «Проекция на приборку»: с триггером «Запуск сервиса» навигатор выводится на приборную панель автоматически при включении машины (#57, #84)
-- Голосовой агент: прямая команда режима охраны и создание автоматизаций с действиями «Проекция на приборку», «Озвучить текст», «Запрос агенту»
-- Подтверждение опасных действий голосового агента перед выполнением, с проверкой актуального состояния машины в момент подтверждения
-- Краш-отчёты сохраняются на диск и попадают в «Запись логов» даже после перезагрузки
-- Предупреждение перед экспортом резервной копии: архив содержит ключи API и историю GPS в открытом виде
+### New
+- The app is nearly three times smaller: 29 MiB instead of 81 (code compression enabled; the obsolete Vosk voice engine removed—recognition has long used the new engine).
+- “Instrument-panel projection” automation action: with the “Service start” trigger, Navigator is sent to the instrument panel automatically when the vehicle starts (#57, #84).
+- Voice agent: a direct security-mode command and creation of automations with “Instrument-panel projection”, “Speak text”, and “Agent request” actions.
+- Confirmation of dangerous voice-agent actions before execution, with a check of the current vehicle state when confirmed.
+- Crash reports are saved to disk and included in “Log recording” even after a restart.
+- A warning before backup export: the archive contains API keys and GPS history in plain text.
 
-### Исправления
-- Запись длинной поездки не обрывается после ~30 минут непрерывной езды
-- Триггер «Зарядка» снова срабатывает: состояние определяется по живым данным зарядного пистолета и BMS
-- Убрано ложное срабатывание триггера зарядки при холодном старте головного устройства
-- Служебный процесс записи команд автоматически перезапускается, если умер посреди поездки
-- Надёжнее подхват новых поездок из бортовой базы (учёт WAL-журнала)
-- Канал подогрева/вентиляции сидений перепроверяется после OTA-обновления прошивки машины
-- Голосовые настройки теперь входят в резервную копию
-- Защита восстановления от повреждённых архивов резервной копии
-- Статистика голосового агента за день больше не захватывает полночь следующего дня
-- GPS-координаты больше не попадают в системный лог
-- Дополнены португальские переводы (43 строки)
+### Fixed
+- Recording a long trip no longer stops after about 30 minutes of continuous driving.
+- The “Charging” trigger works again: state is determined from live charging-plug and BMS data.
+- Removed false charging-trigger activation during a cold start of the head unit.
+- The command-recording service process restarts automatically if it dies during a trip.
+- More reliable pickup of new trips from the onboard database (WAL journal considered).
+- The seat-heating/ventilation channel is rechecked after an OTA firmware update for the vehicle.
+- Voice settings are now included in backup.
+- Restore is protected against damaged backup archives.
+- Daily voice-agent statistics no longer include midnight of the next day.
+- GPS coordinates no longer enter the system log.
+- Portuguese translations were expanded (43 strings).
 
-### Изменено
-- Опрос данных машины: пакетное чтение параметров одним вызовом вместо сотен отдельных (быстрее и легче для системы)
-- Лицензия проекта заменена на PolyForm Noncommercial 1.0.0 (свободное некоммерческое использование)
+### Changed
+- Vehicle data polling: batched reading of parameters in one call instead of hundreds of individual calls (faster and lighter for the system).
+- The project license changed to PolyForm Noncommercial 1.0.0 (free non-commercial use).
 
 ## [3.5.1] - 2026-07-10
 
-### Новое
-- Датчики салона в автоматизации: ремень переднего пассажира, занятость всех 5 мест, уровень освещённости, батарейка смарт-ключа, дождь (по авто-дворникам) - новые триггеры правил
-- Голосовой агент видит датчики салона в состоянии машины и предупреждает о непристёгнутом ремне при движении
-- Валюта UZS (узбекский сум) в настройках тарифов
-- Защита: отпирание дверей заблокировано на скорости выше 30 км/ч
-- Защита: кнопка «Выполнить сейчас» теперь соблюдает все ограничения безопасности (окна, люк, передний багажник, отпирание)
-- Голосовой агент видит больше данных: напряжение ячеек батареи (мин/макс и разброс), состояние зажигания, температуру батареи мин/макс, дневные ходовые огни, пробег и энергию за всё время
-- Агент создаёт автоматизации с голосовой фразой, кнопкой виджета, запуском приложения и днями недели в расписании
-- 14 новых команд в действиях автоматизаций: задние окна по отдельности, проветривание каждого окна, выключение климата, авто/ручной режим климата, люк стоп/наклон/комфорт
-- Диагностический дамп («Запись логов») дополнен состоянием звука, пакетов штатного голосового помощника BYD и детектора источника поездок.
-- Новые действия автоматизаций: «Озвучить текст» (голос агента произносит заданный текст) и «Запрос агенту» (агент выполняет текстовый запрос и озвучивает ответ). Любой триггер, включая расписание, теперь может разбудить голосового агента: например, утренняя сводка погоды каждый будний день в 8:00.
-- Удаление поездки вручную: долгое нажатие на поездке в списке, с подтверждением; удалённая поездка не возвращается при синхронизации (#81)
-- Настройка правила «Выполнять со звуком»: один звуковой сигнал при срабатывании, для любых действий
-- Действия «Уведомление (звук)» и «Уведомление (без звука)» объединены в одно «Уведомление»; всплывающее уведомление висит 15 секунд или закрывается касанием
+### New
+- Cabin sensors in automation: front-passenger seat belt, occupancy of all five seats, light level, smart-key battery, and rain (from automatic wipers)—new rule triggers.
+- The voice agent sees cabin sensors in vehicle state and warns about an unfastened seat belt while driving.
+- UZS currency (Uzbekistani som) in tariff settings.
+- Safety: door unlocking is blocked above 30 km/h.
+- Safety: the “Run now” button now follows all safety limits (windows, sunroof, front trunk, unlocking).
+- The voice agent sees more data: battery-cell voltage (min/max and spread), ignition state, battery temperature min/max, daytime running lights, lifetime mileage, and energy.
+- The agent creates automations with a voice phrase, widget button, app launch, and days of week in a schedule.
+- 14 new commands in automation actions: individual rear windows, ventilation of each window, climate off, climate auto/manual mode, sunroof stop/tilt/comfort.
+- The diagnostic dump (“Log recording”) now includes audio state, native BYD voice-assistant packages, and the trip-source detector.
+- New automation actions: “Speak text” (the agent voice speaks the specified text) and “Agent request” (the agent performs a text request and speaks the reply). Any trigger, including a schedule, can now wake the voice agent—for example, a morning weather summary every weekday at 8:00.
+- Manual trip deletion: long-press a trip in the list and confirm; a deleted trip does not return during synchronization (#81).
+- “Run with sound” rule setting: one sound signal when triggered, for any actions.
+- “Notification (sound)” and “Notification (no sound)” actions are combined into one “Notification”; the toast remains for 15 seconds or closes on tap.
 
-### Исправления
-- Голосовой агент больше не сообщает, что зарядный пистолет подключён, когда его нет
-- Частота обновления данных в движении вернулась к норме (опрос ошибочно работал в «зарядном» ритме)
-- Поездки: на машинах без живой базы поездок BYD, где от старой прошивки остался заброшенный файл (Yuan Plus / DiLink 3), приложение теперь распознаёт «мёртвую» базу и включает собственную запись поездок (#63). Сброс определения: Настройки, кнопка «Сбросить определение источника поездок».
-- Вывод навигатора на приборку: добавлен запасной вариант имени системного сервиса приборки для DiLink 3 (подсказка @klimuts).
-- Громкость музыки больше не остаётся на минимуме, если приложение перезапустилось посреди голосовой сессии.
-- Приборка больше не остаётся чёрной после перезагрузки машины с активной проекцией навигатора: при старте приложение возвращает приборке заводской вид.
-- Голосовой агент теперь умеет создавать автоматизации по точному времени и расписанию с днями недели (раньше предлагал только время суток).
-- Голосовой агент больше не отвечает «не вышло», когда проекция на приборку успевает включиться: статус ожидается до 15 секунд
+### Fixed
+- The voice agent no longer says that the charging plug is connected when it is not.
+- Data refresh frequency while driving returned to normal (polling incorrectly used the “charging” cadence).
+- Trips: on vehicles without a live BYD trip database, where an abandoned file remains from old firmware (Yuan Plus / DiLink 3), the app now detects the “dead” database and enables its own trip recording (#63). Reset detection: Settings → “Reset trip-source detection”.
+- Navigator output to the instrument panel: added a fallback name for the instrument-panel system service on DiLink 3 (tip from @klimuts).
+- Music volume no longer remains at minimum if the app restarts during a voice session.
+- The instrument panel no longer remains black after the vehicle restarts with active Navigator projection: at startup, the app returns the panel to its factory view.
+- The voice agent can now create automations for an exact time and schedules with days of week (previously it offered only time of day).
+- The voice agent no longer replies “did not work” when instrument-panel projection has time to turn on: status is awaited for up to 15 seconds.
 
 ## [3.5] - 2026-07-08
 
 ### Added
-- Офлайн голосовой ИИ-агент. Говорите по-русски: распознавание работает прямо на машине, без интернета, звук никуда не уходит. Агент понимает живую речь и выполняет просьбы.
-- Голосовое управление: состояние машины (заряд, запас хода, температура за бортом, давление в шинах); окна, климат, подогрев и вентиляция сидений, замки, люк, шторка, багажник, свет, холодильник; маршруты и сохранение мест; музыка и приложения; поездки, зарядки, статистика; запуск и создание автоматизаций; погода и поиск в интернете.
-- Простые команды (окна, температура, громкость, подогрев сидений) срабатывают мгновенно офлайн, без сети.
-- Шесть офлайн-голосов озвучки (Дмитрий, Алёна, Руслан, Ирина, а также более качественные Марк и Софья), настройка скорости и выразительности, кнопка прослушивания. Опционально доступны премиум онлайн-голоса. Голосовые ответы можно отключить, тогда агент отвечает текстом.
-- Кнопка рации: на Leopard 3 работает штатная кнопка на руле, на других машинах назначается любая. После ответа можно продолжать говорить без повторного нажатия; сессия завершается после 30 секунд тишины.
-- Перетаскиваемая пилюля «Слушаю» с последними репликами.
-- Прерывание ответа обращением по имени агента (по умолчанию выключено).
-- Настройка характера и голоса агента (мужской или женский).
-- Выбор ИИ-провайдера (OpenRouter, бесплатный z.ai или свой сервер) с резервным подключением на случай сбоя основного. Ключи вводятся в приложении и хранятся локально.
-- Вывод Яндекс Навигатора на приборку голосом.
-- Новый триггер автоматизаций: срабатывание на произнесённую фразу.
-- Инсайты: переключатель неделя или месяц, расчёт всегда локальный на устройстве.
-- Раздел настроек «Голос-агент» и блок «ИИ-подключения» с пресетами и понятными сообщениями об ошибках сети.
+- Offline voice AI agent. Speak Russian: recognition runs directly in the vehicle without internet, and audio is not sent anywhere. The agent understands natural speech and performs requests.
+- Voice control: vehicle state (charge, range, outside temperature, tire pressure); windows, climate, seat heating and ventilation, locks, sunroof, shade, trunk, lights, refrigerator; routes and saved places; music and apps; trips, charging, statistics; starting and creating automations; weather and web search.
+- Simple commands (windows, temperature, volume, seat heating) run instantly offline without a network.
+- Six offline speech voices (Dmitry, Alyona, Ruslan, Irina, plus higher-quality Mark and Sofia), with speed and expressiveness settings and a listen button. Premium online voices are optionally available. Voice replies can be disabled, in which case the agent replies in text.
+- Push-to-talk button: on Leopard 3, the native steering-wheel button works; on other vehicles, you can assign any button. After a reply, you can continue speaking without pressing it again; the session ends after 30 seconds of silence.
+- A draggable “Listening” pill with recent utterances.
+- Interrupt a reply by saying the agent’s name (disabled by default).
+- Agent personality and voice setting (male or female).
+- Select an AI provider (OpenRouter, free z.ai, or your own server), with a fallback connection if the primary one fails. Keys are entered in the app and stored locally.
+- Send Yandex Navigator to the instrument panel by voice.
+- New automation trigger: activates on a spoken phrase.
+- Insights: choose week or month; calculation is always local on the device.
+- “Voice agent” Settings section and an “AI connections” block with presets and clear network-error messages.
 
 ### Fixed
-- Автоматизации по замку водительской двери теперь срабатывают (коды состояния приведены к реальным значениям машины).
-- «Проветрить все окна» теперь открывает на проветривание все четыре окна, а не только водительское.
-- Запирание и отпирание дверей больше не показывает ложную ошибку при успешной команде.
-- Уточнены ограничения по скорости: шторку салона скорость больше не блокирует; окна разрешены до 120 км/ч; люк остаётся заблокирован выше 80 км/ч.
+- Automations for the driver-door lock now trigger (state codes match the vehicle’s actual values).
+- “Ventilate all windows” now opens all four windows for ventilation rather than only the driver window.
+- Locking and unlocking doors no longer shows a false error after a successful command.
+- Speed limits clarified: speed no longer blocks the cabin shade; windows are allowed up to 120 km/h; the sunroof remains blocked above 80 km/h.
 
 ## [3.2.2] - 2026-07-01
 
 ### Fixed
-- Выключение подогрева и вентиляции сидений из приложения теперь срабатывает.
-- Заряд (SOC) теперь отображается в статистике поездок.
-- Тумблер отключения штатного голосового помощника больше не застревает и применяется надёжно. Изменение вступает в силу после перезагрузки головного устройства.
+- Turning off seat heating and ventilation from the app now works.
+- Charge (SOC) is now shown in trip statistics.
+- The toggle that disables the native voice assistant no longer gets stuck and applies reliably. The change takes effect after the head unit restarts.
 
 ## [3.2.1] - 2026-06-30
 
 ### Added
-- Отключение штатного голосового помощника BYD. В Настройках, в разделе «Приложение», появился переключатель: встроенный голосовой ассистент можно скрыть, чтобы он не перебивал. Включается обратно там же.
+- Disable the native BYD voice assistant. Settings → “App” now has a toggle to hide the built-in voice assistant so it does not interrupt. Enable it again in the same place.
 
 ### Fixed
-- Подогрев и вентиляция сидений снова работают на Song Plus, DiLink 3 и других моделях, где перестали после версии 3.2.0. Приложение само подбирает рабочий способ управления сиденьями и запоминает его. Если после смены машины сиденья не реагируют, в Настройках есть кнопка «Сбросить канал сидений».
+- Seat heating and ventilation work again on Song Plus, DiLink 3, and other models where they stopped after version 3.2.0. The app selects and remembers a working seat-control method. If seats do not respond after changing vehicles, Settings has a “Reset seat channel” button.
 
 ## [3.2.0] - 2026-06-30
 
 ### Added
-- Управление подогревом и вентиляцией сидений водителя и пассажира по ступеням.
-- Управление холодильником: охлаждение, обогрев, выключение и пресеты температуры.
-- Управление передним багажником на стоянке.
-- Кнопки на плавающем виджете: раскрываются одним тапом и запускают сценарии автоматизации (включается в Настройках). Двойной тап по виджету открывает приложение.
-- Новый триггер автоматизации: нажатие кнопки на виджете.
-- Столбец заряда (начало и конец поездки) в таблице поездок за день.
-- Португальский язык интерфейса.
+- Step control for driver and passenger seat heating and ventilation.
+- Refrigerator control: cooling, heating, off, and temperature presets.
+- Front-trunk control while parked.
+- Buttons on the floating widget: expand with one tap and start automation scenarios (enabled in Settings). Double-tap the widget to open the app.
+- New automation trigger: a widget-button press.
+- A charge column (start and end of trip) in the daily trips table.
+- Portuguese interface language.
 
 ### Fixed
-- Команды сидений больше не блокируются на скорости выше 80 км/ч.
-- Закладки заряда поездок сохраняются при выключении зажигания.
-- Сводка на главном экране показывается на выбранном языке.
-- Длительность поездки в таблице больше не переносится на две строки.
-- День недели и месяц в списке поездок сразу меняются при смене языка.
-- Английский и китайский переводы догнали русский.
+- Seat commands are no longer blocked above 80 km/h.
+- Trip charge markers are retained when ignition turns off.
+- The Home summary is shown in the selected language.
+- Trip duration in the table no longer wraps onto two lines.
+- Weekday and month in the trip list change immediately when the language changes.
+- English and Chinese translations now match Russian.
 
 ## [3.1.10] - 2026-06-29
 
 ### Fixed
-- Климат: исправлена команда «внешняя циркуляция» (забор свежего воздуха), теперь срабатывает без ошибки.
-- Действия автоматизации работают сразу после обновления приложения, без перезапуска головного устройства.
+- Climate: fixed the “outside circulation” command (fresh-air intake), which now runs without an error.
+- Automation actions work immediately after updating the app without restarting the head unit.
 
 ## [3.1.6] - 2026-06-14
 
 ### Fixed
-- Небольшой самопроизвольный рост заряда (рекуперация на спусках, калибровка BMS) больше не записывается как зарядка. Рост батареи на 1% теперь всегда считается шумом, зарядки от 3% фиксируются всегда.
-- На DiLink 4 в истории поездок снова отображается маршрут поездки на карте.
-- Даты в списке зарядок и служебные сообщения показываются на языке приложения, а не на языке системы устройства.
+- Small spontaneous charge increases (regeneration downhill, BMS calibration) are no longer recorded as charging. A 1% battery increase is always treated as noise; charging from 3% is always recorded.
+- On DiLink 4, trip history again shows the trip route on a map.
+- Dates in the charging list and service messages are shown in the app language rather than the device system language.
 
 ## [3.1.5] - 2026-06-11
 
 ### Added
-- Вывод на приборку: ползунки сдвига окна и масштаба содержимого. На машинах с мини-окном приборки проекцию можно вписать в видимую зону, рекомендуемые значения в README.
-- Подписи-пояснения под ползунками окна приборки.
-- Минимальный размер окна проекции снижен до 20%.
+- Instrument-panel output: sliders for window offset and content scale. On vehicles with a mini instrument-panel window, projection can fit the visible area; recommended values are in the README.
+- Explanatory labels below the instrument-panel window sliders.
+- The minimum projection-window size was reduced to 20%.
 
 ### Fixed
-- Зарядка больше не теряется, если перед ней была поездка с неизменным процентом батареи.
+- A charging session is no longer lost if it followed a trip with unchanged battery percentage.
 
 ## [3.1.3] - 2026-06-11
 
 ### Added
-- Журнал детекта зарядок в диагностическом отчете (Настройки). Если зарядка не записалась, отчет показывает почему.
+- A charging-detection log in the diagnostic report (Settings). If a charging session is not recorded, the report shows why.
 
 ### Fixed
-- Ночные медленные зарядки больше не теряются. Порог записи снижен с 3% до 1%, фиксируются даже короткие подзарядки на 1-2%.
-- Зарядка дозаписывается, если головное устройство проснулось со вчерашними данными: приложение замечает выросший заряд и восстанавливает сессию.
-- Запись зарядки больше не зависит от скорости импорта поездок при старте приложения.
-- Состояние детектора зарядки сохраняется надежнее при внезапном выключении головного устройства.
+- Slow overnight charging sessions are no longer lost. The recording threshold was lowered from 3% to 1%, so even short 1–2% top-ups are recorded.
+- Charging is completed if the head unit wakes with yesterday’s data: the app notices increased charge and restores the session.
+- Charging recording no longer depends on the speed of trip import when the app starts.
+- Charging-detector state is retained more reliably when the head unit shuts down unexpectedly.
 
 ## [3.1.2] - 2026-06-10
 
 ### Added
-- Расчет заряда по проценту батареи учитывает ее здоровье (SOH), оценка кВт·ч в зарядках стала точнее.
+- Charge calculation from battery percentage accounts for battery health (SOH), making kWh estimates for charging more accurate.
 
 ### Fixed
-- Зарядки больше не теряются, если головное устройство ушло в сон во время зарядки (ночной сценарий). Пропущенная зарядка дозаписывается после пробуждения.
-- Расход в коротких поездках больше не показывает прочерки на машинах без базы energydata (Song, Atto и др.), расход считается по счетчику BMS.
-- Автоматизации: после изменения условий правило больше не срабатывает ложно при сохранении, а условие, наступившее во время паузы или ограничения по частоте, не срабатывает позже само по себе.
+- Charging sessions are no longer lost if the head unit sleeps during charging (the overnight scenario). A missed session is completed after it wakes.
+- Consumption on short trips no longer shows dashes on vehicles without the energydata database (Song, Atto, and others); consumption is calculated from the BMS counter.
+- Automations: after conditions change, a rule no longer triggers falsely on save, and a condition that occurs during a pause or frequency limit does not trigger itself later.
 
 ## [3.1.1] - 2026-06-05
 
 ### Added
-- Карточка батареи: строка «Банки» с напряжением минимальной и максимальной банки и разбросом между ними. Минимальная банка подсвечивается цветом, чтобы заранее заметить слабую банку.
-- Автоматизации: новые условия «Напряжение банки (min)» и «Напряжение банки (max)». Можно настроить уведомление, когда напряжение банки опускается ниже заданного значения.
+- Battery card: a “Cells” row with minimum and maximum cell voltage and their spread. The minimum cell is highlighted by color so you can spot a weak cell early.
+- Automations: new “Cell voltage (min)” and “Cell voltage (max)” conditions. You can set a notification when cell voltage falls below a specified value.
 
 ### Fixed
-- Расход на главном экране больше не становится серым, цифра всегда окрашена по величине расхода.
+- Consumption on Home no longer turns gray; the figure is always colored by consumption level.
 
 ## [3.1.0] - 2026-06-04
 
 ### Added
-- Китайский язык интерфейса (中文). Переключается в Настройки, Приложение, Язык. Вклад @zhongjun96.
-- Карты Amap (高德地图) как источник карты в деталях поездки. Переключается в Настройки, Приложение, Источник карты. По умолчанию OpenStreetMap.
+- Chinese interface language (中文). Select it in Settings → App → Language. Contribution by @zhongjun96.
+- Amap maps (高德地图) as the map source in trip details. Select it in Settings → App → Map source. OpenStreetMap is the default.
 
 ### Fixed
-- Уточнено название настройки вывода на приборку: вывести можно любое приложение, не только навигатор.
-- В китайском интерфейсе виджет с запасом хода на 1 процент заряда больше не распирал плитку.
+- Clarified the instrument-panel-output setting name: you can send any app, not only Navigator.
+- In the Chinese interface, the range-per-1%-charge widget no longer overflowed its tile.
 
 ## [3.0.3] - 2026-06-04
 
 ### Added
-- Экспорт и восстановление конфигурации: все данные и настройки в один файл (Настройки, Данные). Внимание: файл бэкапа содержит ключи и токены (OpenRouter, ABRP, умный дом) в открытом виде, храните его в надежном месте.
-- Управление громкостью мультимедиа в автоматизации.
-- Перемещение условий и действий в автоматизации стрелками вверх и вниз.
-- В экспорт данных (CSV) добавлены GPS-маршрут поездок и расход на стоянке.
+- Export and restore configuration: all data and settings in one file (Settings → Data). Warning: the backup file contains keys and tokens (OpenRouter, ABRP, smart home) in plain text; store it safely.
+- Multimedia-volume control in automation.
+- Move conditions and actions in automation with up and down arrows.
+- GPS trip routes and parking consumption were added to data export (CSV).
 
 ### Fixed
-- Снова отображается расход на 100 км за поездку.
+- Trip consumption per 100 km is shown again.
 
 ## [3.0.2] - 2026-06-03
 
 ### Added
-- Кнопку руля для переноса навигатора на приборку можно выбрать: Настройки, Навигатор на приборку, «Изменить», нажмите нужную кнопку на руле. По умолчанию правая звезда. Системные кнопки, обзор 360 и карусель приборки назначить нельзя.
+- You can select the steering-wheel button that sends Navigator to the instrument panel: Settings → Navigator to instrument panel → “Change”, then press the required steering-wheel button. The default is the right star. System buttons, 360 view, and the instrument-panel carousel cannot be assigned.
 
 ## [3.0.1] - 2026-06-03
 
 ### Fixed
-- Кнопка правой звезды на руле снова стабильно работает после выключения и включения машины.
-- Исправлено добавление места: маркер ставится тапом по карте, место сохраняется.
+- The right-star steering-wheel button works reliably again after the vehicle turns off and on.
+- Fixed adding a Place: tap the map to place a marker and save the Place.
 
 ## [3.0.0] - 2026-06-03
 
 ### Added
-- Приложение работает напрямую с системой машины, без приложения D+ (迪加). Все данные читаются и управление идет без посредника. D+ можно удалить с машины.
-- Яндекс.Навигатор на приборке по правой звезде руля. Короткое нажатие переносит Навигатор на приборку и обратно. Можно выбрать любое приложение для проекции и задать размер окна (Настройки, Приборка).
-- Управление светом и комфортом напрямую: подсветка салона, амбиент, дневные ходовые огни, обогрев зеркал и заднего стекла, окна, климат, багажник.
-- Автоматизация по расписанию: срабатывание по точному времени и промежутку с выбором дней недели.
-- Кнопка «Выполнить сейчас» в редакторе автоматизаций.
-- Виджет: километры на 1% заряда и температуры салона и батареи.
+- The app works directly with the vehicle system, without the D+ (迪加) app. All data is read and controls work without an intermediary. You can remove D+ from the vehicle.
+- Yandex.Navigator on the instrument panel with the right steering-wheel star. A short press sends Navigator to the instrument panel and back. You can choose any app for projection and set the window size (Settings → Instrument panel).
+- Direct light and comfort control: cabin lighting, ambient lighting, daytime running lights, mirror and rear-window heating, windows, climate, and trunk.
+- Scheduled automation: trigger at an exact time and interval, with selected days of week.
+- A “Run now” button in the automation editor.
+- Widget: kilometers per 1% charge and cabin and battery temperatures.
 
 ### Fixed
-- Зарядка, прошедшая пока машина спала, записывается корректно.
-- Закрытие окна обновления отменяет загрузку.
+- Charging that occurred while the vehicle was asleep is recorded correctly.
+- Closing the update window cancels the download.
 
 ## [2.8.1] - 2026-05-14
 
 ### Added
-- Запись логов в Настройках добавляет в начало файла информацию о машине, версии, языке и состоянии настроек. Лог дополнительно ловит подсистемы: autoservice, ADB, ABRP, Зарядки, BatteryHealth.
+- Log recording in Settings adds vehicle, version, language, and setting-state information to the start of the file. The log also captures these subsystems: autoservice, ADB, ABRP, Charging, BatteryHealth.
 
 ### Fixed
-- Емкость батареи с запятой (например 71,8) больше не сбрасывается на 72.9 по умолчанию. Правильное значение уходит в ABRP, расчеты Зарядок и SoH. Аналогично починены тарифы и пороги расхода.
-- Температура салона больше не показывает -2000 на машинах, где значение недоступно (например Song Plus). Так же защищены температура за бортом и температуры батареи.
+- Battery capacity with a comma (for example 71.8) no longer resets to the default 72.9. The correct value is sent to ABRP, Charging calculations, and SoH. Tariffs and consumption thresholds were fixed similarly.
+- Cabin temperature no longer shows -2000 on vehicles where the value is unavailable (for example, Song Plus). Outside and battery temperatures have the same protection.
 
 ## [2.8.0] - 2026-05-14
 
 ### Added
-- Английская локализация всего интерфейса. Переключатель: Настройки, Приложение, Язык. Меняется мгновенно, без перезапуска.
-- AI инсайты генерируются на выбранном языке.
-- README на английском (README.en.md).
+- English localization for the entire interface. Select it in Settings → App → Language. It changes instantly without restart.
+- AI insights are generated in the selected language.
+- English README (README.en.md).
 
 ### Fixed
-- Темный цвет текста на ярких кнопках для лучшей читаемости.
+- Dark text on bright buttons for better readability.
 
 ## [2.7.0] - 2026-05-13
 
 ### Added
-- Настройки в двухпанельной раскладке в стиле DiLink: слева 6 разделов, справа содержимое. Меньше прокрутки, понятнее структура.
-- В виджете можно выбрать свое приложение для левого тапа, не только Яндекс.Навигатор.
-- Скрытый раздел «Умный дом» открывается семью нажатиями на номер версии.
+- Settings in a DiLink-style two-panel layout: six sections on the left and content on the right. Less scrolling and a clearer structure.
+- In the widget, you can select your own app for a left tap, not only Yandex.Navigator.
+- The hidden “Smart home” section opens after seven taps on the version number.
 
 ### Fixed
-- Перенос настройки навигатора между обновлениями защищен от гонки нескольких процессов BYDMate.
-- Превью виджета больше не сбрасывается при переходе между разделами Настроек.
+- Migration of the Navigator setting between updates is protected from a race between multiple BYDMate processes.
+- Widget preview no longer resets when moving between Settings sections.
 
 ## [2.6.1] - 2026-05-11
 
 ### Added
-- Точность данных в A Better Route Planner поднята до полной: ABRP видит мгновенную мощность батареи в реальном времени.
-- Адаптивная частота отправки: раз в секунду в езде, раз в 8 секунд при зарядке, раз в 30 секунд на парковке.
+- Data accuracy in A Better Route Planner was raised to full: ABRP sees instantaneous battery power in real time.
+- Adaptive sending frequency: once per second while driving, every 8 seconds while charging, and every 30 seconds while parked.
 
 ### Fixed
-- Корректная обработка ответов ABRP «подождите» (429) и временной недоступности (5xx).
+- Correct handling of ABRP “wait” responses (429) and temporary unavailability (5xx).
 
 ## [2.6.0] - 2026-05-10
 
 ### Added
-- Передача живых данных машины в A Better Route Planner (ABRP) через Iternio Telemetry API. Включается в Настройки → ABRP. Нужен Generic Live Data Token из гаража ABRP. Координаты GPS не передаются — ABRP читает их сам. На Leopard 3 при включённых «Системных данных» дополнительно отправляются тип зарядной станции (AC/DC), кВт·ч текущей сессии и реальный SoH батареи. Спасибо @trollnuulnuul7 (PR #8) за исходную интеграцию.
+- Sends live vehicle data to A Better Route Planner (ABRP) through the Iternio Telemetry API. Enable it in Settings → ABRP. A Generic Live Data Token from the ABRP garage is required. GPS coordinates are not sent—ABRP reads them itself. On Leopard 3 with “System data” enabled, charging-station type (AC/DC), kWh for the current session, and actual battery SoH are also sent. Thanks to @trollnuulnuul7 (PR #8) for the original integration.
 
 ### Fixed
-- Зарядка теперь записывается с реальным количеством кВт·ч даже когда BMS-счётчик сбрасывается между паузами. Раньше длинная сессия 48% → 99% могла записаться как 21 кВт·ч вместо ~37 кВт·ч, потому что попадала только последняя непрерывная фаза. Теперь приложение сравнивает счётчик с расчётом по дельте SoC и берёт корректное значение, если расхождение больше 30%.
+- Charging is now recorded with the actual kWh even when the BMS counter resets between pauses. Previously, a long 48% → 99% session could be recorded as 21 kWh instead of about 37 kWh because only the last continuous phase was captured. The app now compares the counter with calculation by SoC delta and uses the correct value if the difference is greater than 30%.
 
 ## [2.5.15] - 2026-05-08
 
 ### Fixed
-- Тип зарядки (AC/DC) определяется точнее.
-- В виджете цвет процента SOC меняется как на главной: больше 50 зелёный, от 20 до 50 жёлтый, ниже 20 красный.
+- Charging type (AC/DC) is determined more accurately.
+- In the widget, the SOC percentage color now changes as on Home: above 50 green, 20–50 yellow, below 20 red.
 
 ## [2.5.14] - 2026-05-05
 
 ### Added
-- Новые действия автоматизации «ДХО вкл» и «ДХО выкл» в категории «Свет». Теперь правило может включить или выключить дневные ходовые огни, например при пуске машины. Команды проверены на Leopard 3.
+- New “DRL on” and “DRL off” automation actions in the “Lights” category. A rule can now turn daytime running lights on or off, for example when the vehicle starts. Commands were tested on Leopard 3.
 
 ## [2.5.13] - 2026-05-05
 
 ### Added
-- Опциональный режим виджета: короткий тап по левой трети запускает Яндекс Навигатор (если установлен), правые две трети по-прежнему открывают BYDMate. По умолчанию выключено, включается в Настройки → Плавающий виджет → «Левая треть — Яндекс Навигатор». Длинное нажатие (скрыть виджет) не изменилось. Зона тапа считается от текущей ширины виджета, поэтому работает на любом масштабе 70-200%.
+- Optional widget mode: a short tap on the left third launches Yandex Navigator (if installed); the right two-thirds still opens BYDMate. Disabled by default; enable it in Settings → Floating widget → “Left third — Yandex Navigator”. Long press (hide widget) is unchanged. The tap area uses the current widget width, so it works at any scale from 70–200%.
 
 ### Fixed
-- Триггер «Доступен интернет» больше не срабатывает ложно. Раньше правило могло выстрелить сразу после установки приложения или после выключения и включения самого правила, даже если фактически интернет на DiLink был выключен. Теперь правило ждёт именно момент, когда интернет реально появится после его включения, и не реагирует на состояние, которое уже было раньше.
+- The “Internet available” trigger no longer activates falsely. Previously, a rule could fire immediately after app installation or after the rule itself was disabled and enabled, even if internet on DiLink was actually off. The rule now waits for the moment internet genuinely appears after it is enabled and does not react to a state that was already present.
 
 ## [2.5.12] - 2026-05-04
 
 ### Added
-- Новый триггер автоматизации «Доступен интернет»: правило срабатывает в момент, когда DiLink подключился к сети и Android подтвердил реальный доступ в интернет.
+- New “Internet available” automation trigger: the rule runs when DiLink connects to a network and Android confirms real internet access.
 
 ### Fixed
-- При включении машины после полной зарядки запись о зарядке больше не теряется. Раньше в редком окне сразу после старта BYDMate мог не дождаться данных от системного датчика батареи и пропустить факт зарядки.
+- When the vehicle starts after a full charge, the charging record is no longer lost. Previously, in a rare window right after BYDMate started, it might not wait for data from the system battery sensor and miss the charging event.
 
 ## [2.5.11] - 2026-05-01
 
 ### Fixed
-- Ложные записи зарядки: если включить машину пока пистолет воткнут и зарядка идет, лишняя запись больше не появляется. Завершенная зарядка пишется одной строкой когда пистолет реально вынут.
-- Несколько включений подряд со вставленным пистолетом не создают записей: запись появляется только в момент реального отключения.
+- False charging records: if you turn on the vehicle while the plug is connected and charging is in progress, an extra record no longer appears. A completed charging session is written as one row when the plug is actually removed.
+- Several consecutive starts with the plug inserted no longer create records: a record appears only when it is actually disconnected.
 
 ## [2.5.9] - 2026-04-30
 
 ### Added
-- Виджет автоматически прячется, когда на экране открыта штатная камера: задний ход, авто-выскакивание фронтальной камеры на медленной скорости вперёд, кнопка «360°» и приложение парковки. Возвращается, как только камера ушла с экрана.
-- Watchdog для D+: если D+ перестаёт отвечать дольше 9 секунд, BYDMate сам поднимает его сервис без запуска UI. Работает даже сразу после старта машины, когда DiLink ещё догружает приложения и встроенная камера успела вылезти раньше.
+- The widget hides automatically when the native camera is open on screen: reverse gear, automatic pop-up of the front camera at low forward speed, the “360°” button, and the parking app. It returns as soon as the camera leaves the screen.
+- Watchdog for D+: if D+ stops responding for more than 9 seconds, BYDMate starts its service itself without launching the UI. It works even immediately after the vehicle starts, when DiLink is still loading apps and the native camera has appeared first.
 
 ### Fixed
-- Подкрашивание расхода (зелёный/жёлтый/красный) теперь сразу применяется при изменении порогов в Настройках, без перезапуска приложения.
-- Графики на вкладке «Зарядки» (SoH, Δ ячеек, температура батареи) теперь показывают числа: текущее значение в заголовке справа и подписи min/max по краям. Если значение постоянное (например SoH 100%), линия рисуется по центру, а не прижимается к низу.
+- Consumption coloring (green/yellow/red) now applies immediately when thresholds change in Settings, without restarting the app.
+- Charts on the “Charging” tab (SoH, cell Δ, battery temperature) now show numbers: the current value in the right-hand title and min/max labels at the edges. If the value is constant (for example, SoH 100%), the line is drawn in the center rather than pressed to the bottom.
 
 ## [2.5.5] - 2026-04-29
 
 ### Added
-- Слайдер «Размер виджета» в Настройках (70-200%) с живым предпросмотром: пока двигаешь слайдер, виджет всплывает поверх экрана настроек и сразу показывает результат. Тот же предпросмотр работает и для прозрачности.
+- A “Widget size” slider in Settings (70–200%) with live preview: while you move the slider, the widget pops up over the Settings screen and immediately shows the result. The same preview works for transparency.
 
 ### Fixed
-- Виджет автоматически скрывается при включении задней передачи (R) и возвращается при выходе из R, не перекрывает камеру заднего вида и панель парковки. Closes [#5](https://github.com/AndyShaman/BYDMate/issues/5).
+- The widget hides automatically when reverse gear (R) is engaged and returns when leaving R; it does not cover the rear-view camera or parking panel. Closes [#5](https://github.com/AndyShaman/BYDMate/issues/5).
 
 ## [2.5.4] - 2026-04-29
 
 ### Added
-- Быстрая кнопка «Открыть настройки автозапуска DiLink» прямо в напоминании. Раньше путь к нужному экрану приходилось искать руками.
+- A quick “Open DiLink autostart settings” button directly in the reminder. Previously, you had to find the required screen manually.
 
 ## [2.5.3] - 2026-04-28
 
 ### Changed
-- Расчётный запас хода больше не занижается после стоянок с климатом. Прогноз теперь считается как смесь последних трёх поездок (веса 50/30/20, короткие поездки до 3 км исключены) плюс расход последних 10 км текущей поездки. Доля текущей поездки растёт от нуля на первых 3 км до половины к 25 км.
-- Большая цифра расхода и стрелка тренда продолжают работать через 25-километровое окно, как в v2.5.2.
+- Estimated range is no longer underestimated after parking with climate on. The forecast is now calculated as a mix of the last three trips (weights 50/30/20, short trips up to 3 km excluded) plus consumption over the last 10 km of the current trip. The current trip’s share grows from zero over the first 3 km to half by 25 km.
+- The large consumption figure and trend arrow continue to use a 25-km window, as in v2.5.2.
 
 ### Fixed
-- Пробег текущей поездки на виджете и Главной больше не округляется до целых после 10 км: было «16 км», стало «16.4 км».
+- Current-trip distance in the widget and Home no longer rounds to whole numbers after 10 km: it was “16 km”, now it is “16.4 km”.
 
 ## [2.5.2] - 2026-04-28
 
 ### Changed
-- Большая цифра расхода на виджете и Главной теперь честно отражает текущую поездку: «потрачено кВт·ч за поездку / пройденные километры», обновляется каждые 3 секунды и совпадает с записью в истории по окончании. Первые 2 км новой поездки идёт плавный переход со среднего прошлой поездки на текущий.
+- The large consumption figure in the widget and Home now accurately reflects the current trip: “kWh spent during trip / kilometers traveled”, updates every 3 seconds, and matches the history record on completion. During the first 2 km of a new trip, it smoothly transitions from the previous trip’s average to the current one.
 
 ## [2.5.1] - 2026-04-27
 
 ### Added
-- Защита от удаления места, которое используется в автоматизациях. Кнопка «Удалить» неактивна для таких мест, рядом подпись «используется в N правилах». Closes [#3](https://github.com/AndyShaman/BYDMate/issues/3).
+- Protection against deleting a Place used in automations. The “Delete” button is inactive for such places and has the label “used in N rules” next to it. Closes [#3](https://github.com/AndyShaman/BYDMate/issues/3).
 
 ### Fixed
-- На вкладке Зарядки в секции «Динамика» подписи плейсхолдеров переписаны: явно сказано, что графики появятся после 3 завершённых зарядок, показан счётчик.
-- При первом переходе на вкладку Зарядки больше не мелькает онбординг «Включи Системные данные», когда переключатель уже включён.
+- On the Charging tab in the “Dynamics” section, placeholder labels were rewritten: they clearly state that charts appear after 3 completed charging sessions, and show a counter.
+- On first opening the Charging tab, the “Enable System data” onboarding no longer flashes when the toggle is already enabled.
 
 ## [2.5.0] - 2026-04-27
 
 ### Added
-- Главный экран в стиле плавающего виджета: SOC-кольцо в центре, четыре значения по углам (длительность, одометр, T° салона, пробег поездки, запас хода, расход + стрелка тренда).
-- Вкладка «Зарядки». Машина сама пишет каждую зарядку: SoC до и после, кВт·ч, средняя мощность, длительность, стоимость. Статистика за период и всё время. Фильтры «Все/AC/DC». Зарядка засчитывается, даже если BYDMate не был запущен в момент подключения.
-- Ручное добавление зарядок через кнопку «+ зарядка», редактирование и удаление через долгое нажатие.
-- Реальный SoH (здоровье батареи) на Leopard 3 — значение от бортовой системы автомобиля, а не оценка по delta SoC.
-- Автоматическое определение AC/DC: сначала по типу разъёма, иначе по средней мощности (порог 15 кВт).
+- Home screen in the floating-widget style: a SOC ring in the center, four values at the corners (duration, odometer, cabin temperature, trip distance, range, consumption + trend arrow).
+- “Charging” tab. The vehicle records every charging session itself: SoC before and after, kWh, average power, duration, and cost. Statistics by period and for all time. “All/AC/DC” filters. Charging is counted even if BYDMate was not running when connected.
+- Add charging manually with the “+ charging” button; edit and delete with long press.
+- Actual SoH (battery health) on Leopard 3—a value from the vehicle’s onboard system rather than an estimate from SoC delta.
+- Automatic AC/DC detection: first by connector type, otherwise by average power (15 kW threshold).
 
 ### Changed
-- Тренд расхода в карточке Dashboard и в виджете считается по последним 25 км скользящим окном.
+- Consumption trend in the Dashboard card and widget is calculated with a rolling window over the last 25 km.
 
 ### Notes
-- SoH и автоматические зарядки требуют включения «Системные данные (экспериментально)» в Настройках и одноразового подтверждения ADB-отладки на DiLink (с галочкой «Always allow»).
+- SoH and automatic charging require enabling “System data (experimental)” in Settings and one-time confirmation of ADB debugging on DiLink (with the “Always allow” checkbox).
 
 ## [2.4.12] - 2026-04-25
 
 ### Fixed
-- Стрелка тренда расхода больше не пропадает посреди поездки. После первых 300 м появляется и держится стабильно до конца.
+- The consumption trend arrow no longer disappears mid-trip. It appears after the first 300 m and remains stable until the end.
 
 ## [2.4.11] - 2026-04-25
 
 ### Added
-- Триггер автоматизации «Запуск BYDMate» — срабатывает при каждом старте приложения. Решает проблему с триггером Power=DRIVE на электричках, который не успевал зафиксироваться.
-- Действие «Пауза» с выбором длительности (0.5/1/2/3/5/10 секунд) для последовательного запуска.
+- “BYDMate start” automation trigger—runs every time the app starts. Solves the issue with the Power=DRIVE trigger on EVs, which did not have time to register.
+- “Pause” action with a selectable duration (0.5/1/2/3/5/10 seconds) for sequential execution.
 
 ### Fixed
-- Стрелка тренда не отображается в первые 300 м новой поездки (раньше показывала тренд из прошлой поездки и сбивала с толку). Цифра остаётся видна серым.
+- The trend arrow is not shown during the first 300 m of a new trip (previously, it showed the previous trip’s trend and was misleading). The figure remains visible in gray.
 
 ## [2.4.9] - 2026-04-25
 
 ### Fixed
-- Стрелка тренда расхода на виджете снова работает (с v2.4.5 цифра справа от запаса хода застревала на сером).
-- Прямая стрелка (расход стабилен) теперь белая, заметная.
-- Время поездки сбрасывается после выключения машины на 10+ секунд.
+- The consumption trend arrow in the widget works again (since v2.4.5, the figure to the right of range had been stuck in gray).
+- The straight arrow (stable consumption) is now visible in white.
+- Trip time resets after the vehicle is off for 10+ seconds.
 
 ## [2.4.7] - 2026-04-24
 
 ### Added
-- Пробег за поездку в центре верхней строки виджета.
-- Компактный формат времени в часах: `1ч 25м` вместо `1 ч 25 мин`.
+- Trip distance in the center of the widget’s top row.
+- Compact time format in hours: `1h 25m` instead of `1 h 25 min`.
 
 ### Fixed
-- Расход на виджете теперь реальный, а не серая заглушка.
+- Widget consumption is now real, rather than a gray placeholder.
 
 ## [2.4.6] - 2026-04-24
 
 ### Fixed
-- Призрачный таймер поездки (виджет мог показать «11 ч 43 мин» сразу после запуска). Теперь таймер всегда стартует с нуля при ignition-on.
+- Ghost trip timer fixed (the widget could show “11 h 43 min” immediately after startup). The timer now always starts from zero at ignition-on.
 
 ## [2.4.5] - 2026-04-24
 
 ### Changed
-- Запас хода считается по реальному стилю езды последних 25 км. Не застревает на старте новой поездки.
-- Виджет и Dashboard теперь показывают одинаковое число остаточного пробега.
+- Range is calculated from actual driving style over the last 25 km. It no longer gets stuck at the start of a new trip.
+- The widget and Dashboard now show the same remaining-range value.
 
 ## [2.4.4] - 2026-04-23
 
 ### Changed
-- Расход на виджете — rolling 5 км (раньше — средний с начала поездки, замыливалось).
-- Длительность поездки — ignition-cycle (от включения зажигания до выключения, светофоры и стоянки с климатом не сбрасывают).
-- Сессия переживает sys-kill: при убийстве приложения посреди трассы счёт продолжается с реального момента включения зажигания.
+- Widget consumption uses a rolling 5 km window (previously it averaged from the start of the trip and became blurred).
+- Trip duration uses the ignition cycle (from ignition on to off; traffic lights and parking with climate on do not reset it).
+- The session survives a system kill: if the app is killed on the road, counting continues from the actual ignition-on time.
 
 ### Fixed
-- Расхождение запаса хода в виджете vs Dashboard на Song (TrackingService держал устаревший кеш). Теперь кеш обновляется каждые 30 секунд.
-- Автопроверка обновлений при старте: кнопка «Скачать и установить» больше не закрывает диалог без скачивания.
+- Remaining-range discrepancy between the widget and Dashboard on Song fixed (TrackingService kept stale cache). Cache now refreshes every 30 seconds.
+- Automatic update check at startup: the “Download and install” button no longer closes the dialog without downloading.
 
 ## [2.4.3] - 2026-04-23
 
 ### Added
-- Поддержка Song и других моделей без BYD energydata. В Настройках появился тумблер «Источник данных поездок»: BYD energydata (Leopard 3, точнее) или DiPlus TripInfo (Song и др.). В DiPlus-режиме расход считается по delta SoC (грубее на ~1 кВт·ч/100км).
-- Шаг выбора источника данных в Welcome Wizard.
+- Support for Song and other models without BYD energydata. Settings now has a “Trip data source” toggle: BYD energydata (Leopard 3, more accurate) or DiPlus TripInfo (Song and others). In DiPlus mode, consumption is calculated from SoC delta (roughly 1 kWh/100 km less accurate).
+- A data-source selection step in the Welcome Wizard.
 
 ## [2.4.2] - 2026-04-23
 
 ### Changed
-- Baseline для стрелки тренда — EMA последних 10 поездок длиной от 1 км. Раньше использовался weekly EMA, который застревал «вверх» на неделю после похолодания и наоборот.
-- Честный «пустой» старт виджета: первый 1 км показывает прочерк (холодный старт даёт шум 60-100 кВт·ч/100км), после 1 км — средний за поездку, после 2 км — со стрелкой тренда.
+- Baseline for the trend arrow is the EMA of the last 10 trips of at least 1 km. Previously, a weekly EMA was used; it could remain “up” for a week after colder weather, and vice versa.
+- Accurate empty widget start: the first 1 km shows a dash (a cold start produces 60–100 kWh/100 km noise), after 1 km it shows the trip average, and after 2 km it includes the trend arrow.
 
 ## [2.4.1] - 2026-04-22
 
 ### Added
-- Виджет v3 (260×108 dp): километры запаса 28sp белым, SOC% по центру цветом статуса, расход + стрелка тренда, время поездки, T° салона, T° батареи, 12В.
-- Долгий тап (1.5 сек) скрывает виджет до открытия BYDMate.
+- Widget v3 (260×108 dp): remaining-range kilometers in 28sp white, centered SOC% in the status color, consumption + trend arrow, trip time, cabin temperature, battery temperature, 12 V.
+- Long tap (1.5 seconds) hides the widget until BYDMate is opened.
 
 ### Removed
-- Blocklist «скрывать в приложениях» убран: на DiLink невозможно выдать PACKAGE_USAGE_STATS без ADB. Долгий тап заменяет эту функцию.
+- The “hide in apps” blocklist was removed: PACKAGE_USAGE_STATS cannot be granted on DiLink without ADB. Long tap replaces this function.
 
 ### Fixed
-- Автопроверка обновлений: проверка теперь сразу при открытии приложения, throttle 10 минут (раньше через 30 секунд + кеш на сутки не срабатывал после недавнего апдейта).
+- Automatic update check: it now runs immediately when the app opens, with a 10-minute throttle (previously, a 30-second delay + one-day cache did not work after a recent update).
 
 ## [2.4.0] - 2026-04-22
 
 ### Added
-- Плавающий виджет v2 (190×64 dp), 7 полей: SOC%, запас, расход + стрелка, время, T° салона, T° батареи, 12В.
-- Прозрачность виджета 30-100% (слайдер в Настройках).
-- Скрытие виджета в приложениях (по умолчанию: YouTube, настройки DiLink).
-- Чекбокс «Выполнить один раз за поездку» в редакторе автоматизации.
+- Floating widget v2 (190×64 dp), 7 fields: SOC%, range, consumption + arrow, time, cabin temperature, battery temperature, 12 V.
+- Widget transparency 30–100% (slider in Settings).
+- Hide the widget in apps (default: YouTube, DiLink Settings).
+- “Run once per trip” checkbox in the automation editor.
 
 ## [2.3.8] - 2026-04-22
 
 ### Changed
-- В диалоге обновления видна целевая версия («Скачивается v2.3.8»).
-- При первом запуске новой версии всплывает диалог с напоминанием отключить background apps для BYDMate.
+- The update dialog shows the target version (“Downloading v2.3.8”).
+- On first launch of a new version, a dialog reminds you to disable background apps for BYDMate.
 
 ## [2.3.7] - 2026-04-22
 
 ### Added
-- Автопроверка обновлений через 30 секунд после открытия приложения. Кеш 24 часа. Тумблер в Настройках, по умолчанию включён.
+- Automatic update check 30 seconds after opening the app. Cache duration: 24 hours. Settings toggle enabled by default.
 
 ### Changed
-- Формат длительности поездки: «50 мин» / «1 ч 20 мин» вместо «50м» / «1ч 20м».
+- Trip-duration format: “50 min” / “1 h 20 min” instead of “50m” / “1h 20m”.
 
 ## [2.3.6] - 2026-04-22
 
 ### Changed
-- Единый стиль переключателей по всему приложению (зелёный track включён, серый track выключен).
+- Unified switch style throughout the app (green track on, gray track off).
 
 ## [2.3.5] - 2026-04-22
 
 ### Changed
-- Карточка батареи: `13.9V` -> `13.9 В`, подпись `12V` -> «бортовая сеть».
-- Колонка «время» в Trips: эн-даш с пробелами `13:06 - 13:22` вместо `13:06-13:22`.
+- Battery card: `13.9V` -> `13.9 V`, label `12V` -> “onboard system”.
+- “Time” column in Trips: en dash with spaces, `13:06 - 13:22` instead of `13:06-13:22`.
 
 ## [2.3.4] - 2026-04-22
 
 ### Fixed
-- Убран код валюты из колонки стоимости отдельной поездки (переносился на вторую строку).
-- В уведомлении сервиса вертикальная черта вместо запятой между полями.
+- Removed the currency code from the individual trip-cost column (it wrapped to the second line).
+- Service notification uses a vertical bar instead of a comma between fields.
 
 ## [2.3.3] - 2026-04-22
 
 ### Added
-- Плавающий виджет SOC v1: drag-виджет поверх других приложений, цветная рамка статуса (OK/WARN/CRIT), скрытие через перетаскивание в «корзину» внизу.
-- Overlay-подтверждение для автоматизаций со звуком и таймаутом 15 секунд.
-- Действия автоматизации: открыть/закрыть окно водителя, открыть/закрыть окно пассажира.
+- Floating SOC widget v1: draggable widget over other apps, colored status border (OK/WARN/CRIT), hide by dragging it to the “bin” at the bottom.
+- Overlay confirmation for automations with sound and a 15-second timeout.
+- Automation actions: open/close the driver window and open/close the passenger window.
 
 ### Changed
-- Перестроены Настройки: левая колонка с тарифами, порогами расхода, источником данных.
+- Settings restructured: left column with tariffs, consumption thresholds, and data source.
 
 ## [2.3.1] - 2026-04-18
 
 ### Added
-- Автоматический набор по Bluetooth для действия «Звонок»: чекбокс «Звонить автоматически» отправляет broadcast `com.byd.btcall.action.DIAL_HANGUP` (keycode 313, кнопка снять трубку на руле). Не требует новых разрешений.
+- Automatic Bluetooth dialing for the “Call” action: the “Dial automatically” checkbox sends the `com.byd.btcall.action.DIAL_HANGUP` broadcast (keycode 313, the steering-wheel answer button). No new permissions required.
 
 ### Removed
-- Пустой пикер контактов (на DiLink через `ContactsContract.Data` видны только Telegram-аккаунты без номеров). Разрешение READ_CONTACTS убрано из манифеста.
+- Empty contact picker removed (on DiLink, `ContactsContract.Data` shows only Telegram accounts without phone numbers). The READ_CONTACTS permission was removed from the manifest.
 
 ## [2.3.0] - 2026-04-17
 
 ### Added
-- Места (точки интереса): osmdroid map picker, Haversine-геофенс. Триггеры `place_enter` / `place_exit`.
-- Триггеры: DoorFR/RL/RR, Hood, LockFL, ACCirc, Voltage12V, time_of_day (рассвет/день/закат/ночь через commons-suncalc).
-- Действия: notification_silent, notification_sound (с overlay), app_launch, call (ACTION_DIAL без авто-дозвона), navigate (Яндекс Навигатор), url, yandex_music (Моя Волна).
+- Places (points of interest): osmdroid map picker, Haversine geofence. `place_enter` / `place_exit` triggers.
+- Triggers: DoorFR/RL/RR, Hood, LockFL, ACCirc, Voltage12V, time_of_day (dawn/day/sunset/night via commons-suncalc).
+- Actions: notification_silent, notification_sound (with overlay), app_launch, call (ACTION_DIAL without automatic dialing), navigate (Yandex Navigator), url, yandex_music (My Wave).
 
 ### Changed
-- Период по умолчанию на Dashboard: WEEK (раньше TODAY).
-- 7 последних поездок (раньше 6).
+- Default period on Dashboard: WEEK (previously TODAY).
+- 7 most recent trips (previously 6).
 
 ## [2.2.0] - 2026-04-10
 
 ### Added
-- Вкладка «Автоматизация» с правилами КОГДА → ТОГДА (25 триггеров, 37 команд).
-- Edge trigger, cooldown, опциональное подтверждение перед выполнением.
-- Safeguard: окна не открываются на скорости > 80 км/ч.
-- Журнал срабатываний, 6 готовых шаблонов.
-- Кнопки «Сохранить тарифы» и «Пересчитать все поездки» в Настройках.
+- “Automation” tab with WHEN → THEN rules (25 triggers, 37 commands).
+- Edge trigger, cooldown, optional confirmation before execution.
+- Safeguard: windows do not open at speeds > 80 km/h.
+- Trigger log and 6 ready-made templates.
+- “Save tariffs” and “Recalculate all trips” buttons in Settings.
 
 ## [2.1.7] - 2026-04-08
 
 ### Added
-- Графики на экране поездок (правая 1/3 экрана). 3 метрики: расход, энергия, стоимость. Адаптивная группировка (по поездкам/дням/месяцам). Тап по столбику показывает точное значение.
+- Charts on the Trips screen (right third of the screen). 3 metrics: consumption, energy, cost. Adaptive grouping (by trips/days/months). Tap a bar to show the exact value.
 
 ## [2.1.6] - 2026-04-02
 
 ### Changed
-- Факты в AI-инсайтах считаются детерминированно из реальных поездок (расход с трендом, число поездок, % коротких, idle drain). LLM генерирует только инсайты — корреляции, аномалии, советы.
+- Facts in AI insights are calculated deterministically from real trips (consumption with trend, number of trips, percentage of short trips, idle drain). The LLM generates only insights—correlations, anomalies, and advice.
 
 ### Fixed
-- Дублирование контента в facts/insights.
-- Кнопка «Обновить» в диалоге AI Инсайт всегда доступна.
+- Duplicate content in facts/insights fixed.
+- The “Refresh” button in the AI Insight dialog is always available.
 
 ## [2.1.5] - 2026-04-02
 
 ### Added
-- Месячная сводка (30 дней) в AI-промпт для анализа трендов.
-- Развёрнутый диалог AI: сначала ключевые метрики, потом детальный анализ.
+- Monthly summary (30 days) in the AI prompt for trend analysis.
+- Expanded AI dialog: key metrics first, then detailed analysis.
 
 ## [2.1.4] - 2026-04-02
 
 ### Fixed
-- Расход на стоянке: убрана live-интеграция по мощности мотора (давала нереальные цифры). Теперь считается только по BMS data (energydata zero-km записи).
+- Parking consumption: removed live integration by motor power (it produced unrealistic figures). It is now calculated only from BMS data (energydata zero-km records).
 
 ### Added
-- Кнопка «Сохранить» в настройках AI: сохранить ключ и сразу получить инсайт без перезапуска.
+- “Save” button in AI settings: save the key and get an insight immediately without restarting.
 
 ## [2.1.3] - 2026-04-02
 
 ### Added
-- AI Инсайты на дашборде через OpenRouter API. Обновляется раз в день. Полный каталог моделей с поиском, free-first сортировкой. Поддерживает Gemini, Llama, Claude, GPT.
-- Анализирует расход, тренды (7 дней vs предыдущие 7), idle drain, температуру, напряжение ячеек, 12В, стоимость за км.
+- AI Insights on the Dashboard through the OpenRouter API. Updates once a day. Full model catalog with search and free-first sorting. Supports Gemini, Llama, Claude, and GPT.
+- Analyzes consumption, trends (7 days vs. the previous 7), idle drain, temperature, cell voltage, 12 V, and cost per km.
 
 ### Removed
-- Карточка SoH (невозможно корректно рассчитать без OBD).
+- SoH card removed (cannot be calculated correctly without OBD).
 
 ## [2.1.2] - 2026-04-01
 
 ### Fixed
-- Одноразовый пересчёт расхода всех поездок из BMS data (energydata `electricity`). Раньше точный расход BMS перезаписывался грубой оценкой по delta SoC из DiPlus (1% = 0.729 кВт·ч).
-- `enrichWithDiPlus()` больше не обновляет kwhConsumed/kwhPer100km. DiPlus даёт только socStart, socEnd, avgSpeed.
+- One-time recalculation of consumption for all trips from BMS data (energydata `electricity`). Previously, exact BMS consumption was overwritten by a rough estimate from DiPlus SoC delta (1% = 0.729 kWh).
+- `enrichWithDiPlus()` no longer updates kwhConsumed/kwhPer100km. DiPlus provides only socStart, socEnd, avgSpeed.
 
 ## [2.1.1] - 2026-04-01
 
 ### Changed
-- Трек на карте: тёмная обводка для видимости на любых дорогах, ярче цвета (красный <20, жёлтый 20-60, зелёный >60), линия 8px + 14px обводка.
+- Map track: dark outline for visibility on all roads, brighter colors (red <20, yellow 20–60, green >60), 8px line + 14px outline.
 
 ## [2.1.0] - 2026-04-01
 
 ### Changed
-- Автозапуск переписан: BootReceiver -> WorkManager -> ServiceStartWorker -> startForegroundService (как в BydConnect). WorkManager гарантирует выполнение даже после смерти процесса. USER_PRESENT как backup-триггер.
-- Автоперезапуск при `onDestroy` / `onTaskRemoved`. `excludeFromRecents` на MainActivity.
-- Trips: фиксированные колонки в свёрнутых заголовках, цвет расхода в заголовках месяца/дня.
+- Autostart rewritten: BootReceiver -> WorkManager -> ServiceStartWorker -> startForegroundService (as in BydConnect). WorkManager guarantees execution even after process death. USER_PRESENT as a backup trigger.
+- Automatic restart on `onDestroy` / `onTaskRemoved`. `excludeFromRecents` on MainActivity.
+- Trips: fixed columns in collapsed headers; consumption color in month/day headers.
 
 ## [2.0.9] - 2026-04-01
 
 ### Changed
-- Сводные данные в свёрнутых заголовках месяца/дня не прыгают (фиксированные колонки), цвет расхода виден.
+- Summary data in collapsed month/day headers no longer jumps (fixed columns), and the consumption color is visible.
 
 ## [2.0.8] - 2026-04-01
 
 ### Fixed
-- Порядок колонок в Поездках = как на Дашборде. Все заголовки с маленькой буквы. Стоянки больше не переносятся на 2 строки.
+- Column order in Trips matches Dashboard. All headings use lowercase. Parking records no longer wrap to 2 lines.
 
 ## [2.0.7] - 2026-04-01
 
 ### Added
-- Карточка SoH на дашборде с расчётной ёмкостью (по поездкам с delta SoC >= 10%).
-- Диагностика автозапуска в Настройках.
+- SoH card on the Dashboard with calculated capacity (from trips with SoC delta >= 10%).
+- Autostart diagnostics in Settings.
 
 ### Changed
-- Русский интерфейс вкладок: Главная, Поездки, Настройки.
-- Monospace шрифт для всех чисел, выравнивание чисел вправо в таблицах.
+- Russian interface tabs: Home, Trips, Settings.
+- Monospace font for all numbers; right-aligned numbers in tables.
 
 ### Removed
-- Вкладка «Charges».
+- “Charges” tab.
 
 ## [2.0.4] - 2026-03-30
 
 ### Changed
-- BootReceiver полностью совпадает с DiPlus: `exported=true`, категории DEFAULT + HOME, QUICKBOOT_POWERON + BOOT_COMPLETED, priority 9900, прямой `startForegroundService()`.
-- TripDetailDialog: landscape с картой слева и статистикой справа.
+- BootReceiver now fully matches DiPlus: `exported=true`, DEFAULT + HOME categories, QUICKBOOT_POWERON + BOOT_COMPLETED, priority 9900, direct `startForegroundService()`.
+- TripDetailDialog: landscape with map on the left and statistics on the right.
 
 ### Removed
-- Вкладка «Map» (вызывала краши на DiLink).
+- “Map” tab (caused crashes on DiLink).
 
 ## [2.0.3] - 2026-03-30
 
 ### Fixed
-- GPS recording: убран FOREIGN KEY constraint (migration v6 -> v7), параметры как в TripInfo (2000 ms / 8 m, Looper.getMainLooper(), getLastKnownLocation).
-- Полное логирование GPS на каждом шаге.
-- Idle drain cleanup теперь однократный (раньше запускался при каждом открытии Dashboard).
-- Update dialog скроллится. Dashboard показывает 5 поездок и копеечную точность стоимости.
-- Кнопка копирования команды DiLink+ в clipboard.
+- GPS recording: removed FOREIGN KEY constraint (migration v6 -> v7), parameters as in TripInfo (2000 ms / 8 m, Looper.getMainLooper(), getLastKnownLocation).
+- Full GPS logging at every step.
+- Idle-drain cleanup now runs once (previously it ran every time Dashboard opened).
+- The update dialog scrolls. Dashboard shows 5 trips and cost precision to the kopek.
+- Button to copy the DiLink+ command to the clipboard.
 
 ## [2.0.1] - 2026-03-30
 
 ### Fixed
-- Дубли поездок: мьютекс на синхронизацию, проверка по времени ±5 мин, синк не запускается до завершения Welcome Wizard, автоочистка существующих дублей при первом запуске.
-- Краш карты: osmdroid инициализируется один раз в Application, MapView с lifecycle.
-- Автозапуск Android 12+ через невидимую SilentStartActivity (потом заменено в v2.1.0 на WorkManager).
+- Duplicate trips: synchronization mutex, ±5-minute time check, sync does not run until the Welcome Wizard finishes, automatic cleanup of existing duplicates on first launch.
+- Map crash: osmdroid initializes once in Application; MapView has lifecycle support.
+- Android 12+ autostart through invisible SilentStartActivity (later replaced by WorkManager in v2.1.0).
 
 ## [2.0.0] - 2026-03-30
 
 ### Added
-- Гибридный data-source: energydata (primary) + DiPlus TripInfo (SOC enrichment) + GPS-only tracking.
-- Event-based sync с file change detection.
-- Welcome Wizard первого запуска (battery capacity, тарифы, валюта, инструкции автозапуска).
-- Период-фильтр на Dashboard (Today / Week / Month / Year / All) с 4 stat cards.
-- Аккордеон поездок (Month -> Day -> Trip).
-- Trip detail popup: osmdroid карта со speed-coloured route, статистика, гистограмма скоростей.
-- Type filters в Trips (All / Trips / Stops).
+- Hybrid data source: energydata (primary) + DiPlus TripInfo (SOC enrichment) + GPS-only tracking.
+- Event-based sync with file-change detection.
+- First-launch Welcome Wizard (battery capacity, tariffs, currency, autostart instructions).
+- Period filter on Dashboard (Today / Week / Month / Year / All) with 4 stat cards.
+- Trip accordion (Month -> Day -> Trip).
+- Trip-detail popup: osmdroid map with speed-colored route, statistics, and speed histogram.
+- Type filters in Trips (All / Trips / Stops).
 
 ### Changed
-- TripTracker — только GPS-коллектор, без создания TripEntity.
+- TripTracker is a GPS collector only, without creating TripEntity.
 - Room migration v5 -> v6 (`source`, `byd_id` columns).
-- Автоматическая дедупликация при миграции v1.x -> v2.0.
+- Automatic deduplication during v1.x -> v2.0 migration.
 
 ### Fixed
-- osmdroid crash: `getFilesDir()` вместо external cache, MAPNIK tile source.
+- osmdroid crash: `getFilesDir()` instead of external cache, MAPNIK tile source.
 
 ## [1.0.7] - 2026-03-29
 
 ### Fixed
-- Возвращена стоимость поездки в TripCard (случайно убрана в v1.0.6).
+- Restored trip cost in TripCard (accidentally removed in v1.0.6).
 
 ## [1.0.6] - 2026-03-29
 
 ### Changed
-- Порядок колонок в поездках: Время -> км -> длит. -> кВт·ч -> /100.
+- Trip column order: Time -> km -> duration -> kWh -> /100.
 
 ## [1.0.5] - 2026-03-29
 
 ### Fixed
-- Idle drain показывал нереалистичные значения (14+ кВт·ч при неизменном SoC). Причина: BatCapacity (param 29) — кумулятивный счётчик всего потребления. Теперь интеграция Power по времени, fallback на delta SoC. Старые невалидные записи автоматически очищаются.
+- Idle drain showed unrealistic values (14+ kWh with unchanged SoC). Cause: BatCapacity (param 29) is a cumulative counter of total consumption. It now integrates Power over time, with fallback to SoC delta. Old invalid records are cleaned up automatically.
 
 ### Changed
-- 7 поездок на дашборде вместо 8 (помещаются без обрезки).
+- 7 trips on the Dashboard instead of 8 (they fit without clipping).
 
 ## [1.0.4] - 2026-03-29
 
 ### Changed
-- Поп-ап деталей открывается слева рядом с карточками (40% ширины), а не по центру. Закрытие тапом по поп-апу или по тёмному фону.
+- The detail popup opens on the left next to the cards (40% width), rather than in the center. Close it by tapping the popup or dark background.
 
 ## [1.0.3] - 2026-03-29
 
 ### Changed
-- Компактные карточки (padding меньше, шрифт 16sp). Детали открываются в Dialog поверх экрана. Аккордеон: открытие одного поп-апа закрывает остальные.
+- Compact cards (less padding, 16sp font). Details open in a Dialog over the screen. Accordion: opening one popup closes the others.
 
 ## [1.0.2] - 2026-03-29
 
 ### Changed
-- Три одинаковые карточки на дашборде (Зарядка, Стоянка, Батарея) с единым стилем. Expand/collapse по тапу.
+- Three matching cards on the Dashboard (Charging, Parking, Battery) with a unified style. Expand/collapse by tapping.
 
 ## [1.0.1] - 2026-03-29
 
 ### Added
-- Дата и время в столбце «Время» в поездках (`dd.MM HH:mm`).
+- Date and time in the “Time” column in Trips (`dd.MM HH:mm`).
 
 ### Changed
-- Карточка стоянки всегда видна на дашборде (даже при расходе 0).
+- The parking card is always visible on the Dashboard (even when consumption is 0).
 
 ## [1.0.0] - 2026-03-29
 
-Первый стабильный релиз. Полный аудит и переработка кодовой базы.
+First stable release. Full audit and refactoring of the codebase.
 
 ### Added
-- Деградация батареи (отслеживание SoH и ёмкости по зарядкам).
-- Стоимость поездок в карточках и итогах.
-- Плавная анимация SOC gauge.
-- Индексы Room для быстрых запросов, batch загрузка маршрутных точек.
+- Battery degradation (tracking SoH and capacity from charging sessions).
+- Trip cost in cards and totals.
+- Smooth SOC gauge animation.
+- Room indexes for fast queries, batch loading of route points.
 
 ### Changed
-- WakeLock с timeout (предотвращает разрядку батареи).
-- Асинхронный shutdown сервиса (предотвращает ANR).
-- Exponential backoff при недоступности DiPlus.
-- ProGuard включён в release build.
+- WakeLock with timeout (prevents battery drain).
+- Asynchronous service shutdown (prevents ANR).
+- Exponential backoff when DiPlus is unavailable.
+- ProGuard enabled in the release build.
 - BootReceiver: `exported=false`.
 
 ### Removed

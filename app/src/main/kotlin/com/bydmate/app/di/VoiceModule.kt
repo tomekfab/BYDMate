@@ -2,16 +2,35 @@ package com.bydmate.app.di
 
 import android.content.Context
 import android.media.AudioManager
-import android.util.Log
-import com.bydmate.app.agent.LlmConnectionResolver
+import com.bydmate.app.agent.ActionConfirmer
+import com.bydmate.app.agent.ActionExecutor
+import com.bydmate.app.agent.ActionRegistry
+import com.bydmate.app.agent.ActionValidating
+import com.bydmate.app.agent.DispatcherActionExecutor
+import com.bydmate.app.agent.OverlayActionConfirmer
+import com.bydmate.app.agent.RegistryActionValidator
+import com.bydmate.app.data.automation.ActionDispatcher
 import com.bydmate.app.data.remote.DiParsData
-import com.bydmate.app.data.repository.SettingsRepository
+import com.bydmate.app.data.vehicle.WriteAllowlist
 import com.bydmate.app.platform.LegacyHeadUnit
+import com.bydmate.app.service.TailscaleStartup
 import com.bydmate.app.service.TrackingService
 import com.bydmate.app.voice.*
-import com.bydmate.app.voice.online.MiniMaxTtsBackend
-import com.bydmate.app.voice.online.OpenRouterTtsBackend
-import com.bydmate.app.voice.online.TtsRouter
+import com.bydmate.app.voice.openclaw.ActionLedger
+import com.bydmate.app.voice.openclaw.AliasProposalSinkHolder
+import com.bydmate.app.voice.openclaw.AssistantActionHandler
+import com.bydmate.app.voice.openclaw.AssistantConnectionProbe
+import com.bydmate.app.voice.openclaw.LedgerAssistantActionHandler
+import com.bydmate.app.voice.openclaw.OpenClawAssistant
+import com.bydmate.app.voice.openclaw.OpenClawClient
+import com.bydmate.app.voice.openclaw.OpenClawClientChat
+import com.bydmate.app.voice.openclaw.OpenClawConnectionCoordinator
+import com.bydmate.app.voice.openclaw.OpenClawConversationStore
+import com.bydmate.app.voice.openclaw.OpenClawIdentityStore
+import com.bydmate.app.voice.openclaw.OpenClawPrefs
+import com.bydmate.app.voice.openclaw.SharedPreferencesOpenClawPrefs
+import com.bydmate.app.voice.openclaw.StoredOpenClawCredentials
+import dagger.Lazy
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,31 +40,159 @@ import okhttp3.OkHttpClient
 import java.io.File
 import javax.inject.Named
 import javax.inject.Singleton
+import kotlinx.coroutines.delay
 
-/**
- * Returns the resolved TTS source, migrating legacy "openai" to "offline" at the runtime read
- * seam so that a user who speaks before ever opening Settings still gets the correct source.
- * Calls [persist] with the new value when a migration is needed (idempotent: next read will
- * see the already-written "offline" and skip this branch entirely).
- */
-internal fun migrateLegacyTtsSource(stored: String, persist: (String) -> Unit): String {
-    if (stored == "openai") {
-        persist(TtsRouter.OFFLINE)
-        return TtsRouter.OFFLINE
-    }
-    return stored
+/** Hands [ProfileAsrEngine] to [PolishModelManager] after both exist: the engine needs the manager's
+ *  files and the manager needs the engine to close native objects before touching them. */
+internal class LazyAssetCoordinator(private val engine: Lazy<ProfileAsrEngine>) : NativeAssetCoordinator {
+    override suspend fun <T> withAssetsReleased(language: VoiceLanguage, block: suspend () -> T): T =
+        engine.get().withAssetsReleased(language, block)
 }
-
 @Module
 @InstallIn(SingletonComponent::class)
 object VoiceModule {
+    @Provides @Singleton
+    fun provideVoiceProfileStore(@ApplicationContext ctx: Context) = VoiceProfileStore(ctx)
+
+    /** Read once per session by [VoiceController]; a later settings change cannot mix languages. */
+    @Provides @Singleton
+    fun provideSessionProfile(store: VoiceProfileStore): () -> VoiceSessionProfile = { store.captureSession() }
+
+    @Provides @Singleton
+    internal fun providePolishModelManager(
+        @ApplicationContext ctx: Context,
+        http: OkHttpClient,
+        vad: SharedVadModelManager,
+        engine: Lazy<ProfileAsrEngine>,
+    ) = PolishModelManager(ctx, http, vad = vad, coordinator = LazyAssetCoordinator(engine))
+
+    @Provides @Singleton
+    internal fun provideProfileAsrEngine(
+        store: VoiceProfileStore,
+        polish: PolishModelManager,
+        guard: AsrLoadGuard,
+    ): ProfileAsrEngine = ProfileAsrEngine(
+        store,
+        mapOf(
+            VoiceLanguage.PL to ParakeetAsrEngine(polish, loadGuard = guard, warmVad = LegacyHeadUnit.isAndroid10),
+        ),
+    )
+
+    @Provides @Singleton
+    internal fun provideProfileSwitcher(engine: ProfileAsrEngine): ProfileSwitcher =
+        ProfileSwitcher { target, readiness -> engine.activate(target, readiness) }
+
+    @Provides @Singleton
+    internal fun provideAssetCoordinator(engine: ProfileAsrEngine): NativeAssetCoordinator = engine
+
+    @Provides @Singleton
+    fun provideLegacyRussianAssetCleanup(
+        @ApplicationContext ctx: Context,
+    ) = LegacyRussianAssetCleanup(
+        filesRoot = ctx.filesDir,
+        // No retired Russian native engine remains in this graph. Do not release the active
+        // Polish engine merely to delete unrelated retired directories.
+        releaseRussianAssets = {},
+        warningSink = { warning -> android.util.Log.w("LegacyRuCleanup", warning.toString()) },
+    )
+
+    @Provides @Singleton
+    fun provideOpenClawIdentityStore(@ApplicationContext ctx: Context) = OpenClawIdentityStore.create(ctx)
+
+    @Provides @Singleton
+    fun provideOpenClawConversationStore(@ApplicationContext ctx: Context) = OpenClawConversationStore.create(ctx)
+
+    @Provides @Singleton
+    fun provideOpenClawPrefs(@ApplicationContext ctx: Context): OpenClawPrefs = SharedPreferencesOpenClawPrefs(ctx)
+
+    @Provides @Singleton
+    fun provideActionRegistry(allowlist: WriteAllowlist) = ActionRegistry(allowlist = allowlist)
+
+    @Provides @Singleton
+    fun provideActionValidator(registry: ActionRegistry): ActionValidating = RegistryActionValidator(registry)
+
+    /** Kept across reconnects, opt-out and restarts; the identity's device id namespaces it. */
+    @Provides @Singleton
+    fun provideActionLedger(@ApplicationContext ctx: Context, identity: OpenClawIdentityStore) =
+        ActionLedger(File(ctx.noBackupFilesDir, OpenClawIdentityStore.DIRECTORY_NAME), { identity.identity()?.deviceId })
+
+    @Provides @Singleton
+    fun provideActionConfirmer(@ApplicationContext ctx: Context): ActionConfirmer = OverlayActionConfirmer(ctx)
+
+    @Provides @Singleton
+    fun provideActionExecutor(
+        registry: ActionRegistry,
+        dispatcher: ActionDispatcher,
+        confirmer: ActionConfirmer,
+        gate: VoiceGate,
+    ): ActionExecutor = DispatcherActionExecutor(registry, dispatcher, confirmer) { gate.vehicleSnapshot() }
+
+    /** Bound by [VoiceAliasCoordinator] when it is created; [provideAssistantActionHandler] depends on it. */
+    @Provides @Singleton
+    fun provideAliasProposalSinkHolder() = AliasProposalSinkHolder()
+
+    @Provides @Singleton
+    @Suppress("LongParameterList") // Explicit Hilt dependencies include the coordinator's required holder binding.
+    fun provideAssistantActionHandler(
+        registry: ActionRegistry,
+        validator: ActionValidating,
+        ledger: ActionLedger,
+        executor: ActionExecutor,
+        aliasSink: AliasProposalSinkHolder,
+        // Never read: asking for it makes Hilt build the coordinator, which binds [aliasSink], before this
+        // handler can advertise teaching. It reaches the handler back through a Provider, so there is no cycle.
+        @Suppress("UNUSED_PARAMETER") aliasCoordinator: VoiceAliasCoordinator,
+    ): AssistantActionHandler = LedgerAssistantActionHandler(
+        registry, validator, ledger, executor, aliasSink = aliasSink,
+        log = { android.util.Log.i("AssistantActions", it) },
+    )
+
+    /** The Polish profile's only online path. Its own transport, identity and conversation: no
+     *  OkHttp client, key or connection of the Russian providers is shared with it. */
+    @Provides @Singleton
+    fun provideOpenClawAssistant(
+        prefs: OpenClawPrefs,
+        identity: OpenClawIdentityStore,
+        conversation: OpenClawConversationStore,
+        actions: AssistantActionHandler,
+    ) = OpenClawAssistant(
+        prefs = prefs,
+        chatFor = { endpoint ->
+            OpenClawClientChat(OpenClawClient(endpoint, identity, conversation, attachments = actions))
+        },
+        credentials = StoredOpenClawCredentials(identity, conversation, onForget = actions::onIdentityForgotten),
+        actionLifecycle = actions,
+    )
+
+    @Provides @Singleton
+    internal fun provideOpenClawConnectionCoordinator(
+        assistant: OpenClawAssistant,
+    ) = OpenClawConnectionCoordinator(
+        assistantStatus = assistant.status,
+        reconnectIfEligible = assistant::reconnectIfEligible,
+        reconnectManually = assistant::reconnect,
+        requestTailscale = TailscaleStartup::requestConnection,
+        retryDelay = { delay(it) },
+    )
+
+    @Provides @Singleton
+    fun provideVoiceAssistant(assistant: OpenClawAssistant): VoiceAssistant = assistant
+
+    /** The settings connection test: the same assistant, spoken only by the local Polish voice. */
+    @Provides @Singleton
+    fun provideAssistantConnectionProbe(
+        assistant: OpenClawAssistant,
+        @Named("polishTts") polishVoice: TtsEngine,
+        setup: VoiceLanguageSetup,
+    ) = AssistantConnectionProbe(assistant, polishVoice) { setup.state.value.voiceReady }
+
     @Provides @Singleton
     fun provideTtsModelManager(@ApplicationContext ctx: Context, http: OkHttpClient) =
         TtsModelManager(ctx, http)
 
     @Provides @Singleton
-    fun provideGigaAmModelManager(@ApplicationContext ctx: Context, http: OkHttpClient) =
-        GigaAmModelManager(ctx, http)
+    fun provideSharedVadModelManager(@ApplicationContext ctx: Context, http: OkHttpClient) =
+        SharedVadModelManager(ctx, http)
 
     @Provides @Singleton
     fun provideAsrLoadGuard(@ApplicationContext ctx: Context) = AsrLoadGuard(ctx)
@@ -55,73 +202,34 @@ object VoiceModule {
         AsrLoadGuard(ctx.getSharedPreferences("tts_load_guard", Context.MODE_PRIVATE))
 
     @Provides @Singleton
-    fun provideContinuousAsr(mm: GigaAmModelManager, guard: AsrLoadGuard): ContinuousAsr =
-        GigaAmAsrEngine(mm, loadGuard = guard, warmVad = LegacyHeadUnit.isAndroid10)
+    internal fun provideContinuousAsr(engine: ProfileAsrEngine): ContinuousAsr = engine
 
-    @Provides @Singleton
-    fun provideRuStressMarker(mm: TtsModelManager): RuStressMarker =
-        RuStressMarker {
-            listOf("vits-ru-multi", "supertonic-ru")
-                .map { File(mm.modelDirPath(it), TtsModelManager.STRESS_DICT_FILE) }
-                .firstOrNull { it.isFile }
-        }
-
-    @Provides @Singleton
-    fun provideSelectedTtsVoice(@ApplicationContext ctx: Context): () -> TtsVoice = {
-        val prefs = ctx.getSharedPreferences("voice", Context.MODE_PRIVATE)
-        val id = prefs.getString("tts_voice", TtsModelManager.DEFAULT_VOICE_ID) ?: TtsModelManager.DEFAULT_VOICE_ID
-        TtsVoiceCatalog.byId(id)
-    }
+    /** Always Gosia, always local: speaks the assistant connection test without activating Polish. */
+    @Named("polishTts") @Provides @Singleton
+    fun providePolishTtsEngine(
+        mm: TtsModelManager,
+        @ApplicationContext ctx: Context,
+        @Named("ttsLoadGuard") ttsGuard: AsrLoadGuard,
+    ): TtsEngine = SherpaTtsEngine(
+        mm,
+        selectedVoice = { TtsVoiceCatalog.defaultFor() },
+        rate = { ctx.getSharedPreferences("voice", Context.MODE_PRIVATE).getFloat("tts_rate", 1.0f) },
+        liveliness = { ctx.getSharedPreferences("voice", Context.MODE_PRIVATE).getInt("tts_liveliness", 33) },
+        loadGuard = ttsGuard,
+    )
 
     @Provides @Singleton
     fun provideTtsEngine(
         mm: TtsModelManager,
-        marker: RuStressMarker,
         @ApplicationContext ctx: Context,
-        http: OkHttpClient,
-        connections: LlmConnectionResolver,
-        settings: SettingsRepository,
-        selectedTtsVoice: () -> TtsVoice,
         @Named("ttsLoadGuard") ttsGuard: AsrLoadGuard,
-    ): TtsEngine {
-        val prefs = { ctx.getSharedPreferences("voice", Context.MODE_PRIVATE) }
-        val offline = SherpaTtsEngine(
-            mm,
-            selectedVoice = selectedTtsVoice,
-            rate = { prefs().getFloat("tts_rate", 1.0f) },
-            liveliness = { prefs().getInt("tts_liveliness", 33) },
-            marker = marker,
-            loadGuard = ttsGuard,
-        )
-        return TtsRouter(
-            delegate = offline,
-            backends = listOf(
-                OpenRouterTtsBackend(
-                    id = "gemini",
-                    model = OpenRouterTtsBackend.GEMINI_MODEL,
-                    maleVoice = "Charon",
-                    femaleVoice = "Kore",
-                    http = http,
-                    connections = connections,
-                ),
-                MiniMaxTtsBackend(http = http, settingsRepository = settings),
-            ),
-            selectedSource = {
-                val stored = prefs().getString("tts_source", TtsRouter.OFFLINE) ?: TtsRouter.OFFLINE
-                migrateLegacyTtsSource(stored) { newVal ->
-                    Log.i("VoiceModule", "legacy tts_source 'openai' migrated to offline")
-                    prefs().edit().putString("tts_source", newVal).apply()
-                }
-            },
-            selectedGender = { if (prefs().getString("agent_gender", "m") == "f") TtsGender.FEMALE else TtsGender.MALE },
-            precachePhrases = {
-                AgentPersona.fromId(prefs().getString("agent_persona", null)).phrases(
-                    if (prefs().getString("agent_gender", "m") == "f") TtsGender.FEMALE else TtsGender.MALE,
-                )
-            },
-            phraseDir = File(ctx.filesDir, "tts_phrases"),
-        )
-    }
+    ): TtsEngine = SherpaTtsEngine(
+        mm,
+        selectedVoice = { TtsVoiceCatalog.GOSIA },
+        rate = { ctx.getSharedPreferences("voice", Context.MODE_PRIVATE).getFloat("tts_rate", 1.0f) },
+        liveliness = { ctx.getSharedPreferences("voice", Context.MODE_PRIVATE).getInt("tts_liveliness", 33) },
+        loadGuard = ttsGuard,
+    )
 
     @Provides @Singleton
     fun provideAgentIdentity(@ApplicationContext context: Context): () -> AgentIdentity = {

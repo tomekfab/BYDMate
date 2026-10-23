@@ -54,8 +54,8 @@ class TraceSanitizerTest {
     }
 
     @Test fun `text a person said or wrote never passes`() {
-        assertEquals("<text>", v("закрой окна"))
-        assertEquals("<text>", v("Дом"))
+        assertEquals("<text>", v("zamknij okna, proszę"))
+        assertEquals("<text>", v("Dom Żony"))
         assertEquals("<text>", v("设置温度22"))
         assertEquals("<text>", v("route to Café"))
     }
@@ -80,12 +80,12 @@ class TraceSanitizerTest {
     @Test fun `keys keep only lowercase letters, digits, dash and underscore`() {
         assertEquals("asr_ms", TraceSanitizer.key("asr_ms"))
         assertEquals("route", TraceSanitizer.key("Route"))
-        assertEquals("ab", TraceSanitizer.key("a b=ф"))
+        assertEquals("ab", TraceSanitizer.key("a b=ż"))
         assertEquals("k", TraceSanitizer.key("="))
     }
 
     @Test fun `every output is plain ascii`() {
-        for (input in listOf("закрой", "a\u0000b", "x".repeat(200), "https://ex.com/ü")) {
+        for (input in listOf("zamknij", "a\u0000b", "x".repeat(200), "https://ex.com/ü")) {
             assertTrue(input, v(input).all { it.code in 0x21..0x7E })
         }
     }

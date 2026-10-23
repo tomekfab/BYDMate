@@ -30,13 +30,13 @@ class AgentCatalogFridgeFrontTrunkTest {
     }
 
     @Test fun trunk_descriptions_say_rear() {
-        assertTrue(AgentCommandCatalog.ALL.first { it.id == "trunk_open" }.ru.contains("задний"))
-        assertTrue(AgentCommandCatalog.ALL.first { it.id == "trunk_close" }.ru.contains("задний"))
+        assertTrue(AgentCommandCatalog.ALL.first { it.id == "trunk_open" }.label.contains("tylny"))
+        assertTrue(AgentCommandCatalog.ALL.first { it.id == "trunk_close" }.label.contains("tylny"))
     }
 
     @Test fun no_frunk_word_anywhere() {
         AgentCommandCatalog.ALL.forEach {
-            assertFalse("id=${it.id}", it.ru.contains("фрунк", ignoreCase = true))
+            assertFalse("id=${it.id}", it.label.any { char -> char.code in 0x0400..0x052F })
         }
     }
 

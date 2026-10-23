@@ -72,7 +72,7 @@ class ScheduleTriggerTest {
 
     @Test
     fun `after a time is a range to end of day`() {
-        // "после 8:30" -> 08:30..23:59
+// A time after 8:30 -> 08:30..23:59
         val spec = ScheduleSpec(8 * 60 + 30, 23 * 60 + 59, setOf(1, 2, 3, 4, 5))
         assertTrue(isWithinSchedule(spec, nowMinute = 20 * 60, nowDayOfWeek = 1))
         assertFalse(isWithinSchedule(spec, nowMinute = 8 * 60, nowDayOfWeek = 1))

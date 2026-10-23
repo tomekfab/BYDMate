@@ -6,11 +6,11 @@
     "name": "Navi",
     "trigger_logic": "AND",
     "triggers": [
-      {"param":"Place","chineseName":"位置","operator":"==","value":"enter","displayName":"Въезд в «Дача»","kind":"place_enter","placeName":"Дача"}
+      {"param":"Place","chineseName":"位置","operator":"==","value":"enter","displayName":"Wjazd do „Daczy”","kind":"place_enter","placeName":"Dacza"}
     ],
     "actions": [
       {"command":"","displayName":"","kind":"call","payload":"{\"autoDial\":true,\"contactRequired\":true}"},
-      {"command":"车窗关闭","displayName":"Закрыть все окна","kind":"param"}
+      {"command":"车窗关闭","displayName":"Zamknij wszystkie okna","kind":"param"}
     ],
     "cooldown_seconds": 60,
     "require_park": false,

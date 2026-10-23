@@ -26,7 +26,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * «Медиа: играть / пауза» (#212, #275): an explicit PLAY 126 / PAUSE 127 to the session
+* “Media: play / pause” (#212, #275): an explicit PLAY 126 / PAUSE 127 to the session
  * KnobPlayPause.pickTarget picks, and a failed step when no player is running.
  * Plain JUnit for the same reason as ActionDispatcherMusicPlayTest (mockk vs Robolectric's
  * MediaController shadow); which key goes to which session is checked at the sender seam.
@@ -39,10 +39,10 @@ class ActionDispatcherMediaKeyTest {
 
     init {
         every { context.getSystemService(Context.NOTIFICATION_SERVICE) } returns mockk<NotificationManager>(relaxed = true)
-        every { appStrings.get(R.string.dispatch_media_no_session) } returns "Нет запущенного плеера"
-        every { appStrings.get(R.string.dispatch_media_key_invalid) } returns "Неизвестная команда плеера"
+        every { appStrings.get(R.string.dispatch_media_no_session) } returns "Żaden odtwarzacz nie jest uruchomiony"
+        every { appStrings.get(R.string.dispatch_media_key_invalid) } returns "Nieznane polecenie odtwarzacza"
         every { appStrings.get(R.string.dispatch_media_key_failed, *anyVararg()) } answers {
-            "Плеер не принял команду: ${(args[1] as Array<*>)[0]}"
+            "Odtwarzacz nie przyjął polecenia: ${(args[1] as Array<*>)[0]}"
         }
         dispatcher = ActionDispatcher(mockk<VehicleApi>(relaxed = true), mockk<HelperClient>(relaxed = true), context,
             dagger.Lazy { mockk<com.bydmate.app.voice.VoiceAutomationActions>(relaxed = true) },
@@ -63,7 +63,7 @@ class ActionDispatcherMediaKeyTest {
         }
     }
 
-    private fun key(payload: String) = ActionDef("", "Медиа", "media_key", payload)
+    private fun key(payload: String) = ActionDef("", "Media", "media_key", payload)
 
     @Test fun `play goes to the playing session as PLAY 126`() = runBlocking {
         dispatcher.activeMediaControllers = { listOf(session("a.paused", 2), session("b.playing", 3)) }
@@ -87,7 +87,7 @@ class ActionDispatcherMediaKeyTest {
         dispatcher.activeMediaControllers = { emptyList() }
         val r = dispatcher.dispatch(key("pause"), null)
         assertFalse(r.success)
-        assertEquals("Нет запущенного плеера", r.reason)
+        assertEquals("Żaden odtwarzacz nie jest uruchomiony", r.reason)
         assertTrue(sent.isEmpty())
         verify(exactly = 0) { context.getSystemService(Context.AUDIO_SERVICE) }
     }
@@ -96,7 +96,7 @@ class ActionDispatcherMediaKeyTest {
         dispatcher.activeMediaControllers = { listOf(session("com.byd.mediacenter", 1)) }
         val r = dispatcher.dispatch(key("pause"), null)
         assertFalse(r.success)
-        assertEquals("Нет запущенного плеера", r.reason)
+        assertEquals("Żaden odtwarzacz nie jest uruchomiony", r.reason)
         assertTrue(sent.isEmpty())
     }
 
@@ -145,14 +145,14 @@ class ActionDispatcherMediaKeyTest {
         dispatcher.sendMediaKey = { _, _ -> false }
         val r = dispatcher.dispatch(key("pause"), null)
         assertFalse(r.success)
-        assertEquals("Плеер не принял команду: a.player", r.reason)
+        assertEquals("Odtwarzacz nie przyjął polecenia: a.player", r.reason)
     }
 
     @Test fun `an unknown key is refused without touching a session`() = runBlocking {
         dispatcher.activeMediaControllers = { listOf(session("a.player", 3)) }
         val r = dispatcher.dispatch(key("toggle"), null)
         assertFalse(r.success)
-        assertEquals("Неизвестная команда плеера", r.reason)
+        assertEquals("Nieznane polecenie odtwarzacza", r.reason)
         assertTrue(sent.isEmpty())
     }
 
@@ -191,7 +191,7 @@ class ActionDispatcherMediaKeyTest {
         fresh.activeMediaControllers = { listOf(player) }
         val r = fresh.dispatch(key("pause"), null)
         assertFalse(r.success)
-        assertEquals("Плеер не принял команду: a.player", r.reason)
+        assertEquals("Odtwarzacz nie przyjął polecenia: a.player", r.reason)
     }
 
     // Issue #275: replays the «media key» lines of the user's log with their session lists. The
@@ -217,7 +217,7 @@ class ActionDispatcherMediaKeyTest {
             } else {
                 assertEquals("com.byd.mediacenter", logged)
                 assertFalse(line.take(18), r.success)
-                assertEquals("Нет запущенного плеера", r.reason)
+                assertEquals("Żaden odtwarzacz nie jest uruchomiony", r.reason)
                 assertTrue(sent.isEmpty())
             }
         }
@@ -236,7 +236,7 @@ class ActionDispatcherMediaKeyTest {
             dispatcher.activeMediaControllers = { listOf(session("com.byd.mediacenter", 2)) }
             val r = dispatcher.dispatch(key("play"), null)
             assertFalse(r.success)
-            assertEquals("Нет запущенного плеера", r.reason)
+            assertEquals("Żaden odtwarzacz nie jest uruchomiony", r.reason)
             assertEquals(listOf("com.ilv.vradio" to 127, "com.ilv.vradio" to 126), sent)
             assertTrue(logged.toString(), "media key play: stock player paused, last paused com.ilv.vradio gone: skipped" in logged)
         } finally {
@@ -273,7 +273,7 @@ class ActionDispatcherMediaKeyTest {
         dispatcher.activeMediaControllers = { listOf(session("com.byd.mediacenter", 2)) }
         val r = dispatcher.dispatch(key("play"), null)
         assertFalse(r.success)
-        assertEquals("Нет запущенного плеера", r.reason)
+        assertEquals("Żaden odtwarzacz nie jest uruchomiony", r.reason)
         assertTrue(sent.isEmpty())
     }
 

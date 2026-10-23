@@ -41,7 +41,7 @@ class TelegramReportHybridTest {
             ReportInputs(hybridData, 312.4, null, null, null, null, hybrid = true),
             setOf(ReportField.SOC, ReportField.RANGE),
         )
-        assertTrue(text, text.contains("🔋 Заряд <b>64%</b>, запас <b>46 км</b> на батарее, <b>512 км</b> на топливе"))
+        assertTrue(text, text.contains("🔋 Naładowanie <b>64%</b>, zasięg <b>46 km</b> na baterii, <b>512 km</b> na paliwie"))
         assertFalse(text, text.contains("312"))
     }
 
@@ -50,7 +50,7 @@ class TelegramReportHybridTest {
             ReportInputs(hybridData.copy(fuelRangeKm = null), 312.4, null, null, null, null, hybrid = true),
             setOf(ReportField.RANGE),
         )
-        assertTrue(evOnly, evOnly.contains("🔋 Запас <b>46 км</b> на батарее"))
+        assertTrue(evOnly, evOnly.contains("🔋 Zasięg <b>46 km</b> na baterii"))
         val none = TelegramReportBuilder.build(
             "BYDMate", "", setOf(ReportField.RANGE),
             ReportInputs(hybridData.copy(fuelRangeKm = null, evRangeKm = null), 312.4, null, null, null, null, hybrid = true),
@@ -65,7 +65,7 @@ class TelegramReportHybridTest {
                 trip1Fuel = FuelTotals(liters = 7.6, km = 420.0)),
             setOf(ReportField.TRIP1),
         )
-        assertEquals("${em}Топливо: 7,6 л за период, 1,8 л/100 на все км", text.lines().last())
+        assertEquals("${em}Paliwo: 7,6 l w okresie, 1,8 l/100 na wszystkie km", text.lines().last())
     }
 
     @Test fun `a hybrid counter without litres has no fuel line`() {
@@ -73,7 +73,7 @@ class TelegramReportHybridTest {
             ReportInputs(hybridData, null, null, null, null, null, trip1 = counter, hybrid = true),
             setOf(ReportField.TRIP1),
         )
-        assertFalse(text, text.contains("Топливо"))
+        assertFalse(text, text.contains("Paliwo"))
     }
 
     private val lastTrip = com.bydmate.app.data.local.entity.TripEntity(
@@ -85,7 +85,7 @@ class TelegramReportHybridTest {
             ReportInputs(hybridData, null, null, null, null, lastTrip, hybrid = true),
             setOf(ReportField.TRIP),
         )
-        assertEquals("${em}Топливо: 2,8 л", text.lines().last())
+        assertEquals("${em}Paliwo: 2,8 l", text.lines().last())
     }
 
     @Test fun `a hybrid last trip without litres has no fuel line`() {
@@ -93,7 +93,7 @@ class TelegramReportHybridTest {
             ReportInputs(hybridData, null, null, null, null, lastTrip.copy(fuelLiters = null), hybrid = true),
             setOf(ReportField.TRIP),
         )
-        assertFalse(text, text.contains("Топливо"))
+        assertFalse(text, text.contains("Paliwo"))
     }
 
     @Test fun `an EV report ignores fuel fields and fuel totals`() {
@@ -101,7 +101,7 @@ class TelegramReportHybridTest {
         val plain = ReportInputs(diParsData(soc = 64), 312.4, null, null, null, lastTrip.copy(fuelLiters = null), trip1 = counter)
         val withFuel = plain.copy(data = hybridData, lastTrip = lastTrip, trip1Fuel = FuelTotals(7.6, 420.0))
         assertEquals(build(plain, fields), build(withFuel, fields))
-        assertTrue(build(plain, fields).contains("запас <b>312 км</b>"))
+        assertTrue(build(plain, fields).contains("zasięg <b>312 km</b>"))
     }
 
     @Test fun `every interface language builds the hybrid lines`() {

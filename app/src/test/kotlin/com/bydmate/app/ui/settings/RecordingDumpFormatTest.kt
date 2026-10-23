@@ -20,7 +20,7 @@ class RecordingDumpFormatTest {
         )
 
         assertEquals(
-            "apps: yandexnavi=24.5.1/1234 yandexmaps=?/7(.rustore) music=absent dublgis=absent spotify=absent",
+            "apps: yandexnavi=24.5.1/1234 yandexmaps=?/7(.rustore) googlemaps=absent waze=absent music=absent dublgis=absent spotify=absent",
             RecordingDumpFormat.appVersionsLine { installed[it] },
         )
     }
@@ -54,6 +54,7 @@ class RecordingDumpFormatTest {
         assertFalse(text, text.contains("Ленина"))
         assertFalse(text, text.contains("7, 7"))
         assertTrue(text, text.contains("active=true"))
+        assertTrue(text, text.contains("owner=NONE"))
     }
 
     @Test fun `since keeps journal lines from the recording's start second on`() {
@@ -72,7 +73,7 @@ class RecordingDumpFormatTest {
         assertEquals(
             "2026-10-06 10:00:05 rule=4 ok=false steps=[param:fail(timeout)]",
             RecordingDumpFormat.ruleLineById(
-                "2026-10-06 10:00:05 rule=4 \"Домой к маме\" ok=false steps=[param:fail(timeout)] trig=place:Дом",
+                "2026-10-06 10:00:05 rule=4 \"Do mamy\" ok=false steps=[param:fail(timeout)] trig=place:Dom",
             ),
         )
         assertEquals("(journal empty)", RecordingDumpFormat.ruleLineById("(journal empty)"))

@@ -77,7 +77,7 @@ class SettlementSearchClientTest {
         assertEquals("https://nominatim.openstreetmap.org/reverse", fresh.nominatimUrl)
     }
 
-    // Trimmed Overpass reply near Воложин: name:ru wins over the Belarusian name, a node
+    // Trimmed Overpass reply near the fixture locality: the provider's name:ru field wins over the Belarusian name, a node
     // without any name and one without coordinates are skipped.
     private val fixture = """
         {"version":0.6,"elements":[
@@ -88,7 +88,7 @@ class SettlementSearchClientTest {
         ]}
     """.trimIndent()
 
-    @Test fun parses_settlements_and_prefers_russian_name() = runTest {
+    @Test fun parses_settlements_and_prefers_the_provider_name_field() = runTest {
         server.enqueue(MockResponse().setBody(fixture))
         val found = client.search(54.03, 27.97, 15_000, 50_000).nearby()
         assertEquals(listOf("Воложин", "Семково"), found.map { it.name })
@@ -274,12 +274,12 @@ class SettlementSearchClientTest {
         server.enqueue(MockResponse().setResponseCode(504))
         nominatim.enqueue(MockResponse().setBody("""{"error":"Unable to geocode 54.0,27.0"}"""))
         val message = client.search(54.0, 27.0, 15_000, 50_000).exceptionOrNull()?.message.orEmpty()
-        assertTrue(message, message.contains("nominatim error answer"))
+        assertTrue(message, message.contains("Nominatim error answer"))
         assertTrue(message, !message.contains("54.0"))
     }
 
-    // Nominatim usage policy: an identifying User-Agent; names in Russian for the model.
-    @Test fun nominatim_request_names_the_app_and_asks_for_russian_names() = runTest {
+    // Nominatim usage policy: an identifying User-Agent and the configured provider language.
+    @Test fun nominatim_request_names_the_app_and_uses_the_configured_provider_language() = runTest {
         server.enqueue(MockResponse().setResponseCode(504))
         nominatim.enqueue(MockResponse().setBody(minsk))
         client.search(53.8946, 27.5474, 15_000, 50_000).address()

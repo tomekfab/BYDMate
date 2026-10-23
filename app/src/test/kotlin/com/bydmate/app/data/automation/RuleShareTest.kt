@@ -57,7 +57,7 @@ class RuleShareTest {
     @Test fun `export drops placeId and keeps placeName`() {
         val trigger = export().getJSONObject("rule").getJSONArray("triggers").getJSONObject(0)
         assertFalse(trigger.has("placeId"))
-        assertEquals("Дача", trigger.getString("placeName"))
+        assertEquals("Dacza", trigger.getString("placeName"))
         assertEquals("place_enter", trigger.getString("kind"))
     }
 
@@ -71,13 +71,13 @@ class RuleShareTest {
         assertTrue(payload.getBoolean("autoDial"))
         assertTrue(payload.getBoolean("contactRequired"))
         assertFalse(export().toString().contains("375291234567"))
-        assertFalse(export().toString().contains("Мама"))
+        assertFalse(export().toString().contains("Mama"))
     }
 
     @Test fun `export keeps the agent prompt as is`() {
         val agent = export().getJSONObject("rule").getJSONArray("actions").getJSONObject(1)
         assertEquals("agent_query", agent.getString("kind"))
-        assertEquals("Какая погода дома?", JSONObject(agent.getString("payload")).getString("prompt"))
+        assertEquals("Jaka jest pogoda w domu?", JSONObject(agent.getString("payload")).getString("prompt"))
     }
 
     @Test fun `export strips credentials from a url and keeps the rest`() {
@@ -126,7 +126,7 @@ class RuleShareTest {
         val text = RuleShare.exportJson(rule, "x")
         assertFalse(text.contains("s6"))
         assertFalse(text.contains("my file"))
-        val parsed = (RuleShare.parse(text, "Звонок") as RuleParseResult.Ok).rule
+        val parsed = (RuleShare.parse(text, "Połączenie") as RuleParseResult.Ok).rule
         val payload = JSONObject(parsed.actions[0].payload!!)
         assertEquals("", payload.getString("url"))
         assertTrue(payload.getBoolean("urlRequired"))
@@ -168,13 +168,13 @@ class RuleShareTest {
         val rule = SharedRule.fromEntity(sourceEntity()).copy(
             actions = listOf(ActionDef("", "x", "url", """{"url":"https://h/p?mapid=42&api_key=S3CR3T","minimize":false}""")),
         )
-        val parsed = (RuleShare.parse(RuleShare.exportJson(rule, "x"), "Звонок") as RuleParseResult.Ok).rule
+        val parsed = (RuleShare.parse(RuleShare.exportJson(rule, "x"), "Połączenie") as RuleParseResult.Ok).rule
         assertEquals(listOf(0), parsed.strippedUrlIndexes())
         assertTrue(parsed.unresolvedUrlIndexes().isEmpty())
         // A link already marked from an earlier export keeps the flag on a re-export even though
         // this address is already clean and nothing new is stripped from it.
         val clean = rule.copy(actions = listOf(ActionDef("", "x", "url", """{"url":"https://h/p?mapid=42","minimize":false,"paramsStripped":true}""")))
-        val cleanParsed = (RuleShare.parse(RuleShare.exportJson(clean, "x"), "Звонок") as RuleParseResult.Ok).rule
+        val cleanParsed = (RuleShare.parse(RuleShare.exportJson(clean, "x"), "Połączenie") as RuleParseResult.Ok).rule
         assertEquals(listOf(0), cleanParsed.strippedUrlIndexes())
     }
 
@@ -182,10 +182,10 @@ class RuleShareTest {
         val rule = SharedRule.fromEntity(sourceEntity()).copy(
             actions = listOf(ActionDef("", "x", "url", """{"url":"https://h/p?mapid=42&api_key=S3CR3T","minimize":false}""")),
         )
-        val imported = (RuleShare.parse(RuleShare.exportJson(rule, "x"), "Звонок") as RuleParseResult.Ok).rule
+        val imported = (RuleShare.parse(RuleShare.exportJson(rule, "x"), "Połączenie") as RuleParseResult.Ok).rule
         assertEquals(listOf(0), imported.strippedUrlIndexes())
         // Shared again before the URL is edited: the marker survives even though this run strips nothing new.
-        val reExported = (RuleShare.parse(RuleShare.exportJson(imported, "x"), "Звонок") as RuleParseResult.Ok).rule
+        val reExported = (RuleShare.parse(RuleShare.exportJson(imported, "x"), "Połączenie") as RuleParseResult.Ok).rule
         assertEquals(listOf(0), reExported.strippedUrlIndexes())
         assertEquals("https://h/p?mapid=42", JSONObject(reExported.actions[0].payload!!).getString("url"))
     }
@@ -196,15 +196,15 @@ class RuleShareTest {
         val rule = SharedRule.fromEntity(sourceEntity()).copy(
             actions = listOf(ActionDef("", "x", "url", """{"url":"javascript:alert(1)","minimize":false}""")),
         )
-        val first = (RuleShare.parse(RuleShare.exportJson(rule, "x"), "Звонок") as RuleParseResult.Ok).rule
+        val first = (RuleShare.parse(RuleShare.exportJson(rule, "x"), "Połączenie") as RuleParseResult.Ok).rule
         assertEquals(listOf(0), first.unresolvedUrlIndexes())
         // The importer saved it disabled (the marker stays in the row), then shares it again.
-        val second = (RuleShare.parse(RuleShare.exportJson(first, "x"), "Звонок") as RuleParseResult.Ok).rule
+        val second = (RuleShare.parse(RuleShare.exportJson(first, "x"), "Połączenie") as RuleParseResult.Ok).rule
         assertEquals(listOf(0), second.unresolvedUrlIndexes())
         assertFalse(RuleShare.toEntity(second, "x", enableNow = true).enabled)
         // Even with the marker lost (edited by hand), an empty address is marked again.
         val unmarked = first.copy(actions = listOf(ActionDef("", "", "url", """{"url":"","minimize":false}""")))
-        val third = (RuleShare.parse(RuleShare.exportJson(unmarked, "x"), "Звонок") as RuleParseResult.Ok).rule
+        val third = (RuleShare.parse(RuleShare.exportJson(unmarked, "x"), "Połączenie") as RuleParseResult.Ok).rule
         assertEquals(listOf(0), third.unresolvedUrlIndexes())
     }
 
@@ -232,7 +232,7 @@ class RuleShareTest {
         }
         val text = RuleShare.exportJson(rule, "x")
         assertFalse(text.contains("375291234567"))
-        val parsed = (RuleShare.parse(text, "Звонок") as RuleParseResult.Ok).rule
+        val parsed = (RuleShare.parse(text, "Połączenie") as RuleParseResult.Ok).rule
         assertEquals(listOf(0), parsed.unresolvedCallIndexes())
         assertEquals("tel:", JSONObject(parsed.actions[0].payload!!).getString("url"))
         assertTrue(JSONObject(parsed.actions[0].payload!!).getBoolean("contactRequired"))
@@ -242,7 +242,7 @@ class RuleShareTest {
 
     @Test fun `export keeps settings and never writes runtime fields`() {
         val rule = export().getJSONObject("rule")
-        assertEquals("Дом: звонок", rule.getString("name"))
+        assertEquals("Dom: połączenie", rule.getString("name"))
         assertEquals("AND", rule.getString("trigger_logic"))
         assertEquals(30, rule.getInt("cooldown_seconds"))
         assertTrue(rule.getBoolean("require_park"))
@@ -279,18 +279,18 @@ class RuleShareTest {
 
     // --- File name ---
 
-    @Test fun `slug transliterates Cyrillic`() {
-        assertEquals("bagazhnik", RuleShareFiles.slug("Багажник"))
+    @Test fun `slug transliterates non-ASCII text`() {
+        assertEquals("bagaznik", RuleShareFiles.slug("Bagażnik"))
         assertEquals("navi", RuleShareFiles.slug("Navi"))
-        assertEquals("zakryt_okna_na_trasse", RuleShareFiles.slug("Закрыть окна на трассе!"))
-        assertEquals("shchet_ezh", RuleShareFiles.slug("Щёт ёж"))
-        assertEquals("dom_zvonok", RuleShareFiles.slug("Дом: звонок"))
+        assertEquals("zamknij_okna_na_trasie", RuleShareFiles.slug("Zamknij okna na trasie!"))
+        assertEquals("szczesc_jez", RuleShareFiles.slug("Szczęść jeż"))
+        assertEquals("dom_dzwonek", RuleShareFiles.slug("Dom: dzwonek"))
     }
 
     @Test fun `slug drops accents, caps length and never comes out empty`() {
         assertEquals("zolta_lodz", RuleShareFiles.slug("Żółta łódź"))
         assertEquals("rule", RuleShareFiles.slug("高速关窗"))
-        val long = RuleShareFiles.slug("Очень длинное название автоматизации для проверки длины")
+        val long = RuleShareFiles.slug("Bardzo długa nazwa automatyzacji do sprawdzenia długości")
         assertTrue(long.length <= 40)
         assertFalse(long.endsWith("_"))
     }
@@ -301,9 +301,9 @@ class RuleShareTest {
         val first = RuleShareFiles.writeTo(dir, rule, "x")
         val second = RuleShareFiles.writeTo(dir, rule, "x")
         val third = RuleShareFiles.writeTo(dir, rule, "x")
-        assertEquals("bydmate_rule_dom_zvonok.json", first.name)
-        assertEquals("bydmate_rule_dom_zvonok_2.json", second.name)
-        assertEquals("bydmate_rule_dom_zvonok_3.json", third.name)
+        assertEquals("bydmate_rule_dom_polaczenie.json", first.name)
+        assertEquals("bydmate_rule_dom_polaczenie_2.json", second.name)
+        assertEquals("bydmate_rule_dom_polaczenie_3.json", third.name)
     }
 
     @Test fun `export leaves no temp file and a failed write leaves nothing importable`() {
@@ -311,7 +311,7 @@ class RuleShareTest {
         val rule = SharedRule.fromEntity(sourceEntity())
         val file = RuleShareFiles.writeTo(dir, rule, "x")
         assertEquals(listOf(file.name), dir.list()!!.toList())
-        assertTrue(RuleShare.parse(file.readText(), "Звонок") is RuleParseResult.Ok)
+        assertTrue(RuleShare.parse(file.readText(), "Połączenie") is RuleParseResult.Ok)
 
         val readOnly = tmp.newFolder("ReadOnly")
         assertTrue(readOnly.setWritable(false))
@@ -351,24 +351,24 @@ class RuleShareTest {
     }
 
     @Test fun `a close step survives the share file`() {
-        val close = ActionDef("", "Закрыть приложение: Радио", "app_close",
-            """{"packageName":"com.example.radio","appLabel":"Радио"}""")
+        val close = ActionDef("", "Zamknij aplikację: Radio", "app_close",
+            """{"packageName":"com.example.radio","appLabel":"Radio"}""")
         val rule = SharedRule.fromEntity(sourceEntity()).copy(actions = listOf(close))
-        val parsed = RuleShare.parse(RuleShare.exportJson(rule, "3.19.5"), "Звонок") as RuleParseResult.Ok
+        val parsed = RuleShare.parse(RuleShare.exportJson(rule, "3.19.5"), "Połączenie") as RuleParseResult.Ok
         assertEquals(listOf(close), parsed.rule.actions)
     }
 
     @Test fun `media key steps survive the share file`() {
-        val steps = listOf(ActionDef("", "Медиа: играть", "media_key", "play"), ActionDef("", "Медиа: пауза", "media_key", "pause"))
+        val steps = listOf(ActionDef("", "Multimedia: odtwórz", "media_key", "play"), ActionDef("", "Multimedia: pauza", "media_key", "pause"))
         val rule = SharedRule.fromEntity(sourceEntity()).copy(actions = steps)
-        val parsed = RuleShare.parse(RuleShare.exportJson(rule, "3.19.5"), "Звонок") as RuleParseResult.Ok
+        val parsed = RuleShare.parse(RuleShare.exportJson(rule, "3.19.5"), "Połączenie") as RuleParseResult.Ok
         assertEquals(steps, parsed.rule.actions)
     }
 
     @Test fun `screen steps survive the share file`() {
-        val steps = listOf(ActionDef("screen", "Экран: выключить", "screen", "0"), ActionDef("screen", "Экран: включить", "screen", "1"))
+        val steps = listOf(ActionDef("screen", "Ekran: wyłącz", "screen", "0"), ActionDef("screen", "Ekran: włącz", "screen", "1"))
         val rule = SharedRule.fromEntity(sourceEntity()).copy(actions = steps)
-        val parsed = RuleShare.parse(RuleShare.exportJson(rule, "3.20.0"), "Звонок") as RuleParseResult.Ok
+        val parsed = RuleShare.parse(RuleShare.exportJson(rule, "3.20.0"), "Połączenie") as RuleParseResult.Ok
         assertEquals(steps, parsed.rule.actions)
         assertTrue("screen" in RuleShare.KNOWN_ACTION_KINDS)
     }
@@ -376,53 +376,69 @@ class RuleShareTest {
     // --- Import ---
 
     @Test fun `export then parse keeps the rule minus private fields`() {
-        val parsed = RuleShare.parse(export().toString(), "Звонок") as RuleParseResult.Ok
+        val parsed = RuleShare.parse(export().toString(), "Połączenie") as RuleParseResult.Ok
         val rule = parsed.rule
-        assertEquals("Дом: звонок", rule.name)
+        assertEquals("Dom: połączenie", rule.name)
         assertEquals(2, rule.triggers.size)
         assertNull(rule.triggers[0].placeId)
-        assertEquals("Звонок", rule.actions[0].displayName)
+        assertEquals("Połączenie", rule.actions[0].displayName)
         assertEquals(listOf(0), rule.unresolvedPlaceIndexes())
         assertEquals(listOf(0), rule.unresolvedCallIndexes())
     }
 
+    @Test fun `legacy Cyrillic shared rule round trips without rewriting saved text`() {
+        val legacy = SharedRule.fromEntity(
+            RuleEntity(
+                name = "Дом: звонок",
+                triggers = TriggerDef.listToJson(listOf(TriggerDef("Speed", "速度", ">", "7", "Скорость > 7 км/ч"))),
+                actions = ActionDef.listToJson(listOf(ActionDef("车窗关闭", "Закрыть все окна"))),
+            ),
+        )
+
+        val parsed = RuleShare.parse(RuleShare.exportJson(legacy, "4.0.0"), "Połączenie") as RuleParseResult.Ok
+
+        assertEquals(legacy.name, parsed.rule.name)
+        assertEquals(legacy.triggers, parsed.rule.triggers)
+        assertEquals(legacy.actions, parsed.rule.actions)
+    }
+
     @Test fun `unknown place stays unresolved and the rule is added disabled`() {
-        val parsed = RuleShare.parse(fixture("bydmate_rule_dacha.json"), "Звонок") as RuleParseResult.Ok
-        val places = listOf(PlaceEntity(id = 3, name = "Дом", lat = 54.0, lon = 27.0))
-        val rule = RuleShare.resolvePlaces(parsed.rule, places, "Въезд в", "Выезд из")
+        val parsed = RuleShare.parse(fixture("bydmate_rule_dacha.json"), "Połączenie") as RuleParseResult.Ok
+        val places = listOf(PlaceEntity(id = 3, name = "Dom", lat = 54.0, lon = 27.0))
+        val rule = RuleShare.resolvePlaces(parsed.rule, places, "Wjazd do", "Wyjazd z")
         assertEquals(listOf(0), rule.unresolvedPlaceIndexes())
-        assertEquals("Дача", rule.triggers[0].placeName)
+        assertEquals("Dacza", rule.triggers[0].placeName)
         assertFalse(RuleShare.toEntity(rule, rule.name, enableNow = true).enabled)
     }
 
     @Test fun `place found by name ignoring case is linked`() {
-        val parsed = RuleShare.parse(fixture("bydmate_rule_dacha.json"), "Звонок") as RuleParseResult.Ok
-        val places = listOf(PlaceEntity(id = 9, name = "дача ", lat = 54.0, lon = 27.0))
-        val rule = RuleShare.resolvePlaces(parsed.rule, places, "Въезд в", "Выезд из")
+        val parsed = RuleShare.parse(fixture("bydmate_rule_dacha.json"), "Połączenie") as RuleParseResult.Ok
+        val places = listOf(PlaceEntity(id = 9, name = "dacza ", lat = 54.0, lon = 27.0))
+        val rule = RuleShare.resolvePlaces(parsed.rule, places, "Wjazd do", "Wyjazd z")
         assertTrue(rule.unresolvedPlaceIndexes().isEmpty())
         assertEquals(9L, rule.triggers[0].placeId)
-        assertEquals("Въезд в «дача »", rule.triggers[0].displayName)
+        assertEquals("Wjazd do «dacza »", rule.triggers[0].displayName)
     }
 
     @Test fun `place name match ignores extra whitespace`() {
-        val parsed = RuleShare.parse(fixture("bydmate_rule_dacha.json").replace("\"placeName\":\"Дача\"", "\"placeName\":\" Моя   дача \""), "Звонок") as RuleParseResult.Ok
-        val places = listOf(PlaceEntity(id = 4, name = "моя дача", lat = 54.0, lon = 27.0))
-        assertEquals(4L, RuleShare.resolvePlaces(parsed.rule, places, "Въезд в", "Выезд из").triggers[0].placeId)
+        val parsed = RuleShare.parse(fixture("bydmate_rule_dacha.json").replace("\"placeName\":\"Dacza\"", "\"placeName\":\" Moja   dacza \""), "Połączenie") as RuleParseResult.Ok
+        val places = listOf(PlaceEntity(id = 4, name = "moja dacza", lat = 54.0, lon = 27.0))
+        assertEquals(4L, RuleShare.resolvePlaces(parsed.rule, places, "Wjazd do", "Wyjazd z").triggers[0].placeId)
     }
 
     @Test fun `two places with the same name are left for the user to pick`() {
-        val parsed = RuleShare.parse(fixture("bydmate_rule_dacha.json"), "Звонок") as RuleParseResult.Ok
+        val parsed = RuleShare.parse(fixture("bydmate_rule_dacha.json"), "Połączenie") as RuleParseResult.Ok
         val places = listOf(
-            PlaceEntity(id = 1, name = "Дача", lat = 54.0, lon = 27.0),
-            PlaceEntity(id = 2, name = "дача", lat = 55.0, lon = 28.0),
+            PlaceEntity(id = 1, name = "Dacza", lat = 54.0, lon = 27.0),
+            PlaceEntity(id = 2, name = "dacza", lat = 55.0, lon = 28.0),
         )
-        val rule = RuleShare.resolvePlaces(parsed.rule, places, "Въезд в", "Выезд из")
+        val rule = RuleShare.resolvePlaces(parsed.rule, places, "Wjazd do", "Wyjazd z")
         assertEquals(listOf(0), rule.unresolvedPlaceIndexes())
         assertNull(rule.triggers[0].placeId)
     }
 
     @Test fun `fully resolved rule is enabled only when asked`() {
-        val parsed = RuleShare.parse(fixture("bydmate_rule_speed.json"), "Звонок") as RuleParseResult.Ok
+        val parsed = RuleShare.parse(fixture("bydmate_rule_speed.json"), "Połączenie") as RuleParseResult.Ok
         assertFalse(parsed.rule.hasUnresolved())
         assertTrue(RuleShare.toEntity(parsed.rule, "Navi", enableNow = true).enabled)
         assertFalse(RuleShare.toEntity(parsed.rule, "Navi", enableNow = false).enabled)
@@ -430,66 +446,66 @@ class RuleShareTest {
     }
 
     @Test fun `unknown action kind is refused as a newer version`() {
-        assertEquals(RuleParseResult.NewerVersion, RuleShare.parse(fixture("bydmate_rule_newer_kind.json"), "Звонок"))
+        assertEquals(RuleParseResult.NewerVersion, RuleShare.parse(fixture("bydmate_rule_newer_kind.json"), "Połączenie"))
     }
 
     @Test fun `unknown trigger kind and newer format version are refused`() {
         val newerTrigger = fixture("bydmate_rule_speed.json")
-            .replace(""""displayName":"Скорость","kind":"param"""", """"displayName":"Скорость","kind":"gravity"""")
-        assertEquals(RuleParseResult.NewerVersion, RuleShare.parse(newerTrigger, "Звонок"))
+            .replace(""""displayName":"Prędkość","kind":"param"""", """"displayName":"Prędkość","kind":"gravity"""")
+        assertEquals(RuleParseResult.NewerVersion, RuleShare.parse(newerTrigger, "Połączenie"))
         val newerVersion = fixture("bydmate_rule_speed.json").replace("\"version\": 1", "\"version\": 2")
-        assertEquals(RuleParseResult.NewerVersion, RuleShare.parse(newerVersion, "Звонок"))
+        assertEquals(RuleParseResult.NewerVersion, RuleShare.parse(newerVersion, "Połączenie"))
     }
 
     @Test fun `toggle on an unknown target is refused as a newer version`() {
         val json = fixture("bydmate_rule_speed.json").replace(
-            """{"command":"车窗关闭","displayName":"Закрыть все окна","kind":"param"}""",
+            """{"command":"车窗关闭","displayName":"Zamknij wszystkie okna","kind":"param"}""",
             """{"command":"","displayName":"x","kind":"toggle","payload":"warp_drive"}""",
         )
-        assertEquals(RuleParseResult.NewerVersion, RuleShare.parse(json, "Звонок"))
+        assertEquals(RuleParseResult.NewerVersion, RuleShare.parse(json, "Połączenie"))
     }
 
     @Test fun `json nested past the limit inside a string is invalid`() {
         val deep = fixture("bydmate_rule_deep.json")
-        assertEquals(RuleParseResult.Invalid, RuleShare.parse(deep, "Звонок"))
+        assertEquals(RuleParseResult.Invalid, RuleShare.parse(deep, "Połączenie"))
         // The same file five levels deep is a normal rule.
         val shallow = deep.replace("[".repeat(40), "[".repeat(5)).replace("]".repeat(40), "]".repeat(5))
-        assertTrue(RuleShare.parse(shallow, "Звонок") is RuleParseResult.Ok)
+        assertTrue(RuleShare.parse(shallow, "Połączenie") is RuleParseResult.Ok)
     }
 
     @Test fun `json nested past the limit in the file itself is invalid`() {
         val body = fixture("bydmate_rule_speed.json")
         val deep = body.replace("\"play_sound\": false", "\"play_sound\": false, \"x\": " + "[".repeat(40) + "]".repeat(40))
-        assertEquals(RuleParseResult.Invalid, RuleShare.parse(deep, "Звонок"))
+        assertEquals(RuleParseResult.Invalid, RuleShare.parse(deep, "Połączenie"))
         // A quote inside an unquoted literal does not open a string for the parser, nor for the limit.
         val hidden = body.replace("\"play_sound\": false", "\"play_sound\": false, \"x\": [x',"  + "[".repeat(40) + "]".repeat(40) + "]")
-        assertEquals(RuleParseResult.Invalid, RuleShare.parse(hidden, "Звонок"))
+        assertEquals(RuleParseResult.Invalid, RuleShare.parse(hidden, "Połączenie"))
         // The file root and "rule" are two levels: the array may take the remaining ones, not one more.
         val room = RuleShareJsonLimits.MAX_DEPTH - 2
         val ok = body.replace("\"play_sound\": false", "\"play_sound\": false, \"x\": " + "[".repeat(room) + "]".repeat(room))
-        assertTrue(RuleShare.parse(ok, "Звонок") is RuleParseResult.Ok)
+        assertTrue(RuleShare.parse(ok, "Połączenie") is RuleParseResult.Ok)
         val over = body.replace("\"play_sound\": false", "\"play_sound\": false, \"x\": " + "[".repeat(room + 1) + "]".repeat(room + 1))
-        assertEquals(RuleParseResult.Invalid, RuleShare.parse(over, "Звонок"))
+        assertEquals(RuleParseResult.Invalid, RuleShare.parse(over, "Połączenie"))
     }
 
     @Test fun `json behind a byte order mark inside a string is scanned too`() {
         // Android's tokenizer drops a leading BOM, so this value still parses as 3000-deep JSON.
-        assertEquals(RuleParseResult.Invalid, RuleShare.parse(fixture("bydmate_rule_bom_deep.json"), "Звонок"))
+        assertEquals(RuleParseResult.Invalid, RuleShare.parse(fixture("bydmate_rule_bom_deep.json"), "Połączenie"))
         val body = fixture("bydmate_rule_speed.json")
         listOf("\\ufeff", "\\ufeff \\n ").forEach { lead ->
             val deep = body.replace("\"value\":\"7\"", "\"value\":\"$lead[" + "[".repeat(40) + "]".repeat(40) + "]\"")
-            assertEquals(lead, RuleParseResult.Invalid, RuleShare.parse(deep, "Звонок"))
+            assertEquals(lead, RuleParseResult.Invalid, RuleShare.parse(deep, "Połączenie"))
         }
         // A BOM before the file itself does not hide its depth either.
-        assertEquals(RuleParseResult.Invalid, RuleShare.parse("\uFEFF" + body.replace("\"play_sound\": false", "\"play_sound\": false, \"x\": " + "[".repeat(40) + "]".repeat(40)), "Звонок"))
+        assertEquals(RuleParseResult.Invalid, RuleShare.parse("\uFEFF" + body.replace("\"play_sound\": false", "\"play_sound\": false, \"x\": " + "[".repeat(40) + "]".repeat(40)), "Połączenie"))
     }
 
     @Test fun `an unquoted literal longer than 8 KiB is invalid`() {
         val body = fixture("bydmate_rule_speed.json")
         val long = body.replace("\"name\": \"Navi\"", "name: " + "a".repeat(RuleShareJsonLimits.MAX_STRING_CHARS + 1))
-        assertEquals(RuleParseResult.Invalid, RuleShare.parse(long, "Звонок"))
+        assertEquals(RuleParseResult.Invalid, RuleShare.parse(long, "Połączenie"))
         val fits = body.replace("\"name\": \"Navi\"", "name: " + "a".repeat(RuleShareJsonLimits.MAX_STRING_CHARS))
-        val ok = RuleShare.parse(fits, "Звонок")
+        val ok = RuleShare.parse(fits, "Połączenie")
         assertTrue(ok is RuleParseResult.Ok)
         assertEquals(RuleShareJsonLimits.MAX_STRING_CHARS, (ok as RuleParseResult.Ok).rule.name.length)
     }
@@ -497,21 +513,21 @@ class RuleShareTest {
     @Test fun `a string longer than 8 KiB is invalid`() {
         val body = fixture("bydmate_rule_speed.json")
         val long = body.replace("\"Navi\"", "\"" + "x".repeat(RuleShareJsonLimits.MAX_STRING_CHARS + 1) + "\"")
-        assertEquals(RuleParseResult.Invalid, RuleShare.parse(long, "Звонок"))
+        assertEquals(RuleParseResult.Invalid, RuleShare.parse(long, "Połączenie"))
         val fits = body.replace("\"Navi\"", "\"" + "x".repeat(RuleShareJsonLimits.MAX_STRING_CHARS) + "\"")
-        assertTrue(RuleShare.parse(fits, "Звонок") is RuleParseResult.Ok)
+        assertTrue(RuleShare.parse(fits, "Połączenie") is RuleParseResult.Ok)
     }
 
     @Test fun `garbage and foreign json are invalid`() {
-        assertEquals(RuleParseResult.Invalid, RuleShare.parse("not json", "Звонок"))
-        assertEquals(RuleParseResult.Invalid, RuleShare.parse("""{"format":"other","version":1}""", "Звонок"))
-        assertEquals(RuleParseResult.Invalid, RuleShare.parse("""{"format":"bydmate_rule","version":1}""", "Звонок"))
+        assertEquals(RuleParseResult.Invalid, RuleShare.parse("not json", "Połączenie"))
+        assertEquals(RuleParseResult.Invalid, RuleShare.parse("""{"format":"other","version":1}""", "Połączenie"))
+        assertEquals(RuleParseResult.Invalid, RuleShare.parse("""{"format":"bydmate_rule","version":1}""", "Połączenie"))
     }
 
     @Test fun `name collision appends the import suffix`() {
-        assertEquals("Navi (импорт)", RuleShare.uniqueName("Navi", listOf("navi"), "импорт"))
-        assertEquals("Navi (импорт 2)", RuleShare.uniqueName("Navi", listOf("Navi", "Navi (импорт)"), "импорт"))
-        assertEquals("Navi", RuleShare.uniqueName("Navi", listOf("Other"), "импорт"))
+        assertEquals("Navi (import)", RuleShare.uniqueName("Navi", listOf("navi"), "import"))
+        assertEquals("Navi (import 2)", RuleShare.uniqueName("Navi", listOf("Navi", "Navi (import)"), "import"))
+        assertEquals("Navi", RuleShare.uniqueName("Navi", listOf("Other"), "import"))
     }
 
     // Audit 3.19 item 2: a file shared before the Trunk fix still says 0 for closed.
@@ -524,7 +540,7 @@ class RuleShareTest {
             )
         )
 
-        val parsed = (RuleShare.parse(RuleShare.exportJson(rule, "3.18.2"), "Звонок") as RuleParseResult.Ok).rule
+        val parsed = (RuleShare.parse(RuleShare.exportJson(rule, "3.18.2"), "Połączenie") as RuleParseResult.Ok).rule
 
         assertEquals("2", parsed.triggers.single().value)
     }
@@ -543,7 +559,7 @@ class RuleShareTest {
         RuleDraftValidator.validateTriggers(rule.triggers, -1L, emptyList(), triggerLogic = rule.triggerLogic)
 
     @Test fun `a one-shot rule survives an export and import round trip`() {
-        val parsed = RuleShare.parse(RuleShare.exportJson(oneShotRule("2026-10-01T08:30"), "3.19.0"), "Звонок")
+        val parsed = RuleShare.parse(RuleShare.exportJson(oneShotRule("2026-10-01T08:30"), "3.19.0"), "Połączenie")
 
         val trigger = (parsed as RuleParseResult.Ok).rule.triggers.single()
         assertEquals(OneShotTrigger.KIND, trigger.kind)
@@ -553,7 +569,7 @@ class RuleShareTest {
 
     // The import runs the editor's validator on the parsed rule: the same strict date parser.
     @Test fun `an imported one-shot moment that does not exist is refused`() {
-        val parsed = RuleShare.parse(RuleShare.exportJson(oneShotRule("2026-02-30T08:30"), "3.19.0"), "Звонок")
+        val parsed = RuleShare.parse(RuleShare.exportJson(oneShotRule("2026-02-30T08:30"), "3.19.0"), "Połączenie")
 
         assertEquals(TriggerValidationError.OneShotInvalid, importCheck((parsed as RuleParseResult.Ok).rule))
     }

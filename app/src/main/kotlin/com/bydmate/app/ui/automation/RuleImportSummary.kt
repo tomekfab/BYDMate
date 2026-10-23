@@ -14,7 +14,7 @@ import org.json.JSONObject
 
 /** The import preview as text: built off the main thread when a file is picked. */
 data class RuleImportPreview(
-    /** «Все условия» or «Любое условие»: how the triggers combine. */
+    /** "All conditions" or "Any condition": how the triggers combine. */
     val logic: String,
     val triggers: List<String>,
     val actions: List<String>,
@@ -23,7 +23,7 @@ data class RuleImportPreview(
 
 /**
  * The lines of the import preview. Built from what runs (the kind and its parameters), never
- * from the display names in the file: a file can label a call with autodial «Уведомление».
+ * from the display names in the file: a file can label a call with autodial «Powiadomienie».
  */
 internal object RuleImportSummary {
 
@@ -84,8 +84,8 @@ internal object RuleImportSummary {
     )
 
     /**
-     * Every line of [rule] in one pass. [autoGo] is the dispatcher's own answer to «will this
-     * navigate press «Поехали» itself here» (ActionDispatcher.autoGoWillRun).
+     * Every line of [rule] in one pass. [autoGo] is the dispatcher's answer to whether this
+     * navigation dispatch will press the Navigator start button itself (ActionDispatcher.autoGoWillRun).
      */
     fun preview(rule: SharedRule, context: Context, autoGo: (JSONObject) -> Boolean): RuleImportPreview {
         val lc = context.appLocalizedContext()
@@ -97,7 +97,7 @@ internal object RuleImportSummary {
         )
     }
 
-    /** «Звонок: +375291234567, Звонить автоматически», «Команда автомобилю: Закрыть все окна (车窗关闭)». */
+    /** "Call: +375291234567, Call automatically", "Car command: Close all windows (车窗关闭)". */
     fun action(action: ActionDef, context: Context, autoGo: (JSONObject) -> Boolean = { false }): String {
         val lc = context.appLocalizedContext()
         if (action.kind == "toggle") return toggleDisplayName(context, action.payload.orEmpty())
@@ -131,7 +131,7 @@ internal object RuleImportSummary {
         }
     }
 
-    /** The trigger type and its key value, e.g. «Скорость > 7 км/ч», «Место: Въезд в «Дача»». */
+    /** The trigger type and its key value, e.g. "Speed > 7 km/h", "Place: Entry to \"Dacha\"". */
     fun trigger(trigger: TriggerDef, context: Context): String {
         val lc = context.appLocalizedContext()
         val typeRes = TRIGGER_TYPE_LABELS[trigger.kind] ?: return paramTrigger(trigger, lc)
@@ -215,7 +215,7 @@ private fun navigateDetail(json: JSONObject, lc: Context, autoGo: (JSONObject) -
     val flags = listOfNotNull(
         lc.getString(R.string.automation_import_nav_show)
             .takeIf { shortcut == null && query == null && json.optBoolean("show", false) },
-        // A route the dispatcher cannot press «Поехали» on (Maps, 2GIS) is still a route: no flag.
+        // A route whose Navigator start button cannot be pressed (Maps, 2GIS) is still a route: no flag.
         lc.getString(R.string.automation_import_nav_go)
             .takeIf { autoGo(json) },
         lc.getString(R.string.automation_import_nav_maps)
@@ -224,7 +224,7 @@ private fun navigateDetail(json: JSONObject, lc: Context, autoGo: (JSONObject) -
     return (listOf(target) + flags).joinToString(", ")
 }
 
-/** The mode as the dispatcher reads it (none = «Моя волна»), with the query it searches for. */
+/** The mode as the dispatcher reads it (none = "My wave"), with the query it searches for. */
 private fun musicDetail(json: JSONObject): String {
     val mode = json.optString("mode").ifBlank { "mybeat" }
     val query = json.optString("query")
@@ -242,7 +242,7 @@ private fun callDetail(json: JSONObject, lc: Context): String {
     return if (json.optBoolean("autoDial", false)) "$phone, ${lc.getString(R.string.automation_call_auto_dial_label)}" else phone
 }
 
-/** «Закрыть все окна (车窗关闭)», «Температура: 22 °C (设置温度22)»; an unknown command as it is. */
+/** «Zamknij wszystkie okna (车窗关闭)», «Temperatura: 22 °C (设置温度22)»; an unknown command as it is. */
 private fun paramDetail(command: String, lc: Context): String =
     (ACTION_COMMANDS.find { it.command == command }?.let { lc.getString(it.nameRes) } ?: levelActionName(command, lc))
         ?.let { "$it ($command)" } ?: command

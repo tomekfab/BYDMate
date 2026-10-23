@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_capture_error_delete">Не ўдалося выдаліць запіс. Даныя могуць заставацца ў памяці праграмы. Паўтарыце спробу выдалення.</string>
+    <string name="nav_capture_error_reset">Не ўдалося ачысціць папярэдні запіс. Запісванне не пачалося. Выдаліце запіс і паўтарыце спробу.</string>
+    <string name="nav_capture_error_export">Не ўдалося захаваць запіс. Мэтавы файл можа быць няпоўным. Выберыце файл і паўтарыце спробу.</string>
+    <string name="nav_capture_error_write">Памылка запісу. Запісванне спынена. Выдаліце няпоўны запіс і пачніце новы.</string>
+</resources>

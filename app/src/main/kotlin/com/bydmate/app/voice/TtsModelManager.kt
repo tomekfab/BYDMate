@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -15,21 +16,18 @@ import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream
 import java.io.BufferedInputStream
 import java.io.File
 
-/** Downloads and unpacks a TTS voice archive, selected by [TtsVoice.modelDirId]
- *  (several voices can share one archive/dir -- see [TtsVoiceEngine.VITS_MULTI]).
- *  Archive layout: one top-level dir with model .onnx + tokens.txt, plus either
- *  espeak-ng-data/ (PIPER) or stress.tsv (VITS_MULTI), under
- *  filesDir/tts/<modelDirId>. Same shape as GigaAmModelManager for the ASR
- *  models. */
+/** Downloads and unpacks the pinned Gosia TTS archive under filesDir/tts/gosia. */
 class TtsModelManager(
     private val context: Context,
     private val http: OkHttpClient,
+    /** The pinned package behind every Polish voice (Gosia); injectable so tests need not build
+     *  the real 21 MB archive. */
+    private val polishVoicePackage: PolishModelPackage = PolishModelManifest.GOSIA_MEDIUM_INT8,
 ) {
+
     private fun baseDir(modelDirId: String) = File(context.filesDir, "tts/$modelDirId")
 
     private fun stagingDir(modelDirId: String) = File(context.filesDir, "tts/.staging-$modelDirId")
-
-    private fun stressStagingDir(modelDirId: String) = File(context.filesDir, "tts/.staging-$modelDirId-stress")
 
     fun modelDirPath(modelDirId: String): String = baseDir(modelDirId).absolutePath
 
@@ -38,22 +36,31 @@ class TtsModelManager(
     fun onnxFile(modelDirId: String): File? =
         baseDir(modelDirId).listFiles()?.firstOrNull { it.isFile && it.name.endsWith(".onnx") && !it.name.startsWith("._") }
 
-    private fun hasRealOnnx(dir: File): Boolean =
-        dir.listFiles()?.any { it.isFile && it.name.endsWith(".onnx") && !it.name.startsWith("._") } == true
+    private fun packageFor(@Suppress("UNUSED_PARAMETER") voice: TtsVoice): PolishModelPackage = polishVoicePackage
 
-    /** PIPER archives need espeak-ng-data/ for phonemization; the VITS_MULTI
-     *  archive carries its own stress.tsv instead and ships no espeak data.
-     *  Supertonic ships a fixed 7-file layout and NO tokens.txt. */
-    private fun isComplete(dir: File, engine: TtsVoiceEngine): Boolean = when (engine) {
-        TtsVoiceEngine.PIPER ->
-            hasRealOnnx(dir) && File(dir, "tokens.txt").isFile && File(dir, "espeak-ng-data").isDirectory
-        TtsVoiceEngine.VITS_MULTI ->
-            hasRealOnnx(dir) && File(dir, "tokens.txt").isFile && File(dir, "stress.tsv").isFile
-        // Supertonic ships a fixed 7-file layout and NO tokens.txt.
-        TtsVoiceEngine.SUPERTONIC -> SUPERTONIC_FILES.all { File(dir, it).isFile }
+    /** Cheap, main-thread safe: every pinned file exists with its pinned size and every pinned
+     *  tree has its file count. It cannot see same-size corruption; [verifyVoice] hashes. */
+    private fun hasPinnedFiles(dir: File, pkg: PolishModelPackage): Boolean =
+        pkg.files.all { f -> File(dir, f.relativePath).let { it.isFile && it.length() == f.sizeBytes } } &&
+            pkg.requiredTrees.all { t -> File(dir, t.relativePath).walkTopDown().count { it.isFile } == t.fileCount }
+
+    fun isReady(voice: TtsVoice): Boolean {
+        val pkg = packageFor(voice)
+        return hasPinnedFiles(baseDir(voice.modelDirId), pkg)
     }
 
-    fun isReady(voice: TtsVoice): Boolean = isComplete(baseDir(voice.modelDirId), voice.engine)
+    /** Full check of an installed voice; empty means usable. A Polish voice is hashed against its
+     *  pin (hundreds of KB to tens of MB: call off the main thread); a Russian one is checked by
+     *  layout, as before. Runs under the disk lock so a delete cannot interleave. */
+    suspend fun verifyVoice(voice: TtsVoice): List<String> = withContext(Dispatchers.IO) {
+        diskMutex.withLock {
+            PolishModelManifest.verifyInstalled(baseDir(voice.modelDirId), packageFor(voice))
+        }
+    }
+
+    /** Readiness of the Polish voice for [VoiceProfileStore.activate]: Gosia hashes clean. */
+    suspend fun isPolishVoiceVerified(): Boolean =
+        verifyVoice(TtsVoiceCatalog.defaultFor()).isEmpty()
 
     /** Serializes all disk mutations of the model dir: a delete can never
      *  interleave with download's commit (unpack) section, so a cancelled
@@ -71,24 +78,10 @@ class TtsModelManager(
         withContext(Dispatchers.IO) {
             runCatching {
                 val tmp = File(context.cacheDir, "tts-${voice.modelDirId}.tar.bz2")
+                val pkg = packageFor(voice)
+                val pinned = pkg.downloads.single()
                 try {
-                    http.newCall(Request.Builder().url(voice.url).build()).execute().use { resp ->
-                        if (!resp.isSuccessful) error("HTTP ${resp.code}")
-                        val body = resp.body ?: error("empty response body")
-                        val total = body.contentLength()
-                        var read = 0L
-                        body.byteStream().use { input ->
-                            tmp.outputStream().use { out ->
-                                val buf = ByteArray(64 * 1024)
-                                while (true) {
-                                    ensureActive()
-                                    val n = input.read(buf); if (n < 0) break
-                                    out.write(buf, 0, n); read += n
-                                    if (total > 0) onProgress(((read * 100) / total).toInt())
-                                }
-                            }
-                        }
-                    }
+                    fetchArchive(voice, tmp, pinned, onProgress)
                     diskMutex.withLock {
                         // Checked under the lock: a delete that cancelled us has
                         // either finished (we bail here) or runs strictly after
@@ -100,7 +93,8 @@ class TtsModelManager(
                         staging.mkdirs()
                         try {
                             untarFlatten(tmp, staging)
-                            check(isComplete(staging, voice.engine)) { "unpack produced incomplete model dir" }
+                            val problems = PolishModelManifest.verifyInstalled(staging, pkg)
+                            check(problems.isEmpty()) { "unpacked voice failed verification: ${problems.joinToString("; ")}" }
                             // Atomic publish: the final dir only ever appears as a
                             // fully verified unpack, so a process kill mid-unpack can
                             // never leave a dir that isReady() accepts.
@@ -120,67 +114,47 @@ class TtsModelManager(
             }.onFailure { if (it is CancellationException) throw it }
         }
 
-    /** Supertonic archives (k2-fsa upstream) ship no stress dictionary; fetches our
-     *  stress.tsv release asset into the voice dir so UPPERCASE stress marking works.
-     *  Fail-soft: any error just leaves marking disabled. Returns true when the dict
-     *  is present (already or downloaded just now). */
-    suspend fun ensureStressDict(voice: TtsVoice): Boolean =
-        withContext(Dispatchers.IO) {
-            if (voice.engine != TtsVoiceEngine.SUPERTONIC) return@withContext true
-            val targetDir = baseDir(voice.modelDirId)
-            val targetFile = File(targetDir, STRESS_DICT_FILE)
-            if (targetFile.isFile) return@withContext true
-            if (!targetDir.isDirectory) return@withContext false
-
-            val tmp = File(context.cacheDir, "tts-${voice.modelDirId}-stress-${System.nanoTime()}.tar.bz2")
-            runCatching {
-                try {
-                    http.newCall(Request.Builder().url(STRESS_DICT_URL).build()).execute().use { resp ->
-                        if (!resp.isSuccessful) error("HTTP ${resp.code}")
-                        val body = resp.body ?: error("empty response body")
-                        body.byteStream().use { input ->
-                            tmp.outputStream().use { out ->
-                                val buf = ByteArray(64 * 1024)
-                                while (true) {
-                                    ensureActive()
-                                    val n = input.read(buf); if (n < 0) break
-                                    out.write(buf, 0, n)
-                                }
-                            }
-                        }
-                    }
-                    diskMutex.withLock {
-                        ensureActive()
-                        if (!targetDir.isDirectory) return@withLock false
-                        if (targetFile.isFile) return@withLock true
-                        val staging = stressStagingDir(voice.modelDirId)
-                        staging.deleteRecursively()
-                        staging.mkdirs()
-                        try {
-                            untarFlatten(tmp, staging)
-                            val staged = File(staging, STRESS_DICT_FILE)
-                            // A truncated download or a wrong/tiny release asset can still unpack a
-                            // short but valid stress.tsv; publishing it would poison the cache
-                            // permanently (the isFile short-circuit above trusts it forever),
-                            // silently disabling stress for almost every word. Require a plausible
-                            // size so a bad asset stays retryable instead of cached.
-                            check(staged.isFile && staged.length() >= STRESS_DICT_MIN_BYTES) {
-                                "stress dictionary implausibly small (${staged.length()} bytes)"
-                            }
-                            check(staged.renameTo(targetFile)) { "failed to publish stress dictionary" }
-                            true
-                        } finally {
-                            staging.deleteRecursively()
-                        }
-                    }
-                } finally {
-                    tmp.delete()
+    private suspend fun fetchArchive(
+        voice: TtsVoice,
+        tmp: File,
+        pinned: PolishDownload,
+        onProgress: (Int) -> Unit,
+    ) {
+        require(voice.url.startsWith("https://")) { "voice download is not https" }
+        http.newCall(Request.Builder().url(voice.url).build()).execute().use { resp ->
+            if (!resp.isSuccessful) error("HTTP ${resp.code}")
+            check(resp.request.url.isHttps) { "download ended on a non-https url" }
+            val body = resp.body ?: error("empty response body")
+            val total = body.contentLength()
+            body.byteStream().use { input ->
+                tmp.outputStream().use { out ->
+                    copyArchive(input, out, pinned, total, onProgress)
                 }
-            }.onFailure {
-                if (it is CancellationException) throw it
-                Log.w(TAG, "failed to ensure stress dictionary for ${voice.modelDirId}", it)
-            }.getOrDefault(false)
+            }
         }
+        // A pinned voice is verified before the live install is touched: size and
+        // SHA-256 of the archive here, every file again after unpacking below.
+        check(tmp.length() == pinned.sizeBytes) { "archive size ${tmp.length()} != ${pinned.sizeBytes}" }
+        check(sha256(tmp) == pinned.sha256) { "archive sha256 does not match the pin" }
+    }
+
+    private suspend fun copyArchive(
+        input: java.io.InputStream,
+        out: java.io.OutputStream,
+        pinned: PolishDownload,
+        total: Long,
+        onProgress: (Int) -> Unit,
+    ) {
+        var read = 0L
+        val buf = ByteArray(64 * 1024)
+        while (true) {
+            currentCoroutineContext().ensureActive()
+            val n = input.read(buf); if (n < 0) break
+            out.write(buf, 0, n); read += n
+            check(read <= pinned.sizeBytes) { "download is larger than the pinned size" }
+            if (total > 0) onProgress(((read * 100) / total).toInt())
+        }
+    }
 
     /** Archive has a single top-level folder; flatten it into [target].
      *  Tar Slip guard mirrors VoiceModelManager.unzipFlatten's Zip Slip guard. */
@@ -208,22 +182,21 @@ class TtsModelManager(
         }
     }
 
-    companion object {
-        private const val TAG = "TtsModelManager"
-        const val DEFAULT_VOICE_ID = "dmitri"
-        internal const val STRESS_DICT_URL = "https://github.com/AndyShaman/BYDMate/releases/download/tts-voices-v1/stress-ru.tar.bz2"
-        internal const val STRESS_DICT_FILE = "stress.tsv"
-        /** Sanity floor for a freshly downloaded dictionary: the real ru asset is ~11.9 MB /
-         *  529k lines (tts-voices-v1), so anything far smaller is a truncated or wrong asset
-         *  and must not be renamed into place (see ensureStressDict). */
-        internal const val STRESS_DICT_MIN_BYTES = 1_000_000L
+    private fun sha256(file: File): String {
+        val digest = java.security.MessageDigest.getInstance("SHA-256")
+        file.inputStream().use { input ->
+            val buf = ByteArray(64 * 1024)
+            while (true) {
+                val n = input.read(buf)
+                if (n < 0) break
+                digest.update(buf, 0, n)
+            }
+        }
+        return digest.digest().joinToString("") { "%02x".format(it) }
+    }
 
-        /** Fixed file set for a Supertonic archive: 4-model flow-matching pipeline,
-         *  char-based (no tokens.txt). All 7 files must be present for the model to load. */
-        internal val SUPERTONIC_FILES = listOf(
-            "duration_predictor.int8.onnx", "text_encoder.int8.onnx", "vector_estimator.int8.onnx",
-            "vocoder.int8.onnx", "tts.json", "unicode_indexer.bin", "voice.bin",
-        )
+    companion object {
+        const val DEFAULT_VOICE_ID = "gosia"
 
         /** macOS tar pollutes archives with AppleDouble (._*) and Finder junk; commons-compress
          *  faithfully extracts them, and a ._*.onnx picked up by onnxFile() crashes sherpa-onnx

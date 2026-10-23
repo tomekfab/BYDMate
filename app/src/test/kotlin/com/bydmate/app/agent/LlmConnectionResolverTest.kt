@@ -54,7 +54,7 @@ class LlmConnectionResolverTest {
         )
         val c = resolver.get(LlmConnectionResolver.ID_CUSTOM)!!
         assertEquals("https://api.deepseek.com/v1", c.baseUrl)
-        assertEquals("Своё", c.label)
+        assertEquals("Własne", c.label)
     }
 
     @Test

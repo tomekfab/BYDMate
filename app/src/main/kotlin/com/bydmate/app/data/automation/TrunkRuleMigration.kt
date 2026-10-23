@@ -13,7 +13,7 @@ import javax.inject.Singleton
  * One-shot migration of saved Trunk rules to the encoding the car reports.
  *
  * The catalog offered "0" as closed, but the tailgate fid answers 2 closed, 1 open, 3 moving
- * (2 seen 18 times in user logs, 0 never), so a «Багажник = Закрыт» rule could never match.
+ * (2 seen 18 times in user logs, 0 never), so a saved "Trunk = Closed" rule could never match.
  * Trunk triggers holding exactly "0" become "2"; every other trigger, param and value is written
  * back unchanged. Same shape as [DriveModeRuleMigration], with its own done-flag.
  */

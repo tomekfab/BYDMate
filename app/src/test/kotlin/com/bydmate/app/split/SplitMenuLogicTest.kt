@@ -343,7 +343,7 @@ class SplitMenuLogicTest {
 
     // ── Bug B regression: PICK_LEFT/RIGHT must set ChangePane pickerMode ─────
     //
-    // On-car: «поменять приложение слева»/«справа» did nothing — the picker never appeared.
+// On-car: changing the left or right app did nothing — the picker never appeared.
     // Root cause: SplitOverlayController.handleMenuAction did not call syncLogicToView() after
     // logic.onMenuAction() set pickerMode. The fix adds that call when pickerMode != null.
     // These tests verify the logic-seam state that syncLogicToView() reads and propagates

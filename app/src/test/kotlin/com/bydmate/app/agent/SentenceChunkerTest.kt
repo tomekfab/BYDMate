@@ -9,56 +9,56 @@ class SentenceChunkerTest {
     @Test
     fun `two sentences split on terminator plus space`() {
         val c = SentenceChunker()
-        val out = c.feed("Заряд 80 процентов. Хватит до Минска.")
-        assertEquals(listOf("Заряд 80 процентов."), out)
-        assertEquals("Хватит до Минска.", c.flush())
+        val out = c.feed("Poziom naładowania to 80 procent. Wystarczy do Warszawy.")
+        assertEquals(listOf("Poziom naładowania to 80 procent."), out)
+        assertEquals("Wystarczy do Warszawy.", c.flush())
     }
 
     @Test
     fun `decimal number does not split`() {
         val c = SentenceChunker()
-        val out = c.feed("Температура 22.5 градуса. Тепло.")
-        assertEquals(listOf("Температура 22.5 градуса."), out)
-        assertEquals("Тепло.", c.flush())
+        val out = c.feed("Temperatura to 22.5 stopnia. Jest ciepło.")
+        assertEquals(listOf("Temperatura to 22.5 stopnia."), out)
+        assertEquals("Jest ciepło.", c.flush())
     }
 
     @Test
     fun `char by char feeding emits sentence once boundary is complete`() {
         val c = SentenceChunker()
         val collected = mutableListOf<String>()
-        "Да. Нет.".forEach { ch -> collected += c.feed(ch.toString()) }
-        assertEquals(listOf("Да."), collected)
-        assertEquals("Нет.", c.flush())
+        "Tak. Nie.".forEach { ch -> collected += c.feed(ch.toString()) }
+        assertEquals(listOf("Tak."), collected)
+        assertEquals("Nie.", c.flush())
     }
 
     @Test
     fun `newline is a boundary`() {
         val c = SentenceChunker()
-        val out = c.feed("Первая строка\nВторая строка")
-        assertEquals(listOf("Первая строка"), out)
-        assertEquals("Вторая строка", c.flush())
+        val out = c.feed("Pierwsza linia\nDruga linia")
+        assertEquals(listOf("Pierwsza linia"), out)
+        assertEquals("Druga linia", c.flush())
     }
 
     @Test
     fun `terminator run stays together`() {
         val c = SentenceChunker()
-        val out = c.feed("Правда?! Да. ")
-        assertEquals(listOf("Правда?!", "Да."), out)
+        val out = c.feed("Naprawdę?! Tak. ")
+        assertEquals(listOf("Naprawdę?!", "Tak."), out)
         assertNull(c.flush())
     }
 
     @Test
     fun `ellipsis char is a terminator`() {
         val c = SentenceChunker()
-        val out = c.feed("Подожди… Сейчас проверю.")
-        assertEquals(listOf("Подожди…"), out)
-        assertEquals("Сейчас проверю.", c.flush())
+        val out = c.feed("Poczekaj… Już sprawdzam.")
+        assertEquals(listOf("Poczekaj…"), out)
+        assertEquals("Już sprawdzam.", c.flush())
     }
 
     @Test
     fun `flush on empty buffer returns null and resets`() {
         val c = SentenceChunker()
-        c.feed("Готово. ")
+        c.feed("Gotowe. ")
         assertNull(c.flush())
     }
 }

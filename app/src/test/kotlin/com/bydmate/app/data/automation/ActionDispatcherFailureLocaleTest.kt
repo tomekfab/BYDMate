@@ -29,9 +29,8 @@ import org.robolectric.annotation.Config
 import java.io.File
 
 /**
- * #242 (English UI, BYD e2): a window that did not move was reported in Russian. Every reason a
- * step can fail with comes from the app strings now: an English UI reads no Cyrillic, a Russian
- * UI keeps the wording it always had.
+ * #242 (English UI, BYD e2): a window that did not move was reported in the wrong language.
+ * Every step failure reason comes from app strings: a Russian locale falls back to Polish.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29])
@@ -58,9 +57,9 @@ class ActionDispatcherFailureLocaleTest {
 
     private fun lang(tag: String) = LocalePreferences(app).setLanguage(tag)
 
-    @After fun restoreLanguage() = lang("ru")
+    @After fun restoreLanguage() = lang("pl")
 
-    private fun String.hasCyrillic() = any { it in 'Ѐ'..'ӿ' }
+    private fun String.hasCyrillic() = any { Character.UnicodeScript.of(it.code) == Character.UnicodeScript.CYRILLIC }
 
     private val driverWindowOpen = ActionDef(command = "主驾打开100", displayName = "x", kind = "param")
 
@@ -85,11 +84,11 @@ class ActionDispatcherFailureLocaleTest {
         assertFalse(text, text.hasCyrillic())
     }
 
-    @Test fun `a driver window that did not move keeps the Russian wording on a Russian UI`() = runTest {
+    @Test fun `a driver window that did not move uses Polish fallback on a Russian UI`() = runTest {
         lang("ru")
         coEvery { vehicleApi.dispatch(any()) } returns stuck(WindowPane.DRIVER)
 
-        assertEquals("окно водителя не сдвинулось с места, команда не сработала", reason(driverWindowOpen))
+        assertEquals("szyba kierowcy nie ruszyła się z miejsca, polecenie nie zadziałało", reason(driverWindowOpen))
     }
 
     @Test fun `several stuck windows are listed in the app language`() = runTest {
@@ -98,7 +97,7 @@ class ActionDispatcherFailureLocaleTest {
         lang("en")
         assertEquals("did not move: rear left window, rear right window", reason(driverWindowOpen))
         lang("ru")
-        assertEquals("не сдвинулись с места: заднее левое окно, заднее правое окно", reason(driverWindowOpen))
+        assertEquals("nie ruszyły się z miejsca: tylna lewa szyba, tylna prawa szyba", reason(driverWindowOpen))
     }
 
     // Audit 3.19 item 7: the journal shows a phrase in the app language, never the raw error.
@@ -109,17 +108,17 @@ class ActionDispatcherFailureLocaleTest {
         lang("en")
         assertEquals("The car did not carry out the command", reason(driverWindowOpen))
         lang("ru")
-        assertEquals("Машина не выполнила команду", reason(driverWindowOpen))
+        assertEquals("Samochód nie wykonał polecenia", reason(driverWindowOpen))
     }
 
     @Test fun `write errors are worded per cause in the app language`() = runTest {
         val cases = listOf(
-            VehicleWriteError.Sentinel("doors_lock") to "Машина не подтвердила команду",
-            VehicleWriteError.AllowlistMiss("doors_lock") to "Эта команда не поддерживается",
-            VehicleWriteError.OutOfRange("doors_lock", "value=7") to "Недопустимое значение для команды",
-            VehicleWriteError.HelperUnreachable("doors_lock", "binder dead") to "Команда не дошла до машины",
-            VehicleWriteError.Unsupported("doors_lock") to "Команда не проверена на этой машине и не сработала",
-            IllegalStateException("boom") to "Не удалось выполнить команду",
+            VehicleWriteError.Sentinel("doors_lock") to "Samochód nie potwierdził polecenia",
+            VehicleWriteError.AllowlistMiss("doors_lock") to "To polecenie nie jest obsługiwane",
+            VehicleWriteError.OutOfRange("doors_lock", "value=7") to "Niedozwolona wartość polecenia",
+            VehicleWriteError.HelperUnreachable("doors_lock", "binder dead") to "Polecenie nie dotarło do samochodu",
+            VehicleWriteError.Unsupported("doors_lock") to "Polecenie nie jest sprawdzone w tym samochodzie i nie zadziałało",
+            IllegalStateException("boom") to "Nie udało się wykonać polecenia",
         )
         lang("ru")
         for ((err, text) in cases) {
@@ -145,19 +144,19 @@ class ActionDispatcherFailureLocaleTest {
         val eco = ActionDef(command = "ECO模式", displayName = "x", kind = "param")
         val cases = listOf(
             VehicleWriteError.NotEquipped("drive_mode_eco") to
-                ("Машина не поддерживает этот режим движения" to "This car does not support this drive mode"),
+                ("Ten samochód nie obsługuje tego trybu jazdy" to "This car does not support this drive mode"),
             VehicleWriteError.StateBlocked("drive_mode_eco", "emergency flotation mode") to
-                ("Машина в аварийном режиме «высокая вода», режим движения не меняю" to
+                ("Samochód jest w awaryjnym trybie wysokiej wody, tryb jazdy pozostaje bez zmian" to
                     "The car is in the emergency high-water mode, the drive mode stays as it is"),
             VehicleWriteError.ReadbackMismatch("drive_mode_eco", "mode did not change") to
-                ("Режим движения не сменился" to "The drive mode did not change"),
+                ("Tryb jazdy się nie zmienił" to "The drive mode did not change"),
             VehicleWriteError.HelperUnreachable("drive_mode_eco", "unreachable") to
-                ("Не удалось сменить режим движения" to "Could not change the drive mode"),
+                ("Nie udało się zmienić trybu jazdy" to "Could not change the drive mode"),
             VehicleWriteError.SpeedBlocked("drive_mode_eco", "too fast", 40) to
-                ("Этот режим движения включается только на скорости до 15 км/ч (сейчас 40 км/ч)" to
+                ("Ten tryb jazdy włącza się tylko do 15 km/h (teraz 40 km/h)" to
                     "This drive mode switches on only up to 15 km/h (now 40 km/h)"),
             VehicleWriteError.SpeedBlocked("drive_mode_eco", "speed unknown", null) to
-                ("Скорость неизвестна, этот режим движения не включаю" to
+                ("Prędkość nieznana, ten tryb jazdy nie zostanie włączony" to
                     "Speed unknown, this drive mode is not switched on"),
         )
         for ((err, texts) in cases) {
@@ -175,7 +174,7 @@ class ActionDispatcherFailureLocaleTest {
         coEvery { vehicleApi.dispatch(any()) } returns Result.failure(VehicleWriteError.NotEquipped("hud_off"))
         val off = ActionDef(command = "关闭抬头显示", displayName = "x", kind = "param")
         lang("ru")
-        assertEquals("На этой машине нет HUD", reason(off))
+        assertEquals("Ten samochód nie ma HUD", reason(off))
         lang("en")
         assertEquals("This car has no HUD", reason(off))
     }
@@ -186,14 +185,14 @@ class ActionDispatcherFailureLocaleTest {
         val on = ActionDef(command = "打开电池预热", displayName = "x", kind = "param")
         val cases = listOf(
             VehicleWriteError.NotEquipped("battery_preheat_on") to
-                ("На этой машине нет подогрева батареи" to "This car has no battery warm-up"),
+                ("Ten samochód nie ma podgrzewania baterii" to "This car has no battery warm-up"),
             VehicleWriteError.NotNeeded("battery_preheat_on", "permit=1") to
-                ("Машина сообщает, что подогрев батареи сейчас не нужен" to "The car reports that battery warm-up is not needed right now"),
+                ("Samochód zgłasza, że podgrzewanie baterii nie jest teraz potrzebne" to "The car reports that battery warm-up is not needed right now"),
             VehicleWriteError.StateBlocked("battery_preheat_on", "charge gun connected") to
-                ("Подогрев батареи недоступен, пока подключён зарядный кабель" to
+                ("Podgrzewanie baterii jest niedostępne, gdy podłączony jest kabel ładowania" to
                     "Battery warm-up is unavailable while the charging cable is connected"),
             VehicleWriteError.ReadbackMismatch("battery_preheat_on", "no effect read=0") to
-                ("Машина не выполнила команду" to "The car did not carry out the command"),
+                ("Samochód nie wykonał polecenia" to "The car did not carry out the command"),
         )
         for ((err, texts) in cases) {
             coEvery { vehicleApi.dispatch(any()) } returns Result.failure(err)
@@ -208,7 +207,7 @@ class ActionDispatcherFailureLocaleTest {
         lang("ru")
         dispatcher.readSpeedNow = { null }
         val snow = ActionDef(command = "雪地模式", displayName = "x", kind = "param")
-        assertEquals("Скорость неизвестна, этот режим движения не включаю", reason(snow))
+        assertEquals("Prędkość nieznana, ten tryb jazdy nie zostanie włączony", reason(snow))
         io.mockk.coVerify(exactly = 0) { vehicleApi.dispatch(any()) }
     }
 
@@ -217,38 +216,38 @@ class ActionDispatcherFailureLocaleTest {
     private fun action(kind: String, payload: String?) =
         ActionDef(command = kind, displayName = "x", kind = kind, payload = payload)
 
-    /** Steps that fail before touching the car, with the Russian text they always had. */
+    /** Steps that fail before touching the car, with Polish fallback text. */
     private val failingSteps = listOf(
-        action("sentry", "7") to "Некорректное состояние охранного режима",
-        action("sentry", "1") to "Не удалось переключить охранный режим",
-        action("hotspot", "7") to "Некорректное состояние точки доступа Wi-Fi",
-        action("hotspot", "1") to "Не удалось переключить точку доступа Wi-Fi",
-        action("screen", "7") to "Некорректное состояние экрана",
-        action("cluster_projection", "7") to "Некорректное состояние проекции на приборку",
-        action("speak", null) to "не задан текст",
-        action("agent_query", null) to "не задан запрос",
-        action("split_screen", null) to "payload не задан",
-        action("split_screen", """{"wide":"b","side":"left"}""") to "narrow не задан",
-        action("split_screen", """{"narrow":"a","side":"left"}""") to "wide не задан",
-        action("split_screen", """{"narrow":"a","wide":"b","side":"up"}""") to "неверная сторона",
-        action("split_screen_toggle", null) to "пара для разделения экрана не сохранена",
-        action("delay", null) to "Длительность паузы не задана",
-        action("delay", "70000") to "Длительность паузы вне диапазона (0..60000 мс)",
-        action("media_volume", null) to "Уровень громкости не задан",
-        action("media_volume", "loud") to "Некорректный уровень громкости: loud",
-        action("app_launch", null) to "packageName не задан",
+        action("sentry", "7") to "Nieprawidłowy stan trybu ochrony",
+        action("sentry", "1") to "Nie udało się przełączyć trybu ochrony",
+        action("hotspot", "7") to "Nieprawidłowy stan hotspotu Wi-Fi",
+        action("hotspot", "1") to "Nie udało się przełączyć hotspotu Wi-Fi",
+        action("screen", "7") to "Nieprawidłowy stan ekranu",
+        action("cluster_projection", "7") to "Nieprawidłowy stan wyświetlania na wskaźnikach",
+        action("speak", null) to "nie podano tekstu",
+        action("agent_query", null) to "nie podano zapytania",
+        action("split_screen", null) to "nie podano payload",
+        action("split_screen", """{"wide":"b","side":"left"}""") to "nie podano narrow",
+        action("split_screen", """{"narrow":"a","side":"left"}""") to "nie podano wide",
+        action("split_screen", """{"narrow":"a","wide":"b","side":"up"}""") to "nieprawidłowa strona",
+        action("split_screen_toggle", null) to "nie zapisano pary do podziału ekranu",
+        action("delay", null) to "Nie podano czasu pauzy",
+        action("delay", "70000") to "Czas pauzy poza zakresem (0..60000 ms)",
+        action("media_volume", null) to "Nie podano poziomu głośności",
+        action("media_volume", "loud") to "Nieprawidłowy poziom głośności: loud",
+        action("app_launch", null) to "nie podano packageName",
         action("app_launch", """{"packageName":"com.example.absent"}""") to
-            "Приложение не установлено: com.example.absent",
-        action("call", null) to "phone не задан",
-        action("navigate", null) to "payload не задан",
-        action("url", null) to "url не задан",
-        action("yandex_music", """{"mode":"search"}""") to "query не задан",
-        action("yandex_music", """{"mode":"radio"}""") to "Неизвестный режим Я.Музыки: radio",
-        action("youtube", null) to "query не задан",
-        action("youtube", """{"query":"x"}""") to "Приложение YouTube не установлено",
+            "Aplikacja nie jest zainstalowana: com.example.absent",
+        action("call", null) to "nie podano phone",
+        action("navigate", null) to "nie podano payload",
+        action("url", null) to "nie podano url",
+        action("yandex_music", """{"mode":"search"}""") to "nie podano query",
+        action("yandex_music", """{"mode":"radio"}""") to "Nieznany tryb Yandex Music: radio",
+        action("youtube", null) to "nie podano query",
+        action("youtube", """{"query":"x"}""") to "Aplikacja YouTube nie jest zainstalowana",
     )
 
-    @Test fun `step reasons keep their Russian wording on a Russian UI`() = runTest {
+    @Test fun `step reasons use Polish fallback on a Russian UI`() = runTest {
         lang("ru")
         for ((action, expected) in failingSteps) assertEquals(action.toString(), expected, reason(action))
     }
@@ -265,13 +264,13 @@ class ActionDispatcherFailureLocaleTest {
         every { cluster.lastFailure() } returns null
         every { cluster.projectionMode() } returns ClusterMode.OFF
         lang("ru")
-        assertEquals("проекция на приборку не включилась", reason(action("cluster_projection", "1")))
+        assertEquals("wyświetlanie na wskaźnikach nie włączyło się", reason(action("cluster_projection", "1")))
         lang("en")
         assertEquals("projection to the cluster did not turn on", reason(action("cluster_projection", "1")))
 
         every { cluster.projectionMode() } returns ClusterMode.FULLSCREEN
         lang("ru")
-        assertEquals("проекция с приборки не убралась", reason(action("cluster_projection", "0")))
+        assertEquals("wyświetlanie nie zniknęło ze wskaźników", reason(action("cluster_projection", "0")))
         lang("en")
         assertEquals("projection did not leave the cluster", reason(action("cluster_projection", "0")))
     }
@@ -282,9 +281,9 @@ class ActionDispatcherFailureLocaleTest {
         every { cluster.projectionMode() } returns ClusterMode.OFF
 
         lang("ru")
-        val ru = dispatcher.dispatch(action("cluster_projection", "1"), null)
-        assertEquals("служебный процесс перезапускается", ru.reason)
-        assertTrue(ru.daemonRestarting)
+        val ruFallback = dispatcher.dispatch(action("cluster_projection", "1"), null)
+        assertEquals("proces usługi uruchamia się ponownie", ruFallback.reason)
+        assertTrue(ruFallback.daemonRestarting)
         lang("en")
         val en = dispatcher.dispatch(action("cluster_projection", "1"), null)
         assertEquals("the service process is restarting", en.reason)

@@ -119,8 +119,8 @@ fun formatDurationCompact(startTs: Long, endTs: Long): String {
     return "%d:%02d".format(totalMin / 60, totalMin % 60)
 }
 
-// Единый стиль Switch по всему приложению:
-// включён — зелёный track + тёмный thumb, выключен — серый track + тёмный thumb.
+// Shared Switch style across the app:
+// on — green track and dark thumb; off — gray track and dark thumb.
 @Composable
 fun bydSwitchColors(): SwitchColors = SwitchDefaults.colors(
     checkedThumbColor = NavyMid,
@@ -325,7 +325,7 @@ fun TripCard(
     modifier: Modifier = Modifier,
     currencySymbol: String = "BYN",
     verticalPadding: Dp = 8.dp,
-    // DM-i (#184): adds the «л» column and the litre rule of «/100»; off draws today's row.
+    // DM-i (#184): adds the "l" column and the litre rule of "/100"; off draws today's row.
     showFuel: Boolean = false,
 ) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
@@ -484,7 +484,7 @@ fun ChargeCard(
                 }
                 Text(text = socText, color = TextPrimary, fontSize = 14.sp)
 
-                val kwhText = charge.kwhCharged?.let { "%.1f кВт·ч".format(it) } ?: "—"
+                val kwhText = charge.kwhCharged?.let { "%.1f kWh".format(it) } ?: "—"
                 Text(text = kwhText, color = TextPrimary, fontSize = 14.sp)
             }
 
@@ -498,7 +498,7 @@ fun ChargeCard(
                 }
 
                 if (charge.avgPowerKw != null) {
-                    Text(text = "avg %.1f кВт".format(charge.avgPowerKw), color = TextSecondary, fontSize = 14.sp)
+                    Text(text = "avg %.1f kW".format(charge.avgPowerKw), color = TextSecondary, fontSize = 14.sp)
                 }
 
                 if (charge.batTempAvg != null) {

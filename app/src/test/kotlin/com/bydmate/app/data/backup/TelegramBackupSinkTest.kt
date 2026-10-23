@@ -190,7 +190,7 @@ class TelegramBackupSinkTest {
     @Test fun `sendMessage posts chat id and text`() = runTest {
         server.enqueue(MockResponse().setBody("""{"ok":true,"result":{}}"""))
 
-        assertTrue(sink.sendMessage("123:abc", 42L, "BYDMate подключён").isSuccess)
+        assertTrue(sink.sendMessage("123:abc", 42L, "BYDMate połączony").isSuccess)
         val request = server.takeRequest()
         assertEquals("POST", request.method)
         assertEquals("/bot123:abc/sendMessage", request.path)
@@ -224,7 +224,7 @@ class TelegramBackupSinkTest {
         server.enqueue(MockResponse().setBody("""{"ok":true,"result":{}}"""))
         val file = tmp.newFile("bydmate_backup_auto_20260923_100000.zip").apply { writeBytes(byteArrayOf(80, 75, 3, 4)) }
 
-        assertTrue(sink.sendDocument("123:abc", 42L, file, "BYDMate: бэкап").isSuccess)
+        assertTrue(sink.sendDocument("123:abc", 42L, file, "BYDMate: kopia zapasowa").isSuccess)
 
         val request = server.takeRequest()
         assertEquals("POST", request.method)
@@ -233,7 +233,7 @@ class TelegramBackupSinkTest {
         val body = request.body.readUtf8()
         assertTrue(body, body.contains("name=\"chat_id\"\r\nContent-Length: 2\r\n\r\n42"))
         assertTrue(body, body.contains("name=\"caption\""))
-        assertTrue(body, body.contains("BYDMate: бэкап"))
+        assertTrue(body, body.contains("BYDMate: kopia zapasowa"))
         assertTrue(body, body.contains("name=\"document\"; filename=\"bydmate_backup_auto_20260923_100000.zip\""))
         assertTrue(body, body.contains("Content-Type: application/zip"))
     }

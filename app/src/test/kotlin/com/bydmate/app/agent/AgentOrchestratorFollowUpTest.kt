@@ -43,21 +43,21 @@ class AgentOrchestratorFollowUpTest {
         // A question asked AFTER the agent already acted is rhetorical, not a clarification.
         coEvery { tools.execute(any()) } returns """{"result":"ok"}"""
         val o = orchestrator(FakeBackend(replies = ArrayDeque(listOf(
-            toolCall("vehicle_control"), answer("Приоткрыл окно. Опять в форточку дышать собрался?"),
+            toolCall("vehicle_control"), answer("Uchyliłem okno. Znowu chcesz oddychać przez lufcik?"),
         ))))
-        o.ask("открой окно")
+        o.ask("otwórz okno")
         assertFalse(o.expectsFollowUp())
     }
 
     @Test fun follow_up_expected_after_clarifying_question() = runTest {
-        val o = orchestrator(FakeBackend(replies = ArrayDeque(listOf(answer("Какое окно, водителя или все?")))))
-        o.ask("открой окно")
+        val o = orchestrator(FakeBackend(replies = ArrayDeque(listOf(answer("Które okno: kierowcy czy wszystkie?")))))
+        o.ask("otwórz okno")
         assertTrue(o.expectsFollowUp())
     }
 
     @Test fun no_follow_up_after_plain_answer() = runTest {
-        val o = orchestrator(FakeBackend(replies = ArrayDeque(listOf(answer("Готово")))))
-        o.ask("закрой окна")
+        val o = orchestrator(FakeBackend(replies = ArrayDeque(listOf(answer("Gotowe")))))
+        o.ask("zamknij okna")
         assertFalse(o.expectsFollowUp())
     }
 
@@ -66,8 +66,8 @@ class AgentOrchestratorFollowUpTest {
     }
 
     @Test fun follow_up_expires_after_window() = runTest {
-        val o = orchestrator(FakeBackend(replies = ArrayDeque(listOf(answer("Какое окно?")))))
-        o.ask("открой окно")
+        val o = orchestrator(FakeBackend(replies = ArrayDeque(listOf(answer("Które okno?")))))
+        o.ask("otwórz okno")
         clock += 61_000
         assertFalse(o.expectsFollowUp())
     }
@@ -75,8 +75,8 @@ class AgentOrchestratorFollowUpTest {
     @Test fun offline_error_message_asks_for_simple_command() = runTest {
         val o = orchestrator(FakeBackend(replies = ArrayDeque(listOf(Result.failure(RuntimeException("io"))))))
         assertEquals(
-            AgentResult.Error("Нет связи с сервером, скажи простую команду"),
-            o.ask("что нового в мире"),
+            AgentResult.Error("Brak połączenia z serwerem. Powiedz prostą komendę."),
+            o.ask("co nowego na świecie"),
         )
     }
 }

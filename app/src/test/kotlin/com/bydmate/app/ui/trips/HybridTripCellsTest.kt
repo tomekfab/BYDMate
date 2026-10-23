@@ -14,20 +14,20 @@ class HybridTripCellsTest {
     /** Today's EV cell: «%.1f» of kWh/100, coloured; «—» uncoloured without a figure. */
     @Test
     fun `a trip without fuel keeps today's kWh per 100`() {
-        assertEquals(Per100Cell(f(15.0), colored = true), per100Cell(15.0, null, 21.3, "л"))
-        assertEquals(Per100Cell(f(15.0), colored = true), per100Cell(15.0, 0.0, 21.3, "л"))
-        assertEquals(Per100Cell("—", colored = false), per100Cell(null, null, 21.3, "л"))
+        assertEquals(Per100Cell(f(15.0), colored = true), per100Cell(15.0, null, 21.3, "l"))
+        assertEquals(Per100Cell(f(15.0), colored = true), per100Cell(15.0, 0.0, 21.3, "l"))
+        assertEquals(Per100Cell("—", colored = false), per100Cell(null, null, 21.3, "l"))
     }
 
     @Test
     fun `a trip with fuel shows litres per 100 km of the whole trip, uncoloured`() {
-        assertEquals(Per100Cell("${f(4.375)} л", colored = false), per100Cell(6.4, 2.8, 64.0, "л"))
+        assertEquals(Per100Cell("${f(4.375)} l", colored = false), per100Cell(6.4, 2.8, 64.0, "l"))
     }
 
     @Test
     fun `fuel without distance falls back to the kWh cell`() {
-        assertEquals(Per100Cell(f(6.4), colored = true), per100Cell(6.4, 2.8, 0.0, "л"))
-        assertEquals(Per100Cell(f(6.4), colored = true), per100Cell(6.4, 2.8, null, "л"))
+        assertEquals(Per100Cell(f(6.4), colored = true), per100Cell(6.4, 2.8, 0.0, "l"))
+        assertEquals(Per100Cell(f(6.4), colored = true), per100Cell(6.4, 2.8, null, "l"))
     }
 
     @Test
@@ -37,7 +37,7 @@ class HybridTripCellsTest {
         assertEquals("—", litersCell(null))
     }
 
-    /** Главная on an EV: время 2.5 and five columns of 1, exactly as before the hybrid work. */
+/** Dashboard on an EV: time 2.5 and five columns of 1, exactly as before the hybrid work. */
     @Test
     fun `EV and unconfirmed cars keep today's six column weights`() {
         val today = listOf(2.5f, 1f, 1f, 1f, 1f, 1f)
@@ -71,7 +71,7 @@ class HybridTripCellsTest {
             TripEntity(startTs = 2L, distanceKm = 90.0),
         )
         assertEquals(10.0, litersKm(trips)!!, 1e-9)
-        assertEquals("%.1f л".format(10.0), per100Cell(15.0, sumLiters(trips), litersKm(trips), "л").text)
+        assertEquals("%.1f l".format(10.0), per100Cell(15.0, sumLiters(trips), litersKm(trips), "l").text)
         assertNull(litersKm(listOf(TripEntity(startTs = 1L, distanceKm = 90.0))))
         assertEquals(
             30.0,

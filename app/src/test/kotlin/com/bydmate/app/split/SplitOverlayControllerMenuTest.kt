@@ -25,7 +25,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Controller-level tests for Bug B: «приложение слева»/«справа» picker must appear when
+* Controller-level tests for Bug B: the left/right-app picker must appear when
  * the menu's change-app items are tapped.
  *
  * Tests assert at two seams:

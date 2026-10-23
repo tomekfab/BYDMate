@@ -7,7 +7,7 @@ import com.bydmate.app.data.vehicle.DriveMode
  * condition always had (1 ECO, 2 SPORT, 3 NORMAL, 4 SNOW); the catalog adds 5 SAND, 6 MUD,
  * 7 MOUNTAIN, 21 SMART in that same encoding.
  *
- * dev 1006 reads 3 on normal AND on every terrain mode (Leopard 3 2026-09-27), so «Режим = Норма»
+ * dev 1006 reads 3 on normal AND on every terrain mode (Leopard 3 2026-09-27), so "Mode = Normal"
  * fired on sand. SETTING_TARGET_DRIVING_MODE tells them apart, but it is only believed once it has
  * proven itself on this car: the first sample where it maps to the same value the legacy fid
  * reads (any mode) makes it trusted for the rest of the process. From then on a known target mode

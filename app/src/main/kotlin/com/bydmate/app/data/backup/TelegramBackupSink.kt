@@ -168,7 +168,7 @@ class TelegramBackupSink internal constructor(
         return call(token, "sendDocument", body) { }
     }
 
-    /** A group by its title; a private chat as "Имя @username", either part may be missing. */
+    /** A group by its title; a private chat as "Nazwa @username", either part may be missing. */
     private fun chatName(chat: JSONObject): String = chat.optString("title").takeIf { it.isNotEmpty() } ?: listOfNotNull(
         chat.optString("first_name").takeIf { it.isNotEmpty() },
         chat.optString("username").takeIf { it.isNotEmpty() }?.let { "@$it" },

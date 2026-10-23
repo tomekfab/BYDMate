@@ -16,7 +16,7 @@ import java.util.Locale
 
 /**
  * The rule journal entries that are not a run of the actions: a confirmation cancelled or left
- * unanswered, a manual start refused by «Только на парковке», a one-shot rule that expired. Each
+ * unanswered, a manual start refused by «Tylko na postoju», a one-shot rule that expired. Each
  * carries a `reason` in the app language (the journal shows the first one). Every attempt gets
  * its journal row; the log line goes through [skipLog], one per rule and reason per minute, the
  * same throttle as the engine's other «skipped» lines. Also keeps the journal bounded and prints

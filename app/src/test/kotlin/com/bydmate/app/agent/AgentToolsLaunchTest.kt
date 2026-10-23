@@ -68,12 +68,12 @@ class AgentToolsLaunchTest {
         val captured = slot<ActionDef>()
         coEvery { dispatcher.dispatch(capture(captured), any()) } returns DispatchResult(true)
         coEvery { places.getAllSnapshot() } returns listOf(
-            PlaceEntity(name = "Дом", lat = 55.75, lon = 37.61, radiusM = 100),
+            PlaceEntity(name = "Dom", lat = 55.75, lon = 37.61, radiusM = 100),
         )
         val out = JSONObject(tools().execute(
-            AgentToolCall("1", "navigate_to", """{"destination":"дом"}""")))
+            AgentToolCall("1", "navigate_to", """{"destination":"dom"}""")))
         assertTrue(out.getBoolean("ok"))
-        assertEquals("Дом", out.getString("place"))
+        assertEquals("Dom", out.getString("place"))
         assertEquals("navigate", captured.captured.kind)
         val payload = JSONObject(captured.captured.payload!!)
         assertEquals(55.75, payload.getDouble("lat"), 0.0001)
@@ -86,24 +86,24 @@ class AgentToolsLaunchTest {
         coEvery { dispatcher.dispatch(capture(captured), any()) } returns DispatchResult(true)
         coEvery { places.getAllSnapshot() } returns emptyList()
         val out = JSONObject(tools().execute(
-            AgentToolCall("1", "navigate_to", """{"destination":"улица Ленина 5"}""")))
+            AgentToolCall("1", "navigate_to", """{"destination":"ulica Leśna 5"}""")))
         assertTrue(out.getBoolean("ok"))
         assertEquals("search", out.getString("mode"))
         val payload = JSONObject(captured.captured.payload!!)
-        assertEquals("улица Ленина 5", payload.getString("query"))
+        assertEquals("ulica Leśna 5", payload.getString("query"))
     }
 
-    // (c) placeRepository throwing must not surface as an exception; "Дом" resolves as a
+// (c) placeRepository throwing must not surface as an exception; the home alias resolves as a
     // home/work shortcut and falls through to Navigator's own saved Home -> mode=route.
     @Test fun navigate_to_survives_place_lookup_failure() = runTest {
         val captured = slot<ActionDef>()
         coEvery { dispatcher.dispatch(capture(captured), any()) } returns DispatchResult(true)
         coEvery { places.getAllSnapshot() } throws RuntimeException("db down")
         val out = JSONObject(tools().execute(
-            AgentToolCall("1", "navigate_to", """{"destination":"Дом"}""")))
+            AgentToolCall("1", "navigate_to", """{"destination":"Dom"}""")))
         assertTrue(out.getBoolean("ok"))
         assertEquals("route", out.getString("mode"))
-        assertEquals("Дом", out.getString("target"))
+        assertEquals("Dom", out.getString("target"))
         val payload = JSONObject(captured.captured.payload!!)
         assertEquals("home", payload.getString("shortcut"))
     }
@@ -138,24 +138,24 @@ class AgentToolsLaunchTest {
         coVerify(exactly = 0) { dispatcher.dispatch(any(), any()) }
     }
 
-    // (f) dispatcher failure -> Russian error JSON.
+    // (f) dispatcher failure -> Polish error JSON.
     @Test fun navigate_to_dispatch_failure_reports_error() = runTest {
         coEvery { dispatcher.dispatch(any(), any()) } returns
-            DispatchResult(false, "не получилось открыть Навигатор")
+            DispatchResult(false, "nie udało się otworzyć Nawigatora")
         coEvery { places.getAllSnapshot() } returns emptyList()
         val out = JSONObject(tools().execute(
-            AgentToolCall("1", "navigate_to", """{"destination":"Сочи"}""")))
+            AgentToolCall("1", "navigate_to", """{"destination":"Gdańsk"}""")))
         assertFalse(out.has("ok"))
-        assertEquals("не получилось открыть Навигатор", out.getString("error"))
+        assertEquals("nie udało się otworzyć Nawigatora", out.getString("error"))
     }
 
-    // (g) play_music without query -> Моя волна via mybeat mode.
+// (g) play_music without query -> the personal-wave mode.
     @Test fun play_music_without_query_plays_mybeat() = runTest {
         val captured = slot<ActionDef>()
         coEvery { dispatcher.dispatch(capture(captured), any()) } returns DispatchResult(true)
         val out = JSONObject(tools().execute(AgentToolCall("1", "play_music", "{}")))
         assertTrue(out.getBoolean("ok"))
-        assertEquals("Моя волна", out.getString("playing"))
+        assertEquals("Moja fala", out.getString("playing"))
         assertEquals("yandex_music", captured.captured.kind)
         val payload = JSONObject(captured.captured.payload!!)
         assertEquals("mybeat", payload.getString("mode"))
@@ -166,12 +166,12 @@ class AgentToolsLaunchTest {
         val captured = slot<ActionDef>()
         coEvery { dispatcher.dispatch(capture(captured), any()) } returns DispatchResult(true)
         val out = JSONObject(tools().execute(
-            AgentToolCall("1", "play_music", """{"query":"Кино"}""")))
+            AgentToolCall("1", "play_music", """{"query":"Dawid Podsiadło"}""")))
         assertTrue(out.getBoolean("ok"))
-        assertEquals("Кино", out.getString("playing"))
+        assertEquals("Dawid Podsiadło", out.getString("playing"))
         val payload = JSONObject(captured.captured.payload!!)
         assertEquals("play", payload.getString("mode"))
-        assertEquals("Кино", payload.getString("query"))
+        assertEquals("Dawid Podsiadło", payload.getString("query"))
     }
 
     // (h2) play_music with query and mode=search -> only opens the search screen.
@@ -179,21 +179,21 @@ class AgentToolsLaunchTest {
         val captured = slot<ActionDef>()
         coEvery { dispatcher.dispatch(capture(captured), any()) } returns DispatchResult(true)
         val out = JSONObject(tools().execute(
-            AgentToolCall("1", "play_music", """{"query":"Кино","mode":"search"}""")))
+            AgentToolCall("1", "play_music", """{"query":"Dawid Podsiadło","mode":"search"}""")))
         assertTrue(out.getBoolean("ok"))
-        assertEquals("Кино", out.getString("playing"))
+        assertEquals("Dawid Podsiadło", out.getString("playing"))
         val payload = JSONObject(captured.captured.payload!!)
         assertEquals("search", payload.getString("mode"))
-        assertEquals("Кино", payload.getString("query"))
+        assertEquals("Dawid Podsiadło", payload.getString("query"))
     }
 
-    // (i) dispatcher failure -> Russian error JSON.
+    // (i) dispatcher failure -> Polish error JSON.
     @Test fun play_music_dispatch_failure_reports_error() = runTest {
         coEvery { dispatcher.dispatch(any(), any()) } returns
-            DispatchResult(false, "не получилось включить музыку")
+            DispatchResult(false, "nie udało się włączyć muzyki")
         val out = JSONObject(tools().execute(AgentToolCall("1", "play_music", "{}")))
         assertFalse(out.has("ok"))
-        assertEquals("не получилось включить музыку", out.getString("error"))
+        assertEquals("nie udało się włączyć muzyki", out.getString("error"))
     }
 
     // --- youtube ---
@@ -203,13 +203,13 @@ class AgentToolsLaunchTest {
         val captured = slot<ActionDef>()
         coEvery { dispatcher.dispatch(capture(captured), any()) } returns DispatchResult(true)
         val out = JSONObject(tools().execute(
-            AgentToolCall("1", "youtube", """{"query":"обзор leopard 3"}""")))
+            AgentToolCall("1", "youtube", """{"query":"test Leopard 3"}""")))
         assertTrue(out.getBoolean("ok"))
-        assertEquals("обзор leopard 3", out.getString("playing"))
+        assertEquals("test Leopard 3", out.getString("playing"))
         assertEquals("youtube", captured.captured.kind)
         val payload = JSONObject(captured.captured.payload!!)
         assertEquals("play", payload.getString("mode"))
-        assertEquals("обзор leopard 3", payload.getString("query"))
+        assertEquals("test Leopard 3", payload.getString("query"))
     }
 
     // (b) mode=search is forwarded as-is.
@@ -217,12 +217,12 @@ class AgentToolsLaunchTest {
         val captured = slot<ActionDef>()
         coEvery { dispatcher.dispatch(capture(captured), any()) } returns DispatchResult(true)
         val out = JSONObject(tools().execute(
-            AgentToolCall("1", "youtube", """{"query":"тест драйв","mode":"search"}""")))
+            AgentToolCall("1", "youtube", """{"query":"jazda próbna","mode":"search"}""")))
         assertTrue(out.getBoolean("ok"))
-        assertEquals("тест драйв", out.getString("searching"))
+        assertEquals("jazda próbna", out.getString("searching"))
         val payload = JSONObject(captured.captured.payload!!)
         assertEquals("search", payload.getString("mode"))
-        assertEquals("тест драйв", payload.getString("query"))
+        assertEquals("jazda próbna", payload.getString("query"))
     }
 
     // (c) empty query -> BAD_ARGS_ERROR, dispatcher never called.
@@ -234,7 +234,7 @@ class AgentToolsLaunchTest {
 
     // --- launch_app ---
 
-    // Four-app fixture: label -> package. Includes «Навигатор» and «Настройки».
+// Four-app fixture: label -> package. Includes navigator and settings labels.
     private val launcherFixture = listOf(
         "Навигатор" to "ru.yandex.yandexnavi",
         "Настройки" to "com.android.settings",
@@ -247,7 +247,7 @@ class AgentToolsLaunchTest {
         val captured = slot<ActionDef>()
         coEvery { dispatcher.dispatch(capture(captured), any()) } returns DispatchResult(true)
         val t = tools().apply { launcherAppsProvider = { launcherFixture } }
-        val out = JSONObject(t.execute(AgentToolCall("1", "launch_app", """{"name":"навигатор"}""")))
+        val out = JSONObject(t.execute(AgentToolCall("1", "launch_app", """{"name":"nawigator"}""")))
         assertTrue(out.getBoolean("ok"))
         assertEquals("app_launch", captured.captured.kind)
         val payload = JSONObject(captured.captured.payload!!)
@@ -259,7 +259,7 @@ class AgentToolsLaunchTest {
         val captured = slot<ActionDef>()
         coEvery { dispatcher.dispatch(capture(captured), any()) } returns DispatchResult(true)
         val t = tools().apply { launcherAppsProvider = { launcherFixture } }
-        val out = JSONObject(t.execute(AgentToolCall("1", "launch_app", """{"name":"настрой"}""")))
+        val out = JSONObject(t.execute(AgentToolCall("1", "launch_app", """{"name":"ustaw"}""")))
         assertTrue(out.getBoolean("ok"))
         val payload = JSONObject(captured.captured.payload!!)
         assertEquals("com.android.settings", payload.getString("packageName"))
@@ -272,7 +272,7 @@ class AgentToolsLaunchTest {
             "Карточки" to "com.example.cards",
         )
         val t = tools().apply { launcherAppsProvider = { fixture } }
-        val out = JSONObject(t.execute(AgentToolCall("1", "launch_app", """{"name":"карт"}""")))
+        val out = JSONObject(t.execute(AgentToolCall("1", "launch_app", """{"name":"kart"}""")))
         assertFalse(out.has("ok"))
         assertTrue(out.getString("error").contains("Карты"))
         assertTrue(out.getString("error").contains("Карточки"))
@@ -282,27 +282,27 @@ class AgentToolsLaunchTest {
     // (d) no match -> not-found error.
     @Test fun launch_app_not_found_reports_error() = runTest {
         val t = tools().apply { launcherAppsProvider = { launcherFixture } }
-        val out = JSONObject(t.execute(AgentToolCall("1", "launch_app", """{"name":"калькулятор"}""")))
+        val out = JSONObject(t.execute(AgentToolCall("1", "launch_app", """{"name":"kalkulator"}""")))
         assertFalse(out.has("ok"))
-        assertTrue(out.getString("error").contains("приложение не найдено"))
+        assertTrue(out.getString("error").contains("nie znaleziono aplikacji"))
         coVerify(exactly = 0) { dispatcher.dispatch(any(), any()) }
     }
 
     // (e) throwing provider -> error JSON, not a raw exception.
     @Test fun launch_app_provider_throws_reports_error() = runTest {
         val t = tools().apply { launcherAppsProvider = { throw RuntimeException("pm down") } }
-        val out = JSONObject(t.execute(AgentToolCall("1", "launch_app", """{"name":"навигатор"}""")))
+        val out = JSONObject(t.execute(AgentToolCall("1", "launch_app", """{"name":"nawigator"}""")))
         assertTrue(out.has("error"))
         coVerify(exactly = 0) { dispatcher.dispatch(any(), any()) }
     }
 
-    // (a2) RU alias "камера" resolves to the Chinese label via com.byd.avc.
+// (a2) The camera alias resolves to the Chinese label via com.byd.avc.
     @Test fun launch_app_alias_camera_resolves_chinese_label() = runTest {
         val captured = slot<ActionDef>()
         coEvery { dispatcher.dispatch(capture(captured), any()) } returns DispatchResult(true)
         val fixture = listOf("全景影像" to "com.byd.avc")
         val t = tools().apply { launcherAppsProvider = { fixture } }
-        val out = JSONObject(t.execute(AgentToolCall("1", "launch_app", """{"name":"камера"}""")))
+        val out = JSONObject(t.execute(AgentToolCall("1", "launch_app", """{"name":"kamera"}""")))
         assertTrue(out.getBoolean("ok"))
         assertEquals("全景影像", out.getString("app"))
         assertEquals("app_launch", captured.captured.kind)
@@ -316,65 +316,79 @@ class AgentToolsLaunchTest {
         coEvery { dispatcher.dispatch(capture(captured), any()) } returns DispatchResult(true)
         val fixture = listOf("全景影像" to "com.byd.avc")
         val t = tools().apply { launcherAppsProvider = { fixture } }
-        val out = JSONObject(t.execute(AgentToolCall("1", "launch_app", """{"name":"Камера"}""")))
+        val out = JSONObject(t.execute(AgentToolCall("1", "launch_app", """{"name":"KAMERA"}""")))
         assertTrue(out.getBoolean("ok"))
         assertEquals("全景影像", out.getString("app"))
         val payload = JSONObject(captured.captured.payload!!)
         assertEquals("com.byd.avc", payload.getString("packageName"))
     }
 
-    // (c2) alias "ютуб" has two candidate packages in priority order; only the second is installed.
+    @Test fun launch_app_alias_sentry_mode_uses_tryb_ochrony_and_advertises_it() = runTest {
+        val captured = slot<ActionDef>()
+        coEvery { dispatcher.dispatch(capture(captured), any()) } returns DispatchResult(true)
+        val t = tools().apply { launcherAppsProvider = { listOf("哨兵模式" to "com.byd.sentrymode") } }
+        val out = JSONObject(t.execute(AgentToolCall("1", "launch_app", """{"name":"tryb ochrony"}""")))
+
+        assertTrue(out.getBoolean("ok"))
+        assertEquals("com.byd.sentrymode", JSONObject(captured.captured.payload!!).getString("packageName"))
+        val launchSchema = (0 until t.schemas().length()).map { t.schemas().getJSONObject(it).getJSONObject("function") }
+            .single { it.getString("name") == "launch_app" }
+        assertTrue(launchSchema.getString("description").contains("tryb ochrony"))
+        assertFalse(launchSchema.getString("description").contains("strefa czasowa"))
+    }
+
+// (c2) The YouTube alias has two candidate packages in priority order; only the second is installed.
     @Test fun launch_app_alias_youtube_falls_back_to_second_candidate() = runTest {
         val captured = slot<ActionDef>()
         coEvery { dispatcher.dispatch(capture(captured), any()) } returns DispatchResult(true)
         val fixture = listOf("YouTube" to "com.google.android.youtube")
         val t = tools().apply { launcherAppsProvider = { fixture } }
-        val out = JSONObject(t.execute(AgentToolCall("1", "launch_app", """{"name":"ютуб"}""")))
+        val out = JSONObject(t.execute(AgentToolCall("1", "launch_app", """{"name":"youtube"}""")))
         assertTrue(out.getBoolean("ok"))
         val payload = JSONObject(captured.captured.payload!!)
         assertEquals("com.google.android.youtube", payload.getString("packageName"))
     }
 
-    // (d2) alias "видеорегистратор" has no candidate installed and no label match -> not-found error.
+// (d2) The dashcam alias has no candidate installed and no label match -> not-found error.
     @Test fun launch_app_alias_dashcam_not_installed_reports_not_found() = runTest {
         val t = tools().apply { launcherAppsProvider = { launcherFixture } }
-        val out = JSONObject(t.execute(AgentToolCall("1", "launch_app", """{"name":"видеорегистратор"}""")))
+        val out = JSONObject(t.execute(AgentToolCall("1", "launch_app", """{"name":"wideorejestrator"}""")))
         assertFalse(out.has("ok"))
-        assertTrue(out.getString("error").contains("приложение не найдено"))
+        assertTrue(out.getString("error").contains("nie znaleziono aplikacji"))
         coVerify(exactly = 0) { dispatcher.dispatch(any(), any()) }
     }
 
-    // (e2) alias "яндекс карты" picks the first installed candidate of the Maps package list.
+// (e2) The maps alias picks the first installed candidate of the Maps package list.
     @Test fun launch_app_alias_yandex_maps_resolves_installed_package() = runTest {
         val captured = slot<ActionDef>()
         coEvery { dispatcher.dispatch(capture(captured), any()) } returns DispatchResult(true)
         val fixture = listOf("Яндекс Карты" to "ru.yandex.yandexmaps.rustore")
         val t = tools().apply { launcherAppsProvider = { fixture } }
-        val out = JSONObject(t.execute(AgentToolCall("1", "launch_app", """{"name":"яндекс карты"}""")))
+        val out = JSONObject(t.execute(AgentToolCall("1", "launch_app", """{"name":"Yandex mapy"}""")))
         assertTrue(out.getBoolean("ok"))
         val payload = JSONObject(captured.captured.payload!!)
         assertEquals("ru.yandex.yandexmaps.rustore", payload.getString("packageName"))
     }
 
-    // (f2) alias "телефон" points at the BYD bluetooth dialer, not at a label match.
+// (f2) The phone alias points at the BYD bluetooth dialer, not at a label match.
     @Test fun launch_app_alias_phone_resolves_byd_dialer() = runTest {
         val captured = slot<ActionDef>()
         coEvery { dispatcher.dispatch(capture(captured), any()) } returns DispatchResult(true)
         val fixture = listOf("Телефон" to "com.android.dialer", "蓝牙电话" to "com.byd.bluetoothcall")
         val t = tools().apply { launcherAppsProvider = { fixture } }
-        val out = JSONObject(t.execute(AgentToolCall("1", "launch_app", """{"name":"телефон"}""")))
+        val out = JSONObject(t.execute(AgentToolCall("1", "launch_app", """{"name":"telefon"}""")))
         assertTrue(out.getBoolean("ok"))
         val payload = JSONObject(captured.captured.payload!!)
         assertEquals("com.byd.bluetoothcall", payload.getString("packageName"))
     }
 
-    // (g2) alias "медиацентр" resolves the stock media app.
+// (g2) The media-center alias resolves the stock media app.
     @Test fun launch_app_alias_mediacenter_resolves_stock_player() = runTest {
         val captured = slot<ActionDef>()
         coEvery { dispatcher.dispatch(capture(captured), any()) } returns DispatchResult(true)
         val fixture = listOf("多媒体" to "com.byd.mediacenter")
         val t = tools().apply { launcherAppsProvider = { fixture } }
-        val out = JSONObject(t.execute(AgentToolCall("1", "launch_app", """{"name":"медиацентр"}""")))
+        val out = JSONObject(t.execute(AgentToolCall("1", "launch_app", """{"name":"centrum multimediów"}""")))
         assertTrue(out.getBoolean("ok"))
         val payload = JSONObject(captured.captured.payload!!)
         assertEquals("com.byd.mediacenter", payload.getString("packageName"))
@@ -406,7 +420,7 @@ class AgentToolsLaunchTest {
         val out = JSONObject(tools().execute(
             AgentToolCall("1", "set_cluster_projection", """{"on":true}""")))
         assertTrue(out.getBoolean("ok"))
-        assertEquals("Навигатор уже на приборке", out.getString("note"))
+        assertEquals("Навигатор jest już na zestawie wskaźników", out.getString("note"))
         coVerify(exactly = 0) { dispatcher.dispatch(any(), any()) }
     }
 
@@ -417,12 +431,12 @@ class AgentToolsLaunchTest {
         every { clusterVoiceControl.projectionMode() } returns ClusterMode.OFF
         every { clusterVoiceControl.projectedAppLabel() } returns "Навигатор"
         coEvery { dispatcher.dispatch(any(), any()) } returns
-            DispatchResult(false, "проекция на приборку не включилась")
+            DispatchResult(false, "projekcja na zestaw wskaźników nie została włączona")
         val out = JSONObject(tools().execute(
             AgentToolCall("1", "set_cluster_projection", """{"on":true}""")))
         assertFalse(out.has("ok"))
         val error = out.getString("error")
-        assertTrue(error.contains("Попробуй повторить"))
+        assertTrue(error.contains("Spróbuj ponownie"))
         assertFalse(error.contains("Navi"))
     }
 
@@ -431,12 +445,12 @@ class AgentToolsLaunchTest {
         every { clusterVoiceControl.projectionMode() } returns ClusterMode.OFF
         every { clusterVoiceControl.projectedAppLabel() } returns "Навигатор"
         coEvery { dispatcher.dispatch(any(), any()) } returns
-            DispatchResult(false, "служебный процесс перезапускается", daemonRestarting = true)
+            DispatchResult(false, "proces usługi uruchamia się ponownie", daemonRestarting = true)
         val out = JSONObject(tools().execute(
             AgentToolCall("1", "set_cluster_projection", """{"on":true}""")))
         assertFalse(out.getBoolean("ok"))
         val note = out.getString("note")
-        assertTrue(note.contains("попробуй ещё раз"))
+        assertTrue(note.contains("spróbuj ponownie"))
         assertFalse(note.contains("Navi"))
     }
 
@@ -452,14 +466,14 @@ class AgentToolsLaunchTest {
         assertEquals("0", captured.captured.payload)
     }
 
-    // (e) on=false, before=OFF -> nothing dispatched, note "проекции уже нет".
+// (e) on=false, before=OFF -> nothing dispatched, with an already-off projection note.
     @Test fun cluster_projection_off_when_already_off_is_noop() = runTest {
         every { clusterVoiceControl.projectionMode() } returns ClusterMode.OFF
         every { clusterVoiceControl.projectedAppLabel() } returns "Навигатор"
         val out = JSONObject(tools().execute(
             AgentToolCall("1", "set_cluster_projection", """{"on":false}""")))
         assertTrue(out.getBoolean("ok"))
-        assertEquals("проекции уже нет на приборке", out.getString("note"))
+        assertEquals("projekcji nie ma już na zestawie wskaźników", out.getString("note"))
         coVerify(exactly = 0) { dispatcher.dispatch(any(), any()) }
     }
 
@@ -468,7 +482,7 @@ class AgentToolsLaunchTest {
         every { clusterVoiceControl.projectionMode() } throws RuntimeException("boom")
         every { clusterVoiceControl.projectedAppLabel() } returns "Навигатор"
         coEvery { dispatcher.dispatch(any(), any()) } returns
-            DispatchResult(false, "проекция на приборку не включилась")
+            DispatchResult(false, "projekcja na zestaw wskaźników nie została włączona")
         val out = JSONObject(tools().execute(
             AgentToolCall("1", "set_cluster_projection", """{"on":true}""")))
         assertTrue(out.has("error"))

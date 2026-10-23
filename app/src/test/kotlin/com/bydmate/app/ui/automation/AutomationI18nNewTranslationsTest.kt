@@ -27,44 +27,44 @@ class AutomationI18nNewTranslationsTest {
 
     @Test fun unit_translations_present() {
         assertEquals("°C", get("ru", R.string.auto_unit_celsius)); assertEquals("°C", get("en", R.string.auto_unit_celsius)); assertEquals("°C", get("zh", R.string.auto_unit_celsius))
-        assertEquals("(0=сухо)", get("ru", R.string.auto_unit_dry_hint)); assertEquals("(0=dry)", get("en", R.string.auto_unit_dry_hint)); assertEquals("(0=干)", get("zh", R.string.auto_unit_dry_hint))
-        assertEquals("км/ч", get("ru", R.string.auto_unit_kmh)); assertEquals("km/h", get("en", R.string.auto_unit_kmh)); assertEquals("km/h", get("zh", R.string.auto_unit_kmh))
-        assertEquals("кПа", get("ru", R.string.auto_unit_kpa)); assertEquals("kPa", get("en", R.string.auto_unit_kpa)); assertEquals("kPa", get("zh", R.string.auto_unit_kpa))
+        assertEquals("(0=sucho)", get("ru", R.string.auto_unit_dry_hint)); assertEquals("(0=dry)", get("en", R.string.auto_unit_dry_hint)); assertEquals("(0=干)", get("zh", R.string.auto_unit_dry_hint))
+        assertEquals("km/h", get("ru", R.string.auto_unit_kmh)); assertEquals("km/h", get("en", R.string.auto_unit_kmh)); assertEquals("km/h", get("zh", R.string.auto_unit_kmh))
+        assertEquals("kPa", get("ru", R.string.auto_unit_kpa)); assertEquals("kPa", get("en", R.string.auto_unit_kpa)); assertEquals("kPa", get("zh", R.string.auto_unit_kpa))
         assertEquals("%", get("ru", R.string.auto_unit_percent)); assertEquals("%", get("en", R.string.auto_unit_percent)); assertEquals("%", get("zh", R.string.auto_unit_percent))
-        assertEquals("% откр.", get("ru", R.string.auto_unit_percent_open)); assertEquals("% open", get("en", R.string.auto_unit_percent_open)); assertEquals("开度%", get("zh", R.string.auto_unit_percent_open))
-        assertEquals("В", get("ru", R.string.auto_unit_volt)); assertEquals("V", get("en", R.string.auto_unit_volt)); assertEquals("V", get("zh", R.string.auto_unit_volt))
+        assertEquals("% otw.", get("ru", R.string.auto_unit_percent_open)); assertEquals("% open", get("en", R.string.auto_unit_percent_open)); assertEquals("开度%", get("zh", R.string.auto_unit_percent_open))
+        assertEquals("V", get("ru", R.string.auto_unit_volt)); assertEquals("V", get("en", R.string.auto_unit_volt)); assertEquals("V", get("zh", R.string.auto_unit_volt))
     }
 
     @Test fun enum_translations_present() {
-        assertEquals("Заряжается", get("ru", R.string.auto_enum_charging)); assertEquals("Charging", get("en", R.string.auto_enum_charging)); assertEquals("充电中", get("zh", R.string.auto_enum_charging))
-        assertEquals("Закрыта", get("ru", R.string.auto_enum_closed_f)); assertEquals("Closed", get("en", R.string.auto_enum_closed_f)); assertEquals("关闭", get("zh", R.string.auto_enum_closed_f))
-        assertEquals("Закрыт", get("ru", R.string.auto_enum_closed_m)); assertEquals("Closed", get("en", R.string.auto_enum_closed_m)); assertEquals("关闭", get("zh", R.string.auto_enum_closed_m))
+        assertEquals("Ładuje się", get("ru", R.string.auto_enum_charging)); assertEquals("Charging", get("en", R.string.auto_enum_charging)); assertEquals("充电中", get("zh", R.string.auto_enum_charging))
+        assertEquals("Zamknięta", get("ru", R.string.auto_enum_closed_f)); assertEquals("Closed", get("en", R.string.auto_enum_closed_f)); assertEquals("关闭", get("zh", R.string.auto_enum_closed_f))
+        assertEquals("Zamknięty", get("ru", R.string.auto_enum_closed_m)); assertEquals("Closed", get("en", R.string.auto_enum_closed_m)); assertEquals("关闭", get("zh", R.string.auto_enum_closed_m))
         assertEquals("D", get("ru", R.string.auto_enum_code_d)); assertEquals("D", get("en", R.string.auto_enum_code_d)); assertEquals("D", get("zh", R.string.auto_enum_code_d))
         assertEquals("ECO", get("ru", R.string.auto_enum_code_eco)); assertEquals("ECO", get("en", R.string.auto_enum_code_eco)); assertEquals("ECO", get("zh", R.string.auto_enum_code_eco))
         assertEquals("N", get("ru", R.string.auto_enum_code_n)); assertEquals("N", get("en", R.string.auto_enum_code_n)); assertEquals("N", get("zh", R.string.auto_enum_code_n))
         assertEquals("NORMAL", get("ru", R.string.auto_enum_code_normal)); assertEquals("NORMAL", get("en", R.string.auto_enum_code_normal)); assertEquals("NORMAL", get("zh", R.string.auto_enum_code_normal))
         assertEquals("P", get("ru", R.string.auto_enum_code_p)); assertEquals("P", get("en", R.string.auto_enum_code_p)); assertEquals("P", get("zh", R.string.auto_enum_code_p))
         assertEquals("R", get("ru", R.string.auto_enum_code_r)); assertEquals("R", get("en", R.string.auto_enum_code_r)); assertEquals("R", get("zh", R.string.auto_enum_code_r))
-        assertEquals("Снег", get("ru", R.string.auto_enum_code_snow)); assertEquals("SNOW", get("en", R.string.auto_enum_code_snow)); assertEquals("雪地", get("zh", R.string.auto_enum_code_snow))
+        assertEquals("Śnieg", get("ru", R.string.auto_enum_code_snow)); assertEquals("SNOW", get("en", R.string.auto_enum_code_snow)); assertEquals("雪地", get("zh", R.string.auto_enum_code_snow))
         assertEquals("SPORT", get("ru", R.string.auto_enum_code_sport)); assertEquals("SPORT", get("en", R.string.auto_enum_code_sport)); assertEquals("SPORT", get("zh", R.string.auto_enum_code_sport))
-        assertEquals("Подключён", get("ru", R.string.auto_enum_connected)); assertEquals("Connected", get("en", R.string.auto_enum_connected)); assertEquals("已连接", get("zh", R.string.auto_enum_connected))
-        assertEquals("Пристёгнут", get("ru", R.string.auto_enum_fastened)); assertEquals("Fastened", get("en", R.string.auto_enum_fastened)); assertEquals("已系", get("zh", R.string.auto_enum_fastened))
-        assertEquals("Внешний воздух", get("ru", R.string.auto_enum_fresh_air)); assertEquals("Fresh air", get("en", R.string.auto_enum_fresh_air)); assertEquals("外循环", get("zh", R.string.auto_enum_fresh_air))
-        assertEquals("Заблокирован", get("ru", R.string.auto_enum_locked)); assertEquals("Locked", get("en", R.string.auto_enum_locked)); assertEquals("已锁", get("zh", R.string.auto_enum_locked))
-        assertEquals("Нет", get("ru", R.string.auto_enum_none)); assertEquals("None", get("en", R.string.auto_enum_none)); assertEquals("无", get("zh", R.string.auto_enum_none))
-        assertEquals("Выкл", get("ru", R.string.auto_enum_off)); assertEquals("Off", get("en", R.string.auto_enum_off)); assertEquals("关", get("zh", R.string.auto_enum_off))
-        assertEquals("Вкл", get("ru", R.string.auto_enum_on)); assertEquals("On", get("en", R.string.auto_enum_on)); assertEquals("开", get("zh", R.string.auto_enum_on))
-        assertEquals("Открыта", get("ru", R.string.auto_enum_open_f)); assertEquals("Open", get("en", R.string.auto_enum_open_f)); assertEquals("打开", get("zh", R.string.auto_enum_open_f))
-        assertEquals("Открыт", get("ru", R.string.auto_enum_open_m)); assertEquals("Open", get("en", R.string.auto_enum_open_m)); assertEquals("打开", get("zh", R.string.auto_enum_open_m))
-        assertEquals("Внутренний воздух", get("ru", R.string.auto_enum_recirc)); assertEquals("Recirculation", get("en", R.string.auto_enum_recirc)); assertEquals("内循环", get("zh", R.string.auto_enum_recirc))
-        assertEquals("Не пристёгнут", get("ru", R.string.auto_enum_unfastened)); assertEquals("Unfastened", get("en", R.string.auto_enum_unfastened)); assertEquals("未系", get("zh", R.string.auto_enum_unfastened))
-        assertEquals("Разблокирован", get("ru", R.string.auto_enum_unlocked)); assertEquals("Unlocked", get("en", R.string.auto_enum_unlocked)); assertEquals("已解锁", get("zh", R.string.auto_enum_unlocked))
+        assertEquals("Podłączony", get("ru", R.string.auto_enum_connected)); assertEquals("Connected", get("en", R.string.auto_enum_connected)); assertEquals("已连接", get("zh", R.string.auto_enum_connected))
+        assertEquals("Zapięty", get("ru", R.string.auto_enum_fastened)); assertEquals("Fastened", get("en", R.string.auto_enum_fastened)); assertEquals("已系", get("zh", R.string.auto_enum_fastened))
+        assertEquals("Powietrze z zewnątrz", get("ru", R.string.auto_enum_fresh_air)); assertEquals("Fresh air", get("en", R.string.auto_enum_fresh_air)); assertEquals("外循环", get("zh", R.string.auto_enum_fresh_air))
+        assertEquals("Zablokowany", get("ru", R.string.auto_enum_locked)); assertEquals("Locked", get("en", R.string.auto_enum_locked)); assertEquals("已锁", get("zh", R.string.auto_enum_locked))
+        assertEquals("Brak", get("ru", R.string.auto_enum_none)); assertEquals("None", get("en", R.string.auto_enum_none)); assertEquals("无", get("zh", R.string.auto_enum_none))
+        assertEquals("Wył.", get("ru", R.string.auto_enum_off)); assertEquals("Off", get("en", R.string.auto_enum_off)); assertEquals("关", get("zh", R.string.auto_enum_off))
+        assertEquals("Wł.", get("ru", R.string.auto_enum_on)); assertEquals("On", get("en", R.string.auto_enum_on)); assertEquals("开", get("zh", R.string.auto_enum_on))
+        assertEquals("Otwarta", get("ru", R.string.auto_enum_open_f)); assertEquals("Open", get("en", R.string.auto_enum_open_f)); assertEquals("打开", get("zh", R.string.auto_enum_open_f))
+        assertEquals("Otwarty", get("ru", R.string.auto_enum_open_m)); assertEquals("Open", get("en", R.string.auto_enum_open_m)); assertEquals("打开", get("zh", R.string.auto_enum_open_m))
+        assertEquals("Powietrze z wnętrza", get("ru", R.string.auto_enum_recirc)); assertEquals("Recirculation", get("en", R.string.auto_enum_recirc)); assertEquals("内循环", get("zh", R.string.auto_enum_recirc))
+        assertEquals("Niezapięty", get("ru", R.string.auto_enum_unfastened)); assertEquals("Unfastened", get("en", R.string.auto_enum_unfastened)); assertEquals("未系", get("zh", R.string.auto_enum_unfastened))
+        assertEquals("Odblokowany", get("ru", R.string.auto_enum_unlocked)); assertEquals("Unlocked", get("en", R.string.auto_enum_unlocked)); assertEquals("已解锁", get("zh", R.string.auto_enum_unlocked))
     }
 
     /**
      * Closes the en/zh wiring gap: iterates the REAL catalog and exercises the
      * actual resolvers (not raw resource ids), so a value<->res mismatch (silent
-     * `?: value` fallback) or a wrong unitRes is caught in en AND zh, not just ru.
+     * `?: value` fallback) or a wrong unitRes is caught in en AND zh, not just Polish fallback.
      */
     @Test fun resolvers_route_units_and_enums_through_resources_in_en_and_zh() {
         for (l in listOf("en", "zh")) {
@@ -85,7 +85,7 @@ class AutomationI18nNewTranslationsTest {
      * Portuguese (generic values-pt) parity. Iterating the REAL TRIGGER_PARAMS +
      * ACTION_COMMANDS under "pt" proves every name/category/unit/enum/action label
      * resolves through a pt resource (wiring intact, no missing key crashes). The
-     * spot-checks pin actual pt text per type so a silent Russian fallback (which a
+     * spot-checks pin actual pt text per type so a silent Polish fallback (which a
      * missing values-pt key would produce) is caught, not masked.
      */
     @Test fun pt_catalog_fully_backed_by_resources() {
@@ -101,7 +101,7 @@ class AutomationI18nNewTranslationsTest {
         }
         for (a in ACTION_COMMANDS) {
             val id = a.toggleTarget ?: a.command
-            // A toggle entry reads as «<цель>: переключить», so its name goes through the wrapper.
+            // A toggle entry reads as “<target>: toggle”, so its name goes through the wrapper.
             val name = a.toggleTarget?.let { lc.getString(R.string.auto_act_toggle_catalog, lc.getString(a.nameRes)) }
                 ?: lc.getString(a.nameRes)
             assertEquals("action name $id", name, a.localizedName(ctx))

@@ -35,8 +35,8 @@ class AgentChatViewModel @Inject constructor(
         viewModelScope.launch {
             val reply = when (val r = orchestrator.ask(trimmed)) {
                 is AgentResult.Answer -> r.text
-                AgentResult.Disabled -> "Агент выключен или не настроен (Настройки → Агент)"
-                is AgentResult.Error -> "Ошибка: ${r.message}"
+                AgentResult.Disabled -> "Asystent jest wyłączony lub nie jest skonfigurowany (Ustawienia → Asystent)"
+                is AgentResult.Error -> "Błąd: ${r.message}"
             }
             _uiState.update { it.copy(lines = it.lines + ChatLine(false, reply), busy = false) }
         }

@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<title>BYDMate Widget v3 — финальный мокап</title>
+<title>BYDMate Widget v3 — final mockup</title>
 <style>
   :root {
     --navy-deep: #0F1929;
@@ -123,8 +123,8 @@
 </head>
 <body>
 
-<h1>BYDMate Widget v3 — финальный</h1>
-<div class="note">Размер <b style="color:#fff">260 × 108 dp</b> · SOC-строка по вертикальному центру · километраж белым крупно (28sp bold) · SOC % и расход одного размера (18sp) · иконки серые, значения белые · <b style="color:#fff">Long-press → скрыть до открытия BYDMate</b>.</div>
+<h1>BYDMate Widget v3 — final</h1>
+<div class="note">Size <b style="color:#fff">260 × 108 dp</b> · SOC row vertically centred · range in large white type (28sp bold) · SOC % and consumption have the same size (18sp) · grey icons, white values · <b style="color:#fff">Long-press → hide until BYDMate opens</b>.</div>
 
 <svg width="0" height="0" style="position:absolute">
   <defs>
@@ -147,25 +147,25 @@
 </svg>
 
 <!-- ================================ -->
-<h2>Статические состояния</h2>
+<h2>Static states</h2>
 
 <div class="row">
   <div class="variant"><div class="label">OK — SOC ≥ 30 %</div><div class="bg-sim">
     <div class="w">
       <div class="r r-serv">
-        <span class="chip"><svg class="icon"><use href="#ic-schedule"/></svg> 22 мин</span>
+        <span class="chip"><svg class="icon"><use href="#ic-schedule"/></svg> 22 min</span>
         <span class="chip"><svg class="icon"><use href="#ic-car"/></svg> 25°</span>
       </div>
       <div class="hr"></div>
       <div class="r r-mid">
         <span class="soc">78%</span>
-        <span><span class="km">~352</span><span class="km-suffix">км</span></span>
+        <span><span class="km">~352</span><span class="km-suffix">km</span></span>
         <span class="cns"><svg class="icon icon-trend"><use href="#ic-trend-down"/></svg> 14.8</span>
       </div>
       <div class="hr"></div>
       <div class="r r-serv">
         <span class="chip"><svg class="icon"><use href="#ic-battery"/></svg> 28°</span>
-        <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 12.7 В</span>
+        <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 12.7 V</span>
       </div>
     </div>
   </div></div>
@@ -173,19 +173,19 @@
   <div class="variant"><div class="label">WARN — SOC 15–29 %</div><div class="bg-sim">
     <div class="w warn">
       <div class="r r-serv">
-        <span class="chip"><svg class="icon"><use href="#ic-schedule"/></svg> 1 ч 05 мин</span>
+        <span class="chip"><svg class="icon"><use href="#ic-schedule"/></svg> 1 h 05 min</span>
         <span class="chip"><svg class="icon"><use href="#ic-car"/></svg> 22°</span>
       </div>
       <div class="hr"></div>
       <div class="r r-mid">
         <span class="soc warn">24%</span>
-        <span><span class="km">~112</span><span class="km-suffix">км</span></span>
+        <span><span class="km">~112</span><span class="km-suffix">km</span></span>
         <span class="cns up"><svg class="icon icon-trend"><use href="#ic-trend-up"/></svg> 17.2</span>
       </div>
       <div class="hr"></div>
       <div class="r r-serv">
         <span class="chip"><svg class="icon"><use href="#ic-battery"/></svg> 31°</span>
-        <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 12.4 В</span>
+        <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 12.4 V</span>
       </div>
     </div>
   </div></div>
@@ -193,46 +193,46 @@
   <div class="variant"><div class="label">CRIT — SOC &lt; 15 %</div><div class="bg-sim">
     <div class="w crit">
       <div class="r r-serv">
-        <span class="chip"><svg class="icon"><use href="#ic-schedule"/></svg> 2 ч 18 мин</span>
+        <span class="chip"><svg class="icon"><use href="#ic-schedule"/></svg> 2 h 18 min</span>
         <span class="chip"><svg class="icon"><use href="#ic-car"/></svg> 20°</span>
       </div>
       <div class="hr"></div>
       <div class="r r-mid">
         <span class="soc crit">9%</span>
-        <span><span class="km">~43</span><span class="km-suffix">км</span></span>
+        <span><span class="km">~43</span><span class="km-suffix">km</span></span>
         <span class="cns flat"><svg class="icon icon-trend"><use href="#ic-trend-flat"/></svg> 15.1</span>
       </div>
       <div class="hr"></div>
       <div class="r r-serv">
         <span class="chip"><svg class="icon"><use href="#ic-battery"/></svg> 34°</span>
-        <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 11.8 В</span>
+        <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 11.8 V</span>
       </div>
     </div>
   </div></div>
 </div>
 
 <!-- ================================ -->
-<h2>Long-press → скрыть до открытия BYDMate</h2>
+<h2>Long-press → hide until BYDMate opens</h2>
 
 <div class="row">
 
   <!-- Phase 1 -->
-  <div class="variant"><div class="label">1. Обычное состояние</div><div class="bg-sim">
+  <div class="variant"><div class="label">1. Normal state</div><div class="bg-sim">
     <div class="w">
       <div class="r r-serv">
-        <span class="chip"><svg class="icon"><use href="#ic-schedule"/></svg> 22 мин</span>
+        <span class="chip"><svg class="icon"><use href="#ic-schedule"/></svg> 22 min</span>
         <span class="chip"><svg class="icon"><use href="#ic-car"/></svg> 25°</span>
       </div>
       <div class="hr"></div>
       <div class="r r-mid">
         <span class="soc">78%</span>
-        <span><span class="km">~352</span><span class="km-suffix">км</span></span>
+        <span><span class="km">~352</span><span class="km-suffix">km</span></span>
         <span class="cns"><svg class="icon icon-trend"><use href="#ic-trend-down"/></svg> 14.8</span>
       </div>
       <div class="hr"></div>
       <div class="r r-serv">
         <span class="chip"><svg class="icon"><use href="#ic-battery"/></svg> 28°</span>
-        <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 12.7 В</span>
+        <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 12.7 V</span>
       </div>
     </div>
   </div></div>
@@ -240,79 +240,79 @@
   <div class="arrow">→</div>
 
   <!-- Phase 2: long-press in progress -->
-  <div class="variant"><div class="label">2. Палец на виджете ≥ 1.5 сек</div><div class="bg-sim">
+  <div class="variant"><div class="label">2. Touch on widget ≥ 1.5 sec</div><div class="bg-sim">
     <div class="ripple"></div>
     <div class="w pressing">
       <div class="r r-serv">
-        <span class="chip"><svg class="icon"><use href="#ic-schedule"/></svg> 22 мин</span>
+        <span class="chip"><svg class="icon"><use href="#ic-schedule"/></svg> 22 min</span>
         <span class="chip"><svg class="icon"><use href="#ic-car"/></svg> 25°</span>
       </div>
       <div class="hr"></div>
       <div class="r r-mid">
         <span class="soc">78%</span>
-        <span><span class="km">~352</span><span class="km-suffix">км</span></span>
+        <span><span class="km">~352</span><span class="km-suffix">km</span></span>
         <span class="cns"><svg class="icon icon-trend"><use href="#ic-trend-down"/></svg> 14.8</span>
       </div>
       <div class="hr"></div>
       <div class="r r-serv">
         <span class="chip"><svg class="icon"><use href="#ic-battery"/></svg> 28°</span>
-        <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 12.7 В</span>
+        <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 12.7 V</span>
       </div>
     </div>
-    <div style="font-size:10px; color:var(--text-muted); margin-top:6px; font-family:monospace;">подсветка + лёгкий scale 0.98</div>
+    <div style="font-size:10px; color:var(--text-muted); margin-top:6px; font-family:monospace;">highlight + slight 0.98 scale</div>
   </div></div>
 
   <div class="arrow">→</div>
 
   <!-- Phase 3: hidden + toast -->
-  <div class="variant"><div class="label">3. Скрыт + toast</div><div class="bg-sim">
+  <div class="variant"><div class="label">3. Hidden + toast</div><div class="bg-sim">
     <div style="width:260px; height:108px; border:1.5px dashed rgba(100,116,139,0.35); border-radius:14px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:12px; font-family:monospace;">
-      (виджет скрыт)
+      (widget hidden)
     </div>
     <div class="toast">
       <span class="dot"></span>
-      <span>Виджет скрыт. Откройте BYDMate — вернётся.</span>
+      <span>Widget hidden. Open BYDMate — returns.</span>
     </div>
   </div></div>
 
 </div>
 
 <!-- ================================ -->
-<h2>Как вернуть виджет</h2>
+<h2>How to restore the widget</h2>
 
 <div class="row">
-  <div class="variant"><div class="label">открыть BYDMate</div><div class="bg-sim" style="min-width:280px">
+  <div class="variant"><div class="label">open BYDMate</div><div class="bg-sim" style="min-width:280px">
     <div style="display:flex; flex-direction:column; gap:12px; font-size:13px; color:var(--text-primary); line-height:1.5;">
-      <div>• Тап по ярлыку <b style="color:var(--accent-green)">BYDMate</b> на главном экране DiLink</div>
-      <div>• Приложение открывается → виджет <b style="color:#fff">автоматически возвращается</b> на своё место (позиция сохранена)</div>
-      <div>• Закрываешь BYDMate → виджет снова висит поверх</div>
-      <div style="color:var(--text-muted); font-size:12px; margin-top:8px;">— никаких кнопок, никакого permission — просто открой приложение</div>
+      <div>• Tap the <b style="color:var(--accent-green)">BYDMate</b> icon on the DiLink home screen</div>
+      <div>• The app opens → the widget <b style="color:#fff">returns automatically</b> to its saved position</div>
+      <div>• Close BYDMate → the widget floats above again</div>
+      <div style="color:var(--text-muted); font-size:12px; margin-top:8px;">— no buttons or permissions — just open the app</div>
     </div>
   </div></div>
 </div>
 
 <!-- ================================ -->
 <div class="spec">
-  <b>Вёрстка виджета:</b><br>
-  Размер: <code>260 × 108 dp</code>, padding 8×14 dp, border 1.5 dp, corner 14 dp.<br>
-  Строка 1 — <code>⏱ 22 мин</code> · <code>🚗 25°</code> (13sp моно). Иконки <b style="color:var(--text-muted)">серые</b>, значения <b style="color:#fff">белые</b>.<br>
-  Строка 2 (центр) — <code>78%</code> 18sp bold (цвет по SOC) · <code>~352 км</code> 28sp bold <b style="color:#fff">белый</b> · <code>↓ 14.8</code> 18sp (цвет по тренду).<br>
-  Строка 3 — <code>🔋 28°</code> · <code>⚡ 12.7 В</code>. Тот же стиль что строка 1.<br>
-  Разделители — 1dp line alpha 0.22.<br>
-  Иконки: Material Outlined — <code>Schedule</code>, <code>DirectionsCar</code>, <code>Battery6Bar</code>, <code>Bolt</code>, <code>TrendingDown/Flat/Up</code>.
+  <b>Widget layout:</b><br>
+  Size: <code>260 × 108 dp</code>, padding 8×14 dp, border 1.5 dp, corner 14 dp.<br>
+  Row 1 — <code>⏱ 22 min</code> · <code>🚗 25°</code> (13sp mono). Icons <b style="color:var(--text-muted)">grey</b>, values <b style="color:#fff">white</b>.<br>
+  Row 2 (centre) — <code>78%</code> 18sp bold (SOC colour) · <code>~352 km</code> 28sp bold <b style="color:#fff">white</b> · <code>↓ 14.8</code> 18sp (trend colour).<br>
+  Row 3 — <code>🔋 28°</code> · <code>⚡ 12.7 V</code>. Same style as row 1.<br>
+  Separators — 1dp line alpha 0.22.<br>
+  Icons: Material Outlined — <code>Schedule</code>, <code>DirectionsCar</code>, <code>Battery6Bar</code>, <code>Bolt</code>, <code>TrendingDown/Flat/Up</code>.
   <br><br>
 
-  <b>Поведение касаний:</b><br>
-  • <b>Обычный тап</b> → открыть BYDMate (как сейчас).<br>
-  • <b>Drag</b> → перемещение виджета; в зоне «корзина» (нижняя центральная) — отключение совсем (флаг в настройках).<br>
-  • <b>Long-press 1500 мс</b> → <b style="color:var(--accent-green)">скрыть до следующего открытия BYDMate</b>. Подсветка во время нажатия, toast после срабатывания.<br>
+  <b>Touch behaviour:</b><br>
+  • <b>Normal tap</b> → open BYDMate (as now).<br>
+  • <b>Drag</b> → move the widget; dropping it in the bottom-centre “trash” zone disables it completely (settings flag).<br>
+  • <b>Long-press 1500 ms</b> → <b style="color:var(--accent-green)">hide until the next BYDMate opening</b>. Highlight during the press; toast after activation.<br>
   <br>
 
-  <b>Техническая реализация long-press:</b><br>
-  • В <code>WidgetTouchListener</code> добавить Handler с задержкой 1500 мс в <code>ACTION_DOWN</code>, отменять в <code>ACTION_MOVE</code> (если превысили threshold) и <code>ACTION_UP</code>.<br>
-  • При срабатывании: <code>WidgetPreferences.setHiddenUntilAppLaunch(true)</code>, <code>WidgetController.detach()</code>, <code>Toast.makeText(...)</code>.<br>
-  • В <code>BYDMateApp.WidgetLifecycleCallbacks.onActivityResumed</code> сбросить флаг <code>false</code> (виджет вернётся автоматически, когда Activity уйдёт в pause — стандартная логика attach в background).<br>
-  • В <code>WidgetController.attach</code> добавить early-return если <code>hiddenUntilAppLaunch == true</code>.
+  <b>Long-press technical implementation:</b><br>
+  • In <code>WidgetTouchListener</code>, add a Handler with a 1500 ms delay in <code>ACTION_DOWN</code>; cancel it in <code>ACTION_MOVE</code> (if the threshold is exceeded) and <code>ACTION_UP</code>.<br>
+  • On activation: <code>WidgetPreferences.setHiddenUntilAppLaunch(true)</code>, <code>WidgetController.detach()</code>, <code>Toast.makeText(...)</code>.<br>
+  • In <code>BYDMateApp.WidgetLifecycleCallbacks.onActivityResumed</code>, reset the flag to <code>false</code> (the widget returns automatically when the Activity enters pause — standard background attach logic).<br>
+  • In <code>WidgetController.attach</code>, add an early return if <code>hiddenUntilAppLaunch == true</code>.
 </div>
 
 </body>

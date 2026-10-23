@@ -7,6 +7,10 @@ import android.util.Log
 import com.bydmate.app.diagnostics.Trace
 import com.bydmate.app.diagnostics.TraceArea
 import com.bydmate.app.navdata.NavGuidanceHub
+import com.bydmate.app.navdata.NavCaptureNotification
+import com.bydmate.app.navdata.NavCaptureNotificationCallbacks
+import com.bydmate.app.navdata.NavCaptureBridge
+import com.bydmate.app.navdata.NavSourceSelector
 import com.bydmate.app.navdata.NavPackages
 import com.bydmate.app.navdata.UnknownManeuverGate
 import java.util.concurrent.ConcurrentHashMap
@@ -78,6 +82,7 @@ class MediaSessionListenerService : NotificationListenerService() {
     // views (waits up to 3 s) - it runs on the lane thread, never here.
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         runCatching {
+            capturePosted(sbn)
             if (sbn.packageName !in NavPackages.GUIDANCE_SOURCES) return
             val notification = sbn.notification
             val pkg = sbn.packageName
@@ -104,6 +109,7 @@ class MediaSessionListenerService : NotificationListenerService() {
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
         if (sbn == null) return
         runCatching {
+            captureRemoved(sbn)
             if (sbn.packageName !in NavPackages.GUIDANCE_SOURCES) return
             // Donor removal semantics: never deactivate immediately - Navigator
             // flickers its notification on refresh. The debounced grace check runs
@@ -124,12 +130,46 @@ class MediaSessionListenerService : NotificationListenerService() {
             }.getOrNull()
             if (l != null) {
                 l.onRemoved(
+                    owner = NavSourceSelector.ownerForPackage(sbn.packageName),
                     legacyClear = Runnable { NaviRouteHolder.clear(sbn.packageName) },
                     trace = trace,
                 )
             } else {
                 NaviRouteHolder.clear(sbn.packageName)
             }
+        }
+    }
+
+    /** Copies primitives on the binder callback; the bridge never retains Notification or Bundle. */
+    private fun capturePosted(sbn: StatusBarNotification) = runCatching {
+        if (!NavCaptureBridge.acceptsNotification(sbn.packageName)) return@runCatching
+        val notification = sbn.notification
+        val extras = captureExtras(notification.extras)
+        val resolver = naviResourceResolver(sbn.packageName)
+        NavCaptureNotificationCallbacks.onPosted(NavCaptureNotification(
+            packageName = sbn.packageName, id = sbn.id, channelId = notification.channelId,
+            title = notification.extras.getCharSequence(Notification.EXTRA_TITLE),
+            text = notification.extras.getCharSequence(Notification.EXTRA_TEXT),
+            extras = extras, flags = notification.flags, smallIcon = smallIconName(notification, resolver),
+            remoteViewsPresent = notification.contentView != null || notification.bigContentView != null || notification.headsUpContentView != null,
+        ))
+    }
+
+    private fun captureRemoved(sbn: StatusBarNotification) = runCatching {
+        if (!NavCaptureBridge.acceptsNotification(sbn.packageName)) return@runCatching
+        val notification = sbn.notification
+        NavCaptureNotificationCallbacks.onRemoved(NavCaptureNotification(
+            packageName = sbn.packageName, id = sbn.id, channelId = notification.channelId,
+            title = notification.extras.getCharSequence(Notification.EXTRA_TITLE),
+            text = notification.extras.getCharSequence(Notification.EXTRA_TEXT),
+            extras = captureExtras(notification.extras), flags = notification.flags,
+        ))
+    }
+
+    private fun captureExtras(extras: android.os.Bundle): Map<String, Any?> = extras.keySet().associateWith { key ->
+        when (val value = extras.get(key)) {
+            is String, is CharSequence, is Int, is Long, is Boolean, is Float, is Double -> value
+            else -> null
         }
     }
 

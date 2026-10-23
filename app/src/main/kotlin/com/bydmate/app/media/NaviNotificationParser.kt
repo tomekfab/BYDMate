@@ -16,9 +16,9 @@ object NaviNotificationParser {
     data class RvAction(val viewName: String, val method: String, val value: String)
 
     data class Parsed(
-        val maneuver: String?,          // short Russian phrase, e.g. "направо"
+        val maneuver: String?,          // short Polish phrase, e.g. "w prawo"
         val maneuverResource: String?,  // raw icon resource name, e.g. notification_right_sdl
-        val distance: String?,          // distance to maneuver (titleView), e.g. "350 м"
+        val distance: String?,          // distance to maneuver (titleView), e.g. "350 m"
         val street: String?,            // next street (descriptionView)
         val bigTexts: List<String>,     // all bigContentView texts; ETA/remaining live here
     )
@@ -110,24 +110,24 @@ object NaviNotificationParser {
         return null
     }
 
-    /** Guidance icon resource name -> short Russian phrase for the voice agent. */
+    /** Guidance icon resource name -> short Polish phrase for the voice agent. */
     private val MANEUVER_PHRASES = mapOf(
-        "notification_left_sdl" to "налево",
-        "notification_right_sdl" to "направо",
-        "notification_slight_left_sdl" to "левее",
-        "notification_slight_right_sdl" to "правее",
-        "notification_hard_left_sdl" to "резко налево",
-        "notification_hard_right_sdl" to "резко направо",
-        "notification_straight_sdl" to "прямо",
-        "notification_enter_roundabout_sdl" to "круговое движение",
-        "notification_leave_roundabout_sdl" to "съезд с кольца",
-        "notification_exit_left_sdl" to "съезд налево",
-        "notification_exit_right_sdl" to "съезд направо",
-        "notification_fork_left_sdl" to "держись левее",
-        "notification_fork_right_sdl" to "держись правее",
-        "notification_uturn_left_sdl" to "разворот",
-        "notification_uturn_right_sdl" to "разворот направо",
-        "notification_finish_sdl" to "финиш рядом",
-        "notification_board_ferry_sdl" to "паром",
+        "notification_left_sdl" to "w lewo",
+        "notification_right_sdl" to "w prawo",
+        "notification_slight_left_sdl" to "lekko w lewo",
+        "notification_slight_right_sdl" to "lekko w prawo",
+        "notification_hard_left_sdl" to "ostro w lewo",
+        "notification_hard_right_sdl" to "ostro w prawo",
+        "notification_straight_sdl" to "prosto",
+        "notification_enter_roundabout_sdl" to "rondo",
+        "notification_leave_roundabout_sdl" to "zjazd z ronda",
+        "notification_exit_left_sdl" to "zjazd w lewo",
+        "notification_exit_right_sdl" to "zjazd w prawo",
+        "notification_fork_left_sdl" to "trzymaj się lewej",
+        "notification_fork_right_sdl" to "trzymaj się prawej",
+        "notification_uturn_left_sdl" to "zawracanie",
+        "notification_uturn_right_sdl" to "zawracanie w prawo",
+        "notification_finish_sdl" to "cel blisko",
+        "notification_board_ferry_sdl" to "prom",
     )
 }

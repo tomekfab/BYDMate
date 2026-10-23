@@ -20,6 +20,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.util.Locale
+import com.bydmate.app.voice.VoiceUserPhrases
 
 /**
  * Behaviour-lock for the regression where ViewModel-facing strings resolved via the
@@ -61,6 +62,7 @@ class AutomationMessageLocaleTest {
             actionDispatcher = mockk(relaxed = true),
             settingsRepository = mockk(relaxed = true),
             context = appCtxEn,
+            userPhrases = VoiceUserPhrases(),
         )
 
         // Empty editing rule -> early-return validation message via the @ApplicationContext path.

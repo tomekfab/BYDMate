@@ -84,7 +84,7 @@ class TelegramReporterLocationTest {
         )
         place(minsk)
         reporter.language = { "ru" }
-        runBlocking { settings.saveTgBackup("tok", "bot", chat, "Андрей") }
+        runBlocking { settings.saveTgBackup("tok", "bot", chat, "Andrzej") }
         ShadowLog.clear()
     }
 
@@ -108,13 +108,15 @@ class TelegramReporterLocationTest {
         request.body.readUtf8().split('&').associate { it.substringBefore('=') to URLDecoder.decode(it.substringAfter('='), "UTF-8") }
 
     private suspend fun report(fields: Set<ReportField> = setOf(ReportField.SOC, ReportField.LOCATION)) =
-        reporter.sendRuleReport("Где машина", fields, "")
+        reporter.sendRuleReport("Gdzie jest samochód", fields, "")
 
     @Test fun `a report with the place is followed by a silent native point with the same coordinates`() = runBlocking {
         assertEquals(TelegramReporter.SendResult.Sent, report())
         val (message, point) = calls()
         assertEquals("/bottok/sendMessage", message.path)
-        val link = form(message)["text"]!!.lines().last()
+        val messageText = form(message)["text"]!!
+        assertTrue(messageText, messageText.contains("Otwórz na mapie"))
+        val link = messageText.lines().last()
         assertTrue(link, link.startsWith("📍 <a href=\"https://yandex.ru/maps/?pt=27.560000,53.900000&amp;z=16&amp;l=map\">"))
         assertEquals("/bottok/sendLocation", point.path)
         assertEquals(

@@ -24,7 +24,7 @@ import javax.inject.Inject
 
 data class WelcomeUiState(
     val step: Int = 1,
-    val language: String = "ru",
+    val language: String = "pl",
     val batteryCapacity: String = SettingsRepository.DEFAULT_BATTERY_CAPACITY,
     val currency: String = SettingsRepository.DEFAULT_CURRENCY,
     val currencySymbol: String = "BYN",
@@ -52,7 +52,7 @@ class WelcomeViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
-        (localePreferences.getLanguage() ?: "ru").let { lang ->
+        localePreferences.getLanguage().let { lang ->
             val currency = findCurrency(currencyForLanguage(lang))
             WelcomeUiState(language = lang, currency = currency.code, currencySymbol = currency.symbol)
         }
@@ -73,13 +73,14 @@ class WelcomeViewModel @Inject constructor(
     /** Applies the language right away so the following wizard steps render in it. */
     fun setLanguage(lang: String) {
         applyAppLanguage(appContext, localePreferences, lang)
+        val resolvedLanguage = localePreferences.getLanguage()
         _uiState.update { state ->
             if (state.currencyTouched) {
-                state.copy(language = lang)
+                state.copy(language = resolvedLanguage)
             } else {
                 // Follow the language until the user picks a currency: Chinese implies CNY
-                val currency = findCurrency(currencyForLanguage(lang))
-                state.copy(language = lang, currency = currency.code, currencySymbol = currency.symbol)
+                val currency = findCurrency(currencyForLanguage(resolvedLanguage))
+                state.copy(language = resolvedLanguage, currency = currency.code, currencySymbol = currency.symbol)
             }
         }
     }

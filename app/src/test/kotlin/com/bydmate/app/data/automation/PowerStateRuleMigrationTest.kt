@@ -23,9 +23,9 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * The «Питание» condition is gone: the app starts after the car is powered, so ON never fired,
- * OFF cannot fire and DRIVE fired only by race. Saved rules move to «Запуск BYDMate» (ON and
- * DRIVE; «Шторка при движении» alone to «Передача = D»); a rule that needed the car off is removed.
+* The Power condition is gone: the app starts after the car is powered, so ON never fired,
+* OFF cannot fire and DRIVE fired only by race. Saved rules move to BYDMate start (ON and
+* DRIVE; the moving-shade rule alone moves to Gear = D); a rule that needed the car off is removed.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29])
@@ -35,7 +35,7 @@ class PowerStateRuleMigrationTest {
     private lateinit var ruleDao: RuleDao
     private val settings: SettingsRepository = mockk()
     private val context = ApplicationProvider.getApplicationContext<Context>()
-    private val labels = PowerStateRuleMigration.Labels(serviceStart = "Запуск BYDMate", gearDrive = "Передача = D")
+    private val labels = PowerStateRuleMigration.Labels(serviceStart = "Uruchomienie BYDMate", gearDrive = "Bieg = D")
 
     @Before
     fun setUp() {
@@ -58,7 +58,7 @@ class PowerStateRuleMigrationTest {
 
     private val serviceStart = TriggerDef(
         param = "ServiceStart", chineseName = "服务启动", operator = "==", value = "true",
-        displayName = "Запуск BYDMate", kind = "service_start",
+        displayName = "Uruchomienie BYDMate", kind = "service_start",
     )
 
     private fun convert(logic: String, vararg triggers: TriggerDef) =
@@ -75,7 +75,7 @@ class PowerStateRuleMigrationTest {
         assertEquals("service_start", out.kind)
         assertEquals("ServiceStart", out.param)
         assertEquals("true", out.value)
-        assertEquals("Запуск BYDMate", out.displayName)
+        assertEquals("Uruchomienie BYDMate", out.displayName)
     }
 
     @Test fun `ON next to an existing start trigger is just dropped`() {
@@ -88,7 +88,7 @@ class PowerStateRuleMigrationTest {
         val out = convert("AND", power("2"))!!.single()
 
         assertEquals("service_start", out.kind)
-        assertEquals("Запуск BYDMate", out.displayName)
+        assertEquals("Uruchomienie BYDMate", out.displayName)
     }
 
     @Test fun `DRIVE next to an existing start trigger is just dropped`() {
@@ -107,7 +107,7 @@ class PowerStateRuleMigrationTest {
         assertEquals("档位", out.chineseName)
         assertEquals("==", out.operator)
         assertEquals("4", out.value)
-        assertEquals("Передача = D", out.displayName)
+        assertEquals("Bieg = D", out.displayName)
     }
 
     @Test fun `winter start keeps its temperature and gets the BYDMate start`() {
@@ -126,10 +126,10 @@ class PowerStateRuleMigrationTest {
     }
 
     @Test fun `only the sunshade template names count, in every language`() {
-        for (name in listOf("Шторка при движении", "Sunshade while driving", "行驶开遮阳帘", " Шторка при движении ")) {
+        for (name in listOf("Roleta podczas jazdy", "Sunshade while driving", "行驶开遮阳帘", " Шторка при движении ")) {
             assertEquals(name, true, PowerStateRuleMigration.isSunshadeTemplate(name))
         }
-        for (name in listOf("Летнее охлаждение", "Зимний старт", "Шторка", "")) {
+        for (name in listOf("Letnie chłodzenie", "Zimowy start", "Roleta", "")) {
             assertEquals(name, false, PowerStateRuleMigration.isSunshadeTemplate(name))
         }
     }
@@ -233,8 +233,8 @@ class PowerStateRuleMigrationTest {
     @Test fun `saved rules are converted or removed, everything else of a rule stays`() = runTest {
         val music = insert("AND", power("1"))
         val winter = insert("AND", param("ExtTemp", "0", "<"), power("2"))
-        val summer = insertNamed("Летнее охлаждение", "AND", param("InsideTemp", "30", ">"), power("2"))
-        val sunshade = insertNamed("Шторка при движении", "AND", power("2"))
+        val summer = insertNamed("Letnie chłodzenie", "AND", param("InsideTemp", "30", ">"), power("2"))
+        val sunshade = insertNamed("Roleta podczas jazdy", "AND", power("2"))
         val offOnly = insert("AND", param("SOC", "20", "<"), power("0"))
         val untouched = insert("AND", param("Speed", "100", ">"))
         val before = ruleDao.getById(winter)!!

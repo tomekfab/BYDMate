@@ -12,7 +12,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * R6: text behind the "?" help badge on the «Разделение экрана» section header
+ * R6: text behind the "?" help badge on the Split screen section header
  * (SectionHeader(onHelp = …) → SettingHint, the same idiom as the projection-mode row).
  *
  * The hint is prose, not a list: an opening sentence plus one paragraph per way to launch a
@@ -53,6 +53,14 @@ class SplitHowToHintTest {
     @Test fun `each launch path gets its own paragraph, in order`() {
         // Paragraph 1 = intro, 2 = widget zone, 3 = automations, 4 = voice. Order matters:
         // the widget path is the one users are told to try first.
+        val voiceParagraphStart = mapOf(
+            "ru" to "Głosem:",
+            "be" to "Голасам:",
+            "en" to "By voice:",
+            "pl" to "Głosem:",
+            "pt" to "Por voz:",
+            "zh" to "用语音：",
+        )
         for (lang in locales) {
             val lc = localized(lang)
             val p = lc.getString(R.string.settings_split_howto_body).split("\n")
@@ -61,16 +69,16 @@ class SplitHowToHintTest {
             assertTrue("[$lang] automation paragraph is not the third one: ${p[2]}",
                 p[2].contains(lc.getString(R.string.automation_action_split_screen_toggle)))
             assertTrue("[$lang] voice paragraph is not the fourth one: ${p[3]}",
-                p[3].contains(lc.getString(R.string.settings_section_voice_agent), ignoreCase = true))
+                p[3].startsWith(voiceParagraphStart.getValue(lang)))
         }
     }
 
-    @Test fun `russian body reads as an instruction, not a telegram`() {
+    @Test fun `Polish fallback body reads as an instruction, not a telegram`() {
         val body = localized("ru").getString(R.string.settings_split_howto_body)
-        assertTrue("intro sentence missing: $body", body.startsWith("Разделение экрана можно включить"))
-        assertTrue("widget path missing: $body", body.contains("левой трети", ignoreCase = true))
-        assertTrue("automation path missing: $body", body.contains("автоматизац", ignoreCase = true))
-        assertTrue("voice path missing: $body", body.contains("голос", ignoreCase = true))
+        assertTrue("intro sentence missing: $body", body.startsWith("Podział ekranu można włączyć"))
+        assertTrue("widget path missing: $body", body.contains("lewej jednej trzeciej", ignoreCase = true))
+        assertTrue("automation path missing: $body", body.contains("automatyzacje", ignoreCase = true))
+        assertTrue("voice path missing: $body", body.contains("Głosem", ignoreCase = true))
     }
 
     @Test fun `body quotes the real automation action names of its own locale`() {
@@ -93,8 +101,8 @@ class SplitHowToHintTest {
 
     @Test fun `body quotes the real widget menu path of its own locale`() {
         // The first line must send the user to settings entries that actually exist, spelled the
-        // way the app spells them: «Тап по виджету» → «Зонирование тапов» → «Действие левого тапа»
-        // → «Запускать разделение экрана». Renaming any of them must break this test.
+        // way the app spells them: widget tap -> tap zones -> left-tap action -> start split screen.
+        // Renaming any of them must break this test.
         val menuLabels = listOf(
             R.string.settings_widget_tap_section_header,
             R.string.settings_widget_left_tap_zoning_label,
@@ -111,10 +119,10 @@ class SplitHowToHintTest {
         }
     }
 
-    @Test fun `body is really translated, not falling back to russian`() {
+    @Test fun `body is really translated, not falling back to Polish`() {
         val ru = localized("ru").getString(R.string.settings_split_howto_body)
         for (lang in listOf("en", "pt", "zh")) {
-            assertTrue("[$lang] settings_split_howto_body falls back to the Russian string",
+            assertTrue("[$lang] settings_split_howto_body falls back to the Polish string",
                 localized(lang).getString(R.string.settings_split_howto_body) != ru)
         }
     }

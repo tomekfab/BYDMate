@@ -39,7 +39,7 @@ class ActionDispatcherSentryToggleTest {
             com.bydmate.app.util.AppStrings(app), dagger.Lazy { io.mockk.mockk(relaxed = true) })
 
     private val toggleSentry =
-        ActionDef(command = "", displayName = "Переключить", kind = "toggle", payload = "sentry")
+        ActionDef(command = "", displayName = "Przełącz", kind = "toggle", payload = "sentry")
 
     @Test fun `armed sentry is switched off`() = runTest {
         coEvery { helper.getGlobalSetting("sentrymode_enabled_switch") } returns 1

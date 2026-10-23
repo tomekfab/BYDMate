@@ -12,7 +12,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
-// «Отчёт при выключении машины»: a choice saved before the odometer existed gets it once; after
+// Report when car turns off: a choice saved before the odometer existed gets it once; after
 // that the owner's own choice stands, switching it off included.
 class TgReportOdometerSettingTest {
 

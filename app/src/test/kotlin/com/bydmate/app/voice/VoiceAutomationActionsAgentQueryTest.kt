@@ -23,7 +23,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-// Robolectric: the refusal reasons come from the app strings, the Russian texts below are the real ones.
+// Robolectric: the refusal reasons come from the current Polish app strings.
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29])
 class VoiceAutomationActionsAgentQueryTest {
@@ -33,10 +33,10 @@ class VoiceAutomationActionsAgentQueryTest {
     private fun lang(tag: String) = LocalePreferences(ApplicationProvider.getApplicationContext()).setLanguage(tag)
 
     init {
-        lang("ru")
+        lang("pl")
     }
 
-    @After fun restoreLanguage() = lang("ru")
+    @After fun restoreLanguage() = lang("pl")
 
     // Factory duplicated from VoiceAutomationActionsSpeakTest — duplication in tests is fine.
     private fun makeActions(
@@ -74,20 +74,20 @@ class VoiceAutomationActionsAgentQueryTest {
 
     @Test fun `answer is spoken and reported as success`() = runTest {
         val orch = mockk<AgentOrchestrator>()
-        coEvery { orch.askDetached("сводка погоды") } returns AgentResult.Answer("Солнечно", emptyList())
+        coEvery { orch.askDetached("podsumowanie pogody") } returns AgentResult.Answer("Słonecznie", emptyList())
         val (actions, tts) = makeActions(orchestrator = orch)
-        val r = actions.agentQuery("сводка погоды")
+        val r = actions.agentQuery("podsumowanie pogody")
         assertTrue(r.success)
-        verify(exactly = 1) { tts.speak("Солнечно") }
+        verify(exactly = 1) { tts.speak("Słonecznie") }
     }
 
     @Test fun `agent disabled maps to failure with reason`() = runTest {
         val orch = mockk<AgentOrchestrator>()
         coEvery { orch.askDetached(any()) } returns AgentResult.Disabled
         val (actions, _) = makeActions(orchestrator = orch)
-        val r = actions.agentQuery("тест")
+        val r = actions.agentQuery("test")
         assertFalse(r.success)
-        assertEquals("агент выключен в настройках", r.reason)
+        assertEquals("agent jest wyłączony w ustawieniach", r.reason)
     }
 
     @Test fun `blank prompt - refused without calling the agent`() = runTest {
@@ -95,42 +95,42 @@ class VoiceAutomationActionsAgentQueryTest {
         val (actions, _) = makeActions(orchestrator = orch)
         val r = actions.agentQuery("   ")
         assertFalse(r.success)
-        assertEquals("не задан запрос", r.reason)
+        assertEquals("nie podano zapytania", r.reason)
         coVerify(exactly = 0) { orch.askDetached(any()) }
     }
 
     @Test fun `agent error message is surfaced as the failure reason`() = runTest {
         val orch = mockk<AgentOrchestrator>()
-        coEvery { orch.askDetached(any()) } returns AgentResult.Error("Нет связи с сервером, скажи простую команду")
+        coEvery { orch.askDetached(any()) } returns AgentResult.Error("Brak połączenia z serwerem, powiedz prostą komendę")
         val (actions, _) = makeActions(orchestrator = orch)
-        assertEquals("Нет связи с сервером, скажи простую команду", actions.agentQuery("тест").reason)
+        assertEquals("Brak połączenia z serwerem, powiedz prostą komendę", actions.agentQuery("test").reason)
     }
 
     @Test fun `cooldown blocks a second query and lets it pass after the window`() = runTest {
         val orch = mockk<AgentOrchestrator>()
-        coEvery { orch.askDetached(any()) } returns AgentResult.Answer("ок", emptyList())
+        coEvery { orch.askDetached(any()) } returns AgentResult.Answer("ok", emptyList())
         val (actions, _) = makeActions(orchestrator = orch)
         var clock = 1_000_000L
         actions.nowMs = { clock }
-        assertTrue(actions.agentQuery("раз").success)
-        assertFalse(actions.agentQuery("два").success)          // inside cooldown
+        assertTrue(actions.agentQuery("pierwsze").success)
+        assertFalse(actions.agentQuery("drugie").success)          // inside cooldown
         clock += VoiceAutomationActions.AGENT_QUERY_COOLDOWN_MS + 1
-        assertTrue(actions.agentQuery("три").success)           // window passed
+        assertTrue(actions.agentQuery("trzecie").success)           // window passed
         coVerify(exactly = 2) { orch.askDetached(any()) }
     }
 
     @Test fun `prompt is trimmed to the length cap`() = runTest {
         val orch = mockk<AgentOrchestrator>()
-        coEvery { orch.askDetached(any()) } returns AgentResult.Answer("ок", emptyList())
+        coEvery { orch.askDetached(any()) } returns AgentResult.Answer("ok", emptyList())
         val (actions, _) = makeActions(orchestrator = orch)
-        actions.agentQuery("а".repeat(2_000))
+        actions.agentQuery("a".repeat(2_000))
         coVerify { orch.askDetached(match { it.length == VoiceAutomationActions.MAX_PROMPT_CHARS }) }
     }
 
     @Test fun `live voice session drops the query without calling the agent`() = runTest {
         val orch = mockk<AgentOrchestrator>(relaxed = true)
         val (actions, _) = makeActions(orchestrator = orch, listening = true)
-        assertFalse(actions.agentQuery("тест").success)
+        assertFalse(actions.agentQuery("test").success)
         coVerify(exactly = 0) { orch.askDetached(any()) }
     }
 
@@ -149,7 +149,7 @@ class VoiceAutomationActionsAgentQueryTest {
         // while the LLM call was in flight.
         coEvery { orch.askDetached(any()) } coAnswers {
             listeningFlow.value = true
-            AgentResult.Answer("Ответ агента", emptyList())
+            AgentResult.Answer("Odpowiedź agenta", emptyList())
         }
         val gate = mockk<VoiceGate>()
         every { gate.isEnabled() } returns true
@@ -170,9 +170,9 @@ class VoiceAutomationActionsAgentQueryTest {
         actions.isOrbShowing = { false }
         actions.canShowOrb = { false }
 
-        val r = actions.agentQuery("тест")
+        val r = actions.agentQuery("test")
         assertFalse(r.success)
-        assertEquals("идёт голосовая сессия, действие пропущено", r.reason)
+        assertEquals("trwa sesja głosowa, akcja pominięta", r.reason)
         verify(exactly = 0) { tts.speak(any()) }
         verify(exactly = 0) { capture.duckMusic() }
     }
@@ -184,21 +184,21 @@ class VoiceAutomationActionsAgentQueryTest {
         val orch = mockk<AgentOrchestrator>()
         coEvery { orch.askDetached(any()) } coAnswers {
             delay(120_000L) // exceeds AGENT_QUERY_TIMEOUT_MS (60 s) under virtual time
-            AgentResult.Answer("никогда", emptyList())
+            AgentResult.Answer("nigdy", emptyList())
         }
         val (actions, _) = makeActions(orchestrator = orch)
         var clock = 1_000_000L
         actions.nowMs = { clock }
 
-        val r1 = actions.agentQuery("раз")
+        val r1 = actions.agentQuery("pierwsze")
         assertFalse(r1.success)
-        assertEquals("агент не ответил вовремя", r1.reason)
+        assertEquals("agent nie odpowiedział na czas", r1.reason)
 
         // Cooldown must be stamped: second call at the same clock tick must be dropped.
-        val r2 = actions.agentQuery("два")
+        val r2 = actions.agentQuery("drugie")
         assertFalse(r2.success)
         assertEquals(
-            "запрос агенту не чаще раза в ${VoiceAutomationActions.AGENT_QUERY_COOLDOWN_MS / 1000} секунд",
+            "zapytanie do agenta nie częściej niż raz na ${VoiceAutomationActions.AGENT_QUERY_COOLDOWN_MS / 1000} sekund",
             r2.reason,
         )
     }

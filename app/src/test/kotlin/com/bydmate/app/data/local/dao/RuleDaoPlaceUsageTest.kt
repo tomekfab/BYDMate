@@ -44,7 +44,7 @@ class RuleDaoPlaceUsageTest {
             chineseName = "",
             operator = "==",
             value = "",
-            displayName = "Въезд в место",
+            displayName = "Wjazd do miejsca",
             kind = "place_enter",
             placeId = placeId,
             placeName = "Test"
@@ -128,7 +128,7 @@ class RuleDaoPlaceUsageTest {
             chineseName = "",
             operator = "==",
             value = "",
-            displayName = "Выезд из места",
+            displayName = "Wyjazd z miejsca",
             kind = "place_exit",
             placeId = 5L,
             placeName = "Home"

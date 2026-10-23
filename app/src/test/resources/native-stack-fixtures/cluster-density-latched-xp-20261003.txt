@@ -1,4 +1,4 @@
-# Tester dump, BYDMate 3.19.6 (code 499), DiLink 5.0, 2026-10-03: in the direct ("Расширенный")
+# Tester dump, BYDMate 3.19.6 (code 499), DiLink 5.0, 2026-10-03: in the direct ("Extended")
 # projection the player is drawn large. Only the cluster journal lines 18:59:29-19:02:27 are kept.
 # ru.auto.music is sent without the scale ("density skipped"), the navigator right after with it:
 # the player was latched density-unsafe by a single death earlier, after the markers were wiped by

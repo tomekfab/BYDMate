@@ -72,7 +72,7 @@ data class ChargesUiState(
     val nominalCapacityKwh: Double = 72.9,
     // BMS-reported SOH as a 0..1 factor; 1.0 when unavailable or implausible (#28)
     val sohFactor: Double = 1.0,
-    // Raw BMS SoH for the full-cycle divisor, as «Техника» passes it; fullCycleCapacityKwh
+    // Raw BMS SoH for the full-cycle divisor, as the technical panel passes it; fullCycleCapacityKwh
     // alone decides whether it is usable (#224)
     val sohPercent: Float? = null,
     val sohSeries: List<Float> = emptyList(),
@@ -94,7 +94,7 @@ data class ChargesUiState(
 
     /**
      * Full pack cycles, from the BMS lifetime counter when the car reports one and from our own
-     * charging sum otherwise — the same source the «Техника» screen divides, so the two screens
+     * charging sum otherwise — the same source the technical panel divides, so the two screens
      * cannot disagree. Derived rather than stored: the BMS read and the database sum land in
      * this state from two independent coroutines, and whichever arrives last must be counted.
      */

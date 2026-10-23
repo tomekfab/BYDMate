@@ -60,7 +60,7 @@ import com.bydmate.app.ui.theme.WithAppFontScale
 import com.bydmate.app.util.appLocalizedContext
 
 /**
- * A show() onCancel that tells «Отмена» from «nobody answered»: the timeout runs [onTimeout]
+ * A show() onCancel that tells «Anuluj» from «nobody answered»: the timeout runs [onTimeout]
  * instead. Any other onCancel gets both, as before.
  */
 class CancelOrTimeout(private val onCancel: () -> Unit, val onTimeout: () -> Unit) : () -> Unit {

@@ -106,10 +106,10 @@ class AgentToolsChargersTest {
     // (a) city given -> geocodes the city, does not use the GPS position.
     @Test fun find_chargers_with_city_uses_geocode_not_gps() = runTest {
         tools.locationProvider = { 10.0 to 20.0 }
-        coEvery { weather.geocode("Орша") } returns
-            Result.success(WeatherClient.GeoPoint(54.508, 30.42, "Орша"))
-        coEvery { chargerSearchClient.find(54.508, 30.42, any(), any()) } returns osm(station("ЭЗС", 54.51, 30.43))
-        val out = findChargers("""{"city":"Орша"}""")
+        coEvery { weather.geocode("Orsza") } returns
+            Result.success(WeatherClient.GeoPoint(54.508, 30.42, "Orsza"))
+        coEvery { chargerSearchClient.find(54.508, 30.42, any(), any()) } returns osm(station("Stacja", 54.51, 30.43))
+        val out = findChargers("""{"city":"Orsza"}""")
         assertEquals(1, out.getJSONArray("chargers").length())
         coVerify(exactly = 0) { chargerSearchClient.find(10.0, 20.0, any(), any()) }
     }
@@ -118,7 +118,7 @@ class AgentToolsChargersTest {
     @Test fun find_chargers_without_city_uses_gps() = runTest {
         tools.locationProvider = { 53.9 to 27.56 }
         coEvery { chargerSearchClient.find(53.9, 27.56, 30_000, ChargeConnector.GBT) } returns
-            osm(station("ЭЗС", 53.91, 27.57))
+            osm(station("Stacja", 53.91, 27.57))
         val out = findChargers()
         assertEquals(1, out.getJSONArray("chargers").length())
         assertEquals("around", out.getString("where"))
@@ -145,13 +145,13 @@ class AgentToolsChargersTest {
         assertTrue(out.has("note"))
     }
 
-    // (e) search failure -> Russian error, not the raw exception.
-    @Test fun find_chargers_search_failure_returns_russian_error() = runTest {
+    // (e) search failure -> fixed Polish error, not the raw exception.
+    @Test fun find_chargers_search_failure_returns_polish_error() = runTest {
         tools.locationProvider = { 53.9 to 27.56 }
         coEvery { chargerSearchClient.find(53.9, 27.56, any(), any()) } returns
             Result.failure(RuntimeException("boom"))
         val out = findChargers()
-        assertEquals("сервис поиска зарядок недоступен, попробуй позже", out.getString("error"))
+        assertEquals("usługa wyszukiwania ładowarek jest niedostępna, spróbuj później", out.getString("error"))
     }
 
     // (f) radius_km is capped at 100 even if the LLM asks for more.
@@ -176,11 +176,11 @@ class AgentToolsChargersTest {
         coVerify(exactly = 0) { weather.geocode(any()) }
     }
 
-    // (h) neither destination nor coordinates -> unchanged Russian error.
+    // (h) neither destination nor coordinates -> fixed Polish error.
     @Test fun navigate_to_without_destination_or_coordinates_reports_error() = runTest {
         val out = JSONObject(tools.execute(call("navigate_to", "{}")))
         assertFalse(out.has("ok"))
-        assertEquals("не указано, куда ехать", out.getString("error"))
+        assertEquals("nie podano, dokąd jechać", out.getString("error"))
         coVerify(exactly = 0) { dispatcher.dispatch(any(), any()) }
     }
 
@@ -209,7 +209,7 @@ class AgentToolsChargersTest {
         assertEquals("Минск, Пр-т Независимости, 116", first.getString("address"))
         assertEquals("Malanka", first.getString("operator"))
         assertEquals(0.1, first.getDouble("distance_km"), 0.0)
-        assertEquals("юго-восток", first.getString("direction_from_car"))
+        assertEquals("południowo-wschód", first.getString("direction_from_car"))
         assertEquals(53.930607, first.getDouble("lat"), 1e-9)
         assertEquals(27.647039, first.getDouble("lon"), 1e-9)
         assertEquals("free", first.getString("status"))
@@ -223,7 +223,7 @@ class AgentToolsChargersTest {
         assertFalse(first.has("connectors_unknown"))
         assertEquals("connector", out.getString("status_scope"))
         val note = out.getString("note")
-        assertTrue(note, note.contains("по прямой"))
+        assertTrue(note, note.contains("w linii prostej"))
         assertTrue(note, note.contains("navigate_to"))
     }
 
@@ -251,7 +251,7 @@ class AgentToolsChargersTest {
         assertTrue(stale.getInt("status_age_min") > 60 * 24 * 40)
     }
 
-    // «Разъём для зарядки» in Settings reaches the search and the answer.
+// The Settings charging-connector value reaches the search and the answer.
     @Test fun connector_setting_reaches_the_tool() = runTest {
         coEvery { settingsRepository.getChargeConnector() } returns ChargeConnector.CCS2
         tools.locationProvider = { 53.9313 to 27.6461 }
@@ -287,7 +287,7 @@ class AgentToolsChargersTest {
         tools.locationProvider = { 53.9 to 27.56 }
         coEvery { chargerSearchClient.find(any(), any(), any(), any()) } returns Result.success(
             ChargerSearchClient.Found(ChargerSource.GATEWAY, listOf(
-                station("Пулихова", 53.899, 27.576).copy(operator = "Evika", status = StationStatus.BUSY),
+                station("Pulichowa", 53.899, 27.576).copy(operator = "Evika", status = StationStatus.BUSY),
                 station("TZone", 53.884, 27.427).copy(operator = "Malanka"),
             )))
         val out = findChargers()
@@ -296,7 +296,7 @@ class AgentToolsChargersTest {
         assertTrue(out.getBoolean("status_known"))
         // The status is the whole station's, not the car's connector's.
         assertEquals("station", out.getString("status_scope"))
-        assertTrue(out.getString("note").contains("занятость по станции целиком, про разъём машины неизвестно"))
+        assertTrue(out.getString("note").contains("zajętość dotyczy całej stacji, stan złącza samochodu jest nieznany"))
         val first = out.getJSONArray("chargers").getJSONObject(0)
         assertEquals("busy", first.getString("status"))
         assertFalse(first.has("connectors_total"))
@@ -309,8 +309,8 @@ class AgentToolsChargersTest {
         fun gbt(status: String?) = StationConnector("GBT_DC", 60.0, status, 0.73, "BYN")
         coEvery { chargerSearchClient.find(any(), any(), any(), any()) } returns Result.success(
             ChargerSearchClient.Found(ChargerSource.BETA, listOf(
-                station("Один неизвестен", 53.91, 27.56).copy(connectors = listOf(gbt(null), gbt("charging"))),
-                station("Оба неизвестны", 53.92, 27.56).copy(connectors = listOf(gbt(null), gbt(null))),
+                station("Jeden nieznany", 53.91, 27.56).copy(connectors = listOf(gbt(null), gbt("charging"))),
+                station("Oba nieznane", 53.92, 27.56).copy(connectors = listOf(gbt(null), gbt(null))),
             )))
         val out = findChargers()
         val chargers = out.getJSONArray("chargers")
@@ -320,12 +320,12 @@ class AgentToolsChargersTest {
             assertEquals(0, s.getInt("connectors_free"))
             assertEquals(unknown, s.getInt("connectors_unknown"))
         }
-        assertTrue(out.getString("note").contains("нет данных о занятости"))
+        assertTrue(out.getString("note").contains("brak danych o zajętości"))
     }
 
     @Test fun openstreetmap_answer_says_connectors_and_status_are_unknown() = runTest {
         tools.locationProvider = { 55.75 to 37.62 }
-        coEvery { chargerSearchClient.find(any(), any(), any(), any()) } returns osm(station("ЭЗС", 55.76, 37.63))
+        coEvery { chargerSearchClient.find(any(), any(), any(), any()) } returns osm(station("Stacja", 55.76, 37.63))
         val out = findChargers()
         assertEquals("openstreetmap", out.getString("status_source"))
         assertFalse(out.getBoolean("connector_known"))
@@ -392,11 +392,11 @@ class AgentToolsChargersTest {
     @Test fun moving_with_a_known_course_searches_ahead_by_default() = runTest {
         moving(speed = 75)
         coEvery { chargerSearchClient.find(any(), any(), any(), any()) } returns osm(
-            stationAt("Позади", -3.0), stationAt("Впереди", 20.0, 2.0))
+            stationAt("Za nami", -3.0), stationAt("Przed nami", 20.0, 2.0))
         val out = findChargers()
         assertEquals("ahead", out.getString("where"))
-        assertEquals("север", out.getString("course"))
-        assertEquals(listOf("Впереди"), out.chargerNames())
+        assertEquals("północ", out.getString("course"))
+        assertEquals(listOf("Przed nami"), out.chargerNames())
         assertEquals("ahead", out.getJSONArray("chargers").getJSONObject(0).getString("position"))
         // 75 km/h: a 60 km radius ahead.
         coVerify { chargerSearchClient.find(53.9, 27.56, 60_000, any()) }
@@ -405,28 +405,28 @@ class AgentToolsChargersTest {
     @Test fun around_asked_by_voice_while_moving_lists_all_sides_marked() = runTest {
         moving(speed = 75)
         coEvery { chargerSearchClient.find(any(), any(), any(), any()) } returns osm(
-            stationAt("Позади", -3.0), stationAt("Впереди", 20.0))
+            stationAt("Za nami", -3.0), stationAt("Przed nami", 20.0))
         val out = findChargers("""{"where":"around"}""")
         assertEquals("around", out.getString("where"))
-        assertEquals(listOf("Позади", "Впереди"), out.chargerNames())
+        assertEquals(listOf("Za nami", "Przed nami"), out.chargerNames())
         assertEquals("behind", out.getJSONArray("chargers").getJSONObject(0).getString("position"))
     }
 
     @Test fun nothing_ahead_answers_with_the_nearest_around_and_says_so() = runTest {
         moving(speed = 75)
-        coEvery { chargerSearchClient.find(any(), any(), any(), any()) } returns osm(stationAt("Позади", -3.0))
+        coEvery { chargerSearchClient.find(any(), any(), any(), any()) } returns osm(stationAt("Za nami", -3.0))
         val out = findChargers()
-        assertEquals(listOf("Позади"), out.chargerNames())
+        assertEquals(listOf("Za nami"), out.chargerNames())
         assertEquals("behind", out.getJSONArray("chargers").getJSONObject(0).getString("position"))
-        assertTrue(out.getString("note").contains("впереди"))
+        assertTrue(out.getString("note").contains("na trasie"))
     }
 
     @Test fun ahead_asked_while_parked_says_the_direction_is_unknown() = runTest {
         tools.locationProvider = { 53.9 to 27.56 }
-        coEvery { chargerSearchClient.find(any(), any(), any(), any()) } returns osm(stationAt("Рядом", 1.0))
+        coEvery { chargerSearchClient.find(any(), any(), any(), any()) } returns osm(stationAt("Obok", 1.0))
         val out = findChargers("""{"where":"ahead"}""")
         assertEquals("around", out.getString("where"))
-        assertTrue(out.getString("note").contains("направление движения неизвестно"))
+        assertTrue(out.getString("note").contains("kierunek jazdy jest nieznany"))
         assertFalse(out.getJSONArray("chargers").getJSONObject(0).has("position"))
     }
 
@@ -435,12 +435,12 @@ class AgentToolsChargersTest {
         moving(speed = 90)
         coEvery { dispatcher.dispatch(any(), any()) } returns DispatchResult(true)
         val (dLat, dLon) = north(80.0)
-        tools.execute(call("navigate_to", """{"lat":$dLat,"lon":$dLon,"destination":"Логойск"}"""))
+        tools.execute(call("navigate_to", """{"lat":$dLat,"lon":$dLon,"destination":"Łogojsk"}"""))
         coEvery { chargerSearchClient.find(any(), any(), any(), any()) } returns osm(
-            stationAt("Крюк", 30.0, 25.0), stationAt("По пути", 40.0, 1.0))
+            stationAt("Objazd", 30.0, 25.0), stationAt("Po drodze", 40.0, 1.0))
         val out = findChargers()
         assertEquals("ahead", out.getString("where"))
-        assertEquals(listOf("По пути"), out.chargerNames())
+        assertEquals(listOf("Po drodze"), out.chargerNames())
         assertTrue(out.getJSONArray("chargers").getJSONObject(0).getDouble("detour_km") < 1.0)
     }
 
@@ -451,7 +451,7 @@ class AgentToolsChargersTest {
         val (dLat, dLon) = north(80.0)
         tools.execute(call("navigate_to", """{"lat":$dLat,"lon":$dLon}"""))
         tools.sessionProvider = { 43L }
-        coEvery { chargerSearchClient.find(any(), any(), any(), any()) } returns osm(stationAt("Крюк", 30.0, 25.0))
+        coEvery { chargerSearchClient.find(any(), any(), any(), any()) } returns osm(stationAt("Objazd", 30.0, 25.0))
         val out = findChargers()
         assertFalse(out.getJSONArray("chargers").getJSONObject(0).has("detour_km"))
     }
@@ -460,7 +460,7 @@ class AgentToolsChargersTest {
         moving(speed = 90)
         coEvery { range.estimate(any(), any(), any()) } returns 30.0
         coEvery { chargerSearchClient.find(any(), any(), any(), any()) } returns osm(
-            stationAt("10 км", 10.0), stationAt("50 км", 50.0))
+            stationAt("10 km", 10.0), stationAt("50 km", 50.0))
         val chargers = findChargers().getJSONArray("chargers")
         assertFalse(chargers.getJSONObject(0).has("beyond_range"))
         assertTrue(chargers.getJSONObject(1).getBoolean("beyond_range"))
@@ -476,7 +476,7 @@ class AgentToolsChargersTest {
         assertEquals(listOf("around", "ahead"),
             props.getJSONObject("where").getJSONArray("enum").let { a -> (0 until a.length()).map { a.getString(it) } })
         val description = schema.getString("description")
-        assertTrue(description, description.contains("по пути"))
+        assertTrue(description, description.contains("po drodze"))
         assertTrue(description, description.contains("navigate_to"))
     }
 }

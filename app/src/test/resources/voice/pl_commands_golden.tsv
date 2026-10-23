@@ -1,0 +1,711 @@
+utterance	expected	category	danger
+otwórz okno	主驾打开100	windows	
+otwórz okna	车窗全开	windows	
+zamknij okna	车窗关闭	windows	
+zamknij okno	主驾打开0	windows	
+otwórz wszystkie okna	车窗全开	windows	
+zamknij wszystkie okna	车窗关闭	windows	
+otwórz okno kierowcy	主驾打开100	windows	
+zamknij okno kierowcy	主驾打开0	windows	
+otwórz okno pasażera	副驾打开100	windows	
+zamknij okno pasażera	副驾打开0	windows	
+otwórz lewe okno	后左打开100	windows	
+zamknij prawe okno	后右打开0	windows	
+otwórz tylne lewe okno	后左打开100	windows	
+otwórz tylne prawe okno	后右打开100	windows	
+otwórz przednie prawe okno	副驾打开100	windows	
+otwórz przednie lewe okno	主驾打开100	windows	
+otwórz okno po stronie pasażera	副驾打开100	windows	
+zamknij moje okno	主驾打开0	windows	
+otwórz okna kierowcy i pasażera	前排车窗全开	windows	
+zamknij przednie okna	前排车窗关闭	windows	
+zamknij tylne okna	后排车窗关闭	windows	
+otwórz okna z tyłu	后排车窗全开	windows	
+opuść okna	车窗全开	windows	
+opuść wszystkie szyby	车窗全开	windows	
+podnieś wszystkie szyby	车窗关闭	windows	
+podnieś okno	主驾打开0	windows	
+opuść okno	主驾打开100	windows	
+otworzyć okna	车窗全开	windows	
+zamknąć okna	车窗关闭	windows	
+zimno zamknij okno	主驾打开0	windows	
+zamknij okna całkowicie	车窗关闭	windows	
+zamknij okno do końca	主驾打开0	windows	
+otwórz okna do końca	车窗全开	windows	
+otwórz okno całkowicie	主驾打开100	windows	
+otwórz okno na maksa	主驾打开100	windows	
+proszę zamknij wszystkie okna	车窗关闭	windows	
+zamknij wszystkie okna proszę dziękuję	车窗关闭	windows	
+otwórz mi okno kierowcy	主驾打开100	windows	
+słuchaj zamknij okna	车窗关闭	windows	
+Otwórz okno kierowcy.	主驾打开100	windows	
+ZAMKNIJ WSZYSTKIE OKNA!	车窗关闭	windows	
+zamknij, wszystkie okna	车窗关闭	windows	
+okno kierowcy na pół	主驾半开	windows	danger
+otwórz okno na pół	主驾半开	windows	danger
+otwórz okno na połowę	主驾半开	windows	danger
+otwórz okno do połowy	主驾半开	windows	danger
+otwórz pół okna	主驾半开	windows	danger
+zamknij okno na pół	主驾半开	windows	danger
+otwórz okna na pół	车窗半开	windows	danger
+otwórz okna do połowy	车窗半开	windows	danger
+okna na połowę	车窗半开	windows	danger
+otwórz okno pasażera na pół	副驾半开	windows	danger
+ustaw okno na pół	主驾半开	windows	danger
+otwórz okno na pięćdziesiąt procent	主驾半开	windows	danger
+otwórz okno na 50%	主驾半开	windows	danger
+otwórz okno na 50 procent	主驾半开	windows	danger
+okno na pięćdziesiąt procent	主驾半开	windows	danger
+otwórz okno do pięćdziesięciu procent	主驾半开	windows	danger
+otwórz okno na trzy czwarte	主驾半开	windows	danger
+otwórz okna na trzy czwarte	车窗半开	windows	danger
+otwórz okno na siedemdziesiąt procent	主驾半开	windows	danger
+otwórz okna na osiemdziesiąt procent	车窗半开	windows	danger
+uchyl okno	主驾通风	windows	danger
+uchyl okna	车窗通风	windows	danger
+przewietrz okno	主驾通风	windows	danger
+przewietrz okna	车窗通风	windows	danger
+otwórz okno trochę	主驾通风	windows	danger
+otwórz okno lekko	主驾通风	windows	danger
+otwórz okno na szparkę	主驾通风	windows	danger
+otwórz okna odrobinę	车窗通风	windows	danger
+uchyl okno pasażera	副驾通风	windows	danger
+ustaw okno na wietrzenie	主驾通风	windows	danger
+przewietrz kabinę	车窗通风	windows	danger
+okno lekko	主驾通风	windows	danger
+otwórz okno na jedną trzecią	主驾通风	windows	danger
+otwórz okna na jedną czwartą	车窗通风	windows	danger
+otwórz okno na ćwierć	主驾通风	windows	danger
+włącz tryb wietrzenia	车窗通风+天窗通风	windows	
+wyłącz tryb wietrzenia	车窗关闭+天窗打开0	windows	
+otwórz wszystkie okna oprócz okna kierowcy	副驾打开100+后左打开100+后右打开100	windows-except	danger
+zamknij okna oprócz pasażera	主驾打开0+后左打开0+后右打开0	windows-except	danger
+uchyl wszystkie okna oprócz tylnych okien	主驾通风+副驾通风	windows-except	danger
+zamknij wszystkie okna z wyjątkiem przednich okien	后左打开0+后右打开0	windows-except	danger
+otwórz okno na 10 procent	主驾通风	numbers	danger
+otwórz okna na 10 procent	车窗通风	numbers	danger
+otwórz okno na 20 procent	主驾通风	numbers	danger
+otwórz okna na 20 procent	车窗通风	numbers	danger
+otwórz okno na 25 procent	主驾通风	numbers	danger
+otwórz okna na 25 procent	车窗通风	numbers	danger
+otwórz okno na 49 procent	主驾通风	numbers	danger
+otwórz okna na 49 procent	车窗通风	numbers	danger
+otwórz okno na 50 procent	主驾半开	numbers	danger
+otwórz okna na 50 procent	车窗半开	numbers	danger
+otwórz okno na 51 procent	主驾半开	numbers	danger
+otwórz okna na 51 procent	车窗半开	numbers	danger
+otwórz okno na 75 procent	主驾半开	numbers	danger
+otwórz okna na 75 procent	车窗半开	numbers	danger
+otwórz okno na 99 procent	主驾半开	numbers	danger
+otwórz okna na 99 procent	车窗半开	numbers	danger
+otwórz okno na 100 procent	主驾打开100	numbers	danger
+otwórz okna na 100 procent	车窗全开	numbers	danger
+otwórz okno na 0 procent	REFUSED:command_unsupported	numbers	
+otwórz okna na 0 procent	REFUSED:command_unsupported	numbers	
+otwórz okno na 1 procent	REFUSED:command_unsupported	numbers	
+otwórz okna na 1 procent	REFUSED:command_unsupported	numbers	
+otwórz okno na 9 procent	REFUSED:command_unsupported	numbers	
+otwórz okna na 9 procent	REFUSED:command_unsupported	numbers	
+otwórz okno na 101 procent	REFUSED:command_unsupported	numbers	
+otwórz okna na 101 procent	REFUSED:command_unsupported	numbers	
+otwórz okno na 150 procent	REFUSED:command_unsupported	numbers	
+otwórz okna na 150 procent	REFUSED:command_unsupported	numbers	
+otwórz okno na dziesięć procent	主驾通风	numbers	danger
+otwórz okno na dwadzieścia pięć procent	主驾通风	numbers	danger
+otwórz okno na czterdzieści dziewięć procent	主驾通风	numbers	danger
+otwórz okno na pięćdziesiąt procent	主驾半开	numbers	danger
+otwórz okno na dziewięćdziesiąt dziewięć procent	主驾半开	numbers	danger
+otwórz okno na sto procent	主驾打开100	numbers	danger
+otwórz okno na dziewięć procent	REFUSED:command_unsupported	numbers	danger
+otwórz okno na sto jeden procent	REFUSED:command_unsupported	numbers	danger
+otwórz okna na jedenaście procent	车窗通风	numbers	danger
+otwórz okna na dwanaście procent	车窗通风	numbers	danger
+otwórz okna na dziewiętnaście procent	车窗通风	numbers	danger
+otwórz okna na sześćdziesiąt procent	车窗半开	numbers	danger
+ustaw okno na 0 procent	主驾打开0	numbers	danger
+ustaw okna na 0 procent	车窗关闭	numbers	danger
+ustaw okno na 10 procent	主驾通风	numbers	danger
+ustaw okna na 10 procent	车窗通风	numbers	danger
+ustaw okno na 49 procent	主驾通风	numbers	danger
+ustaw okna na 49 procent	车窗通风	numbers	danger
+ustaw okno na 50 procent	主驾半开	numbers	danger
+ustaw okna na 50 procent	车窗半开	numbers	danger
+ustaw okno na 99 procent	主驾半开	numbers	danger
+ustaw okna na 99 procent	车窗半开	numbers	danger
+ustaw okno na 100 procent	主驾打开100	numbers	danger
+ustaw okna na 100 procent	车窗全开	numbers	danger
+ustaw okno na 9 procent	REFUSED:command_unsupported	numbers	
+ustaw okno na 101 procent	REFUSED:command_unsupported	numbers	
+ustaw okno na zero procent	主驾打开0	numbers	danger
+ustaw okna na zero	车窗关闭	numbers	danger
+otwórz szyberdach	天窗打开100	sunroof	danger
+zamknij szyberdach	天窗打开0	sunroof	danger
+otwórz dach	天窗打开100	sunroof	danger
+zamknij okno dachowe	天窗打开0	sunroof	danger
+otwórz szyberdach całkowicie	天窗打开100	sunroof	danger
+zamknij szyberdach do końca	天窗打开0	sunroof	danger
+otwórz szyberdach na pół	天窗打开50	sunroof	danger
+ustaw szyberdach na połowę	天窗打开50	sunroof	danger
+szyberdach na pół	天窗打开50	sunroof	danger
+uchyl szyberdach	天窗通风	sunroof	danger
+przewietrz szyberdach	天窗通风	sunroof	danger
+otwórz szyberdach trochę	天窗通风	sunroof	danger
+szyberdach lekko	天窗通风	sunroof	danger
+ustaw szyberdach na wietrzenie	天窗通风	sunroof	danger
+otwórz szyberdach na jedną trzecią	天窗通风	sunroof	danger
+otwórz szyberdach na trzy czwarte	天窗打开50	sunroof	danger
+otwórz roletę	遮阳帘打开	sunroof	danger
+zamknij roletę	遮阳帘关闭	sunroof	danger
+zamknij roletę szyberdachu	遮阳帘关闭	sunroof	danger
+otwórz okna i szyberdach	车窗全开+天窗打开100	sunroof	danger
+otwórz szyberdach i wszystkie okna	天窗打开100+车窗全开	sunroof	danger
+zamknij okna oraz szyberdach	车窗关闭+天窗打开0	sunroof	danger
+zamknij szyberdach a także okna	天窗打开0+车窗关闭	sunroof	danger
+zamknij szyberdach i roletę	天窗打开0+遮阳帘关闭	sunroof	danger
+otwórz szyberdach na 7 procent	天窗通风	numbers	danger
+otwórz szyberdach na 8 procent	天窗通风	numbers	danger
+otwórz szyberdach na 49 procent	天窗通风	numbers	danger
+otwórz szyberdach na 50 procent	天窗打开50	numbers	danger
+otwórz szyberdach na 99 procent	天窗打开50	numbers	danger
+otwórz szyberdach na 100 procent	天窗打开100	numbers	danger
+otwórz szyberdach na 0 procent	REFUSED:command_unsupported	numbers	
+otwórz szyberdach na 6 procent	REFUSED:command_unsupported	numbers	
+otwórz szyberdach na 101 procent	REFUSED:command_unsupported	numbers	
+otwórz szyberdach na siedem procent	天窗通风	numbers	danger
+otwórz szyberdach na sześć procent	REFUSED:command_unsupported	numbers	
+włącz podgrzewanie fotela	主驾座椅加热1档	seats	
+włącz podgrzewanie fotela kierowcy	主驾座椅加热1档	seats	
+włącz podgrzewanie siedzenia kierowcy	主驾座椅加热1档	seats	
+włącz podgrzewanie fotela pasażera	副驾座椅加热1档	seats	
+włącz podgrzewanie foteli	主驾座椅加热1档+副驾座椅加热1档	seats	
+włącz podgrzewanie obu foteli	主驾座椅加热1档+副驾座椅加热1档	seats	
+podgrzewanie fotela kierowcy	主驾座椅加热1档	seats	
+podgrzewanie foteli	主驾座椅加热1档+副驾座椅加热1档	seats	
+ustaw podgrzewanie fotela pasażera	副驾座椅加热1档	seats	
+włącz ogrzewanie fotela kierowcy	主驾座椅加热1档	seats	
+włącz podgrzewanie fotela kierowcy na 2	主驾座椅加热2档	seats	
+włącz podgrzewanie fotela pasażera na trzy	副驾座椅加热3档	seats	
+włącz podgrzewanie fotela na drugi poziom	主驾座椅加热2档	seats	
+włącz podgrzewanie fotela na maksimum	主驾座椅加热3档	seats	
+włącz podgrzewanie fotela na minimum	主驾座椅加热1档	seats	
+włącz podgrzewanie foteli na trzeci poziom	主驾座椅加热3档+副驾座椅加热3档	seats	
+trzeci poziom podgrzewania fotela kierowcy	主驾座椅加热3档	seats	
+podgrzewanie fotela kierowcy na 3	主驾座椅加热3档	seats	
+wyłącz podgrzewanie fotela pasażera	副驾座椅加热关闭	seats	
+wyłącz podgrzewanie fotela	主驾座椅加热关闭	seats	
+wyłącz podgrzewanie foteli	主驾座椅加热关闭+副驾座椅加热关闭	seats	
+włącz wentylację fotela kierowcy	主驾座椅通风1档	seats	
+włącz wentylację fotela pasażera na 2	副驾座椅通风2档	seats	
+włącz wentylację foteli na trzy	主驾座椅通风3档+副驾座椅通风3档	seats	
+wentylacja fotela kierowcy	主驾座椅通风1档	seats	
+wyłącz wentylację fotela kierowcy	主驾座椅通风关闭	seats	
+wyłącz wentylację foteli	主驾座椅通风关闭+副驾座椅通风关闭	seats	
+włącz silną wentylację fotela pasażera	副驾座椅通风3档	seats	
+silna wentylacja fotela kierowcy	主驾座椅通风3档	seats	
+drugi poziom wentylacji fotela pasażera	副驾座椅通风2档	seats	
+włącz podgrzewanie fotela kierowcy na 0	REFUSED:command_unsupported	numbers	
+włącz podgrzewanie fotela kierowcy na 1	主驾座椅加热1档	numbers	
+włącz podgrzewanie fotela kierowcy na 2	主驾座椅加热2档	numbers	
+włącz podgrzewanie fotela kierowcy na 3	主驾座椅加热3档	numbers	
+włącz podgrzewanie fotela kierowcy na 4	REFUSED:command_unsupported	numbers	
+włącz wentylację fotela pasażera na 0	REFUSED:command_unsupported	numbers	
+włącz wentylację fotela pasażera na 1	副驾座椅通风1档	numbers	
+włącz wentylację fotela pasażera na 3	副驾座椅通风3档	numbers	
+włącz wentylację fotela pasażera na 4	REFUSED:command_unsupported	numbers	
+włącz podgrzewanie kierownicy	方向盘加热	steering-mirrors	
+włącz ogrzewanie kierownicy	方向盘加热	steering-mirrors	
+wyłącz podgrzewanie kierownicy	关闭方向盘加热	steering-mirrors	
+włącz podgrzewanie kierownicy i siedzeń	方向盘加热+主驾座椅加热1档+副驾座椅加热1档	steering-mirrors	
+włącz podgrzewanie lusterek	后视镜加热	steering-mirrors	
+włącz podgrzewanie wszystkich lusterek	后视镜加热	steering-mirrors	
+wyłącz podgrzewanie lusterek	关闭后视镜加热	steering-mirrors	
+włącz klimatyzację	自动空调	climate	
+włącz klimę	自动空调	climate	
+wyłącz klimatyzację	关闭空调	climate	
+wyłącz klimę	关闭空调	climate	
+włącz klimatyzację w trybie auto	自动空调+空调自动	climate	
+włącz automatyczny tryb klimatyzacji	自动空调+空调自动	climate	
+włącz klimatyzację w automacie	自动空调+空调自动	climate	
+klimatyzacja auto	自动空调+空调自动	climate	
+włącz recyrkulację	内循环	climate	
+włącz obieg wewnętrzny	内循环	climate	
+wyłącz recyrkulację	外循环	climate	
+włącz obieg zewnętrzny	外循环	climate	
+włącz nawiew	打开空调通风	climate	
+włącz wentylację	REFUSED:command_unsupported	unsupported	
+włącz nawiew na przednią szybę	吹前挡	climate	
+wyłącz nawiew na przednią szybę	关闭吹前挡	climate	
+włącz odmglanie przedniej szyby	吹前挡	climate	
+wyłącz odmglanie szyby	关闭吹前挡	climate	
+ustaw temperaturę na dwadzieścia dwa stopnie	设置温度22	temperature	
+ustaw temperaturę na 22	设置温度22	temperature	
+ustaw temperaturę dwadzieścia dwa	设置温度22	temperature	
+temperatura na dwadzieścia dwa stopnie	设置温度22	temperature	
+ustaw dwadzieścia dwa stopnie	设置温度22	temperature	
+dwadzieścia dwa stopnie	设置温度22	temperature	
+dwadzieścia jeden stopni	设置温度21	temperature	
+ustaw temperaturę na dwadzieścia stopni celsjusza	设置温度20	temperature	
+zrób cieplej	TEMP:+1	temperature	
+cieplej	TEMP:+1	temperature	
+zrób chłodniej	TEMP:-1	temperature	
+chłodniej	TEMP:-1	temperature	
+zrób trochę cieplej	TEMP:+1	temperature	
+zimno	TEMP:+1	temperature	
+jest zimno	TEMP:+1	temperature	
+w kabinie jest zimno	TEMP:+1	temperature	
+zmarzłem	TEMP:+1	temperature	
+gorąco	TEMP:-1	temperature	
+jest gorąco	TEMP:-1	temperature	
+w samochodzie jest duszno	TEMP:-1	temperature	
+jest mi zimno	TEMP:+1	temperature	
+ustaw temperaturę na 15 stopni	REFUSED:command_unsupported	numbers	
+ustaw temperaturę na 16 stopni	设置温度16	numbers	
+ustaw temperaturę na 17 stopni	设置温度17	numbers	
+ustaw temperaturę na 30 stopni	设置温度30	numbers	
+ustaw temperaturę na 33 stopni	设置温度33	numbers	
+ustaw temperaturę na 34 stopni	REFUSED:command_unsupported	numbers	
+ustaw temperaturę na 0 stopni	REFUSED:command_unsupported	numbers	
+ustaw temperaturę na 100 stopni	REFUSED:command_unsupported	numbers	
+ustaw temperaturę na szesnaście stopni	设置温度16	numbers	
+ustaw temperaturę na piętnaście stopni	REFUSED:command_unsupported	numbers	
+ustaw temperaturę na trzydzieści trzy stopnie	设置温度33	numbers	
+ustaw temperaturę na trzydzieści cztery stopnie	REFUSED:command_unsupported	numbers	
+ustaw temperaturę na osiemnaście stopni	设置温度18	numbers	
+ustaw temperaturę na dwadzieścia pięć stopni	设置温度25	numbers	
+ustaw wentylator na trzy	风量3	fan	
+ustaw wentylator na 5	风量5	fan	
+wentylator na 7	风量7	fan	
+wentylator klimatyzacji na 2	风量2	fan	
+ustaw nawiew na maksimum	风量7	fan	
+ustaw wentylator na minimum	风量1	fan	
+ustaw wentylator na drugi bieg	风量2	fan	
+ustaw wentylator na siódmy	风量7	fan	
+włącz wentylator na pełną	风量7	fan	
+siłę nawiewu 4	风量4	fan	
+ustaw prędkość wentylatora na sześć	风量6	fan	
+ustaw wentylator na 0	REFUSED:command_unsupported	numbers	
+ustaw wentylator na 1	风量1	numbers	
+ustaw wentylator na 7	风量7	numbers	
+ustaw wentylator na 8	REFUSED:command_unsupported	numbers	
+zrób głośniej	VOL:+1	media	
+głośniej	VOL:+1	media	
+podgłośnij	VOL:+1	media	
+zwiększ głośność	VOL:+1	media	
+zwiększ dźwięk	VOL:+1	media	
+głośność głośniej	VOL:+1	media	
+zrób ciszej	VOL:-1	media	
+ciszej	VOL:-1	media	
+ścisz	VOL:-1	media	
+zmniejsz głośność	VOL:-1	media	
+zmniejsz dźwięk	VOL:-1	media	
+dźwięk ciszej	VOL:-1	media	
+wyłącz dźwięk	VOL:mute	media	
+wycisz dźwięk	VOL:mute	media	
+włącz dźwięk	VOL:unmute	media	
+ustaw głośność na pięćdziesiąt	VOL:50	media	
+ustaw głośność na 50 procent	VOL:50	media	
+głośność 30	VOL:30	media	
+głośność na dwadzieścia pięć	VOL:25	media	
+włącz yandex muzykę	MUSIC	media	
+włącz yandex music	MUSIC	media	
+uruchom jandex muzykę	MUSIC	media	
+yandex music	MUSIC	media	
+ustaw głośność na 0	VOL:0	numbers	
+ustaw głośność na 1	VOL:1	numbers	
+ustaw głośność na 99	VOL:99	numbers	
+ustaw głośność na 100	VOL:100	numbers	
+ustaw głośność na 101	REFUSED:command_unsupported	numbers	
+ustaw głośność na 200	REFUSED:command_unsupported	numbers	
+ustaw głośność na zero	VOL:0	numbers	
+ustaw głośność na sto	VOL:100	numbers	
+ustaw głośność na sto jeden	REFUSED:command_unsupported	numbers	
+zamknij samochód	车门上锁	locks	
+zablokuj auto	车门上锁	locks	
+zablokuj drzwi	车门上锁	locks	
+zablokuj zamki	车门上锁	locks	
+otwórz samochód	车门解锁	locks	
+odblokuj auto	车门解锁	locks	
+odblokuj drzwi samochodu	车门解锁	locks	
+otwórz bagażnik	开后备箱	locks	
+zamknij bagażnik	关后备箱	locks	
+zamknij tylny bagażnik	关后备箱	locks	
+włącz podświetlenie ambient	氛围灯打开	lights	
+wyłącz oświetlenie ambientowe	氛围灯关闭	lights	
+włącz światło w kabinie	打开车内灯	lights	
+wyłącz światło w kabinie	关闭车内灯	lights	
+włącz oświetlenie wnętrza	打开车内灯	lights	
+włącz światła dzienne	打开日行灯	lights	
+wyłącz światła dzienne	关闭日行灯	lights	
+włącz drl	打开日行灯	lights	
+włącz hud	打开抬头显示	hud	
+wyłącz hud	关闭抬头显示	hud	
+włącz wyświetlacz przezierny	打开抬头显示	hud	
+włącz tryb sportowy	运动模式	drive	
+ustaw tryb eko	ECO模式	drive	
+tryb normalny	普通模式	drive	
+tryb sportowy	运动模式	drive	
+włącz tryb śnieg	雪地模式	drive	
+włącz tryb śnieżny	雪地模式	drive	
+tryb piasek	沙地模式	drive	
+tryb błoto	泥地模式	drive	
+tryb górski	山地模式	drive	
+tryb inteligentny	智能模式	drive	
+włącz tryb ekonomiczny	ECO模式	drive	
+jaki jest poziom baterii	ASK:soc	questions	
+poziom baterii	ASK:soc	questions	
+jaki jest stan baterii	ASK:soc	questions	
+ile baterii zostało	ASK:soc	questions	
+ile mam baterii	ASK:soc	questions	
+jaka jest temperatura na zewnątrz	ASK:outside_temp	questions	
+temperatura na zewnątrz	ASK:outside_temp	questions	
+ile stopni na zewnątrz	ASK:outside_temp	questions	
+ile stopni jest za oknem	ASK:outside_temp	questions	
+jaka jest temperatura w kabinie	ASK:cabin_temp	questions	
+jaka temperatura w środku	ASK:cabin_temp	questions	
+ile stopni jest w samochodzie	ASK:cabin_temp	questions	
+jaki jest zasięg	ASK:range	questions	
+zasięg	ASK:range	questions	
+jaki mam zasięg	ASK:range	questions	
+ile mam zasięgu	ASK:range	questions	
+na ile stopni jest ustawiona klimatyzacja	ASK:ac_temp	questions	
+jaka temperatura jest ustawiona na klimatyzacji	ASK:ac_temp	questions	
+na ile stopni stoi klima	ASK:ac_temp	questions	
+otwórz szyberdach i zamknij okna	天窗打开100+车窗关闭	compound	
+otwórz szyberdach oraz zamknij okna	天窗打开100+车窗关闭	compound	
+otwórz szyberdach a także zamknij okna	天窗打开100+车窗关闭	compound	
+włącz klimatyzację i zamknij okna i otwórz bagażnik	自动空调+车窗关闭+开后备箱	compound	
+włącz podgrzewanie fotela kierowcy i wyłącz podgrzewanie fotela pasażera	主驾座椅加热1档+副驾座椅加热关闭	compound	
+zamknij okna i wyłącz klimatyzację	车窗关闭+关闭空调	compound	
+otwórz okna i ustaw temperaturę na dwadzieścia dwa stopnie	车窗全开+设置温度22	compound	
+otwórz okna i nie zamykaj okna	REFUSED:command_negated	partial-compound	
+nie otwieraj okna i zamknij szyberdach	REFUSED:command_negated	partial-compound	
+otwórz okno kierowcy i	REFUSED:command_partial	partial-compound	
+otwórz okno kierowcy oraz	REFUSED:command_partial	partial-compound	
+otwórz okno kierowcy i pasażera	REFUSED:command_partial	partial-compound	
+ustaw temperaturę na dwadzieścia dwa i pół	REFUSED:command_partial	partial-compound	
+otwórz okna i otwórz maskę	REFUSED:command_partial	partial-compound	
+otwórz okna i otwórz maskę silnika	REFUSED:command_partial	partial-compound	
+otwórz okna i	REFUSED:command_partial	partial-compound	
+otwórz okna i szyberdach na pół	REFUSED:command_partial	partial-compound	
+jaki jest zasięg i otwórz okna	REFUSED:command_partial	partial-compound	
+włącz podgrzewanie fotela kierowcy i podgrzewanie fotela pasażera	REFUSED:command_partial	partial-compound	
+wyłącz podgrzewanie kierownicy i podgrzewanie siedzeń	REFUSED:command_partial	partial-compound	
+zimno i gorąco	REFUSED:command_partial	partial-compound	
+otwórz okna i zrób głośniej	REFUSED:command_partial	partial-compound	
+ustaw temperaturę na dwadzieścia dwa i pół stopnia	REFUSED:command_partial	partial-compound	
+otwórz okna i włącz tempomat	REFUSED:command_partial	partial-compound	
+zamknij okna i powiedział otwórz szyberdach	REFUSED:command_quoted	partial-compound	
+otworz okno kierowcy	主驾打开100	aliases	
+zamknij okna calkowicie	车窗关闭	aliases	
+otworz okna do konca	车窗全开	aliases	
+wlacz klimatyzacje	自动空调	aliases	
+wylacz klimatyzacje	关闭空调	aliases	
+wlacz podgrzewanie fotela pasazera	副驾座椅加热1档	aliases	
+wylacz podgrzewanie fotela pasazera	副驾座椅加热关闭	aliases	
+otworz szyberdach	天窗打开100	aliases	
+zamknij bagaznik	关后备箱	aliases	
+ustaw temperature na dwadziescia dwa stopnie	设置温度22	aliases	
+otworz okno na piecdziesiat procent	主驾半开	aliases	
+otworz okno na dziesiec procent	主驾通风	aliases	
+otworz okno na dziewiecdziesiat dziewiec procent	主驾半开	aliases	
+ustaw glosnosc na szescdziesiat	VOL:60	aliases	
+jaka jest temperatura na zewnatrz	ASK:outside_temp	aliases	
+jaki jest zasieg	ASK:range	aliases	
+ile stopni w srodku	ASK:cabin_temp	aliases	
+zrob cieplej	TEMP:+1	aliases	
+wlacz tryb sniezny	雪地模式	aliases	
+otwórz okno na 50 %	主驾半开	aliases	
+OTWÓRZ  OKNO   KIEROWCY	主驾打开100	aliases	
+otwórz-okno kierowcy	主驾打开100	aliases	
+nie otwieraj okna	REFUSED:command_negated	negation	
+nie otwieraj okien	REFUSED:command_negated	negation	
+nie zamykaj okna	REFUSED:command_negated	negation	
+nie zamykaj okien	REFUSED:command_negated	negation	
+nie otwieraj szyberdachu	REFUSED:command_negated	negation	
+nie zamykaj szyberdachu	REFUSED:command_negated	negation	
+nie włączaj podgrzewania fotela	REFUSED:command_negated	negation	
+nie wyłączaj klimatyzacji	REFUSED:command_negated	negation	
+nie ustawiaj temperatury na dwadzieścia dwa stopnie	REFUSED:command_negated	negation	
+nie otwórz okna	REFUSED:command_negated	negation	
+nie otwórz okno kierowcy	REFUSED:command_negated	negation	
+nie zamknij okna	REFUSED:command_negated	negation	
+nie włącz klimatyzacji	REFUSED:command_negated	negation	
+nie zmniejszaj głośności	REFUSED:command_negated	negation	
+nie zwiększaj głośności	REFUSED:command_negated	negation	
+nie otwieraj bagażnika	REFUSED:command_negated	negation	
+nie zamykaj samochodu	REFUSED:command_negated	negation	
+nie blokuj drzwi	REFUSED:command_negated	negation	
+nie włączaj trybu sportowego	REFUSED:command_negated	negation	
+nie wyłączaj światła w kabinie	REFUSED:command_negated	negation	
+otwórz okno nie	REFUSED:command_negated	negation	
+otwórz nie okno	REFUSED:command_negated	negation	
+okno nie otwórz	REFUSED:command_negated	negation	
+nie jest zimno	REFUSED:command_negated	negation	
+nie jest gorąco	REFUSED:command_negated	negation	
+nie chcę otwierać okna	REFUSED:command_negated	negation	
+nie chcę żeby okno było otwarte	REFUSED:command_negated	negation	
+przestań otwierać okna	REFUSED:command_negated	negation	
+bez otwierania okna	REFUSED:command_negated	negation	
+nigdy nie otwieraj okna	REFUSED:command_negated	negation	
+nie otwieraj okna na pół	REFUSED:command_negated	negation	
+nie otwieraj okna na pięćdziesiąt procent	REFUSED:command_negated	negation	
+nieotwieraj okna	REFUSED:command_negated	negation	
+proszę nie otwieraj okna	REFUSED:command_negated	negation	
+nie otwieraj mi okna	REFUSED:command_negated	negation	
+nie podgrzewaj fotela	REFUSED:command_negated	negation	
+nie włączaj wentylacji fotela kierowcy	REFUSED:command_negated	negation	
+nie ustawiaj wentylatora na trzy	REFUSED:command_negated	negation	
+nie włączaj recyrkulacji	REFUSED:command_negated	negation	
+nie włączaj hud	REFUSED:command_negated	negation	
+nie zamykaj roletę	REFUSED:command_negated	negation	
+nie otwieraj okien kierowcy i pasażera	REFUSED:command_negated	negation	
+ani otwórz okno ani zamknij okno	REFUSED:command_negated	negation	
+wcale nie zamykaj okna	REFUSED:command_negated	negation	
+nie wyłączaj dźwięku	REFUSED:command_negated	negation	
+"otwórz okno"	REFUSED:command_quoted	quotation	
+"otwórz okno kierowcy"	REFUSED:command_quoted	quotation	
+„zamknij okna”	REFUSED:command_quoted	quotation	
+«otwórz szyberdach»	REFUSED:command_quoted	quotation	
+"włącz klimatyzację" powiedział	REFUSED:command_quoted	quotation	
+on powiedział "zamknij okna"	REFUSED:command_quoted	quotation	
+otwórz okno proszę"	REFUSED:command_quoted	quotation	
+powiedział otwórz okno	REFUSED:command_quoted	quotation	
+powiedziała zamknij okna	REFUSED:command_quoted	quotation	
+on mówi zamknij wszystkie okna	REFUSED:command_quoted	quotation	
+ona mówiła otwórz szyberdach	REFUSED:command_quoted	quotation	
+powtórz otwórz okno	REFUSED:command_quoted	quotation	
+napisz otwórz okno	REFUSED:command_quoted	quotation	
+cytuję otwórz szyberdach	REFUSED:command_quoted	quotation	
+kiedy powiem otwórz okno nic nie rób	REFUSED:command_quoted	quotation	
+w filmie powiedział zamknij okna	REFUSED:command_quoted	quotation	
+polecenie otwórz okno	REFUSED:command_quoted	quotation	
+komenda zamknij okna	REFUSED:command_quoted	quotation	
+przeczytaj zamknij okna	REFUSED:command_quoted	quotation	
+zapytaj czy otworzyć okno	REFUSED:command_quoted	quotation	
+mówię otwórz okno	REFUSED:command_quoted	quotation	
+powiem zamknij okna	REFUSED:command_quoted	quotation	
+hasło otwórz szyberdach	REFUSED:command_quoted	quotation	
+słowa otwórz okno kierowcy	REFUSED:command_quoted	quotation	
+powiedz otwórz okno	REFUSED:command_quoted	quotation	
+zdanie zamknij wszystkie okna	REFUSED:command_quoted	quotation	
+kolega krzyknął otwórz okna	REFUSED:command_quoted	quotation	
+napisał zamknij okna	REFUSED:command_quoted	quotation	
+zacytuj włącz klimatyzację	REFUSED:command_quoted	quotation	
+powiedział włącz klimatyzację	REFUSED:command_quoted	quotation	
+powiedział ustaw temperaturę na dwadzieścia dwa stopnie	REFUSED:command_quoted	quotation	
+otwórz okno na palec	REFUSED:command_unsupported	unsupported	
+otwórz okno kierowcy teraz	REFUSED:command_unsupported	unsupported	
+otwórz okno kierowcy natychmiast	REFUSED:command_unsupported	unsupported	
+otwórz okno na pięćdziesiąt procent teraz	REFUSED:command_unsupported	unsupported	
+teraz otwórz okno	REFUSED:command_unsupported	unsupported	
+wtedy otwórz okno kierowcy	REFUSED:command_unsupported	unsupported	
+jeśli zimno otwórz okno	REFUSED:command_unsupported	unsupported	
+zamknij okno na pięćdziesiąt procent	REFUSED:command_unsupported	unsupported	
+zamknij okna na 50 procent	REFUSED:command_unsupported	unsupported	
+otwórz szyberdach na palec	REFUSED:command_unsupported	unsupported	
+włącz podgrzewanie fotela kierowcy na pięć	REFUSED:command_unsupported	unsupported	
+włącz podgrzewanie fotela kierowcy na cztery	REFUSED:command_unsupported	unsupported	
+włącz klimatyzację teraz	REFUSED:command_unsupported	unsupported	
+ustaw temperaturę na dwadzieścia dwa stopnie kelwina	REFUSED:command_unsupported	unsupported	
+otwórz maskę	REFUSED:command_unsupported	unsupported	
+otwórz maskę silnika	REFUSED:command_unsupported	unsupported	
+otwórz drzwi	REFUSED:command_unsupported	unsupported	
+zamknij drzwi	REFUSED:command_unsupported	unsupported	
+otwórz klapę ładowania	REFUSED:command_unsupported	unsupported	
+włącz silnik	REFUSED:command_unsupported	unsupported	
+wyłącz silnik	REFUSED:command_unsupported	unsupported	
+włącz tempomat	REFUSED:command_unsupported	unsupported	
+ustaw tempomat na sto	REFUSED:command_unsupported	unsupported	
+włącz światła	REFUSED:command_unsupported	unsupported	
+wyłącz światła	REFUSED:command_unsupported	unsupported	
+włącz światło	REFUSED:command_unsupported	unsupported	
+wyłącz hamulec	REFUSED:command_unsupported	unsupported	
+włącz masaż fotela	主驾座椅按摩打开	seats	
+złóż lusterka	REFUSED:command_unsupported	unsupported	
+rozłóż lusterka	REFUSED:command_unsupported	unsupported	
+włącz wycieraczki	REFUSED:command_unsupported	unsupported	
+włącz kierunkowskaz	REFUSED:command_unsupported	unsupported	
+otwórz okno w drzwiach	REFUSED:command_unsupported	unsupported	
+włącz podgrzewanie szyby	REFUSED:command_unsupported	unsupported	
+otwórz tylną szybę	REFUSED:command_unsupported	unsupported	
+otwórz okno dachu na bok	REFUSED:command_unsupported	unsupported	
+ustaw okno kierowcy na dziewięć procent	REFUSED:command_unsupported	unsupported	
+zamknij okna kierowcy	REFUSED:command_unsupported	unsupported	
+otwórz okna kierowcy	REFUSED:command_unsupported	unsupported	
+włącz podgrzewanie fotela tylnego	REFUSED:command_unsupported	unsupported	
+otwórz okno z tyłu	REFUSED:command_unsupported	unsupported	
+czy możesz otworzyć okno	主驾打开100	natural	danger
+czy zamknąć okna	REFUSED:command_unsupported	unsupported	
+otwórz okno żeby wpuścić powietrze	REFUSED:command_unsupported	unsupported	
+zablokuj okna	REFUSED:command_unsupported	unsupported	
+wyłącz okno	REFUSED:command_unsupported	unsupported	
+włącz okno	REFUSED:command_unsupported	unsupported	
+włącz szyberdach	REFUSED:command_unsupported	unsupported	
+wyłącz szyberdach	REFUSED:command_unsupported	unsupported	
+włącz bagażnik	REFUSED:command_unsupported	unsupported	
+ustaw klimatyzację	REFUSED:command_unsupported	unsupported	
+ustaw szyberdach	REFUSED:command_unsupported	unsupported	
+ustaw okno	REFUSED:command_unsupported	unsupported	
+włącz temperaturę	REFUSED:command_unsupported	unsupported	
+wyłącz temperaturę	REFUSED:command_unsupported	unsupported	
+podgrzej fotel	主驾座椅加热1档	seats	
+ochłodź kabinę	REFUSED:command_unsupported	unsupported	
+ogrzej samochód	REFUSED:command_unsupported	unsupported	
+jaka będzie pogoda jutro	UNKNOWN	harmless	
+opowiedz mi dowcip	UNKNOWN	harmless	
+włącz muzykę	UNKNOWN	harmless	
+dzień dobry	UNKNOWN	harmless	
+ile kilometrów zostało do celu	UNKNOWN	harmless	
+co to jest szyberdach	UNKNOWN	harmless	
+jaka będzie temperatura jutro w krakowie	UNKNOWN	harmless	
+otwórz plik	UNKNOWN	harmless	
+zamknij się	UNKNOWN	harmless	
+proszę	UNKNOWN	harmless	
+	UNKNOWN	harmless	
+dziękuję	UNKNOWN	harmless	
+która godzina	UNKNOWN	harmless	
+jaki jest najlepszy fotel	UNKNOWN	harmless	
+gdzie jest najbliższa stacja ładowania	UNKNOWN	harmless	
+"dzień dobry"	UNKNOWN	harmless	
+powiedział dzień dobry	UNKNOWN	harmless	
+nie wiem	UNKNOWN	harmless	
+nie	UNKNOWN	harmless	
+i	UNKNOWN	harmless	
+Wyłącz nawiew fotela pasażera.	副驾座椅通风关闭	aliases	
+Zamknij szyb pasażera.	副驾打开0	aliases	
+otwórz się werdach.	天窗打开100	aliases	danger
+nie otwórz się werdach	REFUSED:command_negated	negation	danger
+„otwórz się werdach”	REFUSED:command_quoted	quotation	danger
+otwórz się werdach i coś jeszcze	REFUSED:command_partial	partial-compound	danger
+Włącz ogrzewanie.	REFUSED:command_unsupported	unsupported	
+Włącz masaż w fotelu kierowcy.	主驾座椅按摩打开	seats	
+Nawiguj do domu.	NAVIGATE_HOME	navigation	
+nie nawiguj do domu	REFUSED:command_negated	negation	
+„nawiguj do domu”	REFUSED:command_quoted	quotation	
+nawiguj do domu i coś jeszcze	REFUSED:command_partial	partial-compound	
+Szybę pasażera zamknij	副驾打开0	windows	
+Szybę pasażera zamknij.	副驾打开0	natural	
+Okno kierowcy otwórz	主驾打开100	windows	danger
+Okna zamknij	车窗关闭	windows	
+Okna otwórz	车窗全开	windows	danger
+Do połowy otwórz okno	主驾半开	windows	danger
+Do połowy zamknij okna	车窗半开	windows	danger
+Okno pasażera do połowy otwórz	副驾半开	windows	danger
+Szyberdach otwórz	天窗打开100	sunroof	danger
+Szyberdach zamknij	天窗打开0	sunroof	danger
+Do połowy otwórz szyberdach	天窗打开50	sunroof	danger
+Podgrzej fotel kierowcy	主驾座椅加热1档	seats	
+Podgrzej fotel pasażera na 2	副驾座椅加热2档	seats	
+Podgrzej fotele	主驾座椅加热1档+副驾座椅加热1档	seats	
+Włącz grzanie fotela	主驾座椅加热1档	seats	
+Włącz grzanie fotela pasażera na trzy	副驾座椅加热3档	seats	
+Wyłącz grzanie fotela	主驾座椅加热关闭	seats	
+Włącz chłodzenie fotela kierowcy	主驾座椅通风1档	seats	
+Włącz chłodzenie siedzenia pasażera na 2	副驾座椅通风2档	seats	
+Wyłącz chłodzenie siedzenia pasażera	副驾座椅通风关闭	seats	
+Przełącz na sport	运动模式	drive	
+Przełącz na tryb sportowy	运动模式	drive	
+Przełącz na eko	ECO模式	drive	
+Przełącz na normalny	普通模式	drive	
+Przełącz na śnieg	雪地模式	drive	
+Zasłoń roletę	遮阳帘关闭	sunroof	
+Zasłoń roletę dachową	遮阳帘关闭	sunroof	
+Odsłoń roletę	遮阳帘打开	sunroof	
+Podnieś temperaturę	TEMP:+1	temperature	
+Obniż temperaturę	TEMP:-1	temperature	
+Podnieś temperaturę o dwa stopnie	TEMP:+2	temperature	
+Obniż o dwa stopnie	TEMP:-2	temperature	
+Obniż o 3 stopnie	TEMP:-3	temperature	
+Podnieś o jeden stopień	TEMP:+1	temperature	
+Zwiększ temperaturę o 5 stopni	TEMP:+5	temperature	
+Obniż o 6 stopni	REFUSED:command_unsupported	temperature	
+Obniż o 0 stopni	REFUSED:command_unsupported	temperature	
+Podnieś temperaturę po stronie pasażera	REFUSED:command_unsupported	temperature	
+Obniż temperaturę kierowcy	REFUSED:command_unsupported	temperature	
+Nie obniżaj temperatury o dwa stopnie	REFUSED:command_negated	negation	
+Prowadź do domu	NAVIGATE_HOME	navigation	
+Jedźmy do domu	NAVIGATE_HOME	navigation	
+Jedź do domu	NAVIGATE_HOME	navigation	
+Włącz nawigację do domu	NAVIGATE_HOME	navigation	
+Uruchom nawigację do domu	NAVIGATE_HOME	navigation	
+Nawiguj do pracy	NAVIGATE_WORK	navigation	
+Nawiguj do pracy.	NAVIGATE_WORK	navigation	
+Prowadź do pracy	NAVIGATE_WORK	navigation	
+Jedźmy do pracy	NAVIGATE_WORK	navigation	
+Jedź do pracy	NAVIGATE_WORK	navigation	
+Włącz nawigację do pracy	NAVIGATE_WORK	navigation	
+Uruchom nawigację do pracy	NAVIGATE_WORK	navigation	
+Prowadź do domu babci	REFUSED:command_unsupported	navigation	
+Nie prowadź do domu	REFUSED:command_negated	navigation	
+Nie nawiguj do pracy	REFUSED:command_negated	navigation	
+Nie jedźmy do pracy	REFUSED:command_negated	navigation	
+"Jedźmy do domu"	REFUSED:command_quoted	navigation	
+Powiedział prowadź do pracy	REFUSED:command_quoted	navigation	
+Nawiguj do pracy i coś jeszcze	REFUSED:command_partial	navigation	
+Prowadź do kina	NAVIGATE_DESTINATION:kina	navigation	
+Ile procent baterii	ASK:soc	questions	
+Ile procent baterii mam	ASK:soc	questions	
+Jaki mamy zasięg	ASK:range	questions	
+Ile jest na dworze	ASK:outside_temp	questions	
+Ile mamy na zewnątrz	ASK:outside_temp	questions	
+Czy możesz zamknąć okno	主驾打开0	natural	
+Czy możesz otworzyć bagażnik	开后备箱	natural	
+Chciałbym otworzyć bagażnik	开后备箱	natural	
+Chciałabym zamknąć okna	车窗关闭	natural	
+Czy mógłbyś zamknąć okno	主驾打开0	natural	
+Czy możesz nie zamykać okna	REFUSED:command_negated	negation	
+Chciałbym nie otwierać bagażnika	REFUSED:command_negated	negation	
+Czy możesz	UNKNOWN	harmless	
+Zamknij okna potem otwórz roletę	车窗关闭+遮阳帘打开	compound	
+Zamknij okna i potem otwórz roletę	车窗关闭+遮阳帘打开	compound	
+Otwórz szyberdach potem zamknij okna	天窗打开100+车窗关闭	compound	danger
+Zamknij okna potem	REFUSED:command_partial	partial-compound	
+Zamknij okna i potem	REFUSED:command_partial	partial-compound	
+Zamknij okna potem otwórz maskę	REFUSED:command_partial	partial-compound	
+Zamknij okna potem nie otwieraj rolety	REFUSED:command_negated	partial-compound	
+Nawiguj do domu potem zamknij okna	REFUSED:command_partial	partial-compound	
+Nawiguj do pracy i potem zamknij okna	REFUSED:command_partial	partial-compound	
+Podnieś temperaturę potem zamknij okna	REFUSED:command_partial	partial-compound	
+Obniż o dwa stopnie i zamknij okna	REFUSED:command_partial	partial-compound	
+Zrób ciszej i potem zamknij okna	REFUSED:command_partial	partial-compound	
+Wyłącz nawiew	REFUSED:command_unsupported	unsupported	
+Włącz wentylację	REFUSED:command_unsupported	unsupported	
+Włącz wentylację kabiny	打开空调通风	climate	
+Zamknij wszystko	REFUSED:command_unsupported	unsupported	
+Otwórz wszystko	REFUSED:command_unsupported	unsupported	
+Wyłącz wszystko	REFUSED:command_unsupported	unsupported	
+Włącz wszystko	REFUSED:command_unsupported	unsupported	
+Włącz grzanie	REFUSED:command_unsupported	unsupported	
+Włącz grzanie kabiny	REFUSED:command_unsupported	unsupported	
+Podgrzej kabinę	REFUSED:command_unsupported	unsupported	
+Włącz masaż fotela kierowcy.	主驾座椅按摩打开	seats	
+włącz masaż w fotelu	主驾座椅按摩打开	seats	
+wlacz masaz fotela	主驾座椅按摩打开	seats	
+wlacz masaz fotela kierowcy	主驾座椅按摩打开	seats	
+włącz masaż fotela kierowcy	主驾座椅按摩打开	seats	
+Włącz masaż fotela	主驾座椅按摩打开	seats	
+wyłącz masaż fotela kierowcy	主驾座椅按摩关闭	seats	
+wyłącz masaż w fotelu	主驾座椅按摩关闭	seats	
+wylacz masaz w fotelu kierowcy	主驾座椅按摩关闭	seats	
+zgaś masaż fotela	主驾座椅按摩关闭	seats	
+wyłącz masaż fotela	主驾座椅按摩关闭	seats	
+wyłącz masaż w fotelu kierowcy	主驾座椅按摩关闭	seats	
+nie włączaj masażu fotela kierowcy	REFUSED:command_negated	negation	
+nie włącz masaż fotela	REFUSED:command_negated	negation	
+włącz masaż fotela kierowcy nie	REFUSED:command_negated	negation	
+niewłączaj masaż fotela	REFUSED:command_negated	negation	
+„włącz masaż fotela kierowcy”	REFUSED:command_quoted	quotation	
+"wyłącz masaż fotela"	REFUSED:command_quoted	quotation	
+powiedział włącz masaż fotela kierowcy	REFUSED:command_quoted	quotation	
+włącz masaż fotela kierowcy i coś jeszcze	REFUSED:command_partial	partial-compound	
+włącz masaż fotela i otwórz maskę	REFUSED:command_partial	partial-compound	
+włącz masaż fotela kierowcy teraz	REFUSED:command_unsupported	unsupported	
+włącz masaż fotela kierowcy na maksimum	REFUSED:command_unsupported	unsupported	
+włącz masaż fal fotela	REFUSED:command_unsupported	unsupported	
+włącz masaż pulsacyjny w fotelu	REFUSED:command_unsupported	unsupported	
+włącz masaż fotela pasażera	REFUSED:command_unsupported	unsupported	
+włącz masaż foteli	REFUSED:command_unsupported	unsupported	
+włącz masaż siedzenia	REFUSED:command_unsupported	unsupported	
+włącz masaż	REFUSED:command_unsupported	unsupported	
+wyłącz masaż	REFUSED:command_unsupported	unsupported	
+włącz masaż fotela kierowcy i podgrzej fotel kierowcy	主驾座椅按摩打开+主驾座椅加热1档	compound	

@@ -14,7 +14,7 @@ package com.bydmate.app.voice
  * - For multi-word transcripts (2+ words): checks word containment ratio.
  *   If transcript words are 75%+ contained in any recent phrase → echo.
  * - For single-word transcripts: checks only if word length >= 4 chars and within 1.5s
- *   after playback ends (avoids filtering short driver commands like "да" / "стоп").
+ *   after playback ends (avoids filtering short driver commands).
  * - Empty transcripts (after normalization) are always treated as garbage echo.
  */
 class SelfEchoFilter(private val now: () -> Long = System::currentTimeMillis) {
@@ -132,13 +132,13 @@ class SelfEchoFilter(private val now: () -> Long = System::currentTimeMillis) {
     }
 
     /**
-     * Normalizes text: lowercase, replace ё→е, remove punctuation, collapse spaces, split into words.
+     * Normalizes text: lowercase, apply the legacy `ё`→`е` fold, remove punctuation, collapse spaces, split into words.
      */
     private fun normalize(text: String): List<String> {
         return text
             .lowercase()
             .replace("ё", "е")
-            .replace(Regex("[^а-яa-z0-9\\s]"), " ")  // remove punctuation
+            .replace(Regex("[^\\p{L}\\p{N}\\s]"), " ")  // remove punctuation
             .split(Regex("\\s+"))                     // split on whitespace
             .filter { it.isNotEmpty() }               // remove empty tokens
     }

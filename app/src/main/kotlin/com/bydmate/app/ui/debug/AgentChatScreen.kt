@@ -39,9 +39,9 @@ fun AgentChatScreen(
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = onBack) { Text("← Назад", color = TextSecondary) }
+            TextButton(onClick = onBack) { Text("← Wstecz", color = TextSecondary) }
             Spacer(Modifier.width(8.dp))
-            Text("Чат с агентом (debug)", color = TextPrimary, fontSize = 16.sp)
+            Text("Czat z agentem (debug)", color = TextPrimary, fontSize = 16.sp)
             if (state.busy) {
                 Spacer(Modifier.width(12.dp))
                 CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = AccentGreen)
@@ -78,14 +78,14 @@ fun AgentChatScreen(
                 value = input,
                 onValueChange = { input = it },
                 modifier = Modifier.weight(1f),
-                placeholder = { Text("Вопрос или команда…", color = TextMuted) },
+                placeholder = { Text("Pytanie lub polecenie…", color = TextMuted) },
                 singleLine = true,
             )
             Spacer(Modifier.width(8.dp))
             Button(
                 onClick = { viewModel.send(input); input = "" },
                 enabled = !state.busy && input.isNotBlank(),
-            ) { Text("Отправить") }
+            ) { Text("Wyślij") }
         }
     }
 }

@@ -104,14 +104,14 @@ class CalendarPeriodsTest {
     }
 
     @Test
-    fun `startOfWeek and startOfMonth - Lisbon DST gap lands exactly on the period start date`() {
-        // 1920-03-01 is both a Monday and the 1st of the month, and its own midnight does not
-        // exist in Europe/Lisbon (clocks jump 00:00 -> 01:00). Both periods must start at the
-        // first valid instant of that day, 01:00+01:00, not roll into the next day.
-        val lisbon = TimeZone.getTimeZone("Europe/Lisbon")
-        val nowMs = OffsetDateTime.of(1920, 3, 1, 12, 0, 0, 0, ZoneOffset.ofHours(1)).toInstant().toEpochMilli()
-        val expected = OffsetDateTime.of(1920, 3, 1, 1, 0, 0, 0, ZoneOffset.ofHours(1)).toInstant().toEpochMilli()
-        assertEquals(expected, CalendarPeriods.startOfWeek(nowMs, lisbon))
-        assertEquals(expected, CalendarPeriods.startOfMonth(nowMs, lisbon))
+    fun `startOfMonth - Asuncion DST spring-forward at midnight starts at the first valid instant`() {
+        // 2023-10-01 00:00 does not exist in America/Asuncion: clocks jump from -04:00 to
+        // 01:00-03:00. This is an exact, independent epoch oracle that is stable in the
+        // installed Java 17 (tzdb 2023c) and Java 21 (tzdb 2025b), unlike Lisbon's corrected
+        // 1920 transition, whose instant differs between those tzdb releases.
+        val asuncion = TimeZone.getTimeZone("America/Asuncion")
+        val nowMs = OffsetDateTime.of(2023, 10, 1, 12, 0, 0, 0, ZoneOffset.ofHours(-3)).toInstant().toEpochMilli()
+        val expected = OffsetDateTime.of(2023, 10, 1, 1, 0, 0, 0, ZoneOffset.ofHours(-3)).toInstant().toEpochMilli()
+        assertEquals(expected, CalendarPeriods.startOfMonth(nowMs, asuncion))
     }
 }

@@ -16,7 +16,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-// Robolectric: the reasons come from the app strings, the Russian texts below are the real ones.
+// Robolectric: the reasons come from app strings; the Russian locale below verifies Polish fallback.
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29])
 class NavigateSplitFlowTest {
@@ -32,7 +32,7 @@ class NavigateSplitFlowTest {
     @After fun restoreLanguage() = lang("ru")
 
     /**
-     * Fake car: the «Поехали» button appears [buttonAfterMs] of waiting after the intent and
+     * Fake car: the Start button appears [buttonAfterMs] after the intent and
      * disappears [goneAfterMs] after the click, both measured on the fake clock the flow drives
      * through [NavigateSplitFlow.Env.wait].
      */
@@ -120,7 +120,7 @@ class NavigateSplitFlowTest {
         val result = NavigateSplitFlow(env).run(go = true, autoGoSupported = true)
 
         assertTrue(result.success)
-        assertEquals("маршрут построен, сплит восстановлен", result.reason)
+        assertEquals("trasa wyznaczona, podział ekranu przywrócony", result.reason)
         assertEquals(1, env.exits)
         assertEquals(1, env.sent)
         assertEquals(1, env.clicks)
@@ -138,7 +138,7 @@ class NavigateSplitFlowTest {
         val result = NavigateSplitFlow(env).run(go = true, autoGoSupported = true)
 
         assertFalse(result.success)
-        assertEquals("кнопка Поехали не найдена за 20 с, сплит восстановлен", result.reason)
+        assertEquals("nie znaleziono przycisku Jedziemy w ciągu 20 s, podział ekranu przywrócony", result.reason)
         assertEquals(1, env.restores)
         assertEquals(0, env.clicks)
         assertTrue(env.log.contains("auto-go: button not found in 20000ms"))
@@ -166,7 +166,7 @@ class NavigateSplitFlowTest {
         assertTrue(result.success)
         assertEquals(1, env.sent)
         assertEquals(0, env.clicks)
-        assertTrue(env.log.contains("auto-go: 2gis не поддерживается"))
+        assertTrue(env.log.contains("auto-go: 2GIS nie jest obsługiwany"))
     }
 
     @Test
@@ -188,7 +188,7 @@ class NavigateSplitFlowTest {
 
         assertFalse(result.success)
         assertEquals(
-            "не удалось проверить маршрут: служба специальных возможностей выключена",
+            "nie udało się sprawdzić trasy: usługa ułatwień dostępu jest wyłączona",
             result.reason,
         )
         assertEquals(0, env.clicks)
@@ -201,7 +201,7 @@ class NavigateSplitFlowTest {
         val result = NavigateSplitFlow(env).run(go = true, autoGoSupported = true)
 
         assertFalse(result.success)
-        assertEquals("нажал Поехали, но ведение не началось", result.reason)
+        assertEquals("naciśnięto Jedziemy, ale prowadzenie się nie rozpoczęło", result.reason)
         assertTrue(env.log.any { it == "auto-go: click=ok gone_after=-" })
     }
 
@@ -212,29 +212,29 @@ class NavigateSplitFlowTest {
         val result = NavigateSplitFlow(env).run(go = true, autoGoSupported = true)
 
         assertFalse(result.success)
-        assertEquals("не получилось нажать Поехали", result.reason)
+        assertEquals("nie udało się nacisnąć Jedziemy", result.reason)
     }
 
     @Test
     fun `a failed intent restores the split and reports the intent failure`() = runTest {
-        val env = FakeEnv(pair = pair, sendResult = DispatchResult(false, "Навигатор не установлен"))
+        val env = FakeEnv(pair = pair, sendResult = DispatchResult(false, "Nawigator nie jest zainstalowany"))
 
         val result = NavigateSplitFlow(env).run(go = true, autoGoSupported = true)
 
         assertFalse(result.success)
-        assertEquals("Навигатор не установлен", result.reason)
+        assertEquals("Nawigator nie jest zainstalowany", result.reason)
         assertEquals(1, env.restores)
         assertEquals(0, env.clicks)
     }
 
     @Test
     fun `a split that does not come back is named in the verdict`() = runTest {
-        val env = FakeEnv(pair = pair).apply { restoreFailure = "не удалось запустить окна" }
+        val env = FakeEnv(pair = pair).apply { restoreFailure = "nie udało się uruchomić okien" }
 
         val result = NavigateSplitFlow(env).run(go = false, autoGoSupported = true)
 
         assertFalse(result.success)
-        assertEquals("сплит не восстановлен: не удалось запустить окна", result.reason)
+        assertEquals("podział ekranu nie został przywrócony: nie udało się uruchomić okien", result.reason)
     }
 
     @Test
@@ -271,7 +271,7 @@ class NavigateSplitFlowTest {
 
         assertFalse(result.success)
         assertEquals(
-            "на экране уже был маршрут, новый не отличить: нажмите Поехали сами, сплит восстановлен",
+            "na ekranie była już trasa, nowej nie da się odróżnić: naciśnij Jedziemy samodzielnie, podział ekranu przywrócony",
             result.reason,
         )
         assertEquals(0, env.clicks)
@@ -281,11 +281,11 @@ class NavigateSplitFlowTest {
 
     @Test
     fun `a route failure and a split that does not come back are both named`() = runTest {
-        val env = FakeEnv(pair = pair, buttonAfterMs = null).apply { restoreFailure = "не удалось запустить окна" }
+        val env = FakeEnv(pair = pair, buttonAfterMs = null).apply { restoreFailure = "nie udało się uruchomić okien" }
 
         val result = NavigateSplitFlow(env).run(go = true, autoGoSupported = true)
 
-        assertEquals("кнопка Поехали не найдена за 20 с; сплит не восстановлен: не удалось запустить окна", result.reason)
+        assertEquals("nie znaleziono przycisku Jedziemy w ciągu 20 s; podział ekranu nie został przywrócony: nie udało się uruchomić okien", result.reason)
     }
 
     @Test
@@ -305,6 +305,6 @@ class NavigateSplitFlowTest {
 
         assertEquals("route built, split screen restored", reasons[0])
         assertEquals("Go button not found in 20 s, split screen restored", reasons[1])
-        reasons.forEach { assertFalse(it, it.any { c -> c in 'Ѐ'..'ӿ' }) }
+        reasons.forEach { assertFalse(it, it.any { c -> Character.UnicodeScript.of(c.code) == Character.UnicodeScript.CYRILLIC }) }
     }
 }

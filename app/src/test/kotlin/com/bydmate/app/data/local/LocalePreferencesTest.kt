@@ -9,7 +9,6 @@ import io.mockk.Runs
 import io.mockk.verify
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -47,15 +46,44 @@ class LocalePreferencesTest {
     }
 
     @Test
-    fun `getLanguage returns null when unset`() {
+    fun `getLanguage resolves an unset value to Polish`() {
         val (ctx, _) = mockSetup(emptyMap())
-        assertNull(LocalePreferences(ctx).getLanguage())
+        assertEquals("pl", LocalePreferences(ctx).getLanguage())
     }
 
     @Test
     fun `getLanguage returns stored value`() {
         val (ctx, _) = mockSetup(mapOf("app_language" to "en"))
         assertEquals("en", LocalePreferences(ctx).getLanguage())
+    }
+
+    @Test
+    fun `getLanguage resolves Russian invalid and wrong typed stored values to Polish`() {
+        listOf("ru", "de", "").forEach { stored ->
+            val (ctx, _) = mockSetup(mapOf("app_language" to stored))
+            assertEquals("pl", LocalePreferences(ctx).getLanguage())
+        }
+
+        val (wrongTypeContext, _) = mockSetup(mapOf("app_language" to 42))
+        assertEquals("pl", LocalePreferences(wrongTypeContext).getLanguage())
+    }
+
+    @Test
+    fun `getLanguage preserves every retained non Russian locale`() {
+        listOf("pl", "en", "zh", "pt", "be").forEach { retained ->
+            val (ctx, _) = mockSetup(mapOf("app_language" to retained))
+            assertEquals(retained, LocalePreferences(ctx).getLanguage())
+        }
+    }
+
+    @Test
+    fun `a Russian value restored after a previous migration resolves again`() {
+        val (ctx, prefs) = mockSetup(emptyMap())
+        val localePreferences = LocalePreferences(ctx)
+        localePreferences.setLanguage("pl")
+        prefs.edit().putString(LocalePreferences.KEY_LANG, "ru").commit()
+
+        assertEquals("pl", localePreferences.getLanguage())
     }
 
     @Test

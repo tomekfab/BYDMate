@@ -14,12 +14,12 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * One-shot migration of saved rules off the removed «Питание» (PowerState) condition.
+ * One-shot migration of saved rules off the removed PowerState condition.
  *
  * The app starts after the car is powered and a condition already true at the first check does
  * not fire, so ON never fired; OFF cannot fire (the app dies with the car); DRIVE fired only by
- * race. ON and DRIVE become «Запуск BYDMate» (DRIVE in «Шторка при движении» becomes
- * «Передача = D»), and a rule that could fire only with the car off is removed. Same shape as [TrunkRuleMigration], with its own done-flag;
+ * race. ON and DRIVE become «Uruchom BYDMate» (DRIVE in the historical sunshade template becomes
+ * «Przekazywanie = D»), and a rule that could fire only with the car off is removed. Same shape as [TrunkRuleMigration], with its own done-flag;
  * the flag travels with the rules in a backup, so an older archive restored is converted again.
  */
 @Singleton
@@ -73,8 +73,13 @@ class PowerStateRuleMigration @Inject constructor(
         private const val GEAR = "Gear"
         private const val GEAR_D = "4"
 
-        /** «Шторка при движении» in every language the starter templates name it in. */
-        private val SUNSHADE_TEMPLATE_NAMES = setOf("行驶开遮阳帘", "Sunshade while driving", "Шторка при движении")
+        /** Historical saved names of the sunshade starter template in every supported language. */
+        private val SUNSHADE_TEMPLATE_NAMES = setOf(
+            "行驶开遮阳帘",
+            "Sunshade while driving",
+            "Шторка при движении",
+            "Roleta podczas jazdy",
+        )
 
         /** The one starter template whose DRIVE really meant driving: it keeps waiting for gear D. */
         fun isSunshadeTemplate(name: String): Boolean = name.trim() in SUNSHADE_TEMPLATE_NAMES
@@ -99,7 +104,7 @@ class PowerStateRuleMigration @Inject constructor(
         private fun TriggerDef.isGearD(): Boolean =
             kind == "param" && param == GEAR && operator == "==" && value.trim() == GEAR_D
 
-        /** The labels a trigger made in the editor gets: «Запуск BYDMate», «Передача = D». */
+        /** The labels a trigger made in the editor gets: «Uruchom BYDMate», «Przekazywanie = D». */
         fun labels(context: Context): Labels {
             val lc = context.appLocalizedContext()
             return Labels(

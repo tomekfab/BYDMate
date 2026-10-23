@@ -81,12 +81,16 @@ class AgentToolsControlTest {
     }
 
     @Test fun dispatcher_block_reason_propagates() = runTest {
-        every { gate.vehicleSnapshot() } returns AgentToolsReadTest.snapshot(speed = 100)
+        every { gate.vehicleSnapshot() } returns AgentToolsReadTest.snapshot(speed = 130)
         coEvery { dispatcher.dispatch(any(), any()) } returns
-            DispatchResult(false, "Заблокировано: скорость выше 80 км/ч")
+            DispatchResult(
+                false,
+                "Otwieranie okien zablokowane przy 130 km/h (>120)",
+                trustedLocalizedReason = true,
+            )
         val out = JSONObject(tools().execute(
             call("vehicle_control", """{"command":"车窗全开"}""")))
-        assertEquals("Заблокировано: скорость выше 80 км/ч", out.getString("error"))
+        assertEquals("Otwieranie okien zablokowane przy 130 km/h (>120)", out.getString("error"))
     }
 
     @Test fun vehicle_control_dispatches_kind_param() = runTest {
@@ -106,34 +110,34 @@ class AgentToolsControlTest {
     @Test fun run_automation_matches_name_case_insensitive() = runTest {
         every { gate.vehicleSnapshot() } returns null
         coEvery { ruleDao.getEnabled() } returns listOf(
-            RuleEntity(id = 7, name = "Проветрить", triggers = "[]", actions = "[]"))
+            RuleEntity(id = 7, name = "Przewietrz", triggers = "[]", actions = "[]"))
         coEvery { engine.fireVoiceRule(7, null) } returns VoiceFireResult.Fired(true)
         val out = JSONObject(tools().execute(
-            call("run_automation", """{"name":"проветрить"}""")))
+            call("run_automation", """{"name":"przewietrz"}""")))
         assertTrue(out.getBoolean("ok"))
     }
 
     @Test fun run_automation_park_required_maps_to_error() = runTest {
         every { gate.vehicleSnapshot() } returns null
         coEvery { ruleDao.getEnabled() } returns listOf(
-            RuleEntity(id = 7, name = "Фрунк", triggers = "[]", actions = "[]"))
+            RuleEntity(id = 7, name = "Przedni bagażnik", triggers = "[]", actions = "[]"))
         coEvery { engine.fireVoiceRule(7, null) } returns VoiceFireResult.ParkRequired
         val out = JSONObject(tools().execute(
-            call("run_automation", """{"name":"Фрунк"}""")))
+            call("run_automation", """{"name":"Przedni bagażnik"}""")))
         assertTrue(out.has("error"))
     }
 
     @Test fun run_automation_unknown_name_reports_error() = runTest {
         coEvery { ruleDao.getEnabled() } returns emptyList()
         val out = JSONObject(tools().execute(
-            call("run_automation", """{"name":"нет такой"}""")))
+            call("run_automation", """{"name":"nie ma takiej"}""")))
         assertTrue(out.has("error"))
         coVerify(exactly = 0) { engine.fireVoiceRule(any(), any()) }
     }
 
     @Test fun schemas_embed_rule_names_enum() = runTest {
         coEvery { ruleDao.getEnabled() } returns listOf(
-            RuleEntity(id = 1, name = "Ночной режим", triggers = "[]", actions = "[]"))
+            RuleEntity(id = 1, name = "Tryb nocny", triggers = "[]", actions = "[]"))
         coEvery { settingsRepository.getString(SettingsRepository.KEY_EXA_API_KEY, "") } returns "exa-key"
         val arr = tools().schemas()
         var found = false
@@ -142,7 +146,7 @@ class AgentToolsControlTest {
             if (fn.getString("name") == "run_automation") {
                 val enum = fn.getJSONObject("parameters").getJSONObject("properties")
                     .getJSONObject("name").getJSONArray("enum")
-                assertEquals("Ночной режим", enum.getString(0))
+                assertEquals("Tryb nocny", enum.getString(0))
                 found = true
             }
         }
@@ -176,12 +180,14 @@ class AgentToolsControlTest {
         coVerify { dispatcher.dispatch(match { it.kind == "param" && it.command == "车窗关闭" }, any()) }
     }
 
-    @Test fun vehicle_control_unknown_command_reports_russian_error_no_chinese() = runTest {
+    @Test fun vehicle_control_unknown_command_reports_polish_error_no_chinese() = runTest {
         every { gate.vehicleSnapshot() } returns null
         val out = JSONObject(tools().execute(
             call("vehicle_control", """{"command":"nonsense_command"}""")))
         val error = out.getString("error")
         assertTrue(error.contains("nonsense_command"))
+        assertTrue("Expected a Polish unknown-command error, got: $error", error.startsWith("nieznane polecenie"))
+        assertFalse(error.contains("neizvestnaya"))
         assertTrue(!error.any { it.code > 0x2E80 })
         coVerify(exactly = 0) { dispatcher.dispatch(any(), any()) }
     }
@@ -195,7 +201,24 @@ class AgentToolsControlTest {
         coVerify { dispatcher.dispatch(match { it.command == "车窗关闭" }, any()) }
     }
 
-    // --- П7 origin-based defense: confirm gate for dangerous agent actions ---
+    // Seat massage is local-voice only: the agent's raw-string compat path must not reach it,
+    // with or without the legacy 迪加 prefix, and no readable id exists for it either.
+    @Test fun vehicle_control_refuses_local_only_massage_commands() = runTest {
+        every { gate.vehicleSnapshot() } returns AgentToolsReadTest.snapshot(speed = 0)
+        coEvery { dispatcher.dispatch(any(), any()) } returns DispatchResult(true)
+        val inputs = listOf(
+            "主驾座椅按摩打开", "主驾座椅按摩关闭", "迪加主驾座椅按摩打开", "迪加主驾座椅按摩关闭",
+            "seat_massage_driver", "driver_massage_pulse",
+        )
+        for (input in inputs) {
+            val out = JSONObject(tools().execute(call("vehicle_control", """{"command":"$input"}""")))
+            assertTrue("$input: expected the unknown-command error, got $out",
+                out.optString("error").startsWith("nieznane polecenie"))
+        }
+        coVerify(exactly = 0) { dispatcher.dispatch(any(), any()) }
+    }
+
+// --- P7 origin-based defense: confirm gate for dangerous agent actions ---
 
     @Test fun vehicle_control_unlock_is_dangerous_and_confirms() = runTest {
         every { gate.vehicleSnapshot() } returns null
@@ -206,7 +229,7 @@ class AgentToolsControlTest {
         t.confirmGate = { _, _, _, onConfirm, _ -> gateInvoked = true; onConfirm(); true }
         val out = JSONObject(t.execute(call("vehicle_control", """{"command":"车门解锁"}""")))
         assertTrue(gateInvoked)
-        assertEquals("ожидает подтверждения на экране", out.getString("status"))
+        assertEquals("oczekuje potwierdzenia na ekranie", out.getString("status"))
         coVerify { dispatcher.dispatch(match { it.command.contains("车门解锁") }, any()) }
     }
 
@@ -266,7 +289,7 @@ class AgentToolsControlTest {
         t.confirmGate = { _, _, _, onConfirm, _ -> gateInvoked = true; onConfirm(); true }
         val out = JSONObject(t.execute(call("set_sentry", """{"on":false}""")))
         assertTrue(gateInvoked)
-        assertEquals("ожидает подтверждения на экране", out.getString("status"))
+        assertEquals("oczekuje potwierdzenia na ekranie", out.getString("status"))
         coVerify { dispatcher.dispatch(match { it.kind == "sentry" && it.payload == "0" }, null) }
     }
 
@@ -278,7 +301,7 @@ class AgentToolsControlTest {
         coVerify(exactly = 0) { dispatcher.dispatch(any(), any()) }
     }
 
-    @Test fun set_sentry_without_on_reports_russian_error_and_does_not_dispatch() = runTest {
+    @Test fun set_sentry_without_on_reports_error_and_does_not_dispatch() = runTest {
         val out = JSONObject(tools().execute(call("set_sentry", """{}""")))
         assertTrue(out.has("error"))
         coVerify(exactly = 0) { dispatcher.dispatch(any(), any()) }
@@ -300,7 +323,7 @@ class AgentToolsControlTest {
         coVerify { dispatcher.dispatch(match { it.kind == "hotspot" && it.payload == "0" }, null) }
     }
 
-    @Test fun set_hotspot_without_on_reports_russian_error_and_does_not_dispatch() = runTest {
+    @Test fun set_hotspot_without_on_reports_error_and_does_not_dispatch() = runTest {
         val out = JSONObject(tools().execute(call("set_hotspot", """{}""")))
         assertTrue(out.has("error"))
         coVerify(exactly = 0) { dispatcher.dispatch(any(), any()) }
@@ -325,12 +348,12 @@ class AgentToolsControlTest {
     @Test fun set_screen_without_on_reports_error_and_does_not_dispatch() = runTest {
         val out = JSONObject(tools().execute(call("set_screen", """{}""")))
         assertTrue(out.has("error"))
-        assertFalse(out.getString("error"), out.getString("error").contains("неизвестный инструмент"))
+        assertFalse(out.getString("error"), out.getString("error").contains("nieznane narzędzie"))
         coVerify(exactly = 0) { dispatcher.dispatch(any(), any()) }
     }
 
     private fun screenRule(action: String) =
-        """{"name":"Сон","trigger":{"kind":"param","param":"SOC","operator":"<","value":"20"},"actions":[$action]}"""
+        """{"name":"Sen","trigger":{"kind":"param","param":"SOC","operator":"<","value":"20"},"actions":[$action]}"""
 
     @Test fun create_automation_screen_off_persists_payload_0() = runTest {
         coEvery { ruleDao.getAllList() } returns emptyList()

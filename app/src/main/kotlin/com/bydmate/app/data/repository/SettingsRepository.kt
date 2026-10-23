@@ -80,32 +80,32 @@ open class SettingsRepository @Inject constructor(
         const val KEY_ALICE_ENDPOINT = "alice_endpoint"
         const val KEY_ALICE_API_KEY = "alice_api_key"
         const val KEY_ALICE_ENABLED = "alice_enabled"
-        /** Передавать живые данные DiPars в A Better Route Planner (Iternio Telemetry API). GPS передаётся только если включён KEY_ABRP_SEND_LOCATION. */
+        /** Send live DiPars data to A Better Route Planner (Iternio Telemetry API). GPS is sent only when KEY_ABRP_SEND_LOCATION is enabled. */
         const val KEY_ABRP_ENABLED = "abrp_telemetry_enabled"
-        /** API-ключ приложения Iternio ([abetterrouteplanner.com/resources/api](https://abetterrouteplanner.com/resources/api)). */
+        /** Iternio application API key ([abetterrouteplanner.com/resources/api](https://abetterrouteplanner.com/resources/api)). */
         const val KEY_ABRP_API_KEY = "abrp_api_key"
-        /** Токен живых данных автомобиля из ABRP. */
+        /** Token for live car data from ABRP. */
         const val KEY_ABRP_USER_TOKEN = "abrp_user_token"
-        /** Необязательный код модели автомобиля из библиотеки ABRP. */
+        /** Optional car model code from the ABRP catalog. */
         const val KEY_ABRP_CAR_MODEL = "abrp_car_model"
         /**
-         * Отправлять GPS-координаты и курс в телеметрию ABRP (opt-in, по умолчанию выкл).
-         * Узкий случай: следить за машиной в ABRP с телефона, когда ABRP на головном устройстве
-         * не запущен. Если он запущен, он сам читает GPS, и с двумя источниками метка прыгает.
+         * Send GPS coordinates and heading in ABRP telemetry (opt-in, disabled by default).
+         * Narrow use case: track the car in ABRP from a phone when ABRP is not running on the head
+         * unit. When it is running, it reads GPS itself and the marker jumps between two sources.
          */
         const val KEY_ABRP_SEND_LOCATION = "abrp_send_location"
-        /** Слать тот же JSON телеметрии POST-запросом на свой URL. Работает независимо от ABRP. */
+        /** Post the same telemetry JSON to a custom URL. Works independently of ABRP. */
         const val KEY_WEBHOOK_ENABLED = "webhook_enabled"
-        /** URL вебхука (http/https). Пустой = вебхук выключен, даже если KEY_WEBHOOK_ENABLED="true". */
+        /** Webhook URL (http/https). Empty disables the webhook even when KEY_WEBHOOK_ENABLED="true". */
         const val KEY_WEBHOOK_URL = "webhook_url"
-        /** Необязательный секрет; уходит заголовком `Authorization: Bearer`. */
+        /** Optional secret, sent as `Authorization: Bearer`. */
         const val KEY_WEBHOOK_SECRET = "webhook_secret"
-        /** Отправлять GPS-координаты и курс на вебхук (opt-in, по умолчанию выкл). */
+        /** Send GPS coordinates and heading to the webhook (opt-in, disabled by default). */
         const val KEY_WEBHOOK_SEND_LOCATION = "webhook_send_location"
         // Automatic backup (#237). Period = AutoBackupPeriod.key; last_ts = 0 until the first export.
         const val KEY_AUTO_BACKUP_PERIOD = "auto_backup_period"
         const val KEY_AUTO_BACKUP_LAST_TS = "auto_backup_last_ts"
-        /** Short Russian text for the Settings status line («отправлен в Telegram», …). */
+        /** Short Russian text for the Settings status line («wysłany w Telegram», …). */
         const val KEY_AUTO_BACKUP_LAST_RESULT = "auto_backup_last_result"
         /** Absolute path of an exported backup not yet delivered to Telegram; empty = none. */
         const val KEY_AUTO_BACKUP_PENDING_UPLOAD = "auto_backup_pending_upload"
@@ -489,7 +489,7 @@ open class SettingsRepository @Inject constructor(
     fun observeTripAutoResetMode(n: Int): Flow<TripAutoResetMode> =
         observeString("trip${n}_auto_reset").map { TripAutoResetMode.fromKey(it) }
 
-    /** «Разъём для зарядки»; unknown or absent value = GB/T. */
+    /** Charge connector; unknown or absent value = GB/T. */
     suspend fun getChargeConnector(): ChargeConnector =
         ChargeConnector.fromKey(settingsDao.get(KEY_CHARGE_CONNECTOR))
 
@@ -575,7 +575,7 @@ open class SettingsRepository @Inject constructor(
         KEY_TG_BACKUP_CHAT_NAME to chatName,
     ))
 
-    /** «Отключить»: forgets the bot in one transaction. */
+    /** «Wyłącz»: forgets the bot in one transaction. */
     suspend fun clearTgBackup() = saveTgBackup("", "", null, "")
 
     suspend fun isTgReportOffEnabled(): Boolean = getString(KEY_TG_REPORT_OFF_ENABLED, "false") == "true"

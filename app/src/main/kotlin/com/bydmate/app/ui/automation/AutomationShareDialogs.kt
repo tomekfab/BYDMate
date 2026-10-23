@@ -58,7 +58,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/** «Места» from the Automation header: the list that used to live in Settings. */
+/** «Miejsca» from the Automation header: the list that used to live in Settings. */
 @Composable
 internal fun PlacesDialog(onDismiss: () -> Unit) {
     AppAlertDialog(
@@ -80,8 +80,8 @@ internal fun PlacesDialog(onDismiss: () -> Unit) {
 }
 
 /**
- * After «Поделиться», before anything is written: what the file keeps and what to check.
- * «Продолжить» writes the file and opens the system share sheet.
+ * After «Udostępnij», before anything is written: what the file keeps and what to check.
+ * «Kontynuuj» writes the file and opens the system share sheet.
  */
 @Composable
 internal fun ShareNoteDialog(onContinue: () -> Unit, onDismiss: () -> Unit) {
@@ -106,8 +106,8 @@ internal fun ShareNoteDialog(onContinue: () -> Unit, onDismiss: () -> Unit) {
 }
 
 /**
- * «Сохранить» on a rule deleted while it was open in the editor: nothing was saved yet.
- * «Сохранить как новое» adds the draft as a new rule, «Закрыть» drops it, Back or a tap
+ * «Zapisz» on a rule deleted while it was open in the editor: nothing was saved yet.
+ * «Zapisz jak nowe» adds the draft as a new rule, «Zamknij» drops it, Back or a tap
  * outside only hides this dialog and keeps the draft in the editor.
  */
 @Composable
@@ -177,7 +177,7 @@ internal fun ImportPickDialog(
  * Import step 2: the rule as it will be added. Every row is built from what will run
  * ([RuleImportSummary], via [RuleImportDraft.preview]), not from the labels in the file, and
  * the settings come in one line. Places not found by name (or found twice) and numbers of
- * calls and tel/sms links (never in the file) are asked for under «Нужно уточнить», links
+ * calls and tel/sms links (never in the file) are asked for under "Needs clarification", links
  * emptied on export are listed there too (fixed later in the editor); while any stays open the
  * rule can only be added switched off. While the insert runs every control waits.
  */

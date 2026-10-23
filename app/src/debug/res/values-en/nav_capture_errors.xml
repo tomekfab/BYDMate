@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_capture_error_delete">Could not delete the capture. Data may remain in app storage. Try deleting it again.</string>
+    <string name="nav_capture_error_reset">Could not clear the previous capture. Recording did not start. Delete the capture and try again.</string>
+    <string name="nav_capture_error_export">Could not save the capture. The destination file may be incomplete. Choose a file and try again.</string>
+    <string name="nav_capture_error_write">Write failed. Recording has stopped. Delete the incomplete capture and start a new one.</string>
+</resources>

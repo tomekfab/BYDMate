@@ -105,7 +105,7 @@
     background: var(--card-border);
   }
 
-  /* ============ EXPANDED DIALOG (CenterStart, левый край) ============ */
+  /* ============ EXPANDED DIALOG (CenterStart, left edge) ============ */
   .dialog-stage {
     background:
       linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.65)),
@@ -118,7 +118,7 @@
     border: 1px solid var(--card-border);
   }
   .dialog-stage::before {
-    content: 'фоновый экран DiLink (затемнён скримом)';
+    content: 'DiLink background screen (dimmed by a scrim)';
     position: absolute;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
@@ -274,7 +274,7 @@
   }
   .annotation.warning strong { color: var(--accent-orange); }
 
-  /* /Зарядки правая колонка */
+  /* /Charging right column */
   .charges-right {
     background: var(--card-surface);
     border: 1px solid var(--card-border);
@@ -390,38 +390,38 @@
 </head>
 <body>
 
-<h1>BYDMate — Battery redesign + унификация диалогов <small>2026-04-27</small></h1>
+<h1>BYDMate — Battery redesign + dialog unification <small>2026-04-27</small></h1>
 <div class="section-meta">
-  Перерисовка карточки «Здоровье батареи»: убран расчётный SoH, разделение на DiPlus (у всех) + autoservice (опционально).
-  Графики «Динамика» переезжают на /Зарядки. Все три expand'а — единый стиль и поведение.
+  Redesign of the Battery Health card: the calculated SoH is removed; the data is split into DiPlus (for everyone) and autoservice (optional).
+  “Trends” charts move to /Charging. All three expanded dialogs use the same style and behaviour.
 </div>
 
 <!-- ===================== SECTION 1: Dashboard cards unified ===================== -->
-<h2>1. Дашборд — три карточки в едином стиле</h2>
+<h2>1. Dashboard — three cards in one style</h2>
 
 <div class="grid-3">
   <div>
-    <h3>Стоянка (компакт)</h3>
+    <h3>Parking (compact)</h3>
     <div class="compact-card parking">
-      <div class="compact-card-title">Стоянка</div>
+      <div class="compact-card-title">Postój</div>
       <div class="compact-card-row">
         <div class="compact-section">
-          <div class="compact-value orange">12 мин</div>
-          <div class="compact-label">с момента остановки</div>
+          <div class="compact-value orange">12 min</div>
+          <div class="compact-label">od zatrzymania</div>
         </div>
         <div class="compact-divider"></div>
         <div class="compact-section right">
           <div class="compact-value">−1.2 °C</div>
-          <div class="compact-label">снаружи</div>
+          <div class="compact-label">na zewnątrz</div>
         </div>
       </div>
     </div>
   </div>
 
   <div>
-    <h3>Здоровье батареи (компакт)</h3>
+    <h3>Battery Health (compact)</h3>
     <div class="compact-card battery">
-      <div class="compact-card-title">Здоровье батареи</div>
+      <div class="compact-card-title">Stan baterii</div>
       <div class="compact-card-row">
         <div class="compact-section">
           <div class="compact-value green">100%</div>
@@ -430,30 +430,30 @@
         <div class="compact-divider"></div>
         <div class="compact-section center">
           <div class="compact-value">5°C</div>
-          <div class="compact-label">темп. батареи</div>
+          <div class="compact-label">temp. baterii</div>
         </div>
         <div class="compact-divider"></div>
         <div class="compact-section right">
-          <div class="compact-value">14.0 В</div>
-          <div class="compact-label">бортовая сеть</div>
+          <div class="compact-value">14.0 V</div>
+          <div class="compact-label">instalacja pokładowa</div>
         </div>
       </div>
     </div>
   </div>
 
   <div>
-    <h3>AI-инсайты (компакт)</h3>
+    <h3>AI Insights (compact)</h3>
     <div class="compact-card insights">
-      <div class="compact-card-title">AI-инсайты</div>
+      <div class="compact-card-title">Wnioski AI</div>
       <div class="compact-card-row">
         <div class="compact-section">
           <div class="compact-value blue">+3%</div>
-          <div class="compact-label">экономия за неделю</div>
+          <div class="compact-label">oszczędność tygodniowa</div>
         </div>
         <div class="compact-divider"></div>
         <div class="compact-section right">
           <div class="compact-value">14:32</div>
-          <div class="compact-label">обновлено</div>
+          <div class="compact-label">zaktualizowano</div>
         </div>
       </div>
     </div>
@@ -461,44 +461,44 @@
 </div>
 
 <div class="annotation">
-  <strong>Единый стиль:</strong> одинаковая ширина 360–380px, padding 12×16, border-radius 12,
-  border 1.5dp в акцентном цвете темы карточки.
-  <strong>Цветовая семантика рамки:</strong> стоянка — оранжевый, батарея — зелёный/жёлтый/красный по worst-of, инсайты — голубой.<br>
-  <strong>Поведение по тапу:</strong> карточка разворачивается в expand-диалог, который позиционируется
-  <code>Alignment.CenterStart</code> + <code>padding(start=22dp)</code> — по левому краю экрана, ближе к водителю.
-  Тап-внутрь карточки или на затемнённый фон закрывают диалог. Никакой кнопки «назад» нажимать не надо.
+  <strong>Unified style:</strong> the same 360–380px width, 12×16 padding, and 12 border radius,
+  with a 1.5dp border in the card theme accent colour.
+  <strong>Border colour semantics:</strong> parking — orange; battery — green/yellow/red by worst-of; insights — blue.<br>
+  <strong>Tap behaviour:</strong> a card expands into a dialog positioned with
+  <code>Alignment.CenterStart</code> + <code>padding(start=22dp)</code> — on the left screen edge, closer to the driver.
+  Tapping inside the card or on the dimmed background closes the dialog. No Back button is needed.
 </div>
 
 <!-- ===================== SECTION 2: Three dialogs unified positioning ===================== -->
-<h2>2. Развёрнутые диалоги — позиционирование одинаковое</h2>
+<h2>2. Expanded dialogs — the same positioning</h2>
 <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 16px;">
-  Все три диалога: левый край, ближе к водителю, верт. центр. Содержимое — разное.
+  All three dialogs: left edge, closer to the driver, vertically centred. Their content differs.
 </div>
 
 <div class="grid-3">
   <!-- Parking expanded -->
   <div>
-    <h3>Стоянка expand</h3>
+    <h3>Parking expanded</h3>
     <div class="dialog-stage" style="height: 480px;">
       <div class="dialog parking" style="width: 380px; max-height: 420px;">
         <div class="dialog-header">
-          <div class="dialog-title parking">Стоянка</div>
-          <div class="dialog-hint">тап для закрытия</div>
+          <div class="dialog-title parking">Postój</div>
+          <div class="dialog-hint">dotknij, aby zamknąć</div>
         </div>
-        <div class="section-label">Сейчас</div>
+        <div class="section-label">Teraz</div>
         <div class="stats-grid">
           <div class="stat-cell">
-            <div class="stat-value orange">12 мин</div>
-            <div class="stat-label">длительность</div>
+            <div class="stat-value orange">12 min</div>
+            <div class="stat-label">czas trwania</div>
           </div>
           <div class="stat-cell">
             <div class="stat-value">−1.2 °C</div>
-            <div class="stat-label">снаружи</div>
+            <div class="stat-label">na zewnątrz</div>
           </div>
         </div>
-        <div class="section-label">Авто-сценарии</div>
+        <div class="section-label">Automatyzacje</div>
         <div style="background: var(--card-elevated); border-radius: 10px; padding: 12px; font-size: 12px; color: var(--text-secondary); line-height: 1.6;">
-          На этой стоянке через 8 мин включится прогрев салона (правило «дом утром»).
+          Na tym postoju za 8 min włączy się ogrzewanie kabiny (reguła „dom rano”).
         </div>
       </div>
     </div>
@@ -506,14 +506,14 @@
 
   <!-- Battery expanded (preview, full version below) -->
   <div>
-    <h3>Здоровье батареи expand</h3>
+    <h3>Battery Health expanded</h3>
     <div class="dialog-stage" style="height: 480px;">
       <div class="dialog battery" style="width: 380px; max-height: 420px;">
         <div class="dialog-header">
-          <div class="dialog-title battery">Здоровье батареи</div>
-          <div class="dialog-hint">тап для закрытия</div>
+          <div class="dialog-title battery">Stan baterii</div>
+          <div class="dialog-hint">dotknij, aby zamknąć</div>
         </div>
-        <div class="section-label">Сейчас (DiPlus)</div>
+        <div class="section-label">Teraz (DiPlus)</div>
         <div class="stats-grid">
           <div class="stat-cell">
             <div class="stat-value">91%</div>
@@ -521,7 +521,7 @@
           </div>
           <div class="stat-cell">
             <div class="stat-value">5°C</div>
-            <div class="stat-label">темп. батареи</div>
+            <div class="stat-label">temp. baterii</div>
           </div>
         </div>
         <div class="section-label">Lifetime (autoservice)</div>
@@ -531,12 +531,12 @@
             <div class="stat-label">SoH</div>
           </div>
           <div class="stat-cell">
-            <div class="stat-value">2 117 км</div>
-            <div class="stat-label">пробег BMS</div>
+            <div class="stat-value">2 117 km</div>
+            <div class="stat-label">przebieg BMS</div>
           </div>
         </div>
         <div style="text-align: center; color: var(--text-muted); font-size: 11px; margin-top: 10px;">
-          (полная версия ниже в секции 3)
+          (pełna wersja poniżej, w sekcji 3)
         </div>
       </div>
     </div>
@@ -544,88 +544,88 @@
 
   <!-- AI Insights expanded -->
   <div>
-    <h3>AI-инсайты expand</h3>
+    <h3>AI Insights expanded</h3>
     <div class="dialog-stage" style="height: 480px;">
       <div class="dialog insights" style="width: 380px; max-height: 420px;">
         <div class="dialog-header">
-          <div class="dialog-title insights">AI-инсайты</div>
-          <div class="dialog-hint">тап для закрытия</div>
+          <div class="dialog-title insights">Wnioski AI</div>
+          <div class="dialog-hint">dotknij, aby zamknąć</div>
         </div>
-        <div class="section-label">За неделю</div>
+        <div class="section-label">W tym tygodniu</div>
         <div style="background: var(--card-elevated); border-radius: 10px; padding: 12px; font-size: 12px; line-height: 1.6;">
-          Расход вырос на 8% (24.2 → 26.1 кВт·ч/100км). Виной — холодные утра: 3 коротких поездки до 10 мин.
-          На длинных перегонах расход держится на уровне нормы.
+          Zużycie wzrosło o 8% (24.2 → 26.1 kWh/100 km). Powodem są chłodne poranki: 3 krótkie przejazdy do 10 min.
+          Podczas długich tras zużycie pozostaje w normie.
         </div>
-        <div class="section-label">Совет</div>
+        <div class="section-label">Wskazówka</div>
         <div style="background: var(--card-elevated); border-radius: 10px; padding: 12px; font-size: 12px; line-height: 1.6; color: var(--text-secondary);">
-          Прогревайте салон через таймер за 5 мин до выезда — короткий старт «холодной» батареи самый дорогой.
+          Ogrzej kabinę za pomocą timera 5 min przed wyjazdem — krótki start z „zimną” baterią jest najdroższy.
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ===================== SECTION 3: Battery Health expand — детально ===================== -->
-<h2>3. «Здоровье батареи» expand — детально (Блок 1 + Блок 2)</h2>
+<!-- ===================== SECTION 3: Battery Health expanded — details ===================== -->
+<h2>3. Battery Health expanded — details (Block 1 + Block 2)</h2>
 
 <div class="grid-2">
   <!-- Variant A: autoservice ON -->
   <div>
-    <h3>Вариант A: autoservice включён (lifetime есть)</h3>
+    <h3>Variant A: autoservice enabled (lifetime available)</h3>
     <div class="dialog-stage">
       <div class="dialog battery">
         <div class="dialog-header">
-          <div class="dialog-title battery">Здоровье батареи</div>
-          <div class="dialog-hint">обновлено 2с назад · тап для закрытия</div>
+          <div class="dialog-title battery">Stan baterii</div>
+          <div class="dialog-hint">zaktualizowano 2 s temu · dotknij, aby zamknąć</div>
         </div>
 
-        <div class="section-label">Сейчас (от машины, live)</div>
+        <div class="section-label">Teraz (z samochodu, na żywo)</div>
         <div class="stats-grid four">
           <div class="stat-cell">
             <div class="stat-value">91%</div>
             <div class="stat-label">SoC</div>
           </div>
           <div class="stat-cell">
-            <div class="stat-value green">0.014 В</div>
-            <div class="stat-label">Δ ячеек</div>
+            <div class="stat-value green">0.014 V</div>
+            <div class="stat-label">Δ ogniw</div>
           </div>
           <div class="stat-cell">
             <div class="stat-value">5°C</div>
-            <div class="stat-label">темп. батареи</div>
+            <div class="stat-label">temp. baterii</div>
           </div>
           <div class="stat-cell">
-            <div class="stat-value">14.0 В</div>
-            <div class="stat-label">бортовая сеть</div>
+            <div class="stat-value">14.0 V</div>
+            <div class="stat-label">instalacja pokładowa</div>
           </div>
         </div>
         <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px; padding-left: 4px;">
-          темп. диапазон: мин 5° / средн. 5° / макс 6°
+          zakres temp.: min. 5° / śr. 5° / maks. 6°
         </div>
 
-        <div class="section-label">Lifetime (системные данные)</div>
+        <div class="section-label">Lifetime (dane systemowe)</div>
         <div class="stats-grid four">
           <div class="stat-cell">
             <div class="stat-value green">100%</div>
-            <div class="stat-label">SoH <span style="color: var(--text-muted); font-size: 10px;">от BMS</span></div>
+            <div class="stat-label">SoH <span style="color: var(--text-muted); font-size: 10px;">z BMS</span></div>
           </div>
           <div class="stat-cell">
-            <div class="stat-value">2 117 км</div>
-            <div class="stat-label">пробег BMS</div>
+            <div class="stat-value">2 117 km</div>
+            <div class="stat-label">przebieg BMS</div>
           </div>
           <div class="stat-cell">
-            <div class="stat-value">614 кВт·ч</div>
-            <div class="stat-label">прокачано всего</div>
+            <div class="stat-value">614 kWh</div>
+            <div class="stat-label">łącznie naładowano</div>
           </div>
           <div class="stat-cell">
             <div class="stat-value blue">24.2</div>
-            <div class="stat-label">кВт·ч / 100км lifetime</div>
+            <div class="stat-label">kWh / 100 km lifetime</div>
           </div>
         </div>
 
         <div class="annotation">
-          <strong>SoH = «100%»</strong> — это значение, которое отдаёт сама машина (BMS).
-          Никакого собственного расчёта по нашим зарядкам не делаем — слишком грубо и шумно.<br>
-          <strong>Графики динамики</strong> (баланс ячеек, 12V со временем) — на вкладке /Зарядки справа.
+          <strong>SoH = “100%”</strong> is the value reported by the car itself (BMS).
+          We do not calculate it from our charging data because that would be too approximate and noisy.<br>
+          <strong>Trend charts</strong> (cell balance and 12V over time) are in the right /Charging tab.
         </div>
       </div>
     </div>
@@ -633,45 +633,45 @@
 
   <!-- Variant B: autoservice OFF -->
   <div>
-    <h3>Вариант B: autoservice выключен (lifetime недоступен)</h3>
+    <h3>Variant B: autoservice disabled (lifetime unavailable)</h3>
     <div class="dialog-stage">
       <div class="dialog battery">
         <div class="dialog-header">
-          <div class="dialog-title battery">Здоровье батареи</div>
-          <div class="dialog-hint">обновлено 3с назад · тап для закрытия</div>
+          <div class="dialog-title battery">Stan baterii</div>
+          <div class="dialog-hint">zaktualizowano 3 s temu · dotknij, aby zamknąć</div>
         </div>
 
-        <div class="section-label">Сейчас (от машины, live)</div>
+        <div class="section-label">Teraz (z samochodu, na żywo)</div>
         <div class="stats-grid four">
           <div class="stat-cell">
             <div class="stat-value">91%</div>
             <div class="stat-label">SoC</div>
           </div>
           <div class="stat-cell">
-            <div class="stat-value green">0.014 В</div>
-            <div class="stat-label">Δ ячеек</div>
+            <div class="stat-value green">0.014 V</div>
+            <div class="stat-label">Δ ogniw</div>
           </div>
           <div class="stat-cell">
             <div class="stat-value">5°C</div>
-            <div class="stat-label">темп. батареи</div>
+            <div class="stat-label">temp. baterii</div>
           </div>
           <div class="stat-cell">
-            <div class="stat-value">14.0 В</div>
-            <div class="stat-label">бортовая сеть</div>
+            <div class="stat-value">14.0 V</div>
+            <div class="stat-label">instalacja pokładowa</div>
           </div>
         </div>
 
         <div class="section-label">Lifetime</div>
         <div class="lifetime-disabled">
-          SoH, пробег BMS и lifetime-расход доступны после включения<br>
-          <strong style="color: var(--text-primary);">«Системные данные»</strong> в Настройках.
+          SoH, przebieg BMS i zużycie lifetime są dostępne po włączeniu<br>
+          <strong style="color: var(--text-primary);">„Dane systemowe”</strong> w Ustawieniach.
           <br>
-          <span class="cta">→ Открыть Настройки</span>
+          <span class="cta">→ Otwórz Ustawienia</span>
         </div>
 
         <div class="annotation warning">
-          <strong>Без autoservice</strong> мы видим всё с DiPlus (живые показания), но не видим
-          накопленную статистику от BMS — этого канала просто нет в DiPlus API.
+          <strong>Without autoservice</strong>, we see all DiPlus live readings but not
+          the accumulated BMS statistics — that channel is not available in the DiPlus API.
         </div>
       </div>
     </div>
@@ -679,41 +679,41 @@
 </div>
 
 <div class="annotation" style="margin-top: 20px;">
-  <strong>Δ ячеек цветовая шкала:</strong>
-  <code>&lt; 30 мВ</code> зелёный (норма) ·
-  <code>30–100 мВ</code> жёлтый (стоит проследить) ·
-  <code>&gt; 100 мВ</code> красный (на ТО).
-  Шкала — общепринятая для LFP-аккумуляторов.<br>
-  <strong>Источники:</strong>
-  Δ ячеек = DiPlus param 17/18 (<code>最高/最低电池电压</code>).
-  Темп. батареи = param 14/15/16. 12V = param 39. SoC = param 33. <br>
-  SoH = autoservice <code>getInt(1014, 1145045032)</code>. Пробег BMS = <code>getInt(1014, 1246765072)</code>.
-  Прокачано = <code>getFloat(1014, 1032871984)</code>. Lifetime/100км = <code>getFloat(1014, 1246761008)</code>.
+  <strong>Cell Δ colour scale:</strong>
+  <code>&lt; 30 mV</code> green (normal) ·
+  <code>30–100 mV</code> yellow (monitor) ·
+  <code>&gt; 100 mV</code> red (service required).
+  This scale is generally accepted for LFP batteries.<br>
+  <strong>Sources:</strong>
+  Cell Δ = DiPlus parameter 17/18 (<code>最高/最低电池电压</code>).
+  Battery temperature = parameters 14/15/16. 12V = parameter 39. SoC = parameter 33. <br>
+  SoH = autoservice <code>getInt(1014, 1145045032)</code>. BMS mileage = <code>getInt(1014, 1246765072)</code>.
+  Total charged = <code>getFloat(1014, 1032871984)</code>. Lifetime/100 km = <code>getFloat(1014, 1246761008)</code>.
 </div>
 
-<!-- ===================== SECTION 4: /Зарядки правая колонка ===================== -->
-<h2>4. /Зарядки — правая колонка (3 секции с разными состояниями)</h2>
+<!-- ===================== SECTION 4: /Charging right column ===================== -->
+<h2>4. /Charging — right column (3 sections with different states)</h2>
 
 <div class="grid-3">
-  <!-- State 1: всё включено, есть данные -->
+  <!-- State 1: everything enabled, data available -->
   <div>
-    <h3>Состояние 1: autoservice вкл + накопились данные</h3>
+    <h3>State 1: autoservice enabled + data accumulated</h3>
     <div class="charges-right">
       <div class="charges-section">
-        <div class="charges-section-title">За выбранный период (нед)</div>
-        <div class="row"><span class="label">Сессий</span><span class="value">2</span></div>
-        <div class="row"><span class="label">Прокачано (наш счёт)</span><span class="value">43.0 кВт·ч</span></div>
-        <div class="row"><span class="label">Стоимость</span><span class="value green">6.45 BYN</span></div>
+        <div class="charges-section-title">Wybrany okres (tydz.)</div>
+        <div class="row"><span class="label">Sesje</span><span class="value">2</span></div>
+        <div class="row"><span class="label">Naładowano (nasz licznik)</span><span class="value">43.0 kWh</span></div>
+        <div class="row"><span class="label">Koszt</span><span class="value green">6.45 BYN</span></div>
         <div class="row"><span class="label">AC / DC</span><span class="value">2 / 0</span></div>
       </div>
 
       <div class="charges-section">
-        <div class="charges-section-title">Lifetime (от машины)</div>
-        <div class="row"><span class="label">Прокачано всего</span><span class="value">614 кВт·ч</span></div>
-        <div class="row"><span class="label">Эквивалентных циклов</span><span class="value">8.4</span></div>
-        <div class="row"><span class="label">Lifetime /100км</span><span class="value blue">24.2 кВт·ч</span></div>
+        <div class="charges-section-title">Lifetime (z samochodu)</div>
+        <div class="row"><span class="label">Łącznie naładowano</span><span class="value">614 kWh</span></div>
+        <div class="row"><span class="label">Cykle ekwiwalentne</span><span class="value">8.4</span></div>
+        <div class="row"><span class="label">Lifetime /100 km</span><span class="value blue">24.2 kWh</span></div>
         <div class="chart" style="margin-top: 10px;">
-          <div class="chart-title">SoH во времени</div>
+          <div class="chart-title">SoH w czasie</div>
           <svg class="chart-svg" viewBox="0 0 500 60" preserveAspectRatio="none">
             <line x1="0" y1="10" x2="500" y2="10" stroke="rgba(74,222,128,0.15)" stroke-width="1" stroke-dasharray="3,3"/>
             <polyline fill="none" stroke="#4ADE80" stroke-width="2" points="0,12 80,11 160,11 240,10 320,11 400,10 500,10"/>
@@ -723,23 +723,23 @@
       </div>
 
       <div class="charges-section">
-        <div class="charges-section-title">Динамика (snapshot'ы при пробуждении)</div>
+        <div class="charges-section-title">Trendy (snapshoty po wybudzeniu)</div>
         <div class="chart">
-          <div class="chart-title">Δ ячеек со временем</div>
+          <div class="chart-title">Δ ogniw w czasie</div>
           <svg class="chart-svg" viewBox="0 0 500 60" preserveAspectRatio="none">
             <polyline fill="none" stroke="#4ADE80" stroke-width="2" points="0,40 80,38 160,42 240,35 320,40 400,38 500,40"/>
             <circle cx="500" cy="40" r="3" fill="#4ADE80"/>
           </svg>
         </div>
         <div class="chart">
-          <div class="chart-title">12V со временем</div>
+          <div class="chart-title">12V w czasie</div>
           <svg class="chart-svg" viewBox="0 0 500 60" preserveAspectRatio="none">
             <polyline fill="none" stroke="#60A5FA" stroke-width="2" points="0,30 80,25 160,35 240,28 320,32 400,30 500,28"/>
             <circle cx="500" cy="28" r="3" fill="#60A5FA"/>
           </svg>
         </div>
         <div class="chart">
-          <div class="chart-title">Темп. батареи (мин/макс)</div>
+          <div class="chart-title">Temp. baterii (min./maks.)</div>
           <svg class="chart-svg" viewBox="0 0 500 60" preserveAspectRatio="none">
             <polyline fill="none" stroke="#FB923C" stroke-width="2" points="0,40 80,38 160,30 240,20 320,18 400,15 500,12"/>
             <polyline fill="none" stroke="#60A5FA" stroke-width="2" points="0,55 80,50 160,45 240,38 320,32 400,28 500,25"/>
@@ -748,44 +748,44 @@
           </svg>
         </div>
         <div style="font-size: 10px; color: var(--text-muted); padding: 4px 4px 0;">
-          Замеры снимаются при пробуждении машины и перед поездками.
+          Pomiary są wykonywane po wybudzeniu samochodu i przed podróżami.
         </div>
       </div>
     </div>
   </div>
 
-  <!-- State 2: autoservice ON, мало snapshot'ов -->
+  <!-- State 2: autoservice ON, few snapshots -->
   <div>
-    <h3>Состояние 2: autoservice вкл, мало замеров (накапливаем)</h3>
+    <h3>State 2: autoservice enabled, few measurements (accumulating)</h3>
     <div class="charges-right">
       <div class="charges-section">
-        <div class="charges-section-title">За выбранный период (нед)</div>
-        <div class="row"><span class="label">Сессий</span><span class="value">1</span></div>
-        <div class="row"><span class="label">Прокачано (наш счёт)</span><span class="value">23 кВт·ч</span></div>
-        <div class="row"><span class="label">Стоимость</span><span class="value green">3.45 BYN</span></div>
+        <div class="charges-section-title">Wybrany okres (tydz.)</div>
+        <div class="row"><span class="label">Sesje</span><span class="value">1</span></div>
+        <div class="row"><span class="label">Naładowano (nasz licznik)</span><span class="value">23 kWh</span></div>
+        <div class="row"><span class="label">Koszt</span><span class="value green">3.45 BYN</span></div>
         <div class="row"><span class="label">AC / DC</span><span class="value">1 / 0</span></div>
       </div>
 
       <div class="charges-section">
-        <div class="charges-section-title">Lifetime (от машины)</div>
-        <div class="row"><span class="label">Прокачано всего</span><span class="value">614 кВт·ч</span></div>
-        <div class="row"><span class="label">Эквивалентных циклов</span><span class="value">8.4</span></div>
-        <div class="row"><span class="label">Lifetime /100км</span><span class="value blue">24.2 кВт·ч</span></div>
+        <div class="charges-section-title">Lifetime (z samochodu)</div>
+        <div class="row"><span class="label">Łącznie naładowano</span><span class="value">614 kWh</span></div>
+        <div class="row"><span class="label">Cykle ekwiwalentne</span><span class="value">8.4</span></div>
+        <div class="row"><span class="label">Lifetime /100 km</span><span class="value blue">24.2 kWh</span></div>
         <div class="chart" style="margin-top: 10px;">
-          <div class="chart-title">SoH во времени</div>
-          <div class="chart-stub">Накапливаем замеры (нужно ≥2 точки)</div>
+          <div class="chart-title">SoH w czasie</div>
+          <div class="chart-stub">Zbieramy pomiary (potrzeba ≥2 punktów)</div>
         </div>
       </div>
 
       <div class="charges-section">
-        <div class="charges-section-title">Динамика (snapshot'ы при пробуждении)</div>
+        <div class="charges-section-title">Trendy (snapshoty po wybudzeniu)</div>
         <div class="chart">
-          <div class="chart-title">Δ ячеек со временем</div>
-          <div class="chart-stub">Накапливаем замеры (нужно ≥3 точки) · сейчас 1</div>
+          <div class="chart-title">Δ ogniw w czasie</div>
+          <div class="chart-stub">Zbieramy pomiary (potrzeba ≥3 punktów) · teraz 1</div>
         </div>
         <div class="chart">
-          <div class="chart-title">12V со временем</div>
-          <div class="chart-stub">Накапливаем замеры (нужно ≥3 точки) · сейчас 1</div>
+          <div class="chart-title">12V w czasie</div>
+          <div class="chart-stub">Zbieramy pomiary (potrzeba ≥3 punktów) · teraz 1</div>
         </div>
       </div>
     </div>
@@ -793,30 +793,30 @@
 
   <!-- State 3: autoservice OFF -->
   <div>
-    <h3>Состояние 3: autoservice выкл</h3>
+    <h3>State 3: autoservice disabled</h3>
     <div class="charges-right">
       <div class="charges-section">
-        <div class="charges-section-title">За выбранный период (нед)</div>
-        <div class="row"><span class="label">Сессий</span><span class="value">1</span></div>
-        <div class="row"><span class="label">Прокачано (наш счёт)</span><span class="value">23 кВт·ч</span></div>
-        <div class="row"><span class="label">Стоимость</span><span class="value green">3.45 BYN</span></div>
+        <div class="charges-section-title">Wybrany okres (tydz.)</div>
+        <div class="row"><span class="label">Sesje</span><span class="value">1</span></div>
+        <div class="row"><span class="label">Naładowano (nasz licznik)</span><span class="value">23 kWh</span></div>
+        <div class="row"><span class="label">Koszt</span><span class="value green">3.45 BYN</span></div>
         <div class="row"><span class="label">AC / DC</span><span class="value">1 / 0</span></div>
       </div>
 
       <div class="charges-section">
         <div class="charges-section-title">Lifetime</div>
         <div class="lifetime-disabled">
-          Lifetime метрики и SoH тренды доступны после включения<br>
-          <strong style="color: var(--text-primary);">«Системные данные»</strong> в Настройках.
-          <span class="cta" style="display: block; margin-top: 12px;">→ Открыть Настройки</span>
+          Metryki lifetime i trendy SoH są dostępne po włączeniu<br>
+          <strong style="color: var(--text-primary);">„Dane systemowe”</strong> w Ustawieniach.
+          <span class="cta" style="display: block; margin-top: 12px;">→ Otwórz Ustawienia</span>
         </div>
       </div>
 
       <div class="charges-section">
-        <div class="charges-section-title">Динамика</div>
+        <div class="charges-section-title">Trendy</div>
         <div class="lifetime-disabled" style="font-size: 11px;">
-          Графики появятся после первой зарядки и накопления ≥3 замеров.
-          DiPlus snapshot'ы пишутся независимо от autoservice — этот блок будет работать у всех.
+          Wykresy pojawią się po pierwszym ładowaniu i zebraniu ≥3 pomiarów.
+          Snapshoty DiPlus są zapisywane niezależnie od autoservice — ten blok będzie działać dla wszystkich.
         </div>
       </div>
     </div>
@@ -824,27 +824,27 @@
 </div>
 
 <div class="annotation" style="margin-top: 20px;">
-  <strong>Секция А (период)</strong> — у всех, считается из нашей БД зарядок.
-  <strong>Секция Б (Lifetime)</strong> — только при autoservice.
-  <strong>Секция В (Динамика)</strong> — у всех (DiPlus snapshot'ы), но требует ≥3 замеров.<br>
-  <strong>Триггер snapshot'а:</strong> при детекте пробуждения машины приложение запрашивает у DiPlus
-  cell V min/max, темп. батареи, 12V, SoC и пишет одну запись в <code>battery_snapshot</code>.
-  Триггерится при: (а) запуск сервиса после сна, (б) детекте окончания зарядки (SoC вырос),
-  (в) первом запуске за день.
+  <strong>Section A (period)</strong> is available to everyone and is calculated from our charging database.
+  <strong>Section B (Lifetime)</strong> is available only with autoservice.
+  <strong>Section C (Trends)</strong> is available to everyone (DiPlus snapshots) but requires ≥3 measurements.<br>
+  <strong>Snapshot trigger:</strong> when the car is detected as waking, the app requests from DiPlus
+  cell V min/max, battery temperature, 12V, and SoC, then writes one record to <code>battery_snapshot</code>.
+  It triggers on: (a) service start after sleep, (b) detected end of charging (SoC increased),
+  (c) the first start of the day.
 </div>
 
 <!-- ===================== SECTION 5: ChargeEdit dialog ===================== -->
-<h2>5. ChargeEdit — добавить / изменить зарядку</h2>
+<h2>5. ChargeEdit — add / edit charging</h2>
 
 <div class="grid-2">
   <!-- AC variant: SOC required, kWh computed -->
   <div>
-    <h3>Вариант A: AC-зарядка (SOC обязателен → кВт·ч computed)</h3>
+    <h3>Variant A: AC charging (SOC required → kWh computed)</h3>
     <div class="edit-dialog">
-      <div class="edit-title">Изменить зарядку</div>
+      <div class="edit-title">Edytuj ładowanie</div>
 
       <div class="field-row">
-        <div class="field-label">Тип:</div>
+        <div class="field-label">Typ:</div>
         <div class="radio-row">
           <div class="radio">
             <div class="radio-dot checked"></div>
@@ -867,7 +867,7 @@
       </div>
 
       <div class="field-row">
-        <div class="field-label">кВт·ч:</div>
+        <div class="field-label">kWh:</div>
         <div class="input-row">
           <input class="input disabled" value="21.87" disabled>
           <span class="computed-tag">computed = (100 − 70) / 100 × 72.9</span>
@@ -875,14 +875,14 @@
       </div>
 
       <div class="field-row">
-        <div class="field-label">BYN/кВт·ч:</div>
+        <div class="field-label">BYN/kWh:</div>
         <div class="input-row">
           <input class="input" value="0.150">
         </div>
       </div>
 
       <div class="field-row">
-        <div class="field-label">Стоимость:</div>
+        <div class="field-label">Koszt:</div>
         <div class="input-row">
           <input class="input disabled" value="3.28" disabled>
           <span class="computed-tag">computed = 21.87 × 0.150</span>
@@ -890,26 +890,26 @@
       </div>
 
       <div class="actions">
-        <button class="btn btn-cancel">Отмена</button>
-        <button class="btn btn-save">Сохранить</button>
+        <button class="btn btn-cancel">Anuluj</button>
+        <button class="btn btn-save">Zapisz</button>
       </div>
     </div>
 
     <div class="annotation" style="margin-top: 16px;">
-      <strong>Логика:</strong> SOC от/до — основной ввод. кВт·ч становится производным значением,
-      серым/disabled, пересчитывается на лету при изменении SOC. Стоимость — производная от кВт·ч × тариф.<br>
-      <strong>Ёмкость 72.9 кВт·ч</strong> берётся из настроек (<code>KEY_BATTERY_CAPACITY</code>, default = 72.9 для Leopard 3).
+      <strong>Logic:</strong> SOC from/to is the main input. kWh becomes a derived value,
+      greyed out/disabled and recalculated when SOC changes. Cost is derived from kWh × tariff.<br>
+      <strong>Capacity 72.9 kWh</strong> comes from settings (<code>KEY_BATTERY_CAPACITY</code>, default = 72.9 for Leopard 3).
     </div>
   </div>
 
   <!-- DC variant: SOC missing, kWh manual -->
   <div>
-    <h3>Вариант B: DC без точного SOC (fallback — ручной ввод кВт·ч)</h3>
+    <h3>Variant B: DC without exact SOC (fallback — manual kWh input)</h3>
     <div class="edit-dialog">
-      <div class="edit-title">Добавить зарядку</div>
+      <div class="edit-title">Dodaj ładowanie</div>
 
       <div class="field-row">
-        <div class="field-label">Тип:</div>
+        <div class="field-label">Typ:</div>
         <div class="radio-row">
           <div class="radio">
             <div class="radio-dot"></div>
@@ -932,22 +932,22 @@
       </div>
 
       <div class="field-row">
-        <div class="field-label">кВт·ч:</div>
+        <div class="field-label">kWh:</div>
         <div class="input-row">
           <input class="input focused" value="32.5">
-          <span class="computed-tag" style="color: var(--accent-orange);">SOC пуст → ввод вручную</span>
+          <span class="computed-tag" style="color: var(--accent-orange);">SOC pusty → wprowadź ręcznie</span>
         </div>
       </div>
 
       <div class="field-row">
-        <div class="field-label">BYN/кВт·ч:</div>
+        <div class="field-label">BYN/kWh:</div>
         <div class="input-row">
           <input class="input" value="0.350">
         </div>
       </div>
 
       <div class="field-row">
-        <div class="field-label">Стоимость:</div>
+        <div class="field-label">Koszt:</div>
         <div class="input-row">
           <input class="input disabled" value="11.38" disabled>
           <span class="computed-tag">computed = 32.5 × 0.350</span>
@@ -955,42 +955,42 @@
       </div>
 
       <div class="actions">
-        <button class="btn btn-cancel">Отмена</button>
-        <button class="btn btn-save">Сохранить</button>
+        <button class="btn btn-cancel">Anuluj</button>
+        <button class="btn btn-save">Zapisz</button>
       </div>
     </div>
 
     <div class="annotation warning" style="margin-top: 16px;">
-      <strong>Fallback для DC:</strong> на станции часто видна только сумма кВт·ч (с экрана зарядки),
-      а SOC водитель не помнит. В этом случае кВт·ч становится редактируемым,
-      SOC опционален. Стоимость всё равно computed.
+      <strong>DC fallback:</strong> at the station, often only the kWh total (from the charging screen) is visible,
+      and the driver does not remember SOC. In that case kWh becomes editable,
+      SOC is optional. Cost is still computed.
     </div>
   </div>
 </div>
 
 <div class="annotation" style="margin-top: 24px;">
-  <strong>Поведение поля:</strong>
-  <code>kwh.enabled = (socStart == null || socEnd == null)</code> — по умолчанию заблокировано когда оба SOC заполнены.<br>
-  <strong>Сохранение:</strong> в БД пишем итоговое <code>kwhCharged</code> = computed (когда SOC) или manual (когда без SOC).
-  Поле <code>kwhChargedSoc</code> убрать или оставить как cache — обсудим при имплементации.<br>
-  <strong>Стиль:</strong> disabled-инпут — фон <code>rgba(45,55,72,0.4)</code>, текст <code>--text-muted</code>,
-  без эффекта focus. Visually отличается от editable.
+  <strong>Field behaviour:</strong>
+  <code>kwh.enabled = (socStart == null || socEnd == null)</code> is disabled by default when both SOC values are filled.<br>
+  <strong>Saving:</strong> the database receives final <code>kwhCharged</code> = computed (with SOC) or manual (without SOC).
+  Remove <code>kwhChargedSoc</code> or retain it as a cache — to be discussed during implementation.<br>
+  <strong>Style:</strong> disabled input — background <code>rgba(45,55,72,0.4)</code>, text <code>--text-muted</code>,
+  with no focus effect. It differs visually from an editable input.
 </div>
 
 <!-- ===================== Footer ===================== -->
-<h2>Резюме изменений</h2>
+<h2>Change summary</h2>
 <div style="background: var(--card-elevated); border-radius: 10px; padding: 18px; font-size: 13px; line-height: 1.8; color: var(--text-secondary);">
-  <strong style="color: var(--text-primary);">1. Унификация диалогов:</strong>
-  Battery / Parking / AI Insights — единое поведение и позиционирование (CenterStart, тап-внутрь = закрытие).<br>
-  <strong style="color: var(--text-primary);">2. Battery Health expand упрощён:</strong>
-  только Блок «Сейчас» (DiPlus, у всех) + Блок «Lifetime» (autoservice или плейсхолдер). Без графиков, без расчётного SoH.<br>
-  <strong style="color: var(--text-primary);">3. /Зарядки правая колонка:</strong>
-  3 секции — Период (у всех), Lifetime (autoservice), Динамика (snapshot'ы при пробуждении).<br>
+  <strong style="color: var(--text-primary);">1. Dialog unification:</strong>
+  Battery / Parking / AI Insights use the same behaviour and positioning (CenterStart; tap inside = close).<br>
+  <strong style="color: var(--text-primary);">2. Battery Health expanded dialog simplified:</strong>
+  only a “Now” block (DiPlus, for everyone) and a “Lifetime” block (autoservice or placeholder). No charts and no calculated SoH.<br>
+  <strong style="color: var(--text-primary);">3. /Charging right column:</strong>
+  3 sections — Period (everyone), Lifetime (autoservice), Trends (snapshots after waking).<br>
   <strong style="color: var(--text-primary);">4. ChargeEdit:</strong>
-  SOC основной ввод, кВт·ч computed read-only при заполненных SOC. Fallback для DC без SOC.<br>
+  SOC is the main input; kWh is computed read-only when SOC values are filled. DC fallback without SOC.<br>
   <strong style="color: var(--text-primary);">5. Backend bugfix:</strong>
-  починить write-path для DiPlus snapshot'ов в <code>battery_snapshot</code> table — сейчас Δ ячеек/темп. live идут,
-  но не персистятся, поэтому графики «Динамика» пустые.
+  Fix the DiPlus snapshot write path in the <code>battery_snapshot</code> table — cell Δ/live temperature arrives now,
+  but is not persisted, so the “Trends” charts are empty.
 </div>
 
 </body>

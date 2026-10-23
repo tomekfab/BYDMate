@@ -59,7 +59,7 @@ internal class FidRecLog(val file: File, private val nowMs: () -> Long = System:
     }
 
     companion object {
-        /** Directory the daemon writes into; the user finds the file in «Загрузки». */
+        /** Directory the daemon writes into; the user finds the file in Downloads. */
         const val DIR = "/sdcard/Download"
 
         private const val FLUSH_INTERVAL_MS = 2000L

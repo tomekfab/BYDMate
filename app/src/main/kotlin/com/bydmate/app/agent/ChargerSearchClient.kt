@@ -60,7 +60,7 @@ class ChargerSearchClient @Inject constructor(private val http: OkHttpClient) {
             // still unwinds as CancellationException.
             withTimeoutOrNull(totalTimeoutMs) { chain(lat, lon, radiusM, connector) } ?: run {
                 Log.w(TAG, "find: no answer within ${totalTimeoutMs}ms")
-                Result.failure(IOException("серверы зарядок не ответили за ${totalTimeoutMs / 1000} с"))
+                Result.failure(IOException("serwery ładowarek nie odpowiedźlub za ${totalTimeoutMs / 1000} z"))
             }
         }
 
@@ -148,7 +148,7 @@ class ChargerSearchClient @Inject constructor(private val http: OkHttpClient) {
                 throw e
             }
         }
-        return Result.failure(IOException("зарядочные серверы недоступны: ${lastError?.let(::mapOutcome)}"))
+        return Result.failure(IOException("Serwery ładowarek są niedostępne: ${lastError?.let(::mapOutcome)}"))
     }
 
     /** Overpass reports runtime errors (timeout, out of memory) inside a 200 answer via
@@ -172,7 +172,7 @@ class ChargerSearchClient @Inject constructor(private val http: OkHttpClient) {
             val operator = tags?.text("operator")
             val address = listOfNotNull(tags?.text("addr:city"), tags?.text("addr:street"), tags?.text("addr:housenumber"))
                 .joinToString(", ").ifEmpty { null }
-            ChargerStation(tags?.text("name") ?: operator ?: "Зарядная станция", address, operator, cLat, cLon)
+            ChargerStation(tags?.text("name") ?: operator ?: "Stacja ładowania", address, operator, cLat, cLon)
         }
     }
 

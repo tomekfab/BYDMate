@@ -137,7 +137,7 @@ class AutomationEngine @Inject @Suppress("LongParameterList") constructor( // Hi
     // force-stops every app and the process comes back through WorkManager, sometimes while the
     // screen is still dark. So the trigger fires on the first evaluate() of this process with the
     // screen on, then stays true for SERVICE_START_WINDOW_MS while the screen is on, and each
-    // rule fires on it once per process. The window keeps "запуск BYDMate AND темп > 22" from
+    // rule fires on it once per process. The window keeps "BYDMate starts AND temperature > 22" from
     // missing the trip when ExtTemp is still null on tick one (issue #51). Memory only: a new
     // process starts over.
     @Volatile private var serviceStartFiredAt: Long? = null
@@ -377,8 +377,8 @@ class AutomationEngine @Inject @Suppress("LongParameterList") constructor( // Hi
                 //
                 // Edge bookkeeping happens BEFORE the cooldown / park gates so that a
                 // front occurring while the rule is gated is consumed, not frozen and
-                // fired minutes later when the gate finally opens (issue #51: "сценарий
-                // сработал сам по себе"). A front must happen while the rule is able
+                // fired minutes later when the gate finally opens (issue #51: "scenario
+                // ran by itself"). A front must happen while the rule is able
                 // to act on it.
                 val matchedViaEvent = matchedViaEventTrigger(triggers, perTrigger, rule.triggerLogic)
                 val triggersHash = (rule.triggers + rule.triggerLogic).hashCode()
@@ -715,7 +715,7 @@ class AutomationEngine @Inject @Suppress("LongParameterList") constructor( // Hi
         // vehicle layer traces under them (a write's late check).
         cause: Long = 0L,
     ): Boolean {
-        // One chime per rule firing, regardless of action kinds (per-rule "Выполнять со звуком").
+        // One chime per rule firing, regardless of action kinds (per-rule "Play with sound").
         if (rule.playSound) {
             OverlayNotificationManager.playNotificationSound(context)
         }

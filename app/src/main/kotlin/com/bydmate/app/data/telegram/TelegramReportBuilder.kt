@@ -96,7 +96,7 @@ object TelegramReportBuilder {
     fun ruleHeader(ruleName: String?): String =
         ruleName?.trim()?.takeIf { it.isNotEmpty() }?.let { "$APP_NAME: $it" } ?: APP_NAME
 
-    /** «BYDMate: машина выключена в {{time}}»: the daemon fills the time when it sends. */
+    /** "BYDMate: car switched off at {{time}}": the daemon fills the time when it sends. */
     fun powerOffHeader(strings: ReportStrings): String =
         strings.get(R.string.tg_report_header_off, arrayOf(TIME_PLACEHOLDER))
 
@@ -210,12 +210,12 @@ object TelegramReportBuilder {
         }
     }
 
-    /** «заряд <b>64%</b>», null outside 0..100. */
+    /** «naładowanie <b>64%</b>», null outside 0..100. */
     private fun socPart(soc: Int?, strings: ReportStrings): String? = soc?.takeIf { it in 0..100 }?.let {
         markup(strings, R.string.tg_report_soc, bold(escape(text(strings, R.string.tg_report_soc_value, it))))
     }
 
-    /** «запас <b>312 км</b>», null for no range. */
+    /** "range <b>312 km</b>", null when range is unavailable. */
     private fun rangePart(km: Double?, strings: ReportStrings): String? = km?.takeIf { it > 0.0 }?.let {
         markup(strings, R.string.tg_report_range, bold(escape(text(strings, R.string.tg_report_trip_km_whole, it.roundToInt()))))
     }
@@ -224,7 +224,7 @@ object TelegramReportBuilder {
     private fun rangeHtml(inputs: ReportInputs, strings: ReportStrings): String? =
         if (inputs.hybrid) hybridRangePart(inputs.data, strings) else rangePart(inputs.rangeKm, strings)
 
-    /** «запас <b>46 км</b> на батарее, <b>512 км</b> на топливе», either half alone; null for neither. */
+    /** "range <b>46 km</b> on battery, <b>512 km</b> on fuel", either half alone; null for neither. */
     private fun hybridRangePart(d: DiParsData?, strings: ReportStrings): String? {
         fun km(v: Int?) = v?.takeIf { it > 0 }?.let { bold(escape(text(strings, R.string.tg_report_trip_km_whole, it))) }
         val ev = km(d?.evRangeKm)
@@ -237,16 +237,16 @@ object TelegramReportBuilder {
         }
     }
 
-    /** «🧭 Пробег 23 456 км»: whole kilometers cut like the car's own odometer, grouped by the language. */
+    /** "🧭 Odometer 23 456 km": whole kilometers, grouped by the language. */
     private fun odometerLine(km: Double?, strings: ReportStrings): String? = km?.takeIf { it >= MIN_ODOMETER_KM }?.let {
         "🧭 ${escape(text(strings, R.string.tg_report_odometer, it.toInt()))}"
     }
 
-    /** «🔋 Заряд <b>64%</b>, запас <b>312 км</b>», either half alone when only one is reported. */
+    /** "🔋 Charge <b>64%</b>, range <b>312 km</b>", either half alone when only one is reported. */
     private fun chargeLine(soc: Line?, range: Line?, locale: Locale): String? =
         sentence(listOfNotNull(soc?.html, range?.html), locale)?.let { "🔋 $it" }
 
-    /** «Снаружи +12°, в салоне +19°», either half alone when only one is reported. */
+    /** "Outside +12°, inside +19°", either half alone when only one is reported. */
     private fun tempsLine(d: DiParsData, strings: ReportStrings, locale: Locale): String? = sentence(
         listOfNotNull(
             d.exteriorTemp?.let { text(strings, R.string.tg_report_temp_outside, it) },
@@ -255,7 +255,7 @@ object TelegramReportBuilder {
         locale,
     )
 
-    /** «заряд 64%» + «запас 312 км» -> «Заряд 64%, запас 312 км»; null when there is no part. */
+    /** "charge 64%" + "range 312 km" -> "Charge 64%, range 312 km"; null when there is no part. */
     private fun sentence(parts: List<String>, locale: Locale): String? =
         parts.takeIf { it.isNotEmpty() }?.joinToString(", ")?.replaceFirstChar { it.titlecase(locale) }
 
@@ -269,7 +269,7 @@ object TelegramReportBuilder {
 
     /**
      * The trip under way when it is at least [MIN_LIVE_TRIP_KM] long, else the last recorded one:
-     * «🚗 <b>Последняя поездка</b> 25.09 в 16:21», then «14 км за 35 мин» and «Расход 22,1 кВт·ч/100 км»
+     * "🚗 <b>Last trip</b> 25.09 at 16:21", then "14 km in 35 min" and "Consumption 22.1 kWh/100 km"
      * indented; a line without its value is left out.
      */
     private fun tripBlock(inputs: ReportInputs, strings: ReportStrings, nowMs: Long): String? {
@@ -292,9 +292,9 @@ object TelegramReportBuilder {
     }
 
     /**
-     * The dashboard counter [field] (TRIP1 or TRIP2): «🔁 <b>TRIP 1</b> с 25.09», then «412 км за 9 ч 20 мин»
-     * and «Расход 21,4 кВт·ч/100 км» indented, consumption as the counter's popup counts it (all kWh over
-     * the km). A counter never reset reads «за всё время», as its dashboard button does. Null for a
+     * The dashboard counter [field] (TRIP1 or TRIP2): "🔁 <b>TRIP 1</b> from 25.09", then "412 km in 9 h 20 min"
+     * and "Consumption 21.4 kWh/100 km" indented, consumption as the counter's popup counts it (all kWh over
+     * the km). A counter never reset reads "all time", as its dashboard button does. Null for a
      * counter with no kilometers.
      */
     private fun counterBlock(field: ReportField, inputs: ReportInputs, strings: ReportStrings): String? {
@@ -311,7 +311,7 @@ object TelegramReportBuilder {
         return block + "\n" + INDENT + escape(text(strings, R.string.tg_report_fuel_period, fuel.liters, fuel.liters / fuel.km * 100.0))
     }
 
-    /** [title] (HTML) and the indented «14 км за 35 мин» / «Расход …» lines under it. */
+    /** [title] (HTML) and the indented "14 km in 35 min" / "Consumption …" lines under it. */
     private fun tripLines(title: String, km: Double, kwhPer100: Double?, durationMs: Long?, strings: ReportStrings): String {
         val distance = if (km >= WHOLE_KM_FROM) text(strings, R.string.tg_report_trip_km_whole, km.roundToInt())
         else text(strings, R.string.tg_report_trip_km, km)
@@ -361,7 +361,7 @@ object TelegramReportBuilder {
     }
 
     /**
-     * «⚠️ Открыто: …» with every panel reported open, «🔒 Всё закрыто» in the car block. «Всё закрыто» only when all four doors and all
+     * "⚠️ Open: …" with every panel reported open, "🔒 All closed" in the car block. "All closed" only when all four doors and all
      * four windows are known closed (a sunroof, a trunk, a front trunk or a hood the car does not
      * report is fine: many cars lack them). Otherwise, with nothing open but some panel unreadable
      * or missing, the line is left out rather than guessed either way; null when the car reports
@@ -397,8 +397,8 @@ object TelegramReportBuilder {
     }
 
     /**
-     * «Шины: ПЛ 2,4 · ПП 2,4 · ЗЛ 2,3 · ЗП 2,4 бар» in the order front left, front right, rear left,
-     * rear right, as on the «Техника» screen; a wheel without a reading keeps its place as «-».
+     * "Tires: FL 2.4 · FR 2.4 · RL 2.3 · RR 2.4 bar" in the order front left, front right, rear left,
+     * rear right, as on the technical panel screen; a wheel without a reading keeps its place as "-".
      */
     private fun tiresLine(d: DiParsData, strings: ReportStrings, locale: Locale): String? {
         val wheels = listOf(

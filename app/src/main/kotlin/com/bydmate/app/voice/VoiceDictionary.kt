@@ -1,45 +1,61 @@
 package com.bydmate.app.voice
 
 /**
- * The built-in Russian command dictionary (Java resource [RESOURCE]): a closed list of phrase
- * templates, expanded at load into every phrase they accept. A phrase runs offline only when it
- * equals one of them word for word after [words]; the file header documents the format. Numbers
- * stay symbolic in the expansion ("#"), each place keeping the values it accepts. Pure.
+ * A built-in command dictionary (Java resource [RESOURCE] for Russian, [PL_RESOURCE] for Polish): a
+ * closed list of compiled phrase templates. Runtime matching visits only syntax alternatives for
+ * the submitted words and numbers. [phrases] and [conflicts] explicitly expand the grammar for
+ * JVM audits; production matching never calls them.
  */
 class VoiceDictionary internal constructor(
-    private val byKey: Map<String, List<DictPhrase>>,
+    private val templates: List<CompiledTemplate>,
+    private val audit: () -> Map<String, List<DictPhrase>>,
     /** Template lines in the file. */
     val templateCount: Int,
+    /** The text rules the templates were compiled with; input must be normalized with the same. */
+    val rules: VoiceTextRules = PolishVoiceTextRules,
 ) {
 
-    /** Distinct word-sequence keys the dictionary indexes phrases under. */
-    val keyCount: Int get() = byKey.size
+    // Index only possible initial tokens, never complete phrases or number cross-products.
+    private val byFirstWord = buildMap<String, MutableList<CompiledTemplate>> {
+        templates.forEach { template ->
+            template.firstWords.forEach { word -> getOrPut(word) { ArrayList() }.add(template) }
+        }
+    }
+
+    /** Compiled template entries the runtime matcher visits. */
+    val keyCount: Int get() = templates.size
 
     /**
      * What [words] (already normalized by [words]) runs, or null when no phrase equals them or two
-     * phrases disagree. [inCompound]: the words are one part of "A и B", where a `solo` template
+     * phrases disagree. [inCompound]: the words are one part of "A i B", where a `solo` template
      * (a phrase without its own verb) never matches.
      */
-    fun match(words: List<String>, inCompound: Boolean = false): ParseResult? {
-        val numbers = words.mapNotNull { VoiceNormalizer.number(it) }
-        val key = words.joinToString(" ") { if (VoiceNormalizer.number(it) != null) NUM else it }
-        return byKey[key].orEmpty()
+    fun match(words: List<String>, inCompound: Boolean = false): ParseResult? =
+        candidates(words, inCompound).singleOrNull()
+
+    /** Every distinct result [words] has: none for no phrase, one for a match, several when two
+     *  phrases disagree (the ambiguity [match] turns into null). */
+    internal fun candidates(words: List<String>, inCompound: Boolean = false): List<ParseResult> {
+        val first = words.firstOrNull() ?: return emptyList()
+        val key = rules.number(first)?.let { NUM } ?: first
+        val context = CompiledTemplate.MatchContext(words, rules)
+        return byFirstWord[key].orEmpty().asSequence()
             .filter { !inCompound || !it.template.solo }
-            .mapNotNull { it.resolve(numbers) }
+            .flatMap { it.match(context).asSequence() }
             .distinct()
-            .singleOrNull()
+            .toList()
     }
 
     /** Every phrase the dictionary accepts with what it runs; a phrase two templates share is
      *  listed once per template. */
-    fun phrases(): Sequence<Pair<String, ParseResult>> = byKey.asSequence().flatMap { (key, list) ->
+    fun phrases(): Sequence<Pair<String, ParseResult>> = audit().asSequence().flatMap { (key, list) ->
         list.asSequence().flatMap { p ->
             p.tuples().asSequence().mapNotNull { t -> p.resolve(t)?.let { spell(key, t) to it } }
         }
     }
 
     /** Phrases two templates accept with different results, one line each; empty when none. */
-    fun conflicts(): List<String> = byKey.flatMap { (key, list) ->
+    fun conflicts(): List<String> = audit().flatMap { (key, list) ->
         list.flatMapIndexed { i, a -> list.drop(i + 1).mapNotNull { b -> conflict(key, a, b) } }
     }
 
@@ -55,25 +71,29 @@ class VoiceDictionary internal constructor(
     }
 
     companion object {
-        const val RESOURCE = "voice/ru_commands.txt"
+        const val PL_RESOURCE = "voice/pl_commands.txt"
         internal const val NUM = "#"
 
-        /** Politeness and address words: dropped from the utterance anywhere, never in a template. */
-        val FILLERS: Set<String> = VoicePhrase.FILLERS + setOf("спасибо", "хочу", "я")
+        fun resourceOf(): String = PL_RESOURCE
 
-        fun load(): VoiceDictionary {
-            val stream = requireNotNull(VoiceDictionary::class.java.classLoader?.getResourceAsStream(RESOURCE)) {
-                "$RESOURCE is missing"
+        /** Politeness and address words: dropped from the utterance anywhere, never in a template. */
+        val FILLERS: Set<String> = PolishVoiceTextRules.fillers
+
+        /** The dictionary of [language], Russian by default. */
+        fun load(language: VoiceLanguage = VoiceLanguage.DEFAULT): VoiceDictionary {
+            val resource = resourceOf()
+            val stream = requireNotNull(VoiceDictionary::class.java.classLoader?.getResourceAsStream(resource)) {
+                "$resource is missing"
             }
-            return parse(stream.bufferedReader(Charsets.UTF_8).use { it.readText() })
+            return parse(stream.bufferedReader(Charsets.UTF_8).use { it.readText() }, VoiceTextRules.forLanguage(language))
         }
 
         /** Throws [IllegalArgumentException] naming the line on any error in [text]. */
-        fun parse(text: String): VoiceDictionary = VoiceDictionaryLoader(text).build()
+        fun parse(text: String, rules: VoiceTextRules = PolishVoiceTextRules): VoiceDictionary =
+            VoiceDictionaryLoader(text, rules).build()
 
-        /** The words matching reads: [VoiceNormalizer.tokens] without [FILLERS], numbers as digits. */
-        fun words(text: String): List<String> =
-            VoiceNormalizer.digits(VoiceNormalizer.tokens(text).filterNot { it in FILLERS })
+        /** The Polish words used for matching, with fillers removed and numbers as digits. */
+        fun words(text: String): List<String> = PolishVoiceTextRules.words(text)
     }
 }
 
@@ -101,8 +121,12 @@ internal class DictPhrase(val nums: List<Num>, val values: Map<String, String>, 
 internal sealed interface CommandExpr {
     fun resolve(values: Map<String, String>): ParseResult
 
-    class Temp(private val sign: Int) : CommandExpr {
-        override fun resolve(values: Map<String, String>) = ParseResult.RelativeTemp(sign)
+    /** A setpoint step: [sign] times a fixed [amount], or the number a `range` slot [slot] took. */
+    class Temp(private val sign: Int, private val amount: Int?, private val slot: String?) : CommandExpr {
+        override fun resolve(values: Map<String, String>): ParseResult {
+            val magnitude = amount ?: requireNotNull(values[slot]) { "{$slot} has no value in a TEMP step" }.toInt()
+            return ParseResult.RelativeTemp(sign * magnitude)
+        }
     }
 
     class Vol(private val payload: String) : CommandExpr {
@@ -111,6 +135,14 @@ internal sealed interface CommandExpr {
 
     class Ask(private val question: VehicleQuestion) : CommandExpr {
         override fun resolve(values: Map<String, String>) = ParseResult.Ask(question)
+    }
+
+    object NavigateHome : CommandExpr {
+        override fun resolve(values: Map<String, String>) = ParseResult.NavigateHome
+    }
+
+    object NavigateWork : CommandExpr {
+        override fun resolve(values: Map<String, String>) = ParseResult.NavigateWork
     }
 
     object Music : CommandExpr {
@@ -123,11 +155,18 @@ internal sealed interface CommandExpr {
 
     companion object {
         private val SLOT_REF = Regex("\\{([a-z0-9_]+)\\}")
+        private val TEMP_STEP = Regex("TEMP ([+-])(?:(\\d+)|\\{([a-z0-9_]+)\\})")
 
         fun parse(text: String): CommandExpr = when {
-            text == "TEMP +1" -> Temp(1)
-            text == "TEMP -1" -> Temp(-1)
+            text.startsWith("TEMP ") -> {
+                val m = requireNotNull(TEMP_STEP.matchEntire(text)) { "bad temperature step \"$text\"" }
+                val amount = m.groupValues[2].toIntOrNull()
+                require(amount == null || amount > 0) { "bad temperature step \"$text\"" }
+                Temp(if (m.groupValues[1] == "-") -1 else 1, amount, m.groupValues[3].ifEmpty { null })
+            }
             text == "MUSIC" -> Music
+            text == "NAVIGATE_HOME" -> NavigateHome
+            text == "NAVIGATE_WORK" -> NavigateWork
             text.startsWith("VOL ") -> Vol(text.removePrefix("VOL ").trim())
             text.startsWith("ASK ") -> text.removePrefix("ASK ").trim().let { id ->
                 Ask(requireNotNull(VehicleQuestion.of(id)) { "unknown question \"$id\" in \"$text\"" })

@@ -114,7 +114,7 @@ class IternioTelemetryClient @Inject constructor(
         sampleTimeMs: Long? = null,
     ): Result<Unit> = withContext(Dispatchers.IO) {
         val token = userToken.trim()
-        if (token.isEmpty()) return@withContext Result.failure(IllegalArgumentException("пустой токен"))
+        if (token.isEmpty()) return@withContext Result.failure(IllegalArgumentException("pusty token"))
         val telemetry = try {
             buildTelemetry(
                 data = data,
@@ -126,12 +126,12 @@ class IternioTelemetryClient @Inject constructor(
                 sampleTimeMs = sampleTimeMs,
             )
         } catch (e: Exception) {
-            Log.w(TAG, "отправка не удалась: ${e.message}")
+            Log.w(TAG, "wysyłanie nie powiodło się: ${e.message}")
             return@withContext Result.failure(e)
         }
         // Iternio docs: SOC is the one truly required telemetry field. Without
         // it the route planner has nothing to update, so we skip the call.
-        if (telemetry == null) return@withContext Result.failure(IllegalStateException("SOC недоступен"))
+        if (telemetry == null) return@withContext Result.failure(IllegalStateException("SOC niedostępny"))
         sendTelemetry(apiKey, token, telemetry)
     }
 
@@ -251,7 +251,7 @@ class IternioTelemetryClient @Inject constructor(
         telemetry: JSONObject,
     ): Result<Unit> = withContext(Dispatchers.IO) {
         val token = userToken.trim()
-        if (token.isEmpty()) return@withContext Result.failure(IllegalArgumentException("пустой токен"))
+        if (token.isEmpty()) return@withContext Result.failure(IllegalArgumentException("pusty token"))
         try {
             val form = FormBody.Builder()
                 .add("token", token)
@@ -283,11 +283,11 @@ class IternioTelemetryClient @Inject constructor(
                         Log.w(TAG, "API returned non-ok status")
                         return@withContext Result.failure(IllegalStateException("Iternio API returned non-ok status"))
                     }
-                } catch (_: Exception) { /* пустой или не-JSON ответ считаем успехом при HTTP 2xx */ }
+                } catch (_: Exception) { /* Treat an empty or non-JSON response as successful for HTTP 2xx. */ }
             }
             Result.success(Unit)
         } catch (e: Exception) {
-            Log.w(TAG, "отправка не удалась: ${e.message}")
+            Log.w(TAG, "wysyłanie nie powiodło się: ${e.message}")
             Result.failure(e)
         }
     }

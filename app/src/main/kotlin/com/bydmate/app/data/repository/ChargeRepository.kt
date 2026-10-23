@@ -29,8 +29,8 @@ fun fullCycleCapacityKwh(nominalCapacityKwh: Double, sohPercent: Float?, lifetim
 
 /**
  * Full-cycle equivalent of everything ever pumped into the pack: total kWh divided by the
- * SoH-corrected capacity ([fullCycleCapacityKwh]). Shared by the «Зарядки» stats and the
- * «Техника» battery card so both screens show the same number from the same source.
+ * SoH-corrected capacity ([fullCycleCapacityKwh]). Shared by the charging stats and the
+ * technical panel battery card so both screens show the same number from the same source.
  */
 fun equivalentFullCycles(
     totalKwhAdded: Double,

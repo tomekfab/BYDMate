@@ -104,7 +104,7 @@ class RuleDragTest {
         val held = listOf(1L, 2L, 3L)
         assertTrue(sameRules(held, listOf(rule(3), rule(1), rule(2))))
         assertTrue(sameRules(held, listOf(rule(1), rule(2, enabled = false), rule(3))))
-        // «Активные» switched on with 2 disabled; a rule added; a rule deleted.
+// Active switched on with 2 disabled; a rule added; a rule deleted.
         assertFalse(sameRules(held, listOf(rule(1), rule(3))))
         assertFalse(sameRules(held, listOf(rule(4), rule(1), rule(2), rule(3))))
         assertFalse(sameRules(held, listOf(rule(1), rule(2))))

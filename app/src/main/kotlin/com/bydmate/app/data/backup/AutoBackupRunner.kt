@@ -128,7 +128,7 @@ class AutoBackupRunner(
     }
 
     /**
-     * «Сохранить» in Settings: exports [parts] and sends one copy to the bot when it is connected.
+     * «Zapisz» in Settings: exports [parts] and sends one copy to the bot when it is connected.
      * Outside the auto backup flow: no rename, rotation, pending upload or last run. Throws when
      * the export fails.
      */
@@ -185,9 +185,9 @@ class AutoBackupRunner(
     }
 
     private fun caption(file: File): String {
-        val ru = Locale("ru")
-        val date = SimpleDateFormat("d MMMM HH:mm", ru).format(Date(file.lastModified()))
-        val sizeMb = String.format(ru, "%.1f", file.length() / BYTES_PER_MB)
-        return "BYDMate: бэкап $date, $sizeMb МБ"
+        val pl = Locale("pl")
+        val date = SimpleDateFormat("d MMMM HH:mm", pl).format(Date(file.lastModified()))
+        val sizeMb = String.format(pl, "%.1f", file.length() / BYTES_PER_MB)
+        return "BYDMate: kopia zapasowa $date, $sizeMb MB"
     }
 }

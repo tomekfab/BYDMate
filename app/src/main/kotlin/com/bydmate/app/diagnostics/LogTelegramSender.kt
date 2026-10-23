@@ -20,7 +20,7 @@ import javax.inject.Singleton
 
 /**
  * Sends a saved log to the user's bot (#324): on the Settings button, and by itself when a
- * recording ends for good and «Отправлять записанный лог в Telegram» is on. App-scoped: the 2h
+ * recording ends for good and "Send saved log to Telegram" is on. App-scoped: the 2h
  * auto-stop may come while Settings is closed. One attempt per file, no retry queue.
  *
  * Log tag `TgReport` (already in the recorded tags); sizes and verdicts only, never the token.

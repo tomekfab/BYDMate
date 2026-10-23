@@ -1,0 +1,218 @@
+{
+  "schema": 1,
+  "language": "pl",
+  "audioFormat": "RIFF PCM16 mono 16000 Hz",
+  "recordingSource": "synthetic: macOS 'say -v Zosia' (pl_PL) converted with afconvert. Stand-in for consented human recordings, which are still required for the real acceptance gate; synthetic clean speech overstates cabin-noise accuracy.",
+  "matching": "transcript lowercased, punctuation removed, Polish diacritics folded, '%' read as 'procent' and '°C' as 'stopni'; an utterance passes when every requiredToken appears as a whole word (alternatives separated by '|': any one suffices, so '22' equals 'dwadziescia dwa') and no forbiddenToken does. Negative utterances also require 'nie'. Inflection variants of the same word (temperatura/temperaturę) are accepted; wrong verbs are not.",
+  "utterances": [
+    {
+      "id": "pos-01",
+      "file": "pos-01.wav",
+      "category": "positive",
+      "reference": "zamknij wszystkie okna",
+      "expectedIntent": "windows.close_all",
+      "requiredTokens": [
+        "zamknij",
+        "wszystkie",
+        "okna"
+      ],
+      "forbiddenTokens": []
+    },
+    {
+      "id": "pos-02",
+      "file": "pos-02.wav",
+      "category": "positive",
+      "reference": "otwórz okno kierowcy",
+      "expectedIntent": "window.driver.open",
+      "requiredTokens": [
+        "otworz",
+        "okno",
+        "kierowcy"
+      ],
+      "forbiddenTokens": []
+    },
+    {
+      "id": "pos-03",
+      "file": "pos-03.wav",
+      "category": "positive",
+      "reference": "ustaw temperaturę na dwadzieścia dwa stopnie",
+      "expectedIntent": "climate.set_temperature.22",
+      "requiredTokens": [
+        "ustaw",
+        "temperature|temperatura",
+        "dwadziescia|22",
+        "stopnie|stopni"
+      ],
+      "forbiddenTokens": []
+    },
+    {
+      "id": "pos-04",
+      "file": "pos-04.wav",
+      "category": "positive",
+      "reference": "jaki jest poziom baterii",
+      "expectedIntent": "question.battery_level",
+      "requiredTokens": [
+        "jaki",
+        "poziom",
+        "baterii"
+      ],
+      "forbiddenTokens": []
+    },
+    {
+      "id": "pos-05",
+      "file": "pos-05.wav",
+      "category": "positive",
+      "reference": "ustaw głośność na pięćdziesiąt procent",
+      "expectedIntent": "volume.set.50",
+      "requiredTokens": [
+        "glosnosc",
+        "piecdziesiat|50",
+        "procent"
+      ],
+      "forbiddenTokens": []
+    },
+    {
+      "id": "pos-06",
+      "file": "pos-06.wav",
+      "category": "positive",
+      "reference": "otwórz szyberdach",
+      "expectedIntent": "roof.open",
+      "requiredTokens": [
+        "otworz",
+        "szyberdach"
+      ],
+      "forbiddenTokens": []
+    },
+    {
+      "id": "neg-01",
+      "file": "neg-01.wav",
+      "category": "negative",
+      "reference": "nie zamykaj okien",
+      "expectedIntent": "none.negated",
+      "requiredTokens": [
+        "nie",
+        "zamykaj",
+        "okien"
+      ],
+      "forbiddenTokens": []
+    },
+    {
+      "id": "neg-02",
+      "file": "neg-02.wav",
+      "category": "negative",
+      "reference": "nie otwieraj okna kierowcy",
+      "expectedIntent": "none.negated",
+      "requiredTokens": [
+        "nie",
+        "otwieraj",
+        "okna"
+      ],
+      "forbiddenTokens": []
+    },
+    {
+      "id": "neg-03",
+      "file": "neg-03.wav",
+      "category": "negative",
+      "reference": "nie ustawiaj temperatury na dwadzieścia dwa stopnie",
+      "expectedIntent": "none.negated",
+      "requiredTokens": [
+        "nie",
+        "temperatury|temperatura"
+      ],
+      "forbiddenTokens": []
+    },
+    {
+      "id": "neg-04",
+      "file": "neg-04.wav",
+      "category": "negative",
+      "reference": "nie zamykaj wszystkich okien",
+      "expectedIntent": "none.negated",
+      "requiredTokens": [
+        "nie",
+        "zamykaj"
+      ],
+      "forbiddenTokens": []
+    },
+    {
+      "id": "quo-01",
+      "file": "quo-01.wav",
+      "category": "quoted",
+      "reference": "powiedz zamknij wszystkie okna",
+      "expectedIntent": "none.quoted",
+      "requiredTokens": [
+        "powiedz",
+        "zamknij",
+        "okna"
+      ],
+      "forbiddenTokens": []
+    },
+    {
+      "id": "quo-02",
+      "file": "quo-02.wav",
+      "category": "quoted",
+      "reference": "Kasia powiedziała otwórz okno kierowcy",
+      "expectedIntent": "none.quoted",
+      "requiredTokens": [
+        "kasia",
+        "otworz",
+        "okno"
+      ],
+      "forbiddenTokens": []
+    },
+    {
+      "id": "cmp-01",
+      "file": "cmp-01.wav",
+      "category": "compound",
+      "reference": "otwórz okno kierowcy i zamknij okno pasażera",
+      "expectedIntent": "windows.compound",
+      "requiredTokens": [
+        "otworz",
+        "okno",
+        "kierowcy",
+        "zamknij",
+        "pasazera"
+      ],
+      "forbiddenTokens": []
+    },
+    {
+      "id": "cmp-02",
+      "file": "cmp-02.wav",
+      "category": "compound",
+      "reference": "zamknij wszystkie okna i ustaw temperaturę na dwadzieścia dwa stopnie",
+      "expectedIntent": "compound.windows_climate",
+      "requiredTokens": [
+        "zamknij",
+        "wszystkie",
+        "okna",
+        "ustaw",
+        "temperature|temperatura",
+        "stopnie|stopni"
+      ],
+      "forbiddenTokens": []
+    },
+    {
+      "id": "unr-01",
+      "file": "unr-01.wav",
+      "category": "unrelated",
+      "reference": "jaka jest dzisiaj pogoda w Krakowie",
+      "expectedIntent": "none.unrelated",
+      "requiredTokens": [
+        "pogoda",
+        "krakowie"
+      ],
+      "forbiddenTokens": []
+    },
+    {
+      "id": "unr-02",
+      "file": "unr-02.wav",
+      "category": "unrelated",
+      "reference": "opowiedz mi krótki dowcip",
+      "expectedIntent": "none.unrelated",
+      "requiredTokens": [
+        "opowiedz",
+        "dowcip"
+      ],
+      "forbiddenTokens": []
+    }
+  ]
+}

@@ -52,8 +52,8 @@ class OffReportPointTest {
     private val realSchedule = OffReport.schedule
     private val realPending = OffReport.pending
 
-    private val map = "📍 <a href=\"https://yandex.ru/maps/?pt=27.560000,53.900000&amp;z=16&amp;l=map\">Открыть на карте</a>"
-    private val placed = "<b>off at ${TelegramReportBuilder.TIME_PLACEHOLDER}</b>\n\n🔋 Заряд <b>64%</b>\n🧭 Пробег 23 456 км\n\n$map"
+    private val map = "📍 <a href=\"https://yandex.ru/maps/?pt=27.560000,53.900000&amp;z=16&amp;l=map\">Otwórz na mapie</a>"
+    private val placed = "<b>off at ${TelegramReportBuilder.TIME_PLACEHOLDER}</b>\n\n🔋 Naładowanie <b>64%</b>\n🧭 Przebieg 23 456 km\n\n$map"
 
     @Before fun setUp() {
         OffReport.resetForTest()

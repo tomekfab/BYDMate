@@ -22,32 +22,32 @@ class VoiceAutomationResolverTest {
     }
 
     @Test fun `match returns the rule on normalized equality`() = runBlocking {
-        assertEquals(VoiceAutomationMatch(1L, "r1"), resolver(listOf(voiceRule(1, "навигатор"))).match("Навигатор"))
+        assertEquals(VoiceAutomationMatch(1L, "r1"), resolver(listOf(voiceRule(1, "nawigacja"))).match("Nawigacja"))
     }
 
     @Test fun `match returns null when nothing matches`() = runBlocking {
-        assertNull(resolver(listOf(voiceRule(1, "навигатор"))).match("музыка"))
+        assertNull(resolver(listOf(voiceRule(1, "nawigacja"))).match("muzyka"))
     }
 
-    @Test fun `only the whole utterance matches, fillers and yo ignored`() = runBlocking {
-        val r = resolver(listOf(voiceRule(1, "режим ёлка")))
-        assertNull(r.match("Эй, включи мне режим елка, пожалуйста!"))
-        assertEquals(VoiceAutomationMatch(1L, "r1"), r.match("Эй, режим елка, пожалуйста!"))
+    @Test fun `only the whole utterance matches and Polish fillers are ignored`() = runBlocking {
+        val r = resolver(listOf(voiceRule(1, "tryb nocny")))
+        assertNull(r.match("ej włącz mi tryb nocny proszę"))
+        assertEquals(VoiceAutomationMatch(1L, "r1"), r.match("ej tryb nocny proszę"))
     }
 
     @Test fun `no partial-word match`() = runBlocking {
-        assertNull(resolver(listOf(voiceRule(1, "окно"))).match("окновать"))
+        assertNull(resolver(listOf(voiceRule(1, "okno"))).match("okienkować"))
     }
 
     @Test fun `each phrase matches only itself`() = runBlocking {
-        val r = resolver(listOf(voiceRule(1, "окна"), voiceRule(2, "окна дома")))
-        assertEquals(2L, r.match("окна дома")?.ruleId)
-        assertEquals(1L, r.match("окна")?.ruleId)
-        assertNull(r.match("открой окна дома"))
+        val r = resolver(listOf(voiceRule(1, "okna"), voiceRule(2, "okna domu")))
+        assertEquals(2L, r.match("okna domu")?.ruleId)
+        assertEquals(1L, r.match("okna")?.ruleId)
+        assertNull(r.match("otwórz okna domu"))
     }
 
     @Test fun `on a tie the first rule wins`() = runBlocking {
-        val r = resolver(listOf(voiceRule(1, "сцена"), voiceRule(2, "сцена")))
-        assertEquals(1L, r.match("сцена")?.ruleId)
+        val r = resolver(listOf(voiceRule(1, "scena"), voiceRule(2, "scena")))
+        assertEquals(1L, r.match("scena")?.ruleId)
     }
 }

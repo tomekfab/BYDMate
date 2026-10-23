@@ -14,7 +14,7 @@ import org.junit.Test
 
 /**
  * The average-SOC aggregation (#93) moved out of DashboardViewModel when the battery-health
- * dialog became the «Техника» screen; this keeps its coverage.
+* dialog became the Technical data screen; this keeps its coverage.
  */
 class AvgSocProviderTest {
 

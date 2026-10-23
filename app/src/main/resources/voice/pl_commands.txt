@@ -1,0 +1,450 @@
+# BYDMate built-in voice commands, Polish.
+#
+# The Polish command dictionary keeps the same categories and dispatch strings as the vehicle protocol.
+# number ranges and rounding. A phrase runs offline only when it equals one phrase of this file, word
+# for word. Anything else never runs; a request to the car that matches nothing is refused (see
+# NluParser.classify), a harmless phrase may go to the assistant when the user enabled it.
+# "A i B", "A oraz B", "A a także B", "A potem B" and "A i potem B" run when every part is a
+# parameter command of this file on its own; a part that is a step, a question, navigation or the
+# volume never takes part, and the whole utterance is refused.
+# "czy możesz ..." / "chciałbym ..." are dropped only at the very start (VoiceTextRules.words).
+#
+# Both the phrase and the template words are normalized the same way (PolishVoiceNormalizer): lower
+# case, punctuation out, "%" -> "procent", number words -> digits ("dwadzieścia dwa" -> 22).
+# Diacritics are kept, never folded: an unaccented spelling works only where it is written out below.
+# Filler words (proszę, mi, możesz, słuchaj, hej, ej, dziękuję, chcę, ja) are dropped from the phrase.
+# Neither they nor a negation (nie, ani, bez, nigdy, przestań) nor a quote marker (powiedział,
+# polecenie, ...) may appear here, so a phrase that holds one can never equal a template.
+#
+# Format notes and deliberate Polish grammar differences:
+#   - "światło"/"światła" alone is the headlights in Polish, which are not supported: the interior
+#     light needs "w kabinie"/"w środku"/... and the daytime running lights need "dzienne"/"drl".
+#   - Verbless phrases are standalone here ("klimatyzacja auto",
+#     "temperatura 22 stopnie").
+#   - A postposed verb is accepted only in the listed windows/sunroof forms ("szybę pasażera
+#     zamknij", "do połowy otwórz okno"); there are no colloquial vent-window forms.
+# Each template phrase has a matching row in app/src/test/resources/voice/pl_commands_golden.tsv.
+
+# ---- Verbs ---------------------------------------------------------------------------------
+
+rule make: zrób|zrob|zrobić|zrobic
+rule open: otwórz|otworz|otworzyć|otworzyc|otwórzcie|otworzcie|otwieraj|opuść|opusc|opuścić|opuscic
+rule close: zamknij|zamknąć|zamknac|zamknijcie|zamykaj|podnieś|podnies|podnieść|podniesc
+# Lids (sunroof, shade, trunk) only open and close: "opuść"/"podnieś" say nothing clear there.
+rule open_lid: otwórz|otworz|otworzyć|otworzyc|otwórzcie|otworzcie|otwieraj
+rule close_lid: zamknij|zamknąć|zamknac|zamknijcie|zamykaj
+rule ajar: uchyl|uchylić|uchylic|uchylcie
+rule air: przewietrz|przewietrzyć|przewietrzyc|wywietrz|wywietrzyć|wywietrzyc
+rule set: ustaw|ustawić|ustawic|<make>
+rule on: włącz|wlacz|włączyć|wlaczyc|włączcie|wlaczcie|włączaj|wlaczaj
+rule off: wyłącz|wylacz|wyłączyć|wylaczyc|wyłączcie|wylaczcie|wyłączaj|wylaczaj|zgaś|zgas|zgasić|zgasic
+
+# ---- How far an opening goes ---------------------------------------------------------------
+# A spoken share maps to the widest detent that does not exceed it: windows 10 (vent), 50, 100;
+# the sunroof 7 (tilt), 50, 100. Below the smallest detent nothing matches.
+
+rule fully: całkowicie|calkowicie|w całości|w calosci|do końca|do konca
+rule full: <fully>|na maksimum|na maksa|maksymalnie
+rule half: na pół|na pol|napół|napol|na połowę|na polowe|do połowy|do polowy|w połowie|w polowie
+rule little: trochę|troche|troszkę|troszke|lekko|odrobinę|odrobine|nieco|na szparkę|na szparke
+        |na szczelinę|na szczeline|na wietrzenie|na przewietrzanie
+rule prep: na|do
+rule pct_word: procent|procenty|procenta|procentów|procentow
+list frac: na jedną trzecią|na jedna trzecia|na trzecią część|na trzecia czesc|na jedną czwartą|na jedna czwarta
+        |na czwartą część|na czwarta czesc|na ćwierć|na cwierc => 通风 ;
+    na trzy czwarte|na trzy czwartych => 半开
+list pct1: 10..49 => 通风 ; 50..99 => 半开 ; 100 => 打开100
+list pcts: 10..49 => 通风 ; 50..99 => 半开 ; 100 => 全开
+list set1: 0 => 打开0 ; 10..49 => 通风 ; 50..99 => 半开 ; 100 => 打开100
+list sets: 0 => 关闭 ; 10..49 => 通风 ; 50..99 => 半开 ; 100 => 全开
+list roof_pct: 7..49 => 天窗通风 ; 50..99 => 天窗打开50 ; 100 => 天窗打开100
+list roof_frac: na jedną trzecią|na jedna trzecia|na trzecią część|na trzecia czesc|na jedną czwartą|na jedna czwarta
+        |na czwartą część|na czwarta czesc|na ćwierć|na cwierc => 天窗通风 ;
+    na trzy czwarte|na trzy czwartych => 天窗打开50
+
+# ---- Windows -------------------------------------------------------------------------------
+# A bare singular "okno" and "moje okno" are the driver's; "lewe"/"prawe" alone are the rear ones
+# (the front ones are the driver's and the passenger's).
+
+rule okno_n: okno|okienko
+rule pane: szybę|szybe
+rule okno: <okno_n>|<pane>
+rule passenger: pasażera|pasazera
+rule passenger_loc: pasażerze|pasazerze
+rule behind: z tyłu|z tylu
+list win: <okno>|moje <okno_n>|moją <pane>|<okno> kierowcy|<okno> po stronie kierowcy|<okno> przy kierowcy
+        |<okno> od strony kierowcy|przednie lewe <okno_n>|lewe przednie <okno_n>|przednią lewą <pane>
+        |<okno> z przodu po lewej|<okno> po lewej z przodu => 主驾 ;
+    <okno> <passenger>|<okno> po stronie <passenger>|<okno> przy <passenger_loc>|<okno> od strony <passenger>
+        |przednie prawe <okno_n>|prawe przednie <okno_n>|przednią prawą <pane>
+        |<okno> z przodu po prawej|<okno> po prawej z przodu => 副驾 ;
+    lewe <okno_n>|tylne lewe <okno_n>|lewe tylne <okno_n>|lewą <pane>|tylną lewą <pane>|lewą tylną <pane>
+        |<okno> <behind> po lewej|<okno> po lewej <behind> => 后左 ;
+    prawe <okno_n>|tylne prawe <okno_n>|prawe tylne <okno_n>|prawą <pane>|tylną prawą <pane>|prawą tylną <pane>
+        |<okno> <behind> po prawej|<okno> po prawej <behind> => 后右
+list wins: okna|wszystkie okna|szyby|wszystkie szyby|okienka|okna w samochodzie|okna w aucie
+        |przednie i tylne okna|przednie i tylne szyby => 车窗 ;
+    przednie okna|wszystkie przednie okna|przednie szyby|okna z przodu|okna kierowcy i <passenger>
+        |szyby kierowcy i <passenger> => 前排车窗 ;
+    tylne okna|wszystkie tylne okna|tylne szyby|okna <behind>|tylne okno => 后排车窗
+
+# Fully open or closed.
+<open> {win} [<full>] => {win}打开100
+<open> <full> {win} => {win}打开100
+<open> {wins} [<full>] => {wins}全开
+<open> <full> {wins} => {wins}全开
+[zimno] <close> {win} [<fully>] => {win}打开0
+[zimno] <close> {wins} [<fully>] => {wins}关闭
+
+# Halfway.
+(<open>|<close>|<ajar>|<set>) {win} <half> => {win}半开
+<open> <half> {win} => {win}半开
+<open> (pół|pol|połowę|polowe) okna => 主驾半开
+solo {win} <half> => {win}半开
+(<open>|<close>|<ajar>|<set>) {wins} <half> => {wins}半开
+<open> <half> {wins} => {wins}半开
+solo {wins} <half> => {wins}半开
+
+# Verb last, or halfway first: the common spoken order.
+{win} <close> [<fully>] => {win}打开0
+{win} <open> [<full>] => {win}打开100
+{wins} <close> [<fully>] => {wins}关闭
+{wins} <open> [<full>] => {wins}全开
+<half> (<open>|<close>) {win} => {win}半开
+<half> (<open>|<close>) {wins} => {wins}半开
+{win} <half> (<open>|<close>) => {win}半开
+{wins} <half> (<open>|<close>) => {wins}半开
+
+# The vent detent: ajar, a little, airing.
+<ajar> {win} [<little>] => {win}通风
+<open> {win} <little> => {win}通风
+<air> {win} => {win}通风
+<set> {win} na wietrzenie => {win}通风
+solo {win} <little> => {win}通风
+<ajar> {wins} [<little>] => {wins}通风
+<open> {wins} <little> => {wins}通风
+<air> {wins} => {wins}通风
+<set> {wins} na wietrzenie => {wins}通风
+solo {wins} <little> => {wins}通风
+<air> (kabinę|kabine|wnętrze|wnetrze|samochód|samochod) => 车窗通风
+solo [<on>] tryb wietrzenia => 车窗通风 + 天窗通风
+solo <off> tryb wietrzenia => 车窗关闭 + 天窗打开0
+
+# A share by number or fraction.
+<open> {win} [<prep>] {pct1} [<pct_word>] => {win}{pct1}
+<set> {win} na {set1} [<pct_word>] => {win}{set1}
+<open> {win} {frac} => {win}{frac}
+solo {win} <prep> {pct1} [<pct_word>] => {win}{pct1}
+solo {win} {pct1} <pct_word> => {win}{pct1}
+solo {win} {frac} => {win}{frac}
+<open> {wins} [<prep>] {pcts} [<pct_word>] => {wins}{pcts}
+<set> {wins} na {sets} [<pct_word>] => {wins}{sets}
+<open> {wins} {frac} => {wins}{frac}
+solo {wins} <prep> {pcts} [<pct_word>] => {wins}{pcts}
+solo {wins} {pcts} <pct_word> => {wins}{pcts}
+solo {wins} {frac} => {wins}{frac}
+
+# Every window but some: each door that is left gets its own command. "oprócz", "poza" and
+# "z wyjątkiem" take the genitive.
+rule all_wins: okna|wszystkie okna|szyby|wszystkie szyby
+rule except: oprócz|oprocz|poza|z wyjątkiem|z wyjatkiem
+list kept: okna kierowcy|mojego okna|kierowcy|przedniego lewego okna|lewego przedniego okna => 副驾,后左,后右 ;
+    okna <passenger>|<passenger>|przedniego prawego okna|prawego przedniego okna => 主驾,后左,后右 ;
+    tylnego lewego okna|lewego tylnego okna => 主驾,副驾,后右 ;
+    tylnego prawego okna|prawego tylnego okna => 主驾,副驾,后左 ;
+    tylnych okien|okien <behind> => 主驾,副驾 ;
+    przednich okien|okien z przodu => 后左,后右 ;
+    okna kierowcy i <passenger>|kierowcy i <passenger>|okien kierowcy i <passenger> => 后左,后右 ;
+    tylnego lewego i tylnego prawego okna|tylnego lewego okna i tylnego prawego okna => 主驾,副驾
+<open> <all_wins> <except> {kept} => {kept}打开100
+<close> <all_wins> <except> {kept} => {kept}打开0
+<ajar> <all_wins> <except> {kept} => {kept}通风
+
+# ---- Sunroof and its shade -----------------------------------------------------------------
+
+rule roof: szyberdach|dach|okno dachowe
+rule shade: roletę|rolete|zasłonę|zaslone|roletę dachową|rolete dachowa
+rule and: i|oraz|a także|a takze
+<open_lid> <roof> [<full>] => 天窗打开100
+otwórz się werdach => 天窗打开100
+<close_lid> <roof> [<fully>] => 天窗打开0
+(<open_lid>|<close_lid>|<ajar>|<set>) <roof> <half> => 天窗打开50
+solo <roof> <half> => 天窗打开50
+<ajar> <roof> [<little>] => 天窗通风
+<open_lid> <roof> <little> => 天窗通风
+<air> <roof> => 天窗通风
+<set> <roof> na wietrzenie => 天窗通风
+solo <roof> <little> => 天窗通风
+<open_lid> <roof> [<prep>] {roof_pct} [<pct_word>] => {roof_pct}
+<open_lid> <roof> {roof_frac} => {roof_frac}
+<roof> <close_lid> => 天窗打开0
+<roof> <open_lid> => 天窗打开100
+<half> <open_lid> <roof> => 天窗打开50
+<roof> <half> (<open_lid>|<close_lid>) => 天窗打开50
+rule cover: zasłoń|zaslon|zasłonić|zaslonic
+rule uncover: odsłoń|odslon|odsłonić|odslonic
+<cover> <shade> [szyberdachu|dachu] => 遮阳帘关闭
+<uncover> <shade> [szyberdachu|dachu] => 遮阳帘打开
+<open_lid> <shade> [szyberdachu|dachu] => 遮阳帘打开
+<close_lid> <shade> [szyberdachu|dachu] => 遮阳帘关闭
+
+# Windows and the sunroof together.
+<open_lid> <all_wins> <and> <roof> => 车窗全开 + 天窗打开100
+<open_lid> <roof> <and> <all_wins> => 天窗打开100 + 车窗全开
+<close_lid> <all_wins> <and> <roof> => 车窗关闭 + 天窗打开0
+<close_lid> <roof> <and> <all_wins> => 天窗打开0 + 车窗关闭
+<close_lid> <roof> <and> <shade> [szyberdachu|dachu] => 天窗打开0 + 遮阳帘关闭
+
+# ---- Seats ---------------------------------------------------------------------------------
+# A seat without a side is the driver's; the car is left-hand drive, so "lewego" is the driver's
+# seat and "prawego" the passenger's. Levels 1..3; "na maksimum" is 3.
+
+rule heat: podgrzewanie|ogrzewanie
+rule heat_gen: podgrzewania|ogrzewania
+rule blow: wentylację|wentylacje|wentylacja|wentylowanie
+rule blow_gen: wentylacji|wentylowania
+rule seat1: siedzenia|fotela
+rule seats: siedzeń|siedzen|foteli
+list seat: <seat1>|<seat1> kierowcy|mojego <seat1>|lewego <seat1>|przedniego lewego <seat1> => 主驾 ;
+    <seat1> <passenger>|prawego <seat1>|przedniego prawego <seat1> => 副驾 ;
+    <seats>|wszystkich <seats>|obu <seats>|przednich <seats>|<seats> kierowcy i <passenger>
+        |<seats> z lewej i prawej => 主驾,副驾
+list lvl: [na] 1|[na] pierwszy [poziom]|[na] pierwszym poziomie|[na] minimum => 1 ;
+    [na] 2|[na] drugi [poziom]|[na] drugim poziomie => 2 ;
+    [na] 3|[na] trzeci [poziom]|[na] trzecim poziomie|[na] maksimum|na maksa|na pełną|na pelna => 3
+list lvl_ord: pierwszy => 1 ; drugi => 2 ; trzeci => 3
+
+# The seat as an object ("podgrzej fotel"), and the colloquial "grzanie"/"chłodzenie" of the seat.
+rule warm: podgrzej|podgrzać|podgrzac|ogrzej|ogrzać|ogrzac
+rule warming: grzanie
+rule cooling: chłodzenie|chlodzenie
+list seat_acc: fotel|siedzenie|fotel kierowcy|siedzenie kierowcy|mój fotel|moje siedzenie|lewy fotel
+        |lewe siedzenie => 主驾 ;
+    fotel <passenger>|siedzenie <passenger>|prawy fotel|prawe siedzenie => 副驾 ;
+    fotele|siedzenia|oba fotele|oba siedzenia|przednie fotele|przednie siedzenia => 主驾,副驾
+<warm> {seat_acc} => {seat_acc}座椅加热1档
+<warm> {seat_acc} {lvl} => {seat_acc}座椅加热{lvl}档
+(<on>|<set>) <warming> {seat} => {seat}座椅加热1档
+(<on>|<set>) <warming> {seat} {lvl} => {seat}座椅加热{lvl}档
+<off> <warming> {seat} => {seat}座椅加热关闭
+(<on>|<set>) <cooling> {seat} => {seat}座椅通风1档
+(<on>|<set>) <cooling> {seat} {lvl} => {seat}座椅通风{lvl}档
+<off> <cooling> {seat} => {seat}座椅通风关闭
+
+(<on>|<set>) <heat> {seat} => {seat}座椅加热1档
+solo <heat> {seat} => {seat}座椅加热1档
+(<on>|<set>) <heat> {seat} {lvl} => {seat}座椅加热{lvl}档
+solo <heat> {seat} {lvl} => {seat}座椅加热{lvl}档
+{lvl_ord} poziom <heat_gen> {seat} => {seat}座椅加热{lvl_ord}档
+<off> <heat> {seat} => {seat}座椅加热关闭
+(<on>|<set>) <blow> {seat} => {seat}座椅通风1档
+solo <blow> {seat} => {seat}座椅通风1档
+(<on>|<set>) <blow> {seat} {lvl} => {seat}座椅通风{lvl}档
+solo <blow> {seat} {lvl} => {seat}座椅通风{lvl}档
+{lvl_ord} poziom <blow_gen> {seat} => {seat}座椅通风{lvl_ord}档
+<on> (silną|silna|mocną|mocna) <blow> {seat} => {seat}座椅通风3档
+solo (silną|silna|mocną|mocna) <blow> {seat} => {seat}座椅通风3档
+<off> <blow> {seat} => {seat}座椅通风关闭
+
+# Driver seat massage: local-only (CommandTranslator.LOCAL_VOICE_ONLY). Driver seat, on/off only.
+rule massage: masaż|masaz
+rule massage_seat: fotela|w fotelu
+<on> <massage> <massage_seat> [kierowcy] => 主驾座椅按摩打开
+<off> <massage> <massage_seat> [kierowcy] => 主驾座椅按摩关闭
+
+# ---- Steering wheel and mirrors ------------------------------------------------------------
+
+rule wheel: kierownicy|kierownicę|kierownice
+<on> <heat> <wheel> => 方向盘加热
+<on> <heat> kierownicy i siedzeń => 方向盘加热 + 主驾座椅加热1档 + 副驾座椅加热1档
+<on> <heat> kierownicy i siedzen => 方向盘加热 + 主驾座椅加热1档 + 副驾座椅加热1档
+<off> <heat> <wheel> => 关闭方向盘加热
+rule mirrors: lusterek|wszystkich lusterek|luster|wszystkich luster|lusterek bocznych
+<on> <heat> <mirrors> => 后视镜加热
+<off> <heat> <mirrors> => 关闭后视镜加热
+
+# ---- Climate -------------------------------------------------------------------------------
+
+rule ac: klimatyzację|klimatyzacje|klimatyzacja|klimę|klime|klimatyzator
+<on> <ac> => 自动空调
+<on> (tryb automatyczny|automatyczny tryb|autotryb|auto tryb) (klimatyzacji|klimatu|klimy) => 自动空调 + 空调自动
+solo (klimatyzacja|klima) (auto|automatyczna) => 自动空调 + 空调自动
+<on> <ac> (w automacie|na auto|w trybie auto|w trybie automatycznym) => 自动空调 + 空调自动
+solo <ac> (w automacie|na auto|w trybie auto|w trybie automatycznym) => 自动空调 + 空调自动
+<off> <ac> => 关闭空调
+# A bare "włącz wentylację" could mean the cabin or a seat: it needs a qualifier or it is refused.
+<on> (nawiew|wentylację (kabiny|wnętrza|salonu)) => 打开空调通风
+<on> (wewnętrzną recyrkulację|recyrkulację|recyrkulacje|obieg wewnętrzny|wewnętrzny obieg|obieg zamknięty|zamknięty obieg) => 内循环
+<off> (recyrkulację|recyrkulacje|recyrkulację powietrza|obieg wewnętrzny|wewnętrzny obieg) => 外循环
+<on> (obieg zewnętrzny|zewnętrzny obieg|obieg otwarty|otwarty obieg|zewnętrzną recyrkulację) => 外循环
+rule defrost: (nawiew|nadmuch) na (przednią szybę|przednia szybe|szybę czołową|szybę|szybe)
+        |(odmglanie|odparowanie|odmrażanie|odmrazanie) (przedniej szyby|szyby)
+<on> <defrost> => 吹前挡
+<off> <defrost> => 关闭吹前挡
+
+range temp: 16..33
+rule deg: stopień|stopnie|stopni|stopnia|stopnie celsjusza|stopni celsjusza
+<set> (temperaturę|temperature) [na] {temp} [<deg>] => 设置温度{temp}
+solo temperatura [na] {temp} [<deg>] => 设置温度{temp}
+<set> {temp} <deg> => 设置温度{temp}
+solo {temp} <deg> => 设置温度{temp}
+
+# A step of the setpoint, by one or by a spoken amount (1..5 degrees). Side-specific temperature
+# ("po stronie pasażera") is not a template: it is refused.
+rule rise: podnieś|podnies|zwiększ|zwieksz|podwyższ|podwyzsz
+rule lower: obniż|obniz|zmniejsz
+rule tempo: temperaturę|temperature
+range step: 1..5
+<rise> <tempo> => TEMP +1
+<lower> <tempo> => TEMP -1
+<rise> [<tempo>] o {step} <deg> => TEMP +{step}
+<lower> [<tempo>] o {step} <deg> => TEMP -{step}
+<make> (cieplej|trochę cieplej|troche cieplej) => TEMP +1
+solo cieplej => TEMP +1
+<make> (chłodniej|chlodniej|zimniej|trochę chłodniej|troche chlodniej) => TEMP -1
+solo (chłodniej|chlodniej|zimniej) => TEMP -1
+[w kabinie|w samochodzie|w aucie|w środku|w srodku] [jest] (zimno|chłodno|chlodno)
+        |zmarzłem|zmarzłam|zmarzliśmy|zmarzlem|zmarzlam|zmarzlismy => TEMP +1
+[w kabinie|w samochodzie|w aucie|w środku|w srodku] [jest] (gorąco|goraco|duszno) => TEMP -1
+
+# Fan speed 1..7.
+range fan: 1..7
+rule fan_obj: wentylator|wentylator klimatyzacji|prędkość wentylatora|predkosc wentylatora|siłę nawiewu|sile nawiewu
+        |moc nawiewu|nawiew
+list fan_lvl: na maksimum|na maksa|na pełną|na pelna|na pełną moc => 7 ;
+    na minimum|na pierwszy [bieg|poziom] => 1 ;
+    na drugi [bieg|poziom] => 2 ;
+    na trzeci [bieg|poziom] => 3 ;
+    na czwarty [bieg|poziom] => 4 ;
+    na piąty [bieg|poziom]|na piaty [bieg|poziom] => 5 ;
+    na szósty [bieg|poziom]|na szosty [bieg|poziom] => 6 ;
+    na siódmy [bieg|poziom]|na siodmy [bieg|poziom] => 7
+(<set>|<on>) <fan_obj> [na] {fan} => 风量{fan}
+solo <fan_obj> [na] {fan} => 风量{fan}
+(<set>|<on>) <fan_obj> {fan_lvl} => 风量{fan_lvl}
+solo <fan_obj> {fan_lvl} => 风量{fan_lvl}
+
+# ---- Media volume --------------------------------------------------------------------------
+
+range vol: 0..100
+<make> (głośniej|glosniej|trochę głośniej|troche glosniej) => VOL +1
+solo (głośniej|glosniej) => VOL +1
+solo (podgłośnij|podglosnij) => VOL +1
+<make> (ciszej|trochę ciszej|troche ciszej) => VOL -1
+solo ciszej => VOL -1
+solo (ścisz|scisz|przycisz) => VOL -1
+(zwiększ|zwieksz) (głośność|glosnosc|dźwięk|dzwiek) => VOL +1
+(zmniejsz) (głośność|glosnosc|dźwięk|dzwiek) => VOL -1
+(głośność|glosnosc|dźwięk|dzwiek) (zwiększ|zwieksz|głośniej|glosniej) => VOL +1
+(głośność|glosnosc|dźwięk|dzwiek) (zmniejsz|ciszej) => VOL -1
+<off> (dźwięk|dzwiek) => VOL mute
+(wycisz) (dźwięk|dzwiek) => VOL mute
+<on> (dźwięk|dzwiek) => VOL unmute
+<set> (głośność|glosnosc) [na] {vol} [<pct_word>] => VOL {vol}
+solo (głośność|glosnosc) [na] {vol} [<pct_word>] => VOL {vol}
+
+# ---- Yandex Music --------------------------------------------------------------------------
+# Only with "yandex": a bare "włącz muzykę" names no app and stays unknown.
+
+rule yandex_music: (yandex|yandeks|jandex|jandeks) (muzykę|muzyke|muzyka|music)
+(włącz|wlacz|uruchom|otwórz|otworz|puść|pusc|zagraj) <yandex_music> => MUSIC
+solo <yandex_music> => MUSIC
+
+# ---- Locks and trunk -----------------------------------------------------------------------
+# "zamknij drzwi" said to a passenger is not addressed to the car: only the car itself and the lock
+# verbs lock and unlock.
+
+rule car: samochód|samochod|auto
+(zamknij|zablokuj) <car> => 车门上锁
+(otwórz|otworz|odblokuj|odemknij) <car> => 车门解锁
+zablokuj (drzwi [samochodu|auta]|zamki) => 车门上锁
+(odblokuj|odemknij) (drzwi [samochodu|auta]|zamki) => 车门解锁
+rule trunk: [tylny] (bagażnik|bagaznik)
+<open_lid> <trunk> => 开后备箱
+<close_lid> <trunk> => 关后备箱
+
+# ---- Lights --------------------------------------------------------------------------------
+
+rule ambient: podświetlenie|podswietlenie|ambient|podświetlenie ambient|podswietlenie ambient|oświetlenie ambient|oswietlenie ambient|podświetlenie ambientowe
+        |oświetlenie ambientowe|światło ambientowe|swiatlo ambientowe
+rule interior: (światło|swiatlo|oświetlenie|oswietlenie) (w kabinie|we wnętrzu|we wnetrzu|w środku|w srodku|wewnątrz|wewnatrz|w aucie|w samochodzie)
+        |(światło|swiatlo|oświetlenie|oswietlenie) (wnętrza|wnetrza|kabiny)|światło kabinowe|lampkę sufitową
+rule drl: (światła|swiatla) (dzienne|do jazdy dziennej)|dzienne światła|drl
+<on> <ambient> => 氛围灯打开
+<off> <ambient> => 氛围灯关闭
+<on> <interior> => 打开车内灯
+<off> <interior> => 关闭车内灯
+<on> <drl> => 打开日行灯
+<off> <drl> => 关闭日行灯
+
+# ---- HUD -----------------------------------------------------------------------------------
+# Only with a word that names the HUD or the windshield projection.
+
+rule hud: hud|head up|wyświetlacz przezierny|wyswietlacz przezierny|wyświetlacz head up|projekcję na szybie
+        |projekcję na przedniej szybie
+<on> <hud> => 打开抬头显示
+<off> <hud> => 关闭抬头显示
+
+# ---- Drive mode ----------------------------------------------------------------------------
+# Terrain modes (snow, sand, mud, mountain, smart) switch only up to 15 km/h: the dispatcher's
+# gate, not the dictionary. A mode without a verb is solo.
+
+list drive: tryb eko|eko tryb|tryb ekonomiczny|ekonomiczny tryb|tryb ekologiczny => ECO模式 ;
+    tryb normalny|normalny tryb|tryb zwykły|tryb zwykly|tryb standardowy => 普通模式 ;
+    tryb sportowy|sportowy tryb|tryb sport => 运动模式 ;
+    tryb śnieg|tryb snieg|tryb śnieżny|tryb sniezny|śnieżny tryb => 雪地模式 ;
+    tryb piasek|tryb piaskowy => 沙地模式 ;
+    tryb błoto|tryb bloto|tryb błotny|tryb blotny => 泥地模式 ;
+    tryb górski|tryb gorski|górski tryb|tryb góry|tryb gory => 山地模式 ;
+    tryb inteligentny|inteligentny tryb|tryb smart => 智能模式
+rule switch: przełącz|przelacz|przełączyć|przelaczyc
+list drive_short: sport|sportowy => 运动模式 ;
+    eko|ekonomiczny|ekologiczny => ECO模式 ;
+    normalny|zwykły|zwykly|standardowy => 普通模式 ;
+    śnieg|snieg|śnieżny|sniezny => 雪地模式 ;
+    piasek|piaskowy => 沙地模式 ;
+    błoto|bloto|błotny|blotny => 泥地模式 ;
+    góry|gory|górski|gorski => 山地模式 ;
+    inteligentny|smart => 智能模式
+(<on>|<set>) {drive} => {drive}
+<switch> [na] {drive} => {drive}
+<switch> na {drive_short} => {drive_short}
+solo {drive} => {drive}
+
+# ---- Questions -----------------------------------------------------------------------------
+# Answered from the car's own readings. Weather, charging stations and anything longer stay
+# unknown; a question never takes part in "A i B". "ile kilometrów zostało" stays unknown too: on a
+# route it asks for the distance left, not for the range.
+
+rule outside: na zewnątrz|na zewnatrz|na dworze|za oknem
+rule cabin: w kabinie|w środku|w srodku|w samochodzie|w aucie|we wnętrzu|we wnetrzu
+rule battery: baterii|akumulatora|naładowania|naladowania
+solo [jaka jest|jaka] temperatura <outside> => ASK outside_temp
+solo ile stopni [jest] <outside> => ASK outside_temp
+solo ile (jest|mamy) <outside> => ASK outside_temp
+solo ile jest stopni <outside> => ASK outside_temp
+solo [jaka jest|jaka] temperatura <cabin> => ASK cabin_temp
+solo ile stopni [jest] <cabin> => ASK cabin_temp
+solo ile jest stopni <cabin> => ASK cabin_temp
+solo [jaki jest|jaki] (poziom|stan) <battery> => ASK soc
+solo (poziom|stan) <battery> => ASK soc
+solo ile (baterii|naładowania|naladowania) (zostało|zostalo|mam) => ASK soc
+solo ile zostało baterii => ASK soc
+solo ile procent <battery> [mam|zostało|zostalo|jest] => ASK soc
+solo ile mam baterii => ASK soc
+solo [jaki jest|jaki mam|jaki mamy|jaki] (zasięg|zasieg) => ASK range
+solo ile mam (zasięgu|zasiegu) => ASK range
+solo ile (zasięgu|zasiegu) zostało => ASK range
+solo na ile [stopni] (jest ustawiona|ustawiona jest|stoi) (klimatyzacja|klima|klimatyzator) => ASK ac_temp
+solo jaka temperatura (jest ustawiona|stoi) na (klimatyzacji|klimie|klimatyzatorze) => ASK ac_temp
+solo jaka jest ustawiona temperatura [na klimatyzacji|na klimie] => ASK ac_temp
+
+# Saved Home and Work in the selected navigation app. A destination other than these two is not
+# handled here.
+rule go_to: nawiguj|prowadź|prowadz|jedź|jedz|jedźmy|jedzmy|(włącz|wlacz|uruchom) (nawigację|nawigacje)
+<go_to> do domu => NAVIGATE_HOME
+<go_to> do pracy => NAVIGATE_WORK
+
+# Exact repairs for observed car transcripts; do not share these aliases.
+zamknij szyb pasażera => 副驾打开0
+wyłącz nawiew fotela pasażera => 副驾座椅通风关闭

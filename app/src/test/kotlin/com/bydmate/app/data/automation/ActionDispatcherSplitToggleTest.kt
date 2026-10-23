@@ -97,7 +97,7 @@ class ActionDispatcherSplitToggleTest {
     @Test fun `toggle without a saved pair fails without opening the picker`() = runBlocking {
         stateIs(SplitSessionState.Idle)
         coEvery { splitManager.startLastPair() } returns null
-        every { strings.get(R.string.dispatch_split_pair_not_saved) } returns "пара для разделения экрана не сохранена"
+        every { strings.get(R.string.dispatch_split_pair_not_saved) } returns "para do podziału ekranu nie jest zapisana"
         val result = dispatcher.dispatch(action("split_screen_toggle"), null)
         assertFalse(result.success)
         assertTrue(result.reason?.isNotBlank() == true)

@@ -1,7 +1,7 @@
 # Song L, DiLink 5.0, BYDMate 3.19.2, user log 2026-09-29 (driver window lowers by itself at power-on,
-# a repeated "проветрить"/"половина" fails). Only the driver window lines are kept: our writes to the
+# repeated recorded ventilation and half-open commands fail). Only the driver window lines are kept: our writes to the
 # percent fid 1276219408 and the CTRL fid 1125122104, the movement verdicts, and the automation
-# commands that caused them. The last percent command before this excerpt (17:48:36, "проветрить" = 10)
+# commands that caused them. The last percent command before this excerpt (17:48:36, value=10)
 # succeeded; the glass was then closed with the door button. At power-on the glass moved with no
 # write of ours:
 # 09-29 17:55:40.898 I/FidPush (23024): push fid=947912728 windowFL=2/0.0 applied

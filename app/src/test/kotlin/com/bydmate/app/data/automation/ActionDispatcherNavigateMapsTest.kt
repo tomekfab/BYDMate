@@ -51,13 +51,13 @@ class ActionDispatcherNavigateMapsTest {
     }
 
     @Test fun `search opens the maps search`() = runTest {
-        dispatcher.dispatch(actionDef("""{"query":"кафе","app":"maps"}"""), null)
+        dispatcher.dispatch(actionDef("""{"query":"kawiarnia","app":"maps"}"""), null)
         assertTrue(shadowOf(app).nextStartedActivity.dataString!!
             .startsWith("yandexmaps://maps.yandex.ru/?text="))
     }
 
     @Test fun `show drops a pin without a route`() = runTest {
-        dispatcher.dispatch(actionDef("""{"show":true,"lat":55.75,"lon":37.62,"label":"Кафе","app":"maps"}"""), null)
+        dispatcher.dispatch(actionDef("""{"show":true,"lat":55.75,"lon":37.62,"label":"Kawiarnia","app":"maps"}"""), null)
         assertEquals("yandexmaps://maps.yandex.ru/?pt=55.75,37.62&z=14",
             shadowOf(app).nextStartedActivity.dataString)
     }
@@ -91,7 +91,7 @@ class ActionDispatcherNavigateMapsTest {
         assertEquals("yandexnavi://build_route_on_map?lat_to=57.0&lon_to=36.0",
             shadowOf(app).nextStartedActivity.dataString)
 
-        dispatcher.dispatch(actionDef("""{"query":"кафе"}"""), null)
+        dispatcher.dispatch(actionDef("""{"query":"kawiarnia"}"""), null)
         assertTrue(shadowOf(app).nextStartedActivity.dataString!!
             .startsWith("yandexnavi://map_search?text="))
 

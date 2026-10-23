@@ -64,11 +64,11 @@ class ChargerSearchClientTest {
     // (a) node element parses with name from tags.
     @Test fun node_element_parses_with_tag_name() = runTest {
         server.enqueue(MockResponse().setBody(
-            """{"elements":[{"type":"node","lat":54.5,"lon":30.4,"tags":{"name":"ЭЗС Орша"}}]}"""))
+            """{"elements":[{"type":"node","lat":54.5,"lon":30.4,"tags":{"name":"Stacja Orsza"}}]}"""))
         val result = client.search(54.5, 30.4, 5000)
         val chargers = result.getOrThrow()
         assertEquals(1, chargers.size)
-        assertEquals("ЭЗС Орша", chargers[0].name)
+        assertEquals("Stacja Orsza", chargers[0].name)
         assertEquals(54.5, chargers[0].lat, 0.0001)
         assertEquals(30.4, chargers[0].lon, 0.0001)
     }
@@ -76,7 +76,7 @@ class ChargerSearchClientTest {
     // (b) way/relation element parses coordinates from "center".
     @Test fun way_element_parses_center_coordinates() = runTest {
         server.enqueue(MockResponse().setBody(
-            """{"elements":[{"type":"way","center":{"lat":55.1,"lon":31.2},"tags":{"name":"Стоянка"}}]}"""))
+            """{"elements":[{"type":"way","center":{"lat":55.1,"lon":31.2},"tags":{"name":"Parking"}}]}"""))
         val chargers = client.search(55.0, 31.0, 5000).getOrThrow()
         assertEquals(1, chargers.size)
         assertEquals(55.1, chargers[0].lat, 0.0001)
@@ -86,7 +86,7 @@ class ChargerSearchClientTest {
     // (c) element without coordinates (no lat/lon, no center) is skipped.
     @Test fun element_without_coordinates_is_skipped() = runTest {
         server.enqueue(MockResponse().setBody(
-            """{"elements":[{"type":"way","tags":{"name":"Без координат"}}]}"""))
+            """{"elements":[{"type":"way","tags":{"name":"Brak współrzędnych"}}]}"""))
         val chargers = client.search(54.5, 30.4, 5000).getOrThrow()
         assertTrue(chargers.isEmpty())
     }
@@ -94,11 +94,11 @@ class ChargerSearchClientTest {
     // (c2) malformed "center" present but missing lat/lon must be skipped, not leak NaN.
     @Test fun malformed_center_without_lat_lon_is_skipped() = runTest {
         server.enqueue(MockResponse().setBody(
-            """{"elements":[{"type":"way","center":{},"tags":{"name":"Битый center"}},""" +
-                """{"type":"node","lat":54.5,"lon":30.4,"tags":{"name":"Живая"}}]}"""))
+            """{"elements":[{"type":"way","center":{},"tags":{"name":"Uszkodzony środek"}},""" +
+                """{"type":"node","lat":54.5,"lon":30.4,"tags":{"name":"Aktywna"}}]}"""))
         val chargers = client.search(54.5, 30.4, 5000).getOrThrow()
         assertEquals(1, chargers.size)
-        assertEquals("Живая", chargers[0].name)
+        assertEquals("Aktywna", chargers[0].name)
     }
 
     // (d) name absent -> falls back to operator tag.
@@ -109,12 +109,12 @@ class ChargerSearchClientTest {
         assertEquals("Россети", chargers[0].name)
     }
 
-    // (e) name and operator both absent -> default Russian label.
+    // (e) name and operator both absent -> default user-facing label.
     @Test fun missing_name_and_operator_falls_back_to_default() = runTest {
         server.enqueue(MockResponse().setBody(
             """{"elements":[{"type":"node","lat":54.5,"lon":30.4,"tags":{}}]}"""))
         val chargers = client.search(54.5, 30.4, 5000).getOrThrow()
-        assertEquals("Зарядная станция", chargers[0].name)
+        assertEquals("Stacja ładowania", chargers[0].name)
     }
 
     // (f) HTTP 500 -> Result.failure.
@@ -146,7 +146,7 @@ class ChargerSearchClientTest {
     // Field log 28.09: overpass-api.de answers 406 to OkHttp's default User-Agent.
     @Test fun request_names_the_app_so_overpass_does_not_answer_406() = runTest {
         server.dispatcher = overpassUserAgentDispatcher(
-            """{"elements":[{"type":"node","lat":54.5,"lon":30.4,"tags":{"name":"ЭЗС Орша"}}]}""")
+            """{"elements":[{"type":"node","lat":54.5,"lon":30.4,"tags":{"name":"Stacja Orsza"}}]}""")
         assertEquals(1, client.search(54.5, 30.4, 5000).getOrThrow().size)
         assertTrue(server.takeRequest().getHeader("User-Agent")!!.startsWith("BYDMate/"))
     }
@@ -156,9 +156,9 @@ class ChargerSearchClientTest {
         try {
             server.enqueue(MockResponse().setBody("""{"remark":"runtime error: Query timed out","elements":[]}"""))
             second.enqueue(MockResponse().setBody(
-                """{"elements":[{"type":"node","lat":54.5,"lon":30.4,"tags":{"name":"ЭЗС Орша"}}]}"""))
+                """{"elements":[{"type":"node","lat":54.5,"lon":30.4,"tags":{"name":"Stacja Orsza"}}]}"""))
             client.endpoints = listOf(server.url("/a").toString(), second.url("/b").toString())
-            assertEquals("ЭЗС Орша", client.search(54.5, 30.4, 5000).getOrThrow().single().name)
+            assertEquals("Stacja Orsza", client.search(54.5, 30.4, 5000).getOrThrow().single().name)
         } finally {
             second.shutdown()
         }
@@ -166,7 +166,7 @@ class ChargerSearchClientTest {
 
     @Test fun overpass_operator_and_address_tags_are_kept() = runTest {
         server.enqueue(MockResponse().setBody(
-            """{"elements":[{"type":"node","lat":54.5,"lon":30.4,"tags":{"name":"ЭЗС","operator":"Малахит",""" +
+            """{"elements":[{"type":"node","lat":54.5,"lon":30.4,"tags":{"name":"Stacja","operator":"Малахит",""" +
                 """"addr:city":"Орша","addr:street":"улица Мира","addr:housenumber":"4"}}]}"""))
         val s = client.search(54.5, 30.4, 5000).getOrThrow().single()
         assertEquals("Малахит", s.operator)
@@ -177,7 +177,7 @@ class ChargerSearchClientTest {
     // --- source chain: BETA -> Malanka gateway -> Overpass inside Belarus, Overpass elsewhere ---
 
     private val betaFixture = requireNotNull(javaClass.classLoader?.getResource("beta/map-rsc-national-library.txt")).readText()
-    private val osmOne = """{"elements":[{"type":"node","lat":54.5,"lon":30.4,"tags":{"name":"ЭЗС"}}]}"""
+    private val osmOne = """{"elements":[{"type":"node","lat":54.5,"lon":30.4,"tags":{"name":"Stacja"}}]}"""
     private val evika = """[{"id":"NDMw","name":"Минск, ул. Пулихова, 5","address":"Минск","latitude":53.89911,"longitude":27.575947,"status":"FULLY_USED"}]"""
 
     // National Library, Minsk: the fixture's landmark.

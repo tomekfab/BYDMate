@@ -22,7 +22,7 @@ class LlmAgentBackendTest {
 
     private fun conn(id: String, base: String = "https://$id/v1", extraJson: String = "") =
         LlmConnection(id, id, base, "key-$id", "model-$id", extraJson)
-    private fun okMessage() = JSONObject("""{"content":"привет"}""")
+    private fun okMessage() = JSONObject("""{"content":"cześć"}""")
 
     @Test
     fun `prewarm opens the primary connection host, nothing when unconfigured`() = runTest {
@@ -45,7 +45,7 @@ class LlmAgentBackendTest {
             Result.success(okMessage()),
         )
         val r = backend.chat(listOf(AgentMessage.User("q")), null)
-        assertEquals("привет", r.getOrThrow().content)
+        assertEquals("cześć", r.getOrThrow().content)
         coVerify(exactly = 2) { client.chatRaw("https://zai/v1", "key-zai", "model-zai", any(), any(), any()) }
     }
 
@@ -58,7 +58,7 @@ class LlmAgentBackendTest {
         coEvery { client.chatRaw("https://openrouter/v1", any(), any(), any(), any(), any()) } returns
             Result.success(okMessage())
         val r = backend.chat(listOf(AgentMessage.User("q")), null)
-        assertEquals("привет", r.getOrThrow().content)
+        assertEquals("cześć", r.getOrThrow().content)
         coVerify(exactly = 1) { client.chatRaw("https://zai/v1", any(), any(), any(), any(), any()) }
     }
 
@@ -71,7 +71,7 @@ class LlmAgentBackendTest {
         coEvery { client.chatRaw("https://openrouter/v1", any(), any(), any(), any(), any()) } returns
             Result.failure(LlmHttpException(429))
         val e = backend.chat(listOf(AgentMessage.User("q")), null).exceptionOrNull()
-        assertEquals("Лимит запросов исчерпан, попробуй позже", (e as LlmError).userMessage)
+        assertEquals("Limit żądań został wyczerpany, spróbuj później", (e as LlmError).userMessage)
     }
 
     @Test
@@ -170,7 +170,7 @@ class LlmAgentBackendTest {
         assertNull(LlmAgentBackend.parseExtraJson(""))
         assertNull(LlmAgentBackend.parseExtraJson("   \n  "))
         assertNull(LlmAgentBackend.parseExtraJson("{\"thinking\": "))
-        assertNull(LlmAgentBackend.parseExtraJson("не json"))
+        assertNull(LlmAgentBackend.parseExtraJson("to nie json"))
         // A bare array is valid JSON but cannot be merged into the request body.
         assertNull(LlmAgentBackend.parseExtraJson("[1, 2]"))
     }
@@ -215,7 +215,7 @@ class LlmAgentBackendTest {
             Result.success(okMessage()),
         )
         val r = backend.chat(listOf(AgentMessage.User("q")), null)
-        assertEquals("привет", r.getOrThrow().content)
+        assertEquals("cześć", r.getOrThrow().content)
         coVerify(exactly = 1) {
             client.chatRaw(any(), any(), any(), any(), any(), match<JSONObject> { it.has("reasoning") })
         }
@@ -243,7 +243,7 @@ class LlmAgentBackendTest {
             Result.success(okMessage()),
         )
         val r = backend.chat(listOf(AgentMessage.User("q")), null)
-        assertEquals("привет", r.getOrThrow().content)
+        assertEquals("cześć", r.getOrThrow().content)
         coVerify(exactly = 2) { client.chatRaw(any(), any(), any(), any(), any(), any()) }
     }
 
@@ -265,10 +265,10 @@ class LlmAgentBackendTest {
         coEvery { resolver.fallback() } returns conn("openrouter")
         coEvery { client.chatStream(any(), any(), any(), any(), any(), any(), any()) } answers {
             val cb = arg<(String) -> Unit>(6)
-            cb("Начало ответа. ")
+            cb("Początek odpowiedzi. ")
             Result.success(JSONObject("""{"finish_reason":"error"}"""))
         }
-        val r = backend.chat(listOf(AgentMessage.User("хай")), null) {}
+        val r = backend.chat(listOf(AgentMessage.User("cześć")), null) {}
         assertTrue(r.isSuccess)
         assertTrue(r.getOrThrow().content.isNullOrBlank())
         coVerify(exactly = 1) { client.chatStream(any(), any(), any(), any(), any(), any(), any()) }
@@ -301,7 +301,7 @@ class LlmAgentBackendTest {
         coEvery { client.chatRaw("https://openrouter/v1", any(), any(), any(), any(), any()) } returns
             Result.success(okMessage())
         val r = backend.chat(listOf(AgentMessage.User("q")), null)
-        assertEquals("привет", r.getOrThrow().content)
+        assertEquals("cześć", r.getOrThrow().content)
         coVerify(exactly = 1) { client.chatRaw("https://zai/v1", any(), any(), any(), any(), any()) }
         coVerify(exactly = 1) { client.chatRaw("https://openrouter/v1", any(), any(), any(), any(), any()) }
     }
@@ -317,7 +317,7 @@ class LlmAgentBackendTest {
             Result.failure(LlmHttpException(500))
         }
         val e = backend.chat(listOf(AgentMessage.User("q")), null).exceptionOrNull()
-        assertEquals("Сервер модели недоступен, попробуй позже", (e as LlmError).userMessage)
+        assertEquals("Serwer modelu jest niedostępny, spróbuj później", (e as LlmError).userMessage)
         coVerify(exactly = 1) { client.chatRaw("https://zai/v1", any(), any(), any(), any(), any()) }
         coVerify(exactly = 0) { client.chatRaw("https://openrouter/v1", any(), any(), any(), any(), any()) }
     }
@@ -326,10 +326,10 @@ class LlmAgentBackendTest {
     fun `onDelta routes through chatStream not chatRaw`() = runTest {
         coEvery { resolver.primary() } returns conn("zai")
         coEvery { client.chatStream(any(), any(), any(), any(), any(), any(), any()) } returns
-            Result.success(JSONObject("""{"content":"Привет."}"""))
+            Result.success(JSONObject("""{"content":"Cześć."}"""))
         val deltas = mutableListOf<String>()
-        val reply = backend.chat(listOf(AgentMessage.User("хай")), null) { deltas += it }.getOrThrow()
-        assertEquals("Привет.", reply.content)
+        val reply = backend.chat(listOf(AgentMessage.User("cześć")), null) { deltas += it }.getOrThrow()
+        assertEquals("Cześć.", reply.content)
         coVerify(exactly = 1) { client.chatStream(any(), any(), any(), any(), any(), any(), any()) }
         coVerify(exactly = 0) { client.chatRaw(any(), any(), any(), any(), any(), any()) }
     }
@@ -341,9 +341,9 @@ class LlmAgentBackendTest {
         coEvery { client.chatStream("https://zai/v1", any(), any(), any(), any(), any(), any()) } returns
             Result.failure(LlmHttpException(500))
         coEvery { client.chatStream("https://openrouter/v1", any(), any(), any(), any(), any(), any()) } returns
-            Result.success(JSONObject("""{"content":"Ок."}"""))
-        val reply = backend.chat(listOf(AgentMessage.User("хай")), null) {}.getOrThrow()
-        assertEquals("Ок.", reply.content)
+            Result.success(JSONObject("""{"content":"OK."}"""))
+        val reply = backend.chat(listOf(AgentMessage.User("cześć")), null) {}.getOrThrow()
+        assertEquals("OK.", reply.content)
         coVerify(exactly = 2) { client.chatStream("https://zai/v1", any(), any(), any(), any(), any(), any()) }
         coVerify(exactly = 1) { client.chatStream("https://openrouter/v1", any(), any(), any(), any(), any(), any()) }
     }
@@ -354,12 +354,12 @@ class LlmAgentBackendTest {
         coEvery { resolver.fallback() } returns conn("openrouter")
         coEvery { client.chatStream(any(), any(), any(), any(), any(), any(), any()) } answers {
             val cb = arg<(String) -> Unit>(6)
-            cb("Начало ответа. ")
+            cb("Początek odpowiedzi. ")
             Result.failure(LlmHttpException(500))
         }
-        val result = backend.chat(listOf(AgentMessage.User("хай")), null) {}
+        val result = backend.chat(listOf(AgentMessage.User("cześć")), null) {}
         val err = result.exceptionOrNull() as LlmError
-        assertEquals("Ответ оборвался, попробуй ещё раз", err.userMessage)
+        assertEquals("Odpowiedź została przerwana, spróbuj ponownie", err.userMessage)
         coVerify(exactly = 1) { client.chatStream(any(), any(), any(), any(), any(), any(), any()) }
     }
 }

@@ -27,7 +27,7 @@ class AgentPromptHybridTest {
             onDelta: ((String) -> Unit)?,
         ): Result<AgentReply> {
             requests += messages
-            return Result.success(AgentReply("ок", emptyList()))
+            return Result.success(AgentReply("ok", emptyList()))
         }
     }
 
@@ -37,10 +37,10 @@ class AgentPromptHybridTest {
         coEvery { repo.isAgentEnabled() } returns true
         coEvery { tools.schemas() } returns JSONArray()
         val monitor = kind?.let { k ->
-            mockk<VehicleKindMonitor> { every { this@mockk.kind } returns MutableStateFlow(k) }
+            mockk<VehicleKindMonitor>().also { every { it.kind } returns MutableStateFlow(k) }
         }
         val backend = FakeBackend()
-        AgentOrchestrator(backend, tools, repo).also { o -> monitor?.let(o::injectVehicleKind) }.ask("привет")
+        AgentOrchestrator(backend, tools, repo).also { o -> monitor?.let(o::injectVehicleKind) }.ask("cześć")
         return (backend.requests.single().first() as AgentMessage.System).content
     }
 
@@ -59,8 +59,8 @@ class AgentPromptHybridTest {
         val prompt = staticPrompt(VehicleKind.HYBRID)
         assertEquals(AgentOrchestrator.HYBRID_SYSTEM_PROMPT, prompt)
         assertNotEquals(AgentOrchestrator.SYSTEM_PROMPT, prompt)
-        assertFalse(prompt.contains("данных о топливе и ДВС у тебя нет"))
-        assertTrue(prompt.contains("подключаемый гибрид"))
+        assertFalse(prompt.contains("Nie omawiaj rodzaju napędu"))
+        assertTrue(prompt.contains("hybrydą plug-in"))
         assertTrue(prompt.contains("fuel_range_km"))
         assertTrue(prompt.contains("ev_range_km"))
     }

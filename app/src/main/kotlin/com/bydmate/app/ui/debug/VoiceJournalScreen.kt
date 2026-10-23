@@ -68,15 +68,15 @@ fun VoiceJournalScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Журнал голоса") },
+                title = { Text("Dziennik głosowy") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Wstecz")
                     }
                 },
                 actions = {
                     TextButton(onClick = { viewModel.clear() }) {
-                        Text("Очистить")
+                        Text("Wyczyść")
                     }
                 },
             )

@@ -62,7 +62,7 @@ import com.bydmate.app.ui.theme.ScaledDialogContent
  *  accidentally translated, re-formatted, or line-wrapped by a localization pass. */
 const val DONATION_ADDRESS = "0xBca867Ae608428ac869D4B44C875446C6137b803"
 
-/** ЮMoney fundraise page: card / SberPay / ЮMoney wallet payment. Kept in code for the
+/** YooMoney fundraise page: card / SberPay / YooMoney wallet payment. Kept in code for the
  *  same reasons as [DONATION_ADDRESS] -- identical in every locale, must not be translated. */
 const val DONATION_YOOMONEY_URL = "https://yoomoney.ru/fundraise/1K60HLUIS32.260908"
 

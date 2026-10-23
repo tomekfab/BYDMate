@@ -22,7 +22,7 @@ import org.robolectric.annotation.Config
 
 /**
  * The Trunk catalog offered "0" as closed, but the tailgate fid answers 2 closed, 1 open,
- * 3 moving: a saved «Багажник = Закрыт» never matched. The one-shot migration rewrites exactly
+* 3 moving: a saved “Trunk = Closed” rule never matched. The one-shot migration rewrites exactly
  * those values, once.
  */
 @RunWith(RobolectricTestRunner::class)

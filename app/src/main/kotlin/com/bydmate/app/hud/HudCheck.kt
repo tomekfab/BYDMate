@@ -33,7 +33,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 
 /**
- * «Проверка HUD» (HUD wave 1): about 90 s of test hints on the glass, no route needed, so a video
+ * «Sprawdzenie HUD» (HUD wave 1): about 90 s of test hints on the glass, no route needed, so a video
  * of the glass plus the recorded log tells which channel draws on a given car. Each step draws its
  * own distance marker:
  *  1. our SOME/IP frame, the car's navigation status not raised: 111 m, «BYDMATE 1»;

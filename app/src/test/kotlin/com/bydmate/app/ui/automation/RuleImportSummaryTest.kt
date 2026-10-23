@@ -31,10 +31,10 @@ class RuleImportSummaryTest {
     @Test fun `import preview shows the trigger logic and what navigate, music and split really run`() {
         val lc = ctx.appLocalizedContext()
         val rule = SharedRuleFixture.withActions(
-            ActionDef("", "Дача", "navigate", """{"lat":54.1,"lon":27.2,"name":"Дача","shortcut":"home","go":true}"""),
-            ActionDef("", "Музыка", "yandex_music", """{"mode":"search","query":"Queen","minimize":true}"""),
-            ActionDef("", "Сплит", "split_screen", """{"narrow":"a.b","wide":"c.d","side":"right"}"""),
-            ActionDef("", "Поиск", "navigate", """{"query":"АЗС","show":true,"go":true,"app":"maps"}"""),
+            ActionDef("", "Działka", "navigate", """{"lat":54.1,"lon":27.2,"name":"Działka","shortcut":"home","go":true}"""),
+            ActionDef("", "Muzyka", "yandex_music", """{"mode":"search","query":"Queen","minimize":true}"""),
+            ActionDef("", "Podział", "split_screen", """{"narrow":"a.b","wide":"c.d","side":"right"}"""),
+            ActionDef("", "Wyszukiwanie", "navigate", """{"query":"stacja paliw","show":true,"go":true,"app":"maps"}"""),
         )
         val autoGo = realDispatcher()::autoGoWillRun
         val preview = RuleImportSummary.preview(rule.copy(triggerLogic = "OR"), ctx, autoGo)
@@ -51,7 +51,7 @@ class RuleImportSummaryTest {
         assertTrue(music, music.contains("search «Queen»"))
         assertTrue(music, music.contains(lc.getString(R.string.automation_import_minimize)))
         assertTrue(split, split.contains(lc.getString(R.string.split_action_side_right)))
-        assertTrue(search, search.contains(lc.getString(R.string.automation_import_nav_search, "АЗС")))
+        assertTrue(search, search.contains(lc.getString(R.string.automation_import_nav_search, "stacja paliw")))
         assertTrue(search, search.contains(lc.getString(R.string.automation_import_nav_maps)))
         assertFalse(search, search.contains(lc.getString(R.string.automation_import_nav_go)))
         assertFalse(search, search.contains(lc.getString(R.string.automation_import_nav_show)))
@@ -59,10 +59,10 @@ class RuleImportSummaryTest {
 
     @Test fun `import preview names the app a close step closes`() {
         val rule = SharedRuleFixture.withActions(
-            ActionDef("", "x", "app_close", """{"packageName":"com.example.radio","appLabel":"Радио"}"""),
+            ActionDef("", "x", "app_close", """{"packageName":"com.example.radio","appLabel":"Radio"}"""),
         )
         val preview = RuleImportSummary.preview(rule, ctx, realDispatcher()::autoGoWillRun)
-        assertEquals("Закрыть приложение: com.example.radio", preview.actions[0])
+        assertEquals("Zamknij aplikację: com.example.radio", preview.actions[0])
     }
 
     @Test fun `import preview names the media key`() {
@@ -71,7 +71,7 @@ class RuleImportSummaryTest {
             ActionDef("", "x", "media_key", "pause"),
         )
         val preview = RuleImportSummary.preview(rule, ctx, realDispatcher()::autoGoWillRun)
-        assertEquals(listOf("Медиа: играть", "Медиа: пауза"), preview.actions)
+        assertEquals(listOf("Multimedia: odtwórz", "Multimedia: pauza"), preview.actions)
     }
 
     @Test fun `import preview names the screen step`() {
@@ -80,23 +80,23 @@ class RuleImportSummaryTest {
             ActionDef("screen", "x", "screen", "1"),
         )
         val preview = RuleImportSummary.preview(rule, ctx, realDispatcher()::autoGoWillRun)
-        assertEquals(listOf("Экран: выключить", "Экран: включить"), preview.actions)
+        assertEquals(listOf("Ekran: wyłącz", "Ekran: włącz"), preview.actions)
     }
 
-    @Test fun `import preview promises «Поехали» only where the dispatcher presses it`() {
+    @Test fun `import preview promises Start only where the dispatcher presses it`() {
         val lc = ctx.appLocalizedContext()
         val go = lc.getString(R.string.automation_import_nav_go)
         val show = lc.getString(R.string.automation_import_nav_show)
         val rule = SharedRuleFixture.withActions(
-            ActionDef("", "Дача", "navigate", """{"lat":54.1,"lon":27.2,"name":"Дача","go":true}"""),
-            ActionDef("", "Дача", "navigate", """{"lat":54.1,"lon":27.2,"name":"Дача","go":true,"app":"maps"}"""),
+            ActionDef("", "Działka", "navigate", """{"lat":54.1,"lon":27.2,"name":"Działka","go":true}"""),
+            ActionDef("", "Działka", "navigate", """{"lat":54.1,"lon":27.2,"name":"Działka","go":true,"app":"maps"}"""),
         )
         val dispatcher = realDispatcher()
         val navigator = RuleImportSummary.preview(rule, ctx, dispatcher::autoGoWillRun).actions[0]
         val maps = RuleImportSummary.preview(rule, ctx, dispatcher::autoGoWillRun).actions[1]
         assertTrue(navigator, navigator.contains(go))
-        // Maps builds the route but has no «Поехали» the dispatcher can press: no promise, and
-        // no «только показать точку» either, since a route is still built.
+        // Maps builds the route but has no Start action the dispatcher can press: no promise,
+        // and no show-point-only outcome either, since a route is still built.
         assertFalse(maps, maps.contains(go))
         assertFalse(maps, maps.contains(show))
         assertTrue(maps, maps.contains(lc.getString(R.string.automation_import_nav_maps)))
@@ -112,7 +112,7 @@ class RuleImportSummaryTest {
     private object SharedRuleFixture {
         fun withActions(vararg actions: ActionDef) = SharedRule(
             name = "Navi", triggerLogic = "AND",
-            triggers = listOf(TriggerDef("Speed", "车速", ">", "7", "Скорость")),
+            triggers = listOf(TriggerDef("Speed", "车速", ">", "7", "Prędkość")),
             actions = actions.toList(), cooldownSeconds = 60, requirePark = false,
             confirmBeforeExecute = false, fireOncePerTrip = false, playSound = false,
         )

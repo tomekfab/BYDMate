@@ -8,11 +8,11 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** «Эко при низком заряде» is back exactly as before its removal in ec94f907 (#253). */
+/** The low-charge Eco template is back exactly as before its removal in ec94f907 (#253). */
 class StarterTemplatesTest {
 
     @Test fun `eco at low charge is shipped disabled with SOC below 15 and a 300 s cooldown`() {
-        val rule = starterTemplates("ru").single { it.name == "Эко при низком заряде" }
+        val rule = starterTemplates("pl").single { it.name == "ECO przy niskim naładowaniu" }
         assertFalse(rule.enabled)
         assertEquals("AND", rule.triggerLogic)
         assertEquals(300, rule.cooldownSeconds)
@@ -22,47 +22,51 @@ class StarterTemplatesTest {
         assertEquals("15", trigger.value)
         val action = ActionDef.listFromJson(rule.actions).single()
         assertEquals("ECO模式", action.command)
-        assertEquals("ECO режим", action.displayName)
+        assertEquals("ECO tryb", action.displayName)
         assertTrue(CommandTranslator.resolve(action.command).isNotEmpty())
     }
 
     @Test fun `winter start and summer cooling wait for the BYDMate start, only the sunshade for gear D`() {
-        for (lang in listOf("ru", "be", "en", "pl", "pt", "zh")) {
+        for (lang in listOf("be", "en", "pl", "pt", "zh")) {
             val triggers = starterTemplates(lang).flatMap { TriggerDef.listFromJson(it.triggers) }
             assertTrue(lang, triggers.none { it.param == "PowerState" })
         }
-        val ru = starterTemplates("ru")
-        fun lastTrigger(name: String) = TriggerDef.listFromJson(ru.single { it.name == name }.triggers).last()
-        for (name in listOf("Зимний старт", "Летнее охлаждение")) {
+        val pl = starterTemplates("pl")
+        fun lastTrigger(name: String) = TriggerDef.listFromJson(pl.single { it.name == name }.triggers).last()
+        for (name in listOf("Zimowy start", "Letnie chłodzenie")) {
             val start = lastTrigger(name)
             assertEquals(name, "service_start", start.kind)
-            assertEquals(name, "Запуск BYDMate", start.displayName)
+            assertEquals(name, "Uruchom BYDMate", start.displayName)
         }
-        assertEquals("ExtTemp", TriggerDef.listFromJson(ru.single { it.name == "Зимний старт" }.triggers).first().param)
-        assertEquals("InsideTemp", TriggerDef.listFromJson(ru.single { it.name == "Летнее охлаждение" }.triggers).first().param)
-        val gear = lastTrigger("Шторка при движении")
+        assertEquals("ExtTemp", TriggerDef.listFromJson(pl.single { it.name == "Zimowy start" }.triggers).first().param)
+        assertEquals("InsideTemp", TriggerDef.listFromJson(pl.single { it.name == "Letnie chłodzenie" }.triggers).first().param)
+        val gear = lastTrigger("Roleta podczas jazdy")
         assertEquals("Gear", gear.param)
         assertEquals("4", gear.value)
-        assertEquals("Передача = D", gear.displayName)
+        assertEquals("Bieg = D", gear.displayName)
         assertTrue(TRIGGER_PARAMS.none { it.param == "PowerState" })
     }
 
     @Test fun `the rule name follows the language`() {
         assertTrue(starterTemplates("en").any { it.name == "ECO at low SOC" })
         assertTrue(starterTemplates("zh").any { it.name == "低电量ECO" })
-        assertTrue(starterTemplates("be").any { it.name == "Эко при низком заряде" })
+        // The final two entries are report templates, which already have Belarusian values.
+        // Check the six starter templates separately so they cannot silently fall back to Polish.
+        assertFalse(
+            starterTemplates("be").take(6).map { it.name } == starterTemplates("pl").take(6).map { it.name },
+        )
     }
 
     @Test fun `two Telegram report templates ship disabled with a report action`() {
-        val rules = telegramReportTemplates("ru")
-        assertEquals(listOf("Где машина", "Статус при запуске"), rules.map { it.name })
+        val rules = telegramReportTemplates("pl")
+        assertEquals(listOf("Gdzie jest samochód", "Stan przy uruchomieniu"), rules.map { it.name })
         rules.forEach { rule ->
             assertFalse(rule.enabled)
             val action = ActionDef.listFromJson(rule.actions).single()
             assertEquals("telegram_report", action.kind)
             assertTrue(action.payload!!.contains("\"soc\""))
         }
-        assertTrue(starterTemplates("ru").map { it.name }.containsAll(listOf("Где машина", "Статус при запуске")))
+        assertTrue(starterTemplates("pl").map { it.name }.containsAll(listOf("Gdzie jest samochód", "Stan przy uruchomieniu")))
     }
 
     @Test fun `the Telegram report templates have their own name in every interface language`() {
@@ -72,7 +76,7 @@ class StarterTemplatesTest {
     }
 
     @Test fun `the Telegram report trigger and action names follow the language too`() {
-        for (lang in listOf("ru", "be", "en", "pl", "pt", "zh")) {
+        for (lang in listOf("be", "en", "pl", "pt", "zh")) {
             val rules = telegramReportTemplates(lang)
             val gearTrigger = TriggerDef.listFromJson(rules[0].triggers).single()
             val startupTrigger = TriggerDef.listFromJson(rules[1].triggers).single()

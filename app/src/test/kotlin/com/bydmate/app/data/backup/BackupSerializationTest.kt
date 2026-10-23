@@ -1,5 +1,7 @@
 package com.bydmate.app.data.backup
 
+import com.bydmate.app.voice.openclaw.OpenClawConversationStore
+import com.bydmate.app.voice.openclaw.OpenClawIdentityStore
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -146,5 +148,27 @@ class BackupSerializationTest {
     @Test
     fun `isRestorable returns false for significantly newer backup`() {
         assertFalse(BackupManager.isRestorable(backupSchemaVersion = 20, currentSchemaVersion = 15))
+    }
+    // -------------------------------------------------------------------------
+    // OpenClaw pairing material stays out of every backup path
+    // -------------------------------------------------------------------------
+
+    @Test
+    fun `the backup allowlist names no OpenClaw store`() {
+        val covered = BackupManager.PREFS_FILES + BackupManager.PREFS_FILES_ADDED_LATER +
+            BackupManager.EXCLUDED_PREFS_KEYS.keys + BackupManager.EXCLUDED_PREFS_KEYS.values.flatten()
+        val openClawNames = listOf(
+            OpenClawIdentityStore.DIRECTORY_NAME, OpenClawIdentityStore.FILE_NAME, OpenClawConversationStore.FILE_NAME,
+        )
+        for (name in openClawNames) {
+            assertFalse("$name must not be allow-listed", covered.any { it.contains(name, ignoreCase = true) })
+        }
+        assertFalse(covered.any { it.contains("openclaw", ignoreCase = true) })
+    }
+
+    @Test
+    fun `serialising an unrelated prefs map never invents OpenClaw keys`() {
+        val json = BackupManager.serializePrefs(mapOf("voice" to mapOf<String, Any?>("voice_enabled" to true)))
+        assertFalse(json.contains("openclaw", ignoreCase = true))
     }
 }

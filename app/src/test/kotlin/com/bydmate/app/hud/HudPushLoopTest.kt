@@ -197,7 +197,7 @@ class HudPushLoopTest {
         )
         val loop = HudPushLoop(FakeSink(), nowMsProvider = { 1_000_000_000_000L })
         val line = loop.runningLine(NavGuidanceHub.snapshot(1_000_000_000_000L))
-        assertEquals("Минское шоссе | 01:05 мин | ${loop.etaString(3900)}", line)
+        assertEquals("Минское шоссе | 01:05 min | ${loop.etaString(3900)}", line)
     }
 
     @Test fun `running line absent for short remainder`() {

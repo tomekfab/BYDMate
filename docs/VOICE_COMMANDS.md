@@ -1,205 +1,220 @@
-# Голосовые команды без интернета
+# Offline voice commands
 
-Эти фразы BYDMate выполняет сразу, прямо в машине: без языковой модели и без сети. Ниже полный список с примерами.
+BYDMate runs these phrases directly in the car, without a language model or network connection. This page lists the supported Polish phrases and examples.
 
-[Назад к README](../README.md#быстрые-команды-без-агента-и-без-интернета)
+[Back to the README](../README.md#voice-ai-agent)
 
-## Как это работает
+## Setup
 
-- Фраза выполняется офлайн, только если сказана целиком и так, как в списке. Другая формулировка того же уходит агенту.
-- Вежливые слова и обращения не мешают: «пожалуйста», «можешь», «слушай», «эй», «спасибо» просто отбрасываются. «Открой окно, пожалуйста» сработает так же, как «открой окно».
-- Буква «ё» и знаки препинания не важны. Числа можно говорить как угодно: «двадцать два» и «22» одно и то же.
-- «A и B» выполняет обе команды, если каждая из них есть в списке: «открой окно водителя и закрой люк». Так же работает «а также».
-- Всё остальное уходит облачному AI-агенту, если он включён. Без агента такая фраза получает ответ «не понял», а фразы из списка продолжают работать.
-- Список только русский. Язык интерфейса на это не влияет: офлайн-команды работают при любом языке приложения.
+The offline profile is Polish only. In **Settings → Voice agent**, download **Speech recognition (Parakeet)**. This also installs the shared VAD model that detects speech. Download the local **Gosia** voice if you want spoken replies, then use **Check Polish language readiness**. Recognition and Gosia run on the head unit; the command list below does not require an assistant connection.
 
-Глаголы можно говорить в разных формах: «открой», «открыть», «откройте», «открывай». Для окон подходят и «опусти» с «подними».
+## How it works
 
-## Окна
+- A phrase runs offline only when it matches a supported phrase after normalization. A different wording can be sent to the assistant if it is enabled.
+- Politeness and address words do not change recognition: `proszę`, `możesz`, `słuchaj`, `hej`, `dziękuję`, and similar filler words are dropped. `Otwórz okno, proszę` works like `Otwórz okno`.
+- Diacritics and punctuation are normalized as defined by the command dictionary. Numbers can be spoken as words or digits: `dwadzieścia dwa` and `22` mean the same value.
+- `A i B`, `A oraz B`, and `A a także B` run both commands only when each part is supported. For example: `otwórz okno kierowcy i zamknij szyberdach`.
+- Other phrases go to the cloud AI assistant when it is enabled. Without the assistant, an unsupported car request is refused while listed phrases still work.
+- The offline command list is Polish. The app interface language does not change it.
 
-### Какое окно назвать
+Use only the forms shown by the dictionary. The command grammar accepts the listed verb variants, such as `otwórz`, `otworzyć`, and `otwieraj`; for windows it also accepts `opuść` and `podnieś`.
 
-| Какие окна | Как назвать |
-|------------|-------------|
-| Все | «окна», «все окна», «стёкла», «окошки», «окна в машине» |
-| Передние | «передние окна», «окна спереди», «окна водителя и пассажира» |
-| Задние | «задние окна», «окна сзади», «заднее окно» |
-| Водителя | «окно», «моё окно», «окно водителя», «водительское окно», «форточку» |
-| Пассажира | «окно пассажира», «пассажирское окно», «переднее правое окно» |
-| Заднее левое | «левое окно», «заднее левое окно», «окно сзади слева» |
-| Заднее правое | «правое окно», «заднее правое окно», «окно сзади справа» |
+## Windows
 
-Вместо «окно» можно сказать «окошко» или «стекло». Просто «окно» без уточнения это окно водителя, а «левое» и «правое» без уточнения это задние окна.
+### Window names
 
-### Что сделать
+| Window | Supported names |
+| --- | --- |
+| All | `okna`, `wszystkie okna`, `szyby`, `okienka`, `okna w samochodzie` |
+| Front | `przednie okna`, `okna z przodu`, `okna kierowcy i pasażera` |
+| Rear | `tylne okna`, `okna z tyłu`, `tylne okno` |
+| Driver | `okno`, `moje okno`, `okno kierowcy`, `okno po stronie kierowcy`, `szybę` |
+| Passenger | `okno pasażera`, `okno po stronie pasażera`, `przednie prawe okno` |
+| Rear left | `lewe okno`, `tylne lewe okno`, `okno z tyłu po lewej` |
+| Rear right | `prawe okno`, `tylne prawe okno`, `okno z tyłu po prawej` |
 
-| Что произойдёт | Как сказать |
-|----------------|-------------|
-| Открыть полностью | «открой окна», «опусти окно водителя», «открой окна полностью», «окна открой» |
-| Закрыть | «закрой окна», «подними окно пассажира», «закрой окна до конца», «холодно, закрой окна» |
-| Открыть наполовину | «открой окна наполовину», «окно водителя наполовину», «приоткрой задние окна до половины», «открой пол окна» |
-| Приоткрыть на проветривание | «приоткрой окно водителя», «окна чуть-чуть», «открой окна немного», «поставь окна на проветривание», «проветри салон» |
-| Открыть на долю | «открой окно на 30 процентов», «окна на 70 процентов», «открой окна на треть», «открой окно на три четверти» |
-| Открыть или закрыть все, кроме некоторых | «открой окна кроме водительского», «закрой все окна кроме задних», «приоткрой окна кроме моего», «закрой окна кроме водительского и пассажирского» |
+You can use `okienko` or `szyba` for `okno`. An unqualified `okno` is the driver's window; unqualified `lewe` and `prawe` are rear windows.
 
-**Как понимается доля.** Окно умеет стоять в трёх положениях: щель для проветривания, наполовину и полностью. Названная доля приводится к ближайшему положению вниз, поэтому окно никогда не откроется шире, чем вы сказали:
+### Actions
 
-- от 10 до 49 процентов, «на треть», «на четверть», «чуть-чуть», «немного», «слегка», «на щёлочку»: щель для проветривания;
-- от 50 до 99 процентов, «наполовину», «до половины», «на три четверти»: наполовину;
-- 100 процентов, «полностью», «до конца», «на максимум»: полностью.
+| Result | How to say it |
+| --- | --- |
+| Open fully | `otwórz okna`, `opuść okno kierowcy`, `otwórz okna całkowicie` |
+| Close | `zamknij okna`, `podnieś okno pasażera`, `zimno, zamknij okna` |
+| Open halfway | `otwórz okna do połowy`, `okno kierowcy do połowy`, `otwórz połowę okna` |
+| Vent slightly | `uchyl okno kierowcy`, `otwórz okna trochę`, `ustaw okna na wietrzenie`, `przewietrz kabinę` |
+| Open to a share | `otwórz okno na 30 procent`, `okna na 70 procent`, `otwórz okna na jedną trzecią`, `otwórz okno na trzy czwarte` |
+| Open or close all except some | `otwórz okna oprócz kierowcy`, `zamknij wszystkie okna oprócz tylnych`, `uchyl okna oprócz kierowcy` |
 
-Меньше 10 процентов окно не откроет: такая фраза в список не входит.
+**How a share is interpreted.** A window has three positions: a ventilation gap, halfway, and fully open. A named share is rounded down to the nearest supported position, so the window never opens farther than requested:
 
-## Режим проветривания
+- 10 to 49 percent, `na jedną trzecią`, `na ćwierć`, `trochę`, `lekko`, `na szparkę`: ventilation gap;
+- 50 to 99 percent, `do połowy`, `na trzy czwarte`: halfway;
+- 100 percent, `całkowicie`, `do końca`, `na maksimum`: fully open.
 
-| Что произойдёт | Как сказать |
-|----------------|-------------|
-| Все окна на проветривание, люк приподнимается | «режим проветривания», «включи режим проветривания» |
-| Закрыть все окна и люк | «выключи режим проветривания», «отключи режим проветривания» |
+Below 10 percent, a window does not open: the phrase is not in the command list.
 
-## Люк и шторка
+## Ventilation mode
 
-Люк можно назвать «люк» или «крышу». Для люка и шторки подходят только «открой» и «закрой», а «опусти» и «подними» нет.
+| Result | How to say it |
+| --- | --- |
+| Vent all windows and tilt the sunroof | `tryb wietrzenia`, `włącz tryb wietrzenia` |
+| Close all windows and the sunroof | `wyłącz tryb wietrzenia` |
 
-| Что произойдёт | Как сказать |
-|----------------|-------------|
-| Открыть люк полностью | «открой люк», «открой люк полностью», «люк открой», «открой крышу» |
-| Закрыть люк | «закрой люк», «закрой крышу», «люк закрой» |
-| Открыть наполовину | «открой люк наполовину», «люк наполовину», «приоткрой люк наполовину» |
-| Приподнять на проветривание | «приоткрой люк», «люк чуть-чуть», «открой люк немного», «поставь люк на проветривание» |
-| Открыть на долю | «открой люк на 30 процентов», «открой люк на 80 процентов», «открой люк на треть» |
-| Открыть шторку | «открой шторку», «открой шторку люка» |
-| Закрыть шторку | «закрой шторку», «закрой шторку люка» |
+## Sunroof and shade
 
-Доля для люка понимается так же, как для окон, только порог проветривания ниже: от 7 до 49 процентов люк приподнимается, от 50 до 99 открывается наполовину, 100 полностью.
+Call the sunroof `szyberdach`, `dach`, or `okno dachowe`. The sunroof and shade accept only open and close verbs; `opuść` and `podnieś` do not apply.
 
-## Окна и люк вместе
+| Result | How to say it |
+| --- | --- |
+| Open the sunroof fully | `otwórz szyberdach`, `otwórz dach całkowicie` |
+| Close the sunroof | `zamknij szyberdach`, `zamknij dach` |
+| Open halfway | `otwórz szyberdach do połowy`, `szyberdach na pół` |
+| Tilt for ventilation | `uchyl szyberdach`, `otwórz szyberdach trochę`, `ustaw szyberdach na wietrzenie` |
+| Open to a share | `otwórz szyberdach na 30 procent`, `otwórz szyberdach na 80 procent`, `otwórz szyberdach na jedną trzecią` |
+| Open the shade | `otwórz roletę`, `otwórz roletę szyberdachu` |
+| Close the shade | `zamknij roletę`, `zamknij roletę szyberdachu` |
 
-| Что произойдёт | Как сказать |
-|----------------|-------------|
-| Открыть все окна и люк | «открой окна и люк», «открой люк и окна» |
-| Закрыть все окна и люк | «закрой окна и люк», «закрой люк и окна», «закрой все окна а также люк» |
-| Закрыть люк и шторку | «закрой люк и шторку» |
+The sunroof uses the same shares as windows, except that ventilation begins at 7 percent: 7 to 49 percent tilts it, 50 to 99 opens it halfway, and 100 opens it fully.
 
-## Сиденья
+## Windows and sunroof together
 
-### Какое сиденье назвать
+| Result | How to say it |
+| --- | --- |
+| Open all windows and the sunroof | `otwórz okna i szyberdach`, `otwórz szyberdach oraz okna` |
+| Close all windows and the sunroof | `zamknij okna i szyberdach`, `zamknij szyberdach oraz okna` |
+| Close the sunroof and shade | `zamknij szyberdach i roletę` |
 
-| Какое сиденье | Как назвать |
-|---------------|-------------|
-| Водителя | «сиденья», «сиденья водителя», «водительского сиденья», «моего сиденья», «левого сиденья» |
-| Пассажира | «сиденья пассажира», «пассажирского сиденья», «правого сиденья» |
-| Оба передних | «сидений», «всех сидений», «обоих сидений», «передних сидений» |
+## Seats
 
-Вместо «сиденья» можно сказать «кресла», вместо «подогрев» можно «обогрев», вместо «вентиляцию» можно «обдув». Сиденье без уточнения это сиденье водителя.
+### Seat names
 
-### Уровень
+| Seat | Supported names |
+| --- | --- |
+| Driver | `siedzenia`, `siedzenia kierowcy`, `fotela kierowcy`, `mojego siedzenia`, `lewego siedzenia` |
+| Passenger | `siedzenia pasażera`, `fotela pasażera`, `prawego siedzenia` |
+| Both front seats | `siedzeń`, `wszystkich siedzeń`, `obu siedzeń`, `przednich siedzeń` |
 
-Уровни от 1 до 3. Без уровня включается первый.
+You can use `fotel` for `siedzenie`, `ogrzewanie` for `podgrzewanie`, and `wentylowanie` for `wentylacja`. An unqualified seat is the driver's seat.
 
-- первый: «на 1», «на первый уровень», «на минимум»;
-- второй: «на 2», «на второй уровень»;
-- третий: «на 3», «на третий уровень», «на максимум», «на полную».
+### Level
 
-Уровни 4 и 5 в список не входят, такие фразы решает агент.
+Levels run from 1 to 3. Without a level, the command selects level 1.
 
-### Что сделать
+- first: `na 1`, `na pierwszy poziom`, `na minimum`;
+- second: `na 2`, `na drugi poziom`;
+- third: `na 3`, `na trzeci poziom`, `na maksimum`, `na pełną`.
 
-| Что произойдёт | Как сказать |
-|----------------|-------------|
-| Включить подогрев | «включи подогрев сиденья», «подогрев сиденья пассажира», «включи обогрев сидений» |
-| Подогрев с уровнем | «включи подогрев сиденья на 2», «подогрев сиденья пассажира на максимум», «второй уровень подогрева сиденья», «поставь подогрев сидений на третий уровень» |
-| Выключить подогрев | «выключи подогрев сиденья», «отключи подогрев сидений», «выключи подогрев сиденья пассажира» |
-| Включить вентиляцию | «включи вентиляцию сиденья», «вентиляция сиденья пассажира», «включи вентиляцию всех сидений» |
-| Вентиляция с уровнем | «включи вентиляцию сиденья на максимум», «обдув сиденья пассажира на 2», «включи сильный обдув сиденья» |
-| Выключить вентиляцию | «выключи вентиляцию сиденья», «выключи обдув сидений» |
+Levels 4 and 5 are not in the offline list; the assistant can handle such requests when enabled.
 
-## Руль
+### Actions
 
-Работает на машинах с подогревом руля.
+| Result | How to say it |
+| --- | --- |
+| Enable seat heating | `włącz ogrzewanie siedzenia`, `ogrzewanie siedzenia pasażera`, `włącz podgrzewanie siedzeń` |
+| Heating at a level | `włącz ogrzewanie siedzenia na 2`, `ogrzewanie siedzenia pasażera na maksimum`, `drugi poziom ogrzewania siedzenia` |
+| Disable heating | `wyłącz ogrzewanie siedzenia`, `wyłącz podgrzewanie siedzeń`, `wyłącz ogrzewanie siedzenia pasażera` |
+| Enable seat ventilation | `włącz wentylację siedzenia`, `wentylacja siedzenia pasażera`, `włącz wentylację wszystkich siedzeń` |
+| Ventilation at a level | `włącz wentylację siedzenia na maksimum`, `wentylacja siedzenia pasażera na 2`, `włącz silną wentylację siedzenia` |
+| Disable ventilation | `wyłącz wentylację siedzenia`, `wyłącz wentylowanie siedzeń` |
 
-| Что произойдёт | Как сказать |
-|----------------|-------------|
-| Включить подогрев руля | «включи подогрев руля», «включи обогрев руля», «включи руль» |
-| Выключить подогрев руля | «выключи подогрев руля», «выключи руль» |
-| Подогрев руля и обоих сидений сразу | «включи подогрев руля и сидений» |
+### Seat massage (driver only)
 
-## Зеркала
+| Result | How to say it |
+| --- | --- |
+| Start the driver seat massage | `włącz masaż fotela [kierowcy]`, `włącz masaż w fotelu [kierowcy]` |
+| Stop it | `wyłącz masaż fotela [kierowcy]`, `wyłącz masaż w fotelu [kierowcy]` |
 
-| Что произойдёт | Как сказать |
-|----------------|-------------|
-| Включить обогрев зеркал | «включи подогрев зеркал», «включи обогрев зеркал», «включи подогрев всех зеркал» |
-| Выключить обогрев зеркал | «выключи подогрев зеркал», «выключи обогрев зеркал» |
+The commands write one value to the driver seat massage mode: mode 2 (pulse) to start, mode 1 (off) to stop. Massage modes, intensity, the passenger seat, `siedzenia`, both seats and a bare `włącz masaż` are refused offline. The commands run locally and never go to the assistant (OpenClaw) or to the in-app agent.
 
-## Климат
+**Not validated on a car.** The car has no massage status read-back, so a spoken "Gotowe" means only that the write was accepted, not that the seat is massaging. Pending car check: on a parked car, `włącz masaż fotela kierowcy` starts a massage and `wyłącz masaż fotela kierowcy` stops it. Record the car model with the result.
 
-Вместо «климат» можно сказать «кондиционер» или «кондей».
+## Steering wheel
 
-| Что произойдёт | Как сказать |
-|----------------|-------------|
-| Включить климат в автоматическом режиме | «включи климат», «включи кондиционер», «климат авто», «включи климат на авто», «включи авторежим климата» |
-| Выключить климат | «выключи климат», «выключи кондиционер» |
-| Включить обдув салона | «включи обдув», «включи вентиляцию салона» |
-| Внутренняя рециркуляция | «включи рециркуляцию», «включи внутреннюю рециркуляцию» |
-| Внешний воздух | «выключи рециркуляцию» |
-| Обдув лобового стекла | «включи обдув лобового стекла», «включи обдув лобового» |
-| Выключить обдув лобового стекла | «выключи обдув лобового стекла», «выключи обдув лобового» |
-| Температура от 16 до 33 | «поставь температуру 22», «температура 22», «22 градуса», «установи 24 градуса» |
-| На градус теплее | «сделай теплее», «теплее», «потеплее», «холодно», «я замёрз» |
-| На градус холоднее | «сделай холоднее», «прохладнее», «жарко», «в машине душно» |
+Works on vehicles with heated steering wheels.
 
-## Вентилятор климата
+| Result | How to say it |
+| --- | --- |
+| Enable steering-wheel heating | `włącz ogrzewanie kierownicy` |
+| Disable steering-wheel heating | `wyłącz ogrzewanie kierownicy` |
+| Heat steering wheel and both seats | `włącz ogrzewanie kierownicy i siedzeń` |
 
-Скорость от 1 до 7. Вентилятор можно назвать «вентилятор», «скорость вентилятора» или «скорость обдува».
+## Mirrors
 
-| Что произойдёт | Как сказать |
-|----------------|-------------|
-| Скорость по числу | «вентилятор на 3», «скорость вентилятора 5», «поставь вентилятор на 4» |
-| Скорость по слову | «вентилятор на третью», «вентилятор на максимум», «вентилятор на минимум» |
+| Result | How to say it |
+| --- | --- |
+| Enable mirror heating | `włącz ogrzewanie lusterek`, `włącz ogrzewanie wszystkich lusterek` |
+| Disable mirror heating | `wyłącz ogrzewanie lusterek` |
 
-«На максимум» и «на полную» это седьмая скорость, «на минимум» первая. Просто «включи вентилятор» в список не входит: назовите скорость.
+## Climate
 
-## Громкость
+You can use `klimatyzator`, `klima`, or `klimatyzacja`.
 
-Речь о громкости музыки, а не голоса агента.
+| Result | How to say it |
+| --- | --- |
+| Enable automatic climate control | `włącz klimatyzację`, `klimatyzacja auto`, `włącz tryb automatyczny klimatyzacji` |
+| Disable climate control | `wyłącz klimatyzację` |
+| Enable cabin airflow | `włącz nawiew`, `włącz wentylację kabiny` |
+| Internal recirculation | `włącz recyrkulację`, `włącz obieg wewnętrzny` |
+| External air | `wyłącz recyrkulację`, `włącz obieg zewnętrzny` |
+| Windscreen airflow | `włącz nawiew na przednią szybę`, `włącz odmglanie przedniej szyby` |
+| Disable windscreen airflow | `wyłącz nawiew na przednią szybę` |
+| Temperature from 16 to 33 | `ustaw temperaturę na 22`, `temperatura 22`, `22 stopnie`, `ustaw 24 stopnie` |
+| One degree warmer | `zrób cieplej`, `cieplej`, `jest zimno`, `zmarzłem` |
+| One degree cooler | `zrób chłodniej`, `chłodniej`, `jest gorąco`, `w samochodzie duszno` |
 
-| Что произойдёт | Как сказать |
-|----------------|-------------|
-| Громче на шаг | «громче», «сделай погромче», «прибавь громкость», «звук громче» |
-| Тише на шаг | «тише», «сделай потише», «убавь звук», «громкость тише» |
-| Выключить звук | «выключи звук» |
-| Включить звук | «включи звук» |
-| Громкость по числу от 0 до 100 | «громкость 20», «поставь громкость на 50», «громкость на 10 процентов» |
+## Climate fan
 
-## Замки
+The speed runs from 1 to 7. Call it `wentylator`, `prędkość wentylatora`, `siłę nawiewu`, or `nawiew`.
 
-| Что произойдёт | Как сказать |
-|----------------|-------------|
-| Запереть машину | «запри машину», «закрой машину», «заблокируй двери», «запри замки» |
-| Отпереть машину | «отопри машину», «открой машину», «разблокируй двери», «отопри замки» |
+| Result | How to say it |
+| --- | --- |
+| Set speed by number | `wentylator na 3`, `prędkość wentylatora 5`, `ustaw wentylator na 4` |
+| Set speed by word | `wentylator na trzeci bieg`, `wentylator na maksimum`, `wentylator na minimum` |
 
-«Закрой дверь» в список не входит: так часто говорят пассажиру, а не машине.
+`Na maksimum` and `na pełną` mean speed 7; `na minimum` means speed 1. `Włącz wentylator` alone is not a listed phrase: specify the speed.
 
-## Багажник
+## Volume
 
-| Что произойдёт | Как сказать |
-|----------------|-------------|
-| Открыть багажник | «открой багажник», «открой задний багажник» |
-| Закрыть багажник | «закрой багажник», «закрой задний багажник» |
+This controls media volume, not the assistant voice.
 
-Передний багажник в список не входит, его открывает агент и только на стоящей машине.
+| Result | How to say it |
+| --- | --- |
+| Louder by one step | `głośniej`, `zrób głośniej`, `podgłośnij`, `zwiększ głośność` |
+| Quieter by one step | `ciszej`, `zrób ciszej`, `ścisz`, `zmniejsz głośność` |
+| Mute | `wycisz dźwięk` |
+| Unmute | `włącz dźwięk` |
+| Set volume from 0 to 100 | `głośność 20`, `ustaw głośność na 50`, `głośność na 10 procent` |
 
-## Свет
+## Locks
 
-| Что произойдёт | Как сказать |
-|----------------|-------------|
-| Включить подсветку салона | «включи подсветку», «включи амбиентную подсветку», «включи амбиент» |
-| Выключить подсветку салона | «выключи подсветку», «выключи амбиентную подсветку» |
-| Включить свет в салоне | «включи свет», «включи свет в салоне» |
-| Выключить свет в салоне | «выключи свет», «погаси свет в салоне» |
-| Включить дневные ходовые огни | «включи ДХО», «включи ходовые огни» |
-| Выключить дневные ходовые огни | «выключи ДХО», «выключи ходовые огни» |
+| Result | How to say it |
+| --- | --- |
+| Lock the car | `zamknij samochód`, `zablokuj drzwi samochodu`, `zablokuj zamki` |
+| Unlock the car | `otwórz samochód`, `odblokuj drzwi`, `odemknij zamki` |
 
-## Безопасность
+`Zamknij drzwi` is not a listed phrase. It can refer to a passenger rather than the car.
 
-Ограничения те же, что у агента и автоматизаций: окна не открываются на скорости выше 120 км/ч, люк выше 80 км/ч, двери не отпираются выше 30 км/ч.
+## Trunk
+
+| Result | How to say it |
+| --- | --- |
+| Open the rear trunk | `otwórz bagażnik`, `otwórz tylny bagażnik` |
+| Close the rear trunk | `zamknij bagażnik`, `zamknij tylny bagażnik` |
+
+The front trunk is not in the offline list. The assistant can open it only while the car is stationary.
+
+## Lights
+
+| Result | How to say it |
+| --- | --- |
+| Enable ambient light | `włącz podświetlenie`, `włącz oświetlenie ambientowe`, `włącz ambient` |
+| Disable ambient light | `wyłącz podświetlenie`, `wyłącz oświetlenie ambientowe` |
+| Enable interior light | `włącz światło w kabinie`, `włącz światło w środku` |
+| Disable interior light | `wyłącz światło w kabinie`, `zgaś światło w środku` |
+| Enable daytime running lights | `włącz światła dzienne`, `włącz DRL` |
+| Disable daytime running lights | `wyłącz światła dzienne`, `wyłącz DRL` |
+
+## Safety
+
+The same limits apply as to the assistant and automations: windows do not open above 120 km/h, the sunroof does not open above 80 km/h, and doors do not unlock above 30 km/h.

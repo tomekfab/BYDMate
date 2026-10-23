@@ -29,7 +29,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 
 /**
- * «Способ вывода на стекло»: way 1 is 3.19.0's output untouched; way 2 adds the raised status and
+ * “Windshield output method”: way 1 is 3.19.0's output untouched; way 2 adds the raised status and
  * the CAN guidance fields; way 3 adds the LAUNCHER_MAP_CN family. Whatever ends a route's output
  * (route end, way change, HUD off) blanks the CAN fields while the status is still up, then stops
  * the family, then disarms; what a process death left is cleaned at the next start.
@@ -176,6 +176,8 @@ class HudControllerWayTest {
         car()
         val frames: MutableList<ByteArray> = Collections.synchronizedList(mutableListOf())
         every { bridge.fireEvent(HudSomeIpBridge.TOPIC_NAVI, capture(frames)) } returns 0
+        // External navigator road text must be forwarded as UTF-8 bytes without transliteration.
+        // This external road-name fixture verifies UTF-8 byte forwarding without transliteration.
         NavGuidanceHub.update(
             NavGuidance(maneuverGaode = 2, distanceMeters = 300, road = "Проспект Независимости"), NavGuidanceHub.Source.A11Y,
         )

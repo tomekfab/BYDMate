@@ -9,13 +9,13 @@ import org.junit.Test
  */
 class CatalogDropdownCategoriesTest {
 
-    private val items = listOf("Окно водителя", "Окно пассажира", "Климат авто", "Багажник")
-    private val categories = listOf("Окна", "Окна", "Климат", "Кузов")
+    private val items = listOf("Szyba kierowcy", "Szyba pasażera", "Klimatyzacja", "Bagażnik")
+    private val categories = listOf("Szyby", "Szyby", "Klimatyzacja", "Nadwozie")
 
     @Test
     fun `only the category holding the current pick starts open`() {
-        assertEquals(setOf("Климат"), expandedCategoriesFor("Климат авто", items, categories))
-        assertEquals(setOf("Окна"), expandedCategoriesFor("Окно пассажира", items, categories))
+        assertEquals(setOf("Klimatyzacja"), expandedCategoriesFor("Klimatyzacja", items, categories))
+        assertEquals(setOf("Szyby"), expandedCategoriesFor("Szyba pasażera", items, categories))
     }
 
     @Test
@@ -26,6 +26,6 @@ class CatalogDropdownCategoriesTest {
 
     @Test
     fun `an empty catalog opens nothing`() {
-        assertEquals(emptySet<String>(), expandedCategoriesFor("Багажник", emptyList(), emptyList()))
+        assertEquals(emptySet<String>(), expandedCategoriesFor("Bagażnik", emptyList(), emptyList()))
     }
 }

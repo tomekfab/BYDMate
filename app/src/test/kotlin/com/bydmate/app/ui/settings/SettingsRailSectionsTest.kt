@@ -4,7 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Test
 
-/** «Места» moved to the Automation header: the Settings rail keeps nine sections. */
+/** Places moved to the Automation header: the Settings rail keeps nine sections. */
 class SettingsRailSectionsTest {
 
     @Test fun `settings rail has nine sections and no places`() {

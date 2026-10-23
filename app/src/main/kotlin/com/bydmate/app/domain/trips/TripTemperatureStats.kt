@@ -5,7 +5,7 @@ import kotlin.math.floor
 import kotlin.math.roundToInt
 
 /**
- * Everything the «Расход и температура» screen draws, computed off the trip list alone: the
+ * Everything the «Zużycie i temperatura» screen draws, computed off the trip list alone: the
  * scatter points, the axis ranges, the median trend and the three range medians. Kept free of
  * Compose so the numbers can be tested; the screen only formats what comes out of here.
  *

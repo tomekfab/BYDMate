@@ -85,7 +85,7 @@ data class ActionOption(
     @StringRes val nameRes: Int,
     @StringRes val categoryRes: Int,
     /**
-     * Set on the «… переключить» entries that sit next to an on/off pair: picking one stores a
+     * Set on the «… przełącz» entries that sit next to an on/off pair: picking one stores a
      * `toggle` action on this target instead of the command above, which stays empty for them.
      */
     val toggleTarget: String? = null,
@@ -113,14 +113,14 @@ fun triggerValueLabel(trigger: TriggerDef, context: Context): String =
 
 fun ActionOption.localizedName(context: Context): String {
     val lc = context.appLocalizedContext()
-    // A toggle entry reuses the target's own name and reads as «Багажник: переключить».
+    // A toggle entry reuses the target's own name and reads as "Trunk: toggle".
     return if (toggleTarget != null) lc.getString(R.string.auto_act_toggle_catalog, lc.getString(nameRes))
     else lc.getString(nameRes)
 }
 
 /**
  * The action a catalog pick stores: a toggle entry produces exactly the ActionDef the retired
- * «Переключить» kind picker produced, so an old rule and a new one are the same row.
+ * «Przełącz» kind picker produced, so an old rule and a new one are the same row.
  */
 fun actionDefFor(option: ActionOption, context: Context): ActionDef =
     if (option.toggleTarget != null) {
@@ -158,10 +158,10 @@ val TRIGGER_PARAMS = listOf(
         TriggerParamOption("WindowRL", "左后车窗打开百分比", R.string.auto_param_windowrl, R.string.auto_cat_body, R.string.auto_unit_percent_open),
         TriggerParamOption("WindowRR", "右后车窗打开百分比", R.string.auto_param_windowrr, R.string.auto_cat_body, R.string.auto_unit_percent_open),
         TriggerParamOption("Sunroof", "天窗打开百分比", R.string.auto_param_sunroof, R.string.auto_cat_body, R.string.auto_unit_percent_open),
-        TriggerParamOption("DoorFL", "主驾车门", R.string.auto_param_doorfl, R.string.auto_cat_body, enumValues = listOf("0" to R.string.auto_enum_closed_f, "1" to R.string.auto_enum_open_f)),
-        TriggerParamOption("DoorFR", "副驾车门", R.string.auto_param_doorfr, R.string.auto_cat_body, enumValues = listOf("0" to R.string.auto_enum_closed_f, "1" to R.string.auto_enum_open_f)),
-        TriggerParamOption("DoorRL", "左后车门", R.string.auto_param_doorrl, R.string.auto_cat_body, enumValues = listOf("0" to R.string.auto_enum_closed_f, "1" to R.string.auto_enum_open_f)),
-        TriggerParamOption("DoorRR", "右后车门", R.string.auto_param_doorrr, R.string.auto_cat_body, enumValues = listOf("0" to R.string.auto_enum_closed_f, "1" to R.string.auto_enum_open_f)),
+        TriggerParamOption("DoorFL", "主驾车门", R.string.auto_param_doorfl, R.string.auto_cat_body, enumValues = listOf("0" to R.string.auto_enum_closed_doors, "1" to R.string.auto_enum_open_doors)),
+        TriggerParamOption("DoorFR", "副驾车门", R.string.auto_param_doorfr, R.string.auto_cat_body, enumValues = listOf("0" to R.string.auto_enum_closed_doors, "1" to R.string.auto_enum_open_doors)),
+        TriggerParamOption("DoorRL", "左后车门", R.string.auto_param_doorrl, R.string.auto_cat_body, enumValues = listOf("0" to R.string.auto_enum_closed_doors, "1" to R.string.auto_enum_open_doors)),
+        TriggerParamOption("DoorRR", "右后车门", R.string.auto_param_doorrr, R.string.auto_cat_body, enumValues = listOf("0" to R.string.auto_enum_closed_doors, "1" to R.string.auto_enum_open_doors)),
         TriggerParamOption("Hood", "引擎盖", R.string.auto_param_hood, R.string.auto_cat_body, enumValues = listOf("0" to R.string.auto_enum_closed_m, "1" to R.string.auto_enum_open_m)),
         TriggerParamOption("LockFL", "主驾车门锁", R.string.auto_param_lockfl, R.string.auto_cat_body, enumValues = listOf("1" to R.string.auto_enum_unlocked, "2" to R.string.auto_enum_locked)),  // codes match DiParsData.lockFL runtime: 1=unlocked, 2=locked
         // Live codes: 2=closed, 1=open, 3=moving (0 is not a trunk state; old rules migrated)
@@ -331,7 +331,7 @@ data class EditingRule(
     val fireOncePerTrip: Boolean = false,
     val playSound: Boolean = false,
     val isNew: Boolean = true,
-    /** The rule's switch when the editor opened: «Сохранить как новое» keeps it. */
+    /** The rule's switch when the editor opened: «Zapisz jak nowe» keeps it. */
     val enabled: Boolean = true,
     /** A save is in flight: the draft is frozen, [AutomationViewModel.updateEditing] ignores edits. */
     val saving: Boolean = false,
@@ -366,7 +366,7 @@ data class EditingRule(
  * Step 2 of the import dialog: the parsed rule as it will be added, its [preview] lines, plus
  * the user's choices. [token] tells one parsed file from the next: a place or contact picked
  * for an older draft is dropped instead of landing on the same index of a new one. While
- * [saving] the insert runs and the draft is frozen: no edits, no «Отмена».
+ * [saving] the insert runs and the draft is frozen: no edits, no «Anuluj».
  */
 data class RuleImportDraft(
     val rule: SharedRule,
@@ -388,9 +388,9 @@ data class AutomationUiState(
     val showDeleteConfirm: Long? = null,
     val places: List<PlaceEntity> = emptyList(),
     val editorError: String? = null,
-    /** The rule being edited was deleted meanwhile: the editor says so and closes on «Закрыть». */
+    /** The rule being edited was deleted meanwhile: the editor says so and closes on «Zamknij». */
     val editorRuleDeleted: Boolean = false,
-    /** «Поделиться» tapped: non-null shows what the file keeps, before anything is written. */
+    /** «Udostępnij» tapped: non-null shows what the file keeps, before anything is written. */
     val pendingShare: SharedRule? = null,
     /** Import step 1: non-null shows the list of share files in Download. */
     val importFiles: List<File>? = null,
@@ -399,7 +399,7 @@ data class AutomationUiState(
     /** Import step 2: non-null shows the preview. */
     val importDraft: RuleImportDraft? = null,
     val testRunning: Boolean = false,
-    /** A share file is being written: the «Поделиться» buttons wait for it. */
+    /** A share file is being written: the «Udostępnij» buttons wait for it. */
     val shareInProgress: Boolean = false,
     /** The Telegram bot is connected in Settings: the report dialog warns when it is not. */
     val tgBotConnected: Boolean = false,
@@ -421,7 +421,8 @@ class AutomationViewModel @Inject @Suppress("LongParameterList") constructor( //
     private val vehicleApi: VehicleApi,
     private val actionDispatcher: ActionDispatcher,
     private val settingsRepository: SettingsRepository,
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val userPhrases: VoiceUserPhrases,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AutomationUiState(viewMode = RuleViewMode.read(RuleViewMode.prefs(context))))
@@ -436,9 +437,9 @@ class AutomationViewModel @Inject @Suppress("LongParameterList") constructor( //
     internal var ioDispatcher: CoroutineDispatcher = Dispatchers.IO
     internal var liveSnapshot: () -> DiParsData? = { TrackingService.lastData.value }
     internal var liveSample: () -> TimedSnapshot? = { TrackingService.lastSample }
-    // The user's own phrases for built-in commands (normalized phrase -> command name): a voice
-    // trigger may not reuse one. Read fresh from SharedPreferences on every save.
-    internal var userCommandPhrases: () -> Map<String, String> = { VoiceUserPhrases(context).owners() }
+    // Every alias phrase of the singleton store (normalized phrase -> owner name): a voice trigger
+    // may not reuse one. Read from the injected store on every save.
+    internal var userCommandPhrases: () -> Map<String, String> = { userPhrases.owners() }
     internal var serviceRunning: () -> Boolean = { TrackingService.isRunning.value }
     internal var elapsedNow: () -> Long = { SystemClock.elapsedRealtime() }
     internal var shareSheet: (File) -> Unit = { startShareSheet(it) }
@@ -516,7 +517,7 @@ class AutomationViewModel @Inject @Suppress("LongParameterList") constructor( //
     }
 
     /**
-     * "Выполнить сейчас" — run a single action immediately, for live testing from the
+     * "Wykonaj teraz" — run a single action immediately, for live testing from the
      * rule editor. A "toggle" action goes through [ActionDispatcher] (it needs the live
      * state to pick the direction, and the dispatcher already applies every safety gate);
      * a param action takes the direct write path below. Result is surfaced via Toast.
@@ -604,7 +605,7 @@ class AutomationViewModel @Inject @Suppress("LongParameterList") constructor( //
     }
 
     fun closeEditor() {
-        // «Отмена» also stops a test run: nothing is left on screen to watch or stop it.
+        // «Anuluj» also stops a test run: nothing is left on screen to watch or stop it.
         testRunJob?.cancel()
         editorSession++
         _uiState.update { it.copy(showEditor = false, editorError = null, editorRuleDeleted = false) }
@@ -619,7 +620,7 @@ class AutomationViewModel @Inject @Suppress("LongParameterList") constructor( //
     }
 
     /**
-     * «Правило уже удалено» → «Сохранить как новое»: the draft becomes a new rule, switch as it
+     * "Rule was already deleted" → "Save as new": the draft becomes a new rule, switch as it
      * was. The editor and the draft stay open until the insert returns: it closes only on
      * success, bound to this save's editor session, so a DB failure keeps the draft on screen
      * with a message instead of losing it. The draft is frozen ([EditingRule.saving]) for the
@@ -656,7 +657,7 @@ class AutomationViewModel @Inject @Suppress("LongParameterList") constructor( //
         }
     }
 
-    /** «Правило уже удалено» dismissed by Back or outside: the editor stays with the draft. */
+    /** "Rule was already deleted" dismissed by Back or outside: the editor stays with the draft. */
     fun dismissRuleDeleted() {
         _uiState.update { it.copy(editorRuleDeleted = false) }
     }
@@ -732,7 +733,7 @@ class AutomationViewModel @Inject @Suppress("LongParameterList") constructor( //
             _uiState.value = _uiState.value.copy(editorError = actionError)
             return
         }
-        // Every save path, «Сохранить изменения?» included: a list condition keeps no hidden operator.
+        // Every save path, «Zapisz zmiany?» included: a list condition keeps no hidden operator.
         val noOperator = e.triggers.indexOfFirst { hasListOperatorMissing(it) }
         if (noOperator >= 0) {
             Log.i("AutomationViewModel", "rule not saved: list condition ${noOperator + 1} has operator ${e.triggers[noOperator].operator}")
@@ -867,17 +868,17 @@ class AutomationViewModel @Inject @Suppress("LongParameterList") constructor( //
     // --- Test run ---
 
     /**
-     * «Тестовый запуск»: runs every action of the rule being edited, in order, right now.
+     * «Testowy uruchomienie»: runs every action of the rule being edited, in order, right now.
      * Each action goes through [ActionDispatcher.dispatch] against the live snapshot, so the
-     * speed gates apply exactly as when the rule fires; the chime follows «Выполнять со звуком».
+     * speed gates apply exactly as when the rule fires; the chime follows "Play with sound".
      * A speed-gated action ([isSpeedGatedAction]) also needs a running service and a polled
      * snapshot measured less than [TEST_RUN_MAX_SNAPSHOT_AGE_MS] ago ([isSampleFresh]): the
      * dispatcher lets a window or the sunroof open with no snapshot at all, and a stale speed 0
      * passes every gate. Without one the action is skipped and counted as not done; so is an
      * action the pre-check cannot classify. Closing the editor stops the run.
-     * «Только на парковке» holds as when the rule fires: off P, or with no fresh P, the run is refused with a note,
-     * and a saved rule gets the refusal in its journal. The trigger conditions, cooldown, «Раз за
-     * поездку» and «Спрашивать подтверждение» are skipped: the button press is the confirmation.
+     * «Tylko na postoju» holds as when the rule fires: off P, or with no fresh P, the run is refused with a note,
+     * and a saved rule gets the refusal in its journal. The trigger conditions, cooldown, "Once per
+     * trip" and "Ask for confirmation" are skipped: the button press is the confirmation.
      * Otherwise a run writes no lastTriggeredAt / triggerCount update and no journal entry.
      */
     fun testRun() {
@@ -967,10 +968,10 @@ class AutomationViewModel @Inject @Suppress("LongParameterList") constructor( //
 
     // --- Share ---
 
-    /** «Поделиться» on a rule card: first the note on what the file keeps. */
+    /** «Udostępnij» on a rule card: first the note on what the file keeps. */
     fun shareRule(rule: RuleEntity) = requestShare(SharedRule.fromEntity(rule))
 
-    /** «Поделиться» in the editor: shares the draft as it is on screen, saved or not. */
+    /** «Udostępnij» in the editor: shares the draft as it is on screen, saved or not. */
     fun shareEditing() {
         val e = _uiState.value.editing
         if (e.name.isBlank() || e.triggers.isEmpty() || e.actions.isEmpty()) return
@@ -982,14 +983,14 @@ class AutomationViewModel @Inject @Suppress("LongParameterList") constructor( //
         _uiState.update { it.copy(pendingShare = rule) }
     }
 
-    /** «Продолжить» under the note: writes the file and opens the system share sheet. */
+    /** «Kontynuuj» under the note: writes the file and opens the system share sheet. */
     fun confirmShare() {
         val rule = _uiState.value.pendingShare ?: return
         _uiState.update { it.copy(pendingShare = null) }
         writeShareFile(rule)
     }
 
-    /** «Отмена» under the note: nothing is written. */
+    /** «Anuluj» under the note: nothing is written. */
     fun cancelShare() {
         _uiState.update { it.copy(pendingShare = null) }
     }
@@ -1048,7 +1049,7 @@ class AutomationViewModel @Inject @Suppress("LongParameterList") constructor( //
 
     // --- Import ---
 
-    /** «Импорт»: lists the share files in Download, newest first. */
+    /** "Import": lists the share files in Download, newest first. */
     fun openImport() {
         importJob?.cancel()
         importJob = viewModelScope.launch {
@@ -1120,7 +1121,7 @@ class AutomationViewModel @Inject @Suppress("LongParameterList") constructor( //
         return RuleImportDraft(linked, RuleImportSummary.preview(linked, context, actionDispatcher::autoGoWillRun))
     }
 
-    /** «Выбрать место» for the place trigger at [index] of the draft [token]. */
+    /** "Choose place" for the place trigger at [index] of the draft [token]. */
     fun resolveImportPlace(token: Long, index: Int, place: PlaceEntity) {
         val lc = context.appLocalizedContext()
         updateImportRule(token) { rule ->
@@ -1135,7 +1136,7 @@ class AutomationViewModel @Inject @Suppress("LongParameterList") constructor( //
     }
 
     /**
-     * «Выбрать контакт» for the action at [index] of the draft [token]: a call gets the contact,
+     * "Choose contact" for the action at [index] of the draft [token]: a call gets the contact,
      * a `tel:` / `sms:` link gets the number back into its address.
      */
     fun resolveImportContact(token: Long, index: Int, phone: String, name: String, autoDial: Boolean) {
@@ -1168,11 +1169,11 @@ class AutomationViewModel @Inject @Suppress("LongParameterList") constructor( //
     }
 
     /**
-     * «Добавить»: validates like the editor, renames on a clash, checks the [MAX_RULES] limit
+     * «Dodaj»: validates like the editor, renames on a clash, checks the [MAX_RULES] limit
      * and inserts the draft as it is on screen at the tap. Until the insert returns the draft is
-     * [RuleImportDraft.saving]: edits and «Отмена» are ignored. The preview closes only once the
+     * [RuleImportDraft.saving]: edits and «Anuluj» are ignored. The preview closes only once the
      * row is in; a refusal or a database error stays in the preview with the draft intact, so
-     * «Добавить» can be pressed again.
+     * «Dodaj» can be pressed again.
      */
     fun confirmImport() {
         val draft = _uiState.value.importDraft ?: return
@@ -1244,100 +1245,105 @@ class AutomationViewModel @Inject @Suppress("LongParameterList") constructor( //
 /** Disabled starter rules a fresh install gets once, named in [lang]. */
 @Suppress("LongMethod") // a data table: one entry per template
 internal fun starterTemplates(lang: String): List<RuleEntity> {
-    fun tName(zh: String, en: String, ru: String): String = when (lang) { "zh" -> zh; "ru", "be" -> ru; else -> en }
+    fun tName(zh: String, en: String, be: String, pl: String): String = when (lang) {
+        "zh" -> zh
+        "be" -> be
+        "pl" -> pl
+        else -> en
+    }
 
     return listOf(
         RuleEntity(
-            name = tName("高速关窗", "Close windows on highway", "Закрыть окна на трассе"),
+            name = tName("高速关窗", "Close windows on highway", "Зачыніць вокны на шашы", "Zamknij okna na autostradzie"),
             enabled = false,
             triggerLogic = "AND",
             triggers = TriggerDef.listToJson(listOf(
                 TriggerDef("Speed", "车速", ">", "100",
-                    tName("车速 > 100 km/h", "Speed > 100 km/h", "Скорость > 100 км/ч"))
+                    tName("车速 > 100 km/h", "Speed > 100 km/h", "Хуткасць > 100 км/г", "Prędkość > 100 km/h"))
             )),
             actions = ActionDef.listToJson(listOf(
                 ActionDef("车窗关闭",
-                    tName("关闭所有车窗", "Close All Windows", "Закрыть все окна"))
+                    tName("关闭所有车窗", "Close All Windows", "Зачыніць усе вокны", "Zamknij wszystkie okna"))
             )),
             cooldownSeconds = 60
         ),
         RuleEntity(
-            name = tName("冬季启动", "Winter start", "Зимний старт"),
+            name = tName("冬季启动", "Winter start", "Зімовы старт", "Zimowy start"),
             enabled = false,
             triggerLogic = "AND",
             triggers = TriggerDef.listToJson(listOf(
                 TriggerDef("ExtTemp", "车外温度", "<", "0",
-                    tName("车外温度 < 0°C", "Outside Temp < 0°C", "Темп. снаружи < 0°C")),
+                    tName("车外温度 < 0°C", "Outside Temp < 0°C", "Тэмп. звонку < 0°C", "Tempo. na zewnątrz < 0°C")),
                 TriggerDef("ServiceStart", "服务启动", "==", "true",
-                    tName("BYDMate 启动", "BYDMate startup", "Запуск BYDMate"), kind = "service_start")
+                    tName("BYDMate 启动", "BYDMate startup", "Запуск BYDMate", "Uruchom BYDMate"), kind = "service_start")
             )),
             actions = ActionDef.listToJson(listOf(
                 ActionDef("主驾座椅加热2档",
-                    tName("主驾座椅加热2档", "Driver Heat 2", "Подогрев водителя 2")),
+                    tName("主驾座椅加热2档", "Driver Heat 2", "Падагрэў кіроўцы 2", "Ogrzewanie kierowcy 2")),
                 ActionDef("后视镜加热",
-                    tName("后视镜加热开", "Mirror Heat On", "Подогрев зеркал вкл"))
+                    tName("后视镜加热开", "Mirror Heat On", "Падагрэў люстэркаў укл.", "Ogrzewanie lusterek wł."))
             )),
             cooldownSeconds = 600
         ),
         RuleEntity(
-            name = tName("低电量ECO", "ECO at low SOC", "Эко при низком заряде"),
+            name = tName("低电量ECO", "ECO at low SOC", "ECO пры нізкім зарадзе", "ECO przy niskim naładowaniu"),
             enabled = false,
             triggerLogic = "AND",
             triggers = TriggerDef.listToJson(listOf(
                 TriggerDef("SOC", "电量百分比", "<", "15", "SOC < 15%")
             )),
             actions = ActionDef.listToJson(listOf(
-                ActionDef("ECO模式", tName("ECO 模式", "ECO Mode", "ECO режим"))
+                ActionDef("ECO模式", tName("ECO 模式", "ECO Mode", "Рэжым ECO", "ECO tryb"))
             )),
             cooldownSeconds = 300
         ),
         RuleEntity(
-            name = tName("夏季制冷", "Summer cooling", "Летнее охлаждение"),
+            name = tName("夏季制冷", "Summer cooling", "Летняе ахалоджванне", "Letnie chłodzenie"),
             enabled = false,
             triggerLogic = "AND",
             triggers = TriggerDef.listToJson(listOf(
                 TriggerDef("InsideTemp", "车内温度", ">", "30",
-                    tName("车内温度 > 30°C", "Cabin Temp > 30°C", "Темп. салона > 30°C")),
+                    tName("车内温度 > 30°C", "Cabin Temp > 30°C", "Тэмп. салона > 30°C", "Temp. kabiny > 30°C")),
                 TriggerDef("ServiceStart", "服务启动", "==", "true",
-                    tName("BYDMate 启动", "BYDMate startup", "Запуск BYDMate"), kind = "service_start")
+                    tName("BYDMate 启动", "BYDMate startup", "Запуск BYDMate", "Uruchom BYDMate"), kind = "service_start")
             )),
             actions = ActionDef.listToJson(listOf(
                 ActionDef("主驾座椅通风1档",
-                    tName("主驾座椅通风1档", "Driver Vent 1", "Вентиляция водителя 1")),
+                    tName("主驾座椅通风1档", "Driver Vent 1", "Вентыляцыя кіроўцы 1", "Wentylacja kierowcy 1")),
                 ActionDef("自动空调",
-                    tName("自动空调", "Auto AC", "Авто AC"))
+                    tName("自动空调", "Auto AC", "Аўта AC", "Auto AC"))
             )),
             cooldownSeconds = 600
         ),
         RuleEntity(
-            name = tName("行驶开遮阳帘", "Sunshade while driving", "Шторка при движении"),
+            name = tName("行驶开遮阳帘", "Sunshade while driving", "Шторка падчас руху", "Roleta podczas jazdy"),
             enabled = false,
             triggerLogic = "AND",
             triggers = TriggerDef.listToJson(listOf(
                 TriggerDef("Gear", "档位", "==", "4",
-                    tName("档位 = D", "Gear = D", "Передача = D"))
+                    tName("档位 = D", "Gear = D", "Перадача = D", "Bieg = D"))
             )),
             actions = ActionDef.listToJson(listOf(
                 ActionDef("遮阳帘打开",
-                    tName("遮阳帘打开", "Sunshade Open", "Открыть шторку"))
+                    tName("遮阳帘打开", "Sunshade Open", "Адкрыць шторку", "Otwórz roletę"))
             )),
             cooldownSeconds = 600
         ),
         RuleEntity(
-            name = tName("充电时空调", "Climate while charging", "Климат при зарядке"),
+            name = tName("充电时空调", "Climate while charging", "Клімат падчас зарадкі", "Klimatyzacja podczas ładowania"),
             enabled = false,
             triggerLogic = "AND",
             triggers = TriggerDef.listToJson(listOf(
                 TriggerDef("ChargingStatus", "充电状态", "==", "2",
-                    tName("充电状态 = 充电中", "Charging Status = Charging", "Зарядка = Начата")),
+                    tName("充电状态 = 充电中", "Charging Status = Charging", "Зарадка = пачата", "Ładowanie = rozpoczęte")),
                 TriggerDef("ExtTemp", "车外温度", "<", "5",
-                    tName("车外温度 < 5°C", "Outside Temp < 5°C", "Темп. снаружи < 5°C"))
+                    tName("车外温度 < 5°C", "Outside Temp < 5°C", "Тэмп. звонку < 5°C", "Tempo. na zewnątrz < 5°C"))
             )),
             actions = ActionDef.listToJson(listOf(
                 ActionDef("自动空调",
-                    tName("自动空调", "Auto AC", "Авто AC")),
+                    tName("自动空调", "Auto AC", "Аўта AC", "Auto AC")),
                 ActionDef("主驾座椅加热1档",
-                    tName("主驾座椅加热1档", "Driver Heat 1", "Подогрев водителя 1"))
+                    tName("主驾座椅加热1档", "Driver Heat 1", "Падагрэў кіроўцы 1", "Ogrzewanie kierowcy 1"))
             )),
             cooldownSeconds = 600
         ),
@@ -1346,19 +1352,17 @@ internal fun starterTemplates(lang: String): List<RuleEntity> {
 
 /** The two Telegram report rules of 3.19, disabled: also added once to installs made before it. */
 internal fun telegramReportTemplates(lang: String): List<RuleEntity> {
-    // A local six-language helper: the shared tName above only knows zh/en/ru and falls back to
-    // ru for be, en for pl/pt, which ends up in the sent report header (finding #4, 2026-09-27).
-    fun tName(zh: String, en: String, ru: String, be: String, pl: String, pt: String): String = when (lang) {
+    // A local five-language helper keeps the dedicated Belarusian and Polish report names.
+    fun tName(zh: String, en: String, be: String, pl: String, pt: String): String = when (lang) {
         "zh" -> zh
-        "ru" -> ru
         "be" -> be
         "pl" -> pl
         "pt" -> pt
         else -> en
     }
     val reportName = tName(
-        "Telegram 报告", "Telegram report", "Отчёт в Telegram",
-        "Справаздача ў Telegram", "Raport w Telegramie", "Relatório no Telegram",
+        "Telegram 报告", "Telegram report", "Справаздача ў Telegram",
+        "Raport w Telegramie", "Relatório no Telegram",
     )
     fun report(vararg fields: ReportField) = ActionDef(
         command = "",
@@ -1369,14 +1373,14 @@ internal fun telegramReportTemplates(lang: String): List<RuleEntity> {
     return listOf(
         RuleEntity(
             name = tName(
-                "车在哪里", "Where the car is", "Где машина",
-                "Дзе машына", "Gdzie jest samochód", "Onde está o carro",
+                "车在哪里", "Where the car is", "Дзе машына",
+                "Gdzie jest samochód", "Onde está o carro",
             ),
             enabled = false,
             triggerLogic = "AND",
             triggers = TriggerDef.listToJson(listOf(
                 TriggerDef("Gear", "档位", "==", "1", tName(
-                    "档位 = P", "Gear = P", "Передача = P", "Перадача = P", "Bieg = P", "Marcha = P",
+                    "档位 = P", "Gear = P", "Перадача = P", "Bieg = P", "Marcha = P",
                 ))
             )),
             actions = ActionDef.listToJson(listOf(report(ReportField.LOCATION, ReportField.SOC, ReportField.RANGE))),
@@ -1384,15 +1388,15 @@ internal fun telegramReportTemplates(lang: String): List<RuleEntity> {
         ),
         RuleEntity(
             name = tName(
-                "启动时状态", "Status at start", "Статус при запуске",
-                "Стан пры запуску", "Stan przy uruchomieniu", "Status ao iniciar",
+                "启动时状态", "Status at start", "Стан пры запуску",
+                "Stan przy uruchomieniu", "Status ao iniciar",
             ),
             enabled = false,
             triggerLogic = "AND",
             triggers = TriggerDef.listToJson(listOf(
                 TriggerDef("ServiceStart", "服务启动", "==", "true", tName(
-                    "BYDMate 启动", "BYDMate startup", "Запуск BYDMate",
-                    "Запуск BYDMate", "Uruchomienie BYDMate", "Inicialização do BYDMate",
+                    "BYDMate 启动", "BYDMate startup", "Uruchom BYDMate",
+                    "Uruchomienie BYDMate", "Inicialização do BYDMate",
                 ), kind = "service_start")
             )),
             actions = ActionDef.listToJson(listOf(report(ReportField.SOC, ReportField.RANGE, ReportField.TRIP))),
@@ -1681,7 +1685,7 @@ fun newClusterAction(context: Context): ActionDef = ActionDef(
 
 /**
  * A kind that has its own control row AND a toggle target: sentry and the cluster projection.
- * Their row shows three states, and «Переключить» stores a `toggle` action on [toggleTarget]
+ * Their row shows three states, and «Przełącz» stores a `toggle` action on [toggleTarget]
  * instead of the row's own [kind], so the same target has one storage shape everywhere.
  */
 data class ToggleRowSpec(val kind: String, val command: String, val toggleTarget: String)
@@ -1691,13 +1695,13 @@ val CLUSTER_ROW = ToggleRowSpec("cluster_projection", "cluster_projection", Acti
 
 /**
  * The three-state row that edits [action], or null when it belongs to another control. A stored
- * toggle on one of these targets comes back to its own row, so «Вкл» and «Выкл» stay reachable.
+ * toggle on one of these targets comes back to its own row, so «Wł.» and «Wył.» stay reachable.
  */
 fun toggleRowSpecFor(action: ActionDef): ToggleRowSpec? = listOf(SENTRY_ROW, CLUSTER_ROW).firstOrNull {
     action.kind == it.kind || (action.kind == "toggle" && action.payload == it.toggleTarget)
 }
 
-/** What the «Вкл» / «Выкл» chips store: the row's own kind again, even after a «Переключить». */
+/** What the «Wł.» / «Wył.» chips store: the row's own kind again, even after a «Przełącz». */
 fun rowStateAction(spec: ToggleRowSpec, payload: String, displayName: String): ActionDef =
     ActionDef(command = spec.command, displayName = displayName, kind = spec.kind, payload = payload)
 
@@ -1713,7 +1717,7 @@ fun newToggleAction(context: Context): ActionDef = ActionDef(
     payload = ActionDispatcher.TOGGLE_TRUNK
 )
 
-/** "Переключить: <цель>" — the saved display name for a toggle action. */
+/** "Toggle: <target>" — the saved display name for a toggle action. */
 /** [trigger] with the catalog's name of its param and value; anything off the catalog as it is. */
 internal fun withCatalogName(trigger: TriggerDef, context: Context): TriggerDef {
     if (trigger.kind != "param") return trigger
@@ -1884,7 +1888,7 @@ internal fun <T> List<T>.moveItem(index: Int, up: Boolean): List<T> {
 /**
  * Builds the "button press N" trigger (widget button N). displayName carries a
  * stable internal label used only for logs/snapshot; the UI renders the
- * localized "Кнопка N" label via stringResource. value holds the button id as a
+ * localized "Przycisk N" label via stringResource. value holds the button id as a
  * string, matching how every other TriggerDef stores its value. The remaining
  * fields are neutral placeholders so the trigger round-trips through
  * TriggerDef.toJson/fromJson with no schema change.
@@ -1894,7 +1898,7 @@ fun newButtonPressTrigger(buttonId: Int): TriggerDef = TriggerDef(
     chineseName = "",
     operator = "==",
     value = buttonId.toString(),
-    displayName = "Кнопка $buttonId",
+    displayName = "Przycisk $buttonId",
     kind = "button_press",
 )
 
@@ -1909,6 +1913,6 @@ fun newSteeringKeyTrigger(keyCode: Int): TriggerDef = TriggerDef(
     chineseName = "",
     operator = "==",
     value = keyCode.toString(),
-    displayName = "Клавиша $keyCode",
+    displayName = "Przycisk $keyCode",
     kind = AutomationEngine.TRIGGER_KIND_STEERING_KEY,
 )

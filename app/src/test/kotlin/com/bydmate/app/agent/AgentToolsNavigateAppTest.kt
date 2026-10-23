@@ -84,44 +84,44 @@ class AgentToolsNavigateAppTest {
     @Test fun `without the parameter the payload is unchanged`() = runTest {
         assertEquals(
             mapOf("lat" to "55.7", "lon" to "37.6", "go" to "false"),
-            fields(payloadOf("navigate_to", """{"destination":"точка","lat":55.7,"lon":37.6}""")),
+            fields(payloadOf("navigate_to", """{"destination":"punkt","lat":55.7,"lon":37.6}""")),
         )
         assertEquals(
-            mapOf("query" to "кафе"),
-            fields(payloadOf("search_on_map", """{"query":"кафе"}""")),
+            mapOf("query" to "kawiarnia"),
+            fields(payloadOf("search_on_map", """{"query":"kawiarnia"}""")),
         )
         assertEquals(
-            mapOf("show" to "true", "lat" to "55.7", "lon" to "37.6", "label" to "точка"),
-            fields(payloadOf("show_point_on_map", """{"destination":"точка","lat":55.7,"lon":37.6}""")),
+            mapOf("show" to "true", "lat" to "55.7", "lon" to "37.6", "label" to "punkt"),
+            fields(payloadOf("show_point_on_map", """{"destination":"punkt","lat":55.7,"lon":37.6}""")),
         )
     }
 
     @Test fun `navigator asked for by name is still the default path`() = runTest {
         val payload = payloadOf("navigate_to",
-            """{"destination":"точка","lat":55.7,"lon":37.6,"app":"navigator"}""")
+            """{"destination":"punkt","lat":55.7,"lon":37.6,"app":"navigator"}""")
         assertFalse("the default must not carry an app key: $payload", payload.contains("app"))
     }
 
     @Test fun `maps reaches the payload of all three tools`() = runTest {
         assertEquals("maps", JSONObject(payloadOf("navigate_to",
-            """{"destination":"точка","lat":55.7,"lon":37.6,"app":"maps"}""")).getString("app"))
+            """{"destination":"punkt","lat":55.7,"lon":37.6,"app":"maps"}""")).getString("app"))
         assertEquals("maps", JSONObject(payloadOf("search_on_map",
-            """{"query":"кафе","app":"MAPS"}""")).getString("app"))
+            """{"query":"kawiarnia","app":"MAPS"}""")).getString("app"))
         assertEquals("maps", JSONObject(payloadOf("show_point_on_map",
-            """{"destination":"точка","lat":55.7,"lon":37.6,"app":"maps"}""")).getString("app"))
+            """{"destination":"punkt","lat":55.7,"lon":37.6,"app":"maps"}""")).getString("app"))
     }
 
     @Test fun `a saved place keeps the maps choice`() = runTest {
         coEvery { places.getAllSnapshot() } returns listOf(
-            PlaceEntity(name = "Дача", lat = 55.1, lon = 37.1, radiusM = 100))
-        val payload = JSONObject(payloadOf("navigate_to", """{"destination":"Дача","app":"maps"}"""))
+            PlaceEntity(name = "Dacza", lat = 55.1, lon = 37.1, radiusM = 100))
+        val payload = JSONObject(payloadOf("navigate_to", """{"destination":"Dacza","app":"maps"}"""))
         assertEquals("maps", payload.getString("app"))
         assertEquals(55.1, payload.getDouble("lat"), 0.0001)
     }
 
     @Test fun `home without a saved place keeps the maps choice on the shortcut`() = runTest {
         coEvery { places.getAllSnapshot() } returns emptyList()
-        val payload = JSONObject(payloadOf("navigate_to", """{"destination":"домой","app":"maps"}"""))
+        val payload = JSONObject(payloadOf("navigate_to", """{"destination":"dom","app":"maps"}"""))
         assertEquals("home", payload.getString("shortcut"))
         assertEquals("maps", payload.getString("app"))
     }
@@ -136,35 +136,35 @@ class AgentToolsNavigateAppTest {
     @Test fun `maps in front counts as a built route`() = runTest {
         coEvery { dispatcher.dispatch(any(), any()) } returns DispatchResult(true)
         val out = JSONObject(toolsSeeing("ru.yandex.yandexmaps").execute(AgentToolCall("1", "navigate_to",
-            """{"destination":"точка","lat":55.7,"lon":37.6,"app":"maps"}""")))
+            """{"destination":"punkt","lat":55.7,"lon":37.6,"app":"maps"}""")))
         assertTrue(out.getBoolean("ok"))
     }
 
     @Test fun `the navigator in front does not prove a maps route`() = runTest {
         coEvery { dispatcher.dispatch(any(), any()) } returns DispatchResult(true)
         val out = JSONObject(toolsSeeing("ru.yandex.yandexnavi").execute(AgentToolCall("1", "navigate_to",
-            """{"destination":"точка","lat":55.7,"lon":37.6,"app":"maps"}""")))
-        assertTrue(out.getString("error"), out.getString("error").contains("Яндекс Карты не вышел"))
+            """{"destination":"punkt","lat":55.7,"lon":37.6,"app":"maps"}""")))
+        assertTrue(out.getString("error"), out.getString("error").contains("Yandex Maps nie pojawił się"))
     }
 
     @Test fun `the default path still waits for the navigator`() = runTest {
         coEvery { dispatcher.dispatch(any(), any()) } returns DispatchResult(true)
         val ok = JSONObject(toolsSeeing("ru.yandex.yandexnavi").execute(AgentToolCall("1", "navigate_to",
-            """{"destination":"точка","lat":55.7,"lon":37.6}""")))
+            """{"destination":"punkt","lat":55.7,"lon":37.6}""")))
         assertTrue(ok.getBoolean("ok"))
 
         val failed = JSONObject(toolsSeeing("ru.yandex.yandexmaps").execute(AgentToolCall("1", "navigate_to",
-            """{"destination":"точка","lat":55.7,"lon":37.6}""")))
-        assertTrue(failed.getString("error"), failed.getString("error").contains("Навигатор не вышел"))
+            """{"destination":"punkt","lat":55.7,"lon":37.6}""")))
+        assertTrue(failed.getString("error"), failed.getString("error").contains("Nawigator nie pojawił się"))
     }
 
     @Test fun `search and show in maps accept any maps store variant`() = runTest {
         coEvery { dispatcher.dispatch(any(), any()) } returns DispatchResult(true)
         val t = toolsSeeing("ru.yandex.yandexmaps.rustore")
         assertTrue(JSONObject(t.execute(AgentToolCall("1", "search_on_map",
-            """{"query":"кафе","app":"maps"}"""))).getBoolean("ok"))
+            """{"query":"kawiarnia","app":"maps"}"""))).getBoolean("ok"))
         assertTrue(JSONObject(t.execute(AgentToolCall("1", "show_point_on_map",
-            """{"destination":"точка","lat":55.7,"lon":37.6,"app":"maps"}"""))).getBoolean("ok"))
+            """{"destination":"punkt","lat":55.7,"lon":37.6,"app":"maps"}"""))).getBoolean("ok"))
     }
 
     /** #200: Maps as the settings default (no `app` in the payload) must wait for Maps too -
@@ -173,7 +173,7 @@ class AgentToolsNavigateAppTest {
         every { dispatcher.willOpenMaps(any()) } returns true
         coEvery { dispatcher.dispatch(any(), any()) } returns DispatchResult(true)
         val out = JSONObject(toolsSeeing("ru.yandex.yandexmaps").execute(AgentToolCall("1", "navigate_to",
-            """{"destination":"точка","lat":55.7,"lon":37.6}""")))
+            """{"destination":"punkt","lat":55.7,"lon":37.6}""")))
         assertTrue(out.getBoolean("ok"))
     }
 
@@ -181,7 +181,7 @@ class AgentToolsNavigateAppTest {
         coEvery { places.getAllSnapshot() } returns emptyList()
         coEvery { dispatcher.dispatch(any(), any()) } returns DispatchResult(true)
         val out = JSONObject(toolsSeeing("ru.yandex.yandexmaps").execute(AgentToolCall("1", "navigate_to",
-            """{"destination":"домой","app":"maps"}""")))
+            """{"destination":"dom","app":"maps"}""")))
         assertTrue(out.getBoolean("ok"))
     }
 }

@@ -43,7 +43,7 @@ class AgentTraceEventsTest {
     private class ScriptedBackend : AgentBackend {
         private val replies = ArrayDeque(listOf(
             AgentReply(null, listOf(AgentToolCall("c1", "where_am_i", "{}"))),
-            AgentReply("Не могу определить, где мы.", emptyList(), finishReason = "stop"),
+            AgentReply("Nie mogę ustalić, gdzie jesteśmy.", emptyList(), finishReason = "stop"),
         ))
         override suspend fun isConfigured() = true
         override suspend fun chat(messages: List<AgentMessage>, tools: JSONArray?, onDelta: ((String) -> Unit)?) =
@@ -77,10 +77,10 @@ class AgentTraceEventsTest {
     @Test fun `a failed tool call carries a fixed error code and hangs off the phrase`() = runTest {
         val tools = mockk<AgentTools>()
         coEvery { tools.schemas() } returns JSONArray().put(toolSchema("where_am_i"))
-        coEvery { tools.execute(any(), any()) } returns """{"error":"сервис карт недоступен, не могу определить, где мы"}"""
+        coEvery { tools.execute(any(), any()) } returns """{"error":"usługa map jest niedostępna, nie mogę ustalić, gdzie jesteśmy"}"""
 
         val heard = Trace.event(TraceArea.VOICE, "heard", "route" to "agent")
-        withContext(Trace.causedBy(heard)) { orchestrator(tools).ask("где мы") }
+        withContext(Trace.causedBy(heard)) { orchestrator(tools).ask("gdzie jesteśmy") }
 
         assertEquals(
             listOf(
@@ -98,7 +98,7 @@ class AgentTraceEventsTest {
         val backend = object : AgentBackend {
             private val replies = ArrayDeque(listOf(
                 AgentReply(null, listOf(AgentToolCall("c1", "call_John", "{}"))),
-                AgentReply("Готово.", emptyList(), finishReason = "stop"),
+                AgentReply("Gotowe.", emptyList(), finishReason = "stop"),
             ))
             override suspend fun isConfigured() = true
             override suspend fun chat(messages: List<AgentMessage>, tools: JSONArray?, onDelta: ((String) -> Unit)?) =
@@ -108,7 +108,7 @@ class AgentTraceEventsTest {
         coEvery { tools.schemas() } returns JSONArray().put(toolSchema("where_am_i"))
         coEvery { tools.execute(any(), any()) } returns """{"ok":true}"""
 
-        AgentOrchestrator(backend, tools, repo).also { it.nowMs = { 1_000_000L } }.ask("кто ты")
+        AgentOrchestrator(backend, tools, repo).also { it.nowMs = { 1_000_000L } }.ask("kim jesteś")
 
         assertEquals(
             listOf(
@@ -124,12 +124,12 @@ class AgentTraceEventsTest {
     @Test fun `error texts map to fixed codes and never leak into the trace`() {
         assertNull(AgentToolErrorCode.of("""{"ok":true}"""))
         assertNull(AgentToolErrorCode.of("not json"))
-        assertEquals("maps_unavailable", AgentToolErrorCode.of("""{"error":"сервис карт недоступен, не могу определить, где мы"}"""))
-        assertEquals("no_gps", AgentToolErrorCode.of("""{"error":"нет GPS-позиции машины"}"""))
-        assertEquals("speed_unknown", AgentToolErrorCode.of("""{"error":"скорость неизвестна, окна и люк не открываю"}"""))
-        assertEquals("automation_not_found", AgentToolErrorCode.of("""{"error":"автоматизация не найдена: Утро дома"}"""))
-        assertEquals("exists", AgentToolErrorCode.of("""{"error":"место с именем «Дача» уже существует"}"""))
-        assertEquals("other", AgentToolErrorCode.of("""{"error":"что-то новое"}"""))
+        assertEquals("maps_unavailable", AgentToolErrorCode.of("""{"error":"usługa map jest niedostępna, nie mogę ustalić, gdzie jesteśmy"}"""))
+        assertEquals("no_gps", AgentToolErrorCode.of("""{"error":"brak GPS samochodu"}"""))
+        assertEquals("speed_unknown", AgentToolErrorCode.of("""{"error":"prędkość jest nieznana, nie otwieram okien ani szyberdachu"}"""))
+        assertEquals("automation_not_found", AgentToolErrorCode.of("""{"error":"nie znaleziono automatyzacji: Poranek w domu"}"""))
+        assertEquals("exists", AgentToolErrorCode.of("""{"error":"miejsce o nazwie «Działka» już istnieje"}"""))
+        assertEquals("other", AgentToolErrorCode.of("""{"error":"coś nowego"}"""))
     }
 
     // --- Field log 28.09: where_am_i, Overpass answers 406, the Nominatim fallback fails too ---
@@ -143,7 +143,7 @@ class AgentTraceEventsTest {
                 it.endpoints = listOf(overpass.url("/api/interpreter").toString())
                 it.nominatimUrl = nominatim.url("/reverse").toString()
             })
-            orchestrator(tools).ask("где мы")
+            orchestrator(tools).ask("gdzie jesteśmy")
         } finally {
             overpass.shutdown()
             nominatim.shutdown()

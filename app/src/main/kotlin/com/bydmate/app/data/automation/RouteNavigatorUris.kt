@@ -21,7 +21,7 @@ object RouteNavigatorUris {
 
     /**
      * Third settings value (#200): the same yandexmaps:// dialect that `app="maps"` reaches
-     * per-command (see below) is now also a persisted "Навигатор для маршрутов" choice, so
+     * per-command (see below) is now also a persisted "Navigator for routes" choice, so
      * routes/search/points without an explicit `app` land here too.
      */
     const val MAPS = "maps"
@@ -52,7 +52,7 @@ object RouteNavigatorUris {
         else -> YANDEX_PACKAGE
     }
 
-    /** Free-text search on the map ("найди кафе"). */
+    /** Free-text search on the map ("find a café"). */
     fun search(navigator: String, query: String): String = when (normalize(navigator)) {
         DGIS -> "dgis://2gis.ru/search/${Uri.encode(query)}"
         WAZE -> "waze://?q=${Uri.encode(query)}"
@@ -67,6 +67,12 @@ object RouteNavigatorUris {
             append("yandexnavi://show_point_on_map?lat=$lat&lon=$lon&zoom=14")
             if (label != null) append("&desc=${Uri.encode(label)}")
         }
+    }
+
+    /** Saved destinations are resolved by Waze; no home address leaves the app. */
+    fun wazeFavorite(shortcut: String): String {
+        require(shortcut == "home" || shortcut == "work")
+        return "waze://?favorite=$shortcut&navigate=yes"
     }
 
     /** Car route to the point. */

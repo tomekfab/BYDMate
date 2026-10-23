@@ -31,7 +31,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.IOException
 
-/** where_am_i: on-car log 25.09 had the model web-search raw coordinates and name wrong villages. */
+/** where_am_i: an on-car log from 25 September showed the model searching raw coordinates and naming villages incorrectly. */
 class AgentToolsWhereAmITest {
 
     // relaxed: whereAmI() now also reads lastEndpoint for the diagnostic log line, which most
@@ -63,54 +63,54 @@ class AgentToolsWhereAmITest {
 
     @Test fun nearest_first_with_distance_direction_and_nearest_town() = runTest {
         coEvery { settlements.search(54.0, 27.0, 15_000, 50_000) } returns nearby(
-            s("Город", "town", 53.9, 27.1),
-            s("Западная", "hamlet", 54.0, 26.97),
-            s("Северная", "village", 54.01, 27.0),
-            s("Хутор", "isolated_dwelling", 54.001, 27.0),
+            s("Miasto", "town", 53.9, 27.1),
+            s("Zachodnia", "hamlet", 54.0, 26.97),
+            s("Północna", "village", 54.01, 27.0),
+            s("Przysiółek", "isolated_dwelling", 54.001, 27.0),
         )
         val out = whereAmI()
         val list = out.getJSONArray("settlements")
         assertEquals(3, list.length())
         val first = list.getJSONObject(0)
-        assertEquals("Северная", first.getString("name"))
+        assertEquals("Północna", first.getString("name"))
         assertEquals(1.1, first.getDouble("distance_km"), 0.001)
-        assertEquals("север", first.getString("direction_from_car"))
-        assertEquals("деревня или посёлок", first.getString("type"))
-        assertEquals("Западная", list.getJSONObject(1).getString("name"))
-        assertEquals("запад", list.getJSONObject(1).getString("direction_from_car"))
-        assertEquals("юго-восток", list.getJSONObject(2).getString("direction_from_car"))
+        assertEquals("północ", first.getString("direction_from_car"))
+        assertEquals("wieś lub osada", first.getString("type"))
+        assertEquals("Zachodnia", list.getJSONObject(1).getString("name"))
+        assertEquals("zachód", list.getJSONObject(1).getString("direction_from_car"))
+        assertEquals("południowo-wschód", list.getJSONObject(2).getString("direction_from_car"))
         val town = out.getJSONObject("nearest_town")
-        assertEquals("Город", town.getString("name"))
-        assertEquals("город", town.getString("type"))
-        assertFalse(out.toString().contains("Хутор"))
+        assertEquals("Miasto", town.getString("name"))
+        assertEquals("miasto", town.getString("type"))
+        assertFalse(out.toString().contains("Przysiółek"))
     }
 
     @Test fun isolated_dwelling_is_used_when_nothing_else_is_around() = runTest {
         coEvery { settlements.search(any(), any(), any(), any()) } returns
-            nearby(s("Хутор", "isolated_dwelling", 54.001, 27.0))
+            nearby(s("Przysiółek", "isolated_dwelling", 54.001, 27.0))
         val list = whereAmI().getJSONArray("settlements")
-        assertEquals("Хутор", list.getJSONObject(0).getString("name"))
-        assertEquals("хутор", list.getJSONObject(0).getString("type"))
+        assertEquals("Przysiółek", list.getJSONObject(0).getString("name"))
+        assertEquals("przysiółek", list.getJSONObject(0).getString("type"))
     }
 
     @Test fun caps_the_list_at_five() = runTest {
         coEvery { settlements.search(any(), any(), any(), any()) } returns
-            Result.success(Surroundings.Nearby((1..9).map { s("Д$it", "hamlet", 54.0 + it / 100.0, 27.0) }))
+            Result.success(Surroundings.Nearby((1..9).map { s("W$it", "hamlet", 54.0 + it / 100.0, 27.0) }))
         val list = whereAmI().getJSONArray("settlements")
         assertEquals(5, list.length())
-        assertEquals("Д1", list.getJSONObject(0).getString("name"))
+        assertEquals("W1", list.getJSONObject(0).getString("name"))
     }
 
     @Test fun empty_result_tells_the_model_not_to_guess() = runTest {
         coEvery { settlements.search(any(), any(), any(), any()) } returns nearby()
         val out = whereAmI()
         assertEquals(0, out.getJSONArray("settlements").length())
-        assertTrue(out.getString("note").contains("не называй место наугад"))
+        assertTrue(out.getString("note").contains("nie zgaduj lokalizacji"))
     }
 
     @Test fun search_failure_is_an_error() = runTest {
         coEvery { settlements.search(any(), any(), any(), any()) } returns Result.failure(IOException("timeout"))
-        assertTrue(whereAmI().getString("error").contains("не могу определить, где мы"))
+        assertTrue(whereAmI().getString("error").contains("nie mogę określić, gdzie jesteśmy"))
     }
 
     // --- Overpass down (field 28.09: 504 under load): the answer comes from Nominatim ---
@@ -135,11 +135,11 @@ class AgentToolsWhereAmITest {
         }
     }
 
-    @Test fun overpass_down_the_answer_names_the_city_from_nominatim_in_russian() = runTest {
+    @Test fun overpass_down_the_answer_preserves_the_city_name_from_nominatim() = runTest {
         val out = whereAmIOver(MockResponse().setResponseCode(504), MockResponse().setBody(minsk))
         val place = out.getJSONArray("settlements").getJSONObject(0)
         assertEquals("Минск", place.getString("name"))
-        assertEquals("город", place.getString("type"))
+        assertEquals("miasto", place.getString("type"))
         // A reverse geocode knows the point's own address, not the centre: no distance, no side.
         assertFalse(place.has("distance_km"))
         assertFalse(place.has("direction_from_car"))
@@ -150,13 +150,13 @@ class AgentToolsWhereAmITest {
         assertEquals("Беларусь", address.getString("country"))
         assertFalse(address.has("region"))
         val note = out.getString("note")
-        assertTrue(note, note.contains("расстояний"))
-        assertTrue(note, note.contains("Называй только эти места"))
+        assertTrue(note, note.contains("odległości"))
+        assertTrue(note, note.contains("Wymieniaj tylko te miejsca"))
     }
 
     @Test fun both_servers_down_is_the_fixed_error() = runTest {
         val out = whereAmIOver(MockResponse().setResponseCode(504), MockResponse().setResponseCode(503))
-        assertEquals("сервис карт недоступен, не могу определить, где мы", out.getString("error"))
+        assertEquals("usługa map jest niedostępna, nie mogę określić, gdzie jesteśmy", out.getString("error"))
     }
 
     // Out of town Nominatim may name only the road and the region.
@@ -171,24 +171,24 @@ class AgentToolsWhereAmITest {
 
     @Test fun no_gps_fix_is_an_error_without_a_network_call() = runTest {
         tools.gpsFixProvider = { null }
-        assertTrue(whereAmI().getString("error").contains("нет GPS-позиции"))
+        assertTrue(whereAmI().getString("error").contains("brak pozycji GPS samochodu"))
         coVerify(exactly = 0) { settlements.search(any(), any(), any(), any()) }
     }
 
     // Review of 30f1f01d: only centre points are known, a car 1 km from a compact village is
-    // not in it; the old note told the model "меньше 1-2 км значит машина в нём".
+    // not in it; the old note told the model that 1–2 km meant the car was inside it.
     @Test fun note_never_claims_the_car_is_inside_a_settlement() = runTest {
         coEvery { settlements.search(any(), any(), any(), any()) } returns
-            nearby(s("Северная", "village", 54.005, 27.0))
+            nearby(s("Północna", "village", 54.005, 27.0))
         val note = whereAmI().getString("note")
-        assertFalse(note, note.contains("значит машина в нём"))
-        assertTrue(note, note.contains("не говори, что машина в нём"))
-        assertTrue(note, note.contains("примерно N км от X"))
+        assertFalse(note, note.contains("mała odległość oznacza, że samochód jest w niej"))
+        assertTrue(note, note.contains("nie mów, że samochód jest w niej"))
+        assertTrue(note, note.contains("około N km od X"))
     }
 
     @Test fun fresh_fix_reports_its_age_without_a_hedge() = runTest {
         coEvery { settlements.search(any(), any(), any(), any()) } returns
-            nearby(s("Северная", "village", 54.01, 27.0))
+            nearby(s("Północna", "village", 54.01, 27.0))
         val out = whereAmI()
         assertEquals(0L, out.getLong("fix_age_min"))
         assertFalse(out.has("fix_note"))
@@ -200,13 +200,13 @@ class AgentToolsWhereAmITest {
     @Test fun old_live_fix_always_hedges_regardless_of_current_speed() = runTest {
         tools.gpsFixProvider = { AgentTools.GpsFix(54.0, 27.0, ageMs = 45 * 60_000L, live = true) }
         coEvery { settlements.search(any(), any(), any(), any()) } returns
-            nearby(s("Северная", "village", 54.01, 27.0))
+            nearby(s("Północna", "village", 54.01, 27.0))
         val out = whereAmI()
         assertEquals(45L, out.getLong("fix_age_min"))
-        assertEquals("Северная", out.getJSONArray("settlements").getJSONObject(0).getString("name"))
+        assertEquals("Północna", out.getJSONArray("settlements").getJSONObject(0).getString("name"))
         val fixNote = out.getString("fix_note")
-        assertTrue(fixNote, fixNote.contains("машина могла стоять"))
-        assertTrue(fixNote, fixNote.contains("по последним данным"))
+        assertTrue(fixNote, fixNote.contains("samochód mógł stać"))
+        assertTrue(fixNote, fixNote.contains("według ostatnich danych"))
     }
 
     // Start without a fresh fix: only the last-known seed, possibly from before the drive.
@@ -216,17 +216,17 @@ class AgentToolsWhereAmITest {
         val out = whereAmI()
         assertEquals(600L, out.getLong("fix_age_min"))
         val fixNote = out.getString("fix_note")
-        assertTrue(fixNote, fixNote.contains("свежего GPS-сигнала после запуска не было"))
-        assertTrue(fixNote, fixNote.contains("по последним данным"))
+        assertTrue(fixNote, fixNote.contains("nie było świeżego sygnału GPS"))
+        assertTrue(fixNote, fixNote.contains("według ostatnich danych"))
     }
 
     @Test fun tool_is_declared_and_steers_away_from_web_search() = runTest {
         val schemas = tools.schemas(includeAutomationTools = false)
         val fn = (0 until schemas.length()).map { schemas.getJSONObject(it).getJSONObject("function") }
             .single { it.getString("name") == "where_am_i" }
-        assertTrue(fn.getString("description").contains("где я"))
-        assertTrue(fn.getString("description").contains("не ищи координаты через web_search"))
-        assertTrue(fn.getString("description").contains("а не в каком месте она"))
+        assertTrue(fn.getString("description").contains("gdzie jestem"))
+        assertTrue(fn.getString("description").contains("nie szukaj współrzędnych przez web_search"))
+        assertTrue(fn.getString("description").contains("a nie w jakiej miejscowości się znajduje"))
     }
 
     // Review: age used to be System.currentTimeMillis() - Location.time, so a wall-clock change

@@ -9,6 +9,9 @@ class NavManeuverCodesTest {
 
     private fun gaode(text: String?) = NavManeuverCodes.fromA11yDescription(text)
 
+    // POLISH-ONLY-EXCEPTION: yandex-input begin
+    // Assertions in this block use unchanged external Yandex maneuver input.
+
     @Test fun `packages set contains navigator variants`() {
         assertTrue("ru.yandex.yandexnavi" in NavPackages.YANDEX_NAVI)
         assertTrue("ru.yandex.yandexnavi.inhouse" in NavPackages.YANDEX_NAVI)
@@ -86,9 +89,9 @@ class NavManeuverCodesTest {
     }
 
     @Test fun `gaode phrase for agent`() {
-        assertEquals("направо", NavManeuverCodes.gaodePhrase(2))
-        assertEquals("разворот", NavManeuverCodes.gaodePhrase(9))
-        assertEquals("съезд с кольца", NavManeuverCodes.gaodePhrase(24))
+        assertEquals("w prawo", NavManeuverCodes.gaodePhrase(2))
+        assertEquals("zawracanie", NavManeuverCodes.gaodePhrase(9))
+        assertEquals("zjazd z ronda", NavManeuverCodes.gaodePhrase(24))
         assertNull(NavManeuverCodes.gaodePhrase(0))
     }
 
@@ -145,4 +148,5 @@ class NavManeuverCodesTest {
         assertEquals(0, NavManeuverCodes.richIconNameGaode(""))
         assertEquals(0, NavManeuverCodes.richIconNameGaode("notifications_app_logo"))
     }
+    // POLISH-ONLY-EXCEPTION: yandex-input end
 }

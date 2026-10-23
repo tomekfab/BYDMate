@@ -94,13 +94,19 @@ import com.bydmate.app.voice.TtsGender
 import com.bydmate.app.voice.VoiceController
 import com.bydmate.app.voice.VoiceJournal
 import com.bydmate.app.voice.VoiceJournalDump
-import com.bydmate.app.voice.RuStressMarker
 import com.bydmate.app.voice.TtsEngine
 import com.bydmate.app.voice.TtsModelManager
 import com.bydmate.app.voice.TtsVoiceCatalog
-import com.bydmate.app.voice.GigaAmModelManager
+import com.bydmate.app.voice.PolishModelManager
 import com.bydmate.app.voice.ContinuousAsr
-import com.bydmate.app.voice.online.TtsRouter
+import com.bydmate.app.voice.VoiceLanguageSetup
+import com.bydmate.app.voice.VoiceLanguageState
+import com.bydmate.app.voice.openclaw.AssistantConnectionProbe
+import com.bydmate.app.voice.openclaw.AssistantProbeState
+import com.bydmate.app.voice.openclaw.OpenClawAssistant
+import com.bydmate.app.voice.openclaw.OpenClawConnectionCoordinator
+import com.bydmate.app.voice.openclaw.OpenClawRecoveryState
+import com.bydmate.app.voice.openclaw.OpenClawStatus
 import java.io.File
 import java.io.FileWriter
 import java.security.SecureRandom
@@ -131,7 +137,7 @@ data class SpaceShortfall(val requiredMb: Long, val availableMb: Long) {
         /** Maps the manager's storage failure onto UI numbers; any other failure (network,
          *  corrupt archive) is not a shortfall and yields null, so the generic error shows. */
         fun from(error: Throwable?): SpaceShortfall? =
-            (error as? GigaAmModelManager.InsufficientStorageException)?.let {
+            (error as? PolishModelManager.InsufficientStorageException)?.let {
                 SpaceShortfall(it.requiredBytes / BYTES_PER_MB, it.availableBytes / BYTES_PER_MB)
             }
     }
@@ -151,11 +157,13 @@ data class SettingsUiState(
     val updateDialogState: UpdateState = UpdateState.Idle,
     val showUpdateDialog: Boolean = false,
     val diagnosticLog: String? = null,
+    val remoteDiagnostics: RemoteDiagnosticsState = RemoteDiagnosticsState(),
+    val remoteDiagnosticsImportStatus: Int? = null,
     val logSaveStatus: String? = null,
     val isRecordingLogs: Boolean = false,
     /** File of the last finished log recording; null = none since the app started. */
     val lastLogPath: String? = null,
-    /** «Отправить в Telegram» for the saved log is uploading (#324). */
+    /** «Wyślij w Telegram» for the saved log is uploading (#324). */
     val logSending: Boolean = false,
     /** The fid recorder row is a diagnostic tool: shown on -test and local debug builds only. */
     val fidRecorderVisible: Boolean = fidRecorderEnabled(BuildConfig.VERSION_NAME, BuildConfig.DEBUG),
@@ -180,7 +188,7 @@ data class SettingsUiState(
     val showModelPicker: Boolean = false,
     val availableModels: List<OpenRouterModel> = emptyList(),
     val modelsLoading: Boolean = false,
-    /** Newest period first — the order the «Тарифы и периоды» dialog lists them in. */
+    /** Newest period first — the order the "Tariffs and periods" dialog lists them in. */
     val tariffPeriods: List<TariffPeriodEntity> = emptyList(),
     val showTariffPeriodsDialog: Boolean = false,
     val tariffRecalcStatus: String? = null,
@@ -210,11 +218,11 @@ data class SettingsUiState(
     val configStatus: String? = null,
     /** Backups offered by the restore picker, newest first. Null = picker closed. */
     val restoreCandidates: List<File>? = null,
-    /** Non-null = the «Что восстановить» dialog is open. */
+    /** Non-null = the «Co przywrócić» dialog is open. */
     val restoreChoice: RestoreChoice? = null,
     /** A restore runs: save and restore stay disabled until it ends (the app restarts on success). */
     val restoreInProgress: Boolean = false,
-    /** Result of the last manual save; non-null = the «Поделиться» dialog is open. */
+    /** Result of the last manual save; non-null = the «Udostępnij» dialog is open. */
     val savedBackup: SavedBackup? = null,
     /** Parts the manual save offers checked: the last choice (#238). */
     val manualBackupParts: Set<BackupPart> = BackupPart.DEFAULT,
@@ -225,22 +233,22 @@ data class SettingsUiState(
     val autoBackupLastTs: Long = 0L,
     val autoBackupLastResult: String = "",
     val tgBackupToken: String = "",
-    /** Progress or error of the last «Проверить»; null = nothing to say. */
+    /** Progress or error of the last «Sprawdź»; null = nothing to say. */
     val tgBackupStatus: String? = null,
     val tgBackupChecking: Boolean = false,
     /**
      * One-time code the user sends to the bot to bind their chat; lives until a successful binding.
-     * Non-null = the stepper is on «Код».
+     * Non-null = the stepper is on "Code".
      */
     val tgBackupCode: String? = null,
-    /** Bot found by the last «Проверить»; the code step names it. */
+    /** Bot found by the last «Sprawdź»; the code step names it. */
     val tgBackupBotName: String = "",
-    /** Non-null = a bot is connected, the stepper is on «Готово». */
+    /** Non-null = a bot is connected, the stepper is on «Gotowe». */
     val tgBackupBinding: TgBackupBinding? = null,
     /** Power-off Telegram report (3.19): the switch and its items. */
     val tgReportOffEnabled: Boolean = false,
     val tgReportOffFields: Set<ReportField> = ReportField.DEFAULT,
-    /** «Отправлять записанный лог в Telegram» (#324). */
+    /** "Send saved log to Telegram" (#324). */
     val tgLogAutoSendEnabled: Boolean = false,
     /** Status of the last fid-catalog dump. Null = idle. Red if starts with error prefix. */
     val fidDumpStatus: String? = null,
@@ -251,7 +259,7 @@ data class SettingsUiState(
     val closeAfterCommand: Boolean = false,
     // TTS settings (offline synthesis of agent replies)
     val ttsEnabled: Boolean = false,
-    val ttsVoice: String = TtsModelManager.DEFAULT_VOICE_ID,
+    val ttsVoice: String = "gosia",
     /** Voice ids whose model is on disk. Voices sharing a modelDirId (artem/alena) are
      *  always both present or both absent, since they share the download. */
     val ttsReadyVoices: Set<String> = emptySet(),
@@ -260,21 +268,12 @@ data class SettingsUiState(
     val ttsDownloadFailed: Set<String> = emptySet(),
     val ttsRate: Float = 1.0f,
     val ttsLiveliness: Int = 33,
-    // Wave N: online TTS source ("offline" or a backend id: "gemini"/"minimax")
-    val ttsSource: String = TtsRouter.OFFLINE,
-    val minimaxProvider: String = "official",
-    /** Never expose the raw MiniMax key in state -- only whether one is saved. */
-    val minimaxKeySet: Boolean = false,
-    // GigaAM v3 ASR settings (free-form Russian speech recognition, offline)
-    val gigaAmModelReady: Boolean = false,
-    val gigaAmDownloadProgress: Int = -1,   // -1 = idle, 0..100 = in progress
-    /** Which stage [gigaAmDownloadProgress] is currently in; null while idle. The unpack
-     *  stage pulls nothing over the network and takes minutes on a DiLink 3, so the UI
-     *  labels it separately instead of leaving a frozen "Downloading" bar. */
-    val gigaAmDownloadPhase: GigaAmModelManager.Phase? = null,
-    val gigaAmDownloadFailed: Boolean = false,
+    val asrModelReady: Boolean = false,
+    val asrDownloadProgress: Int = -1,   // -1 = idle, 0..100 = in progress
+    val asrDownloadPhase: PolishModelManager.Phase? = null,
+    val asrDownloadFailed: Boolean = false,
     /** Non-null when the failure was the storage precheck rather than the network. */
-    val gigaAmSpaceShortfall: SpaceShortfall? = null,
+    val asrSpaceShortfall: SpaceShortfall? = null,
     /** When true, the native BYD voice assistant is disabled (pm disable-user). */
     val disableNativeAssistant: Boolean = false,
     /** The warning shown before [disableNativeAssistant] is switched on. */
@@ -324,7 +323,7 @@ data class SettingsUiState(
 }
 
 @HiltViewModel
-class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // Hilt-injected dependencies
+class SettingsViewModel @Inject @Suppress("LongParameterList") internal constructor( // Hilt-injected dependencies
     @ApplicationContext private val appContext: Context,
     private val settingsRepository: SettingsRepository,
     private val tripRepository: TripRepository,
@@ -340,8 +339,6 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
     private val chargingStateStore: com.bydmate.app.data.charging.ChargingStateStore,
     private val catchUpJournal: com.bydmate.app.data.charging.CatchUpJournal,
     private val ttsModelManager: TtsModelManager,
-    private val ruStressMarker: RuStressMarker,
-    private val gigaAmModelManager: GigaAmModelManager,
     private val continuousAsr: ContinuousAsr,
     private val ttsEngine: TtsEngine,
     private val voiceController: VoiceController,
@@ -381,6 +378,11 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
     private val clusterMusicBridge: com.bydmate.app.media.ClusterMusicBridge,
     private val vehicleWriteLogDao: com.bydmate.app.data.local.dao.VehicleWriteLogDao,
     private val vehicleKindMonitor: com.bydmate.app.data.nativestack.VehicleKindMonitor,
+    private val voiceLanguageSetup: VoiceLanguageSetup,
+    private val openClawAssistant: OpenClawAssistant,
+    private val openClawConnectionCoordinator: OpenClawConnectionCoordinator,
+    private val assistantProbe: AssistantConnectionProbe,
+    private val remoteDiagnostics: RemoteDiagnosticsSettings,
 ) : ViewModel() {
 
     /** ADB control-channel verdict for the line under the ADB-restore toggle. */
@@ -394,7 +396,7 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
 
     fun enableAdbRestore() = adbVerdictMonitor.enableRestoreAndRecheck()
 
-    private val _appLanguage = MutableStateFlow(localePreferences.getLanguage() ?: "ru")
+    private val _appLanguage = MutableStateFlow(localePreferences.getLanguage())
     val appLanguage: StateFlow<String> = _appLanguage.asStateFlow()
 
     private val _fontScale = MutableStateFlow(localePreferences.getFontScale())
@@ -420,9 +422,10 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
 
     fun setAppLanguage(lang: String) {
         applyAppLanguage(appContext, localePreferences, lang)
-        _appLanguage.value = lang
+        val resolvedLanguage = localePreferences.getLanguage()
+        _appLanguage.value = resolvedLanguage
         // Auto-select CNY when switching to Chinese
-        if (lang == "zh") {
+        if (resolvedLanguage == "zh") {
             saveCurrency("CNY")
         }
     }
@@ -455,6 +458,38 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
         refreshFidRecorder()
     }
 
+    fun refreshRemoteDiagnostics() {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching { remoteDiagnostics.snapshot() }.onSuccess { state ->
+                _uiState.update { it.copy(remoteDiagnostics = state) }
+            }
+        }
+    }
+
+    fun setRemoteDiagnosticsAutomatic(enabled: Boolean) {
+        remoteDiagnostics.setAutomatic(enabled)
+        refreshRemoteDiagnostics()
+    }
+
+    fun sendRemoteDiagnosticsNow() {
+        remoteDiagnostics.sendNow()
+        refreshRemoteDiagnostics()
+    }
+
+    fun importRemoteDiagnostics(uri: android.net.Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val result = try {
+                remoteDiagnostics.importSelected(uri)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                R.string.settings_remote_diagnostics_import_failed
+            }
+            _uiState.update { it.copy(remoteDiagnosticsImportStatus = result) }
+            refreshRemoteDiagnostics()
+        }
+    }
+
     /**
      * Mirrors the daemon's recorder state into the switch. The recording lives in the daemon, not
      * in this ViewModel, so a screen reopened mid-run finds the switch on.
@@ -467,7 +502,7 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
                 it.copy(
                     fidRecorderRunning = status?.running == true,
                     fidRecorderFile = status?.filePath?.takeIf { path -> path.isNotEmpty() }?.let { path ->
-                        "$path (${status.fileBytes / 1024} КБ, ${status.totalEvents})"
+                        "$path (${status.fileBytes / 1024} KB, ${status.totalEvents})"
                     },
                 )
             }
@@ -482,9 +517,9 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
             if (on) {
                 val started = helperClient.recStart(IntArray(0))
                 val error = when {
-                    started == null -> "демон не ответил"
+                    started == null -> "demon nie odpowiedział"
                     started.error != FID_REC_NO_ERROR -> started.error
-                    started.registered == 0 -> "ни один датчик не подписался"
+                    started.registered == 0 -> "żaden czujnik nie został zarejestrowany"
                     else -> null
                 }
                 _uiState.update { it.copy(fidRecorderError = error) }
@@ -575,7 +610,7 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
             // migrated voice selected in the UI, same as playback already resolves it.
             val ttsVoice = TtsVoiceCatalog.byId(
                 appContext.getSharedPreferences("voice", Context.MODE_PRIVATE)
-                    .getString("tts_voice", TtsModelManager.DEFAULT_VOICE_ID) ?: TtsModelManager.DEFAULT_VOICE_ID,
+                    .getString("tts_voice", "gosia") ?: "gosia",
             ).id
             val ttsReadyVoices = TtsVoiceCatalog.ALL.filter { ttsModelManager.isReady(it) }
                 .map { it.id }.toSet()
@@ -583,19 +618,7 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
                 .getFloat("tts_rate", 1.0f)
             val ttsLiveliness = appContext.getSharedPreferences("voice", Context.MODE_PRIVATE)
                 .getInt("tts_liveliness", 33)
-            val voicePrefsForTts = appContext.getSharedPreferences("voice", Context.MODE_PRIVATE)
-            val rawTtsSource = voicePrefsForTts.getString("tts_source", TtsRouter.OFFLINE) ?: TtsRouter.OFFLINE
-            // Wave O T3: "openai" backend was removed (model not available on OpenRouter) --
-            // rewrite persisted "openai" to "offline" so no backend lookup ever silently fails.
-            val ttsSource = if (rawTtsSource == "openai") {
-                Log.i("SettingsViewModel", "tts_source was 'openai' (backend removed) -- migrating to offline")
-                voicePrefsForTts.edit().putString("tts_source", TtsRouter.OFFLINE).apply()
-                TtsRouter.OFFLINE
-            } else rawTtsSource
-            val minimaxProvider = settingsRepository.getString(SettingsRepository.KEY_MINIMAX_TTS_PROVIDER, "official")
-            val minimaxKeySet = settingsRepository.getString(SettingsRepository.KEY_MINIMAX_TTS_KEY, "").isNotBlank()
-
-            val gigaAmReady = gigaAmModelManager.isReady()
+            val asrReady = voiceLanguageSetup.state.value.asrReady
 
             val agentEnabled = settingsRepository.isAgentEnabled()
             val agentName = appContext.getSharedPreferences("voice", Context.MODE_PRIVATE)
@@ -661,10 +684,7 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
                     ttsReadyVoices = ttsReadyVoices,
                     ttsRate = ttsRate,
                     ttsLiveliness = ttsLiveliness,
-                    ttsSource = ttsSource,
-                    minimaxProvider = minimaxProvider,
-                    minimaxKeySet = minimaxKeySet,
-                    gigaAmModelReady = gigaAmReady,
+                    asrModelReady = asrReady,
                     agentEnabled = agentEnabled,
                     agentName = agentName,
                     agentPersona = agentPersona,
@@ -747,7 +767,7 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
         viewModelScope.launch { settingsRepository.resetManualRangeTable() }
     }
 
-    /** Reloads the periods list and the measured-losses hint behind the «Тарифы» section. */
+    /** Reloads the periods list and the measured-losses hint behind the «Taryfy» section. */
     private fun loadTariffPeriods() {
         viewModelScope.launch {
             val periods = costCalculator.schedule().periods
@@ -865,15 +885,15 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
     /** Import trip history from BYD energydata database. */
     fun importBydHistory() {
         viewModelScope.launch {
-            _uiState.update { it.copy(importStatus = "Импорт...") }
+            _uiState.update { it.copy(importStatus = "Importowanie...") }
             val result = historyImporter.runSync()
             if (result.isError) {
                 _uiState.update {
-                    it.copy(importStatus = "Ошибка: ${result.error}")
+                    it.copy(importStatus = "Błąd: ${result.error}")
                 }
             } else {
                 val status = result.details
-                    ?: "Импортировано ${result.count} поездок из BYD"
+                    ?: "Zaimportowano ${result.count} podróży z BYD"
                 _uiState.update { it.copy(importStatus = status) }
             }
         }
@@ -882,13 +902,13 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
     /** Run full diagnostics: BYD storage, our DB, permissions. */
     fun runDiagnostics() {
         viewModelScope.launch(Dispatchers.IO) {
-            _uiState.update { it.copy(diagnosticLog = "Диагностика...") }
+            _uiState.update { it.copy(diagnosticLog = "Diagnostyka...") }
 
             val sb = StringBuilder()
             val sdf = SimpleDateFormat("dd.MM.yy HH:mm:ss", Locale.US)
 
             // 1. Permissions
-            sb.appendLine("=== Разрешения ===")
+            sb.appendLine("=== Uprawnienia ===")
             val perms = listOf(
                 Manifest.permission.READ_EXTERNAL_STORAGE,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -908,22 +928,22 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
                 sb.appendLine()
                 sb.append(bydReport)
             } catch (e: Exception) {
-                sb.appendLine("\nОШИБКА BYD: ${e.message}")
+                sb.appendLine("\nBŁĄD BYD: ${e.message}")
             }
 
             // 3. Our database
-            sb.appendLine("\n=== Наша база данных ===")
+            sb.appendLine("\n=== Nasza baza danych ===")
             try {
                 val trips = tripRepository.getAllTrips().first()
                 val charges = chargeRepository.getAllCharges().first()
                 val drainCount = idleDrainDao.getCount()
                 val drainKwh = idleDrainDao.getTotalKwh()
-                sb.appendLine("Поездок: ${trips.size}")
-                sb.appendLine("Зарядок: ${charges.size}")
-                sb.appendLine("Стоянок (idle drain): $drainCount (%.2f кВт·ч)".format(drainKwh))
+                sb.appendLine("Podróży: ${trips.size}")
+                sb.appendLine("Ładowań: ${charges.size}")
+                sb.appendLine("Postojów (idle drain): $drainCount (%.2f kWh)".format(drainKwh))
 
                 if (trips.isNotEmpty()) {
-                    sb.appendLine("\nПоследние 5 поездок:")
+                    sb.appendLine("\nOstatnie 5 podróży:")
                     trips.take(5).forEach { t ->
                         val startFmt = sdf.format(Date(t.startTs))
                         val endFmt = t.endTs?.let { sdf.format(Date(it)) } ?: "null"
@@ -935,7 +955,7 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
                     }
                 }
             } catch (e: Exception) {
-                sb.appendLine("ОШИБКА: ${e.message}")
+                sb.appendLine("BŁĄD: ${e.message}")
             }
 
             _uiState.update { it.copy(diagnosticLog = sb.toString()) }
@@ -1045,7 +1065,7 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
             } else {
                 val start = SystemClock.elapsedRealtime()
                 val messages = JSONArray().put(
-                    JSONObject().put("role", "user").put("content", "Ответь одним словом: готов")
+                    JSONObject().put("role", "user").put("content", "Odpowiedz jednym słowem: gotowe")
                 )
                 val result = openRouterClient.chatRaw(conn.baseUrl, conn.apiKey, conn.model, messages, null)
                 val elapsedSec = (SystemClock.elapsedRealtime() - start) / 1000.0
@@ -1060,7 +1080,7 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
         }
     }
 
-    /** Maps network exceptions to Russian user-readable messages. Used by testConnection and loadCustomModels.
+    /** Maps network exceptions to Polish user-readable messages. Used by testConnection and loadCustomModels.
      * Walks the cause chain (up to 5 hops) so wrapped exceptions (e.g. IOException("…", UnknownHostException))
      * are matched correctly. */
     private fun networkErrorMessage(t: Throwable): String {
@@ -1423,9 +1443,6 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
                     else it.copy(ttsDownloadProgress = it.ttsDownloadProgress + (voiceId to pct))
                 }
             }
-            if (result.isSuccess && ttsModelManager.ensureStressDict(voice)) {
-                ruStressMarker.preload()
-            }
             val ready = ttsModelManager.isReady(voice)
             _uiState.update {
                 it.copy(
@@ -1481,78 +1498,29 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
         ttsEngine.speakOffline(PREVIEW_VOICE_TEXT)
     }
 
-    // --- Wave N: online TTS source (Gemini via OpenRouter, MiniMax) ---
+    // --- Polish ASR ---
 
-    /**
-     * Switches which voice renders agent replies: "offline" (the local voice list) or an
-     * online backend id ("gemini"/"minimax"). Persists into SharedPreferences("voice")
-     * under "tts_source", the same access pattern as setTtsVoice/setTtsRate -- TtsRouter
-     * (VoiceModule.provideTtsEngine) reads it directly with no Room round-trip and no reload,
-     * since it re-checks the source on every speak() call. Selecting "minimax" while its key
-     * is unset is rejected here too, mirroring the disabled row in the UI.
-     */
-    fun setTtsSource(source: String) {
-        if (source == MINIMAX_SOURCE && !_uiState.value.minimaxKeySet) return
-        _uiState.update { it.copy(ttsSource = source) }
-        appContext.getSharedPreferences("voice", Context.MODE_PRIVATE)
-            .edit().putString("tts_source", source).apply()
-    }
+    private var asrDownloadJob: Job? = null
 
-    /** Persists the MiniMax transport ("official"/"fal"/"replicate") read by MiniMaxTtsBackend. */
-    fun setMinimaxProvider(provider: String) {
-        _uiState.update { it.copy(minimaxProvider = provider) }
-        viewModelScope.launch {
-            settingsRepository.setString(SettingsRepository.KEY_MINIMAX_TTS_PROVIDER, provider)
-        }
-    }
-
-    /**
-     * Persists the MiniMax API key. The raw value never enters [SettingsUiState] -- only
-     * [SettingsUiState.minimaxKeySet] does, so the Settings screen can never echo it back.
-     * Clearing the key while it's the active tts_source falls back to offline via
-     * [setTtsSource], since a selected-but-disabled MiniMax row would otherwise be stuck.
-     */
-    fun setMinimaxKey(key: String) {
-        val trimmed = key.trim()
-        _uiState.update { it.copy(minimaxKeySet = trimmed.isNotBlank()) }
-        if (trimmed.isBlank() && _uiState.value.ttsSource == MINIMAX_SOURCE) {
-            setTtsSource(TtsRouter.OFFLINE)
-        }
-        viewModelScope.launch {
-            settingsRepository.setString(SettingsRepository.KEY_MINIMAX_TTS_KEY, trimmed)
-        }
-    }
-
-    // --- GigaAM v3 ASR (free-form Russian speech recognition, offline) ---
-
-    private var gigaAmDownloadJob: Job? = null
-
-    fun downloadGigaAmModel() {
-        if (_uiState.value.gigaAmDownloadProgress >= 0) return   // already downloading
-        gigaAmDownloadJob = viewModelScope.launch {
+    fun downloadPolishAsrModel() {
+        if (_uiState.value.asrDownloadProgress >= 0) return   // already downloading
+        asrDownloadJob = viewModelScope.launch {
             _uiState.update {
                 it.copy(
-                    gigaAmDownloadProgress = 0,
-                    gigaAmDownloadPhase = GigaAmModelManager.Phase.DOWNLOAD,
-                    gigaAmDownloadFailed = false,
-                    gigaAmSpaceShortfall = null,
+                    asrDownloadProgress = 0,
+                    asrDownloadPhase = PolishModelManager.Phase.ASR,
+                    asrDownloadFailed = false,
+                    asrSpaceShortfall = null,
                 )
             }
-            val result = gigaAmModelManager.download { phase, pct ->
-                // A late delivery after deleteGigaAmModel() reset progress to -1 (idle) must
-                // not resurrect an in-progress state.
-                _uiState.update {
-                    if (it.gigaAmDownloadProgress < 0) it
-                    else it.copy(gigaAmDownloadProgress = pct, gigaAmDownloadPhase = phase)
-                }
-            }
+            val result = voiceLanguageSetup.downloadAsr()
             _uiState.update {
                 it.copy(
-                    gigaAmDownloadProgress = -1,
-                    gigaAmDownloadPhase = null,
-                    gigaAmModelReady = gigaAmModelManager.isReady(),
-                    gigaAmDownloadFailed = result.isFailure,
-                    gigaAmSpaceShortfall = SpaceShortfall.from(result.exceptionOrNull()),
+                    asrDownloadProgress = -1,
+                    asrDownloadPhase = null,
+                    asrModelReady = voiceLanguageSetup.state.value.asrReady,
+                    asrDownloadFailed = result.isFailure,
+                    asrSpaceShortfall = SpaceShortfall.from(result.exceptionOrNull()),
                 )
             }
             // Pre-warm the recognizer right after a successful download so the first PTT
@@ -1560,25 +1528,135 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
             if (result.isSuccess) {
                 viewModelScope.launch(Dispatchers.IO) { runCatching { continuousAsr.warmUp() } }
             }
-            gigaAmDownloadJob = null
+            asrDownloadJob = null
         }
     }
 
-    fun deleteGigaAmModel() {
-        gigaAmDownloadJob?.cancel()
-        gigaAmDownloadJob = null
+    fun deletePolishAsrModel() {
+        asrDownloadJob?.cancel()
+        asrDownloadJob = null
         _uiState.update {
             it.copy(
-                gigaAmModelReady = false,
-                gigaAmDownloadProgress = -1,
-                gigaAmDownloadPhase = null,
-                gigaAmDownloadFailed = false,
-                gigaAmSpaceShortfall = null,
+                asrModelReady = false,
+                asrDownloadProgress = -1,
+                asrDownloadPhase = null,
+                asrDownloadFailed = false,
+                asrSpaceShortfall = null,
             )
         }
         // Suspend delete: serialized against download's commit section inside
         // the manager, so a cancelled download can't recreate the files after us.
-        viewModelScope.launch { gigaAmModelManager.delete() }
+        // Through the setup: the native recognizer is closed first, and the shared VAD stays
+        // whenever the Polish profile needs it.
+        viewModelScope.launch { voiceLanguageSetup.deleteAsr() }
+    }
+
+    // --- Voice languages (Polish) and the optional Polish assistant ---
+    // The assistant is the user's own OpenClaw, text only. Its opt-in is separate from
+    // [setAgentEnabled]: the Russian agent switch never turns it on.
+
+    /** Active/pending language, Polish model downloads and the last activation problems. */
+    val voiceLanguageState: StateFlow<VoiceLanguageState> = voiceLanguageSetup.state
+
+    /** Opt-in, address and pairing state of the assistant. */
+    val openClawStatus: StateFlow<OpenClawStatus> = openClawAssistant.status
+
+    /** Safe state of the service-owned automatic recovery queue. */
+    internal val openClawRecovery: StateFlow<OpenClawRecoveryState> = openClawConnectionCoordinator.recovery
+
+    /** The connection test: typed Polish text in, the assistant's answer out. */
+    val assistantProbeState: StateFlow<AssistantProbeState> = assistantProbe.probe
+
+    private var polishAsrJob: Job? = null
+    private var polishVoiceJob: Job? = null
+    private var openClawJob: Job? = null
+    private var probeJob: Job? = null
+
+    /** Re-reads what is installed; call when the voice section opens. */
+    fun refreshVoiceLanguage() {
+        viewModelScope.launch { voiceLanguageSetup.refresh() }
+    }
+
+    fun downloadPolishAsr() {
+        if (polishAsrJob?.isActive == true) return
+        polishAsrJob = viewModelScope.launch { voiceLanguageSetup.downloadAsr() }
+    }
+
+    fun cancelPolishAsrDownload() {
+        polishAsrJob?.cancel()
+    }
+
+    fun deletePolishAsr() {
+        polishAsrJob?.cancel()
+        viewModelScope.launch { voiceLanguageSetup.deleteAsr() }
+    }
+
+    fun downloadPolishVoice() {
+        if (polishVoiceJob?.isActive == true) return
+        polishVoiceJob = viewModelScope.launch { voiceLanguageSetup.downloadVoice() }
+    }
+
+    fun cancelPolishVoiceDownload() {
+        polishVoiceJob?.cancel()
+    }
+
+    fun deletePolishVoice() {
+        polishVoiceJob?.cancel()
+        viewModelScope.launch { voiceLanguageSetup.deleteVoice() }
+    }
+
+    /** Switches to Polish only when the recognizer, the shared VAD and Gosia all verify by hash. */
+    fun activatePolish() {
+        viewModelScope.launch { voiceLanguageSetup.activatePolish() }
+    }
+
+    fun setOpenClawEnabled(enabled: Boolean) {
+        viewModelScope.launch { openClawAssistant.setEnabled(enabled) }
+    }
+
+    /** Saves the Gateway address; ignored while a device is paired (disconnect first). */
+    fun setOpenClawEndpoint(text: String) {
+        viewModelScope.launch { openClawAssistant.setEndpoint(text) }
+    }
+
+    /** Pairs this device; waits for the owner's approval on the Gateway host. */
+    fun pairOpenClaw() {
+        if (openClawJob?.isActive == true) return
+        openClawJob = viewModelScope.launch { openClawAssistant.pair() }
+    }
+
+    fun reconnectOpenClaw() {
+        if (openClawJob?.isActive == true) return
+        openClawJob = viewModelScope.launch { openClawConnectionCoordinator.requestManualReconnect() }
+    }
+
+    fun cancelOpenClawPairing() {
+        openClawJob?.cancel()
+    }
+
+    /** Forgets this device and its conversation. Revoke the device on the Gateway host as well. */
+    fun disconnectOpenClaw() {
+        openClawJob?.cancel()
+        viewModelScope.launch { openClawAssistant.disconnect() }
+    }
+
+    fun resetOpenClawConversation() {
+        viewModelScope.launch { openClawAssistant.resetConversation() }
+    }
+
+    /** Sends [text] through the connection test. Needs no microphone, speech model, Polish profile or car. */
+    fun sendAssistantTest(text: String) {
+        if (probeJob?.isActive == true) return
+        probeJob = viewModelScope.launch { assistantProbe.send(text) }
+    }
+
+    fun resendAssistantTest() {
+        if (probeJob?.isActive == true) return
+        probeJob = viewModelScope.launch { assistantProbe.resend() }
+    }
+
+    fun cancelAssistantTest() {
+        viewModelScope.launch { assistantProbe.cancel() }
     }
 
     // --- Voice agent (hidden) ---
@@ -1640,7 +1718,7 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
         val wantGender = if (gender == "f") TtsGender.FEMALE else TtsGender.MALE
         val currentVoice = TtsVoiceCatalog.byId(_uiState.value.ttsVoice)
         if (currentVoice.gender != wantGender) {
-            setTtsVoice(TtsVoiceCatalog.counterpart(currentVoice).id)
+            setTtsVoice(TtsVoiceCatalog.counterpart().id)
         }
     }
 
@@ -1701,11 +1779,10 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
         private const val AGENT_DUMP_ENTRIES = 20
         private const val AGENT_DUMP_ANSWER_CHARS = 200
         private const val PREVIEW_VOICE_TEXT =
-            "Маршрут построен. Через двести метров поверните направо."
+            "Trasa została wyznaczona. Za dwieście metrów skręć w prawo."
         private const val AGENT_TEST_PROMPT =
-            "Проверка связи. Вызови инструмент get_vehicle_state и ответь одним коротким " +
-                "предложением: какой заряд батареи."
-        private const val MINIMAX_SOURCE = "minimax"
+            "Sprawdzenie połączenia. Wywołaj narzędzie get_vehicle_state i odpowiedz jednym krótkim " +
+                "zdaniem: jakie jest naładowanie baterii."
         /** Telegram bind code: six digits. */
         private const val BIND_CODE_MIN = 100_000
         private const val BIND_CODE_SPAN = 900_000
@@ -1827,7 +1904,7 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
                 appendLine("device: ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}")
                 appendLine("android: ${android.os.Build.VERSION.RELEASE} (SDK ${android.os.Build.VERSION.SDK_INT})")
                 appendLine("fingerprint: ${android.os.Build.FINGERPRINT}")
-                appendLine("locale: jvm=${Locale.getDefault().toLanguageTag()} app=${localePreferences.getLanguage() ?: "(unset)"}")
+                appendLine("locale: jvm=${Locale.getDefault().toLanguageTag()} app=${localePreferences.getLanguage()}")
                 appendLine("font_scale: ${localePreferences.getFontScale()}")
             } catch (e: Exception) {
                 appendLine("(failed to gather app/device metadata: ${e.message})")
@@ -1930,7 +2007,7 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
                 appendLine(
                     "age_s=$ageS gear=${live.gear} speed=${live.speed} powerState=${live.powerState} " +
                         "soc=${live.soc} trunk=${live.trunk} frontTrunk=${live.frontTrunk} " +
-                        // #210: the Главная slot shows both, so a "no outside temperature"
+                        // #210: the Główna slot shows both, so a "no outside temperature"
                         // report has to be checkable against what the car actually reported.
                         "insideTemp=${live.insideTemp} exteriorTemp=${live.exteriorTemp} " +
                         "remainKwh=${live.batteryRemainKwh}"
@@ -2001,14 +2078,12 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
             } catch (e: Exception) {
                 appendLine("(failed to gather agent connection: ${e.message})")
             }
-            // Voice speed wave: which TTS source speaks the replies (online latency depends on it).
+            // The local Gosia voice is the only synthesizer.
             try {
                 val voicePrefs = appContext.getSharedPreferences("voice", Context.MODE_PRIVATE)
-                val source = voicePrefs.getString("tts_source", TtsRouter.OFFLINE) ?: TtsRouter.OFFLINE
-                val minimaxProvider = settingsRepository.getString(SettingsRepository.KEY_MINIMAX_TTS_PROVIDER, "official")
-                val voice = voicePrefs.getString("tts_voice", TtsModelManager.DEFAULT_VOICE_ID)
+                val voice = voicePrefs.getString("tts_voice", "gosia")
                 val gender = voicePrefs.getString("agent_gender", "m")
-                appendLine("tts: source=$source minimax_provider=$minimaxProvider offline_voice=$voice gender=$gender")
+                appendLine("tts: voice=$voice gender=$gender")
             } catch (e: Exception) {
                 appendLine("(failed to gather tts source: ${e.message})")
             }
@@ -2083,7 +2158,7 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
                     com.bydmate.app.hud.HudSomeIpBridge.isServicePresent(appContext.packageManager)
                 appendLine("someip_gateway: " + if (gatewayPresent) "present" else "absent")
                 appendLine("speed_sign: ${hudPrefs.getBoolean(com.bydmate.app.hud.HudController.KEY_SPEED_SIGN, true)}")
-                // The way to the glass (1..3, «Способ вывода на стекло»).
+                // The way to the glass (1..3, «Sposób wyświetlania na szybę»).
                 appendLine("mode: ${hudController.mode()}")
                 // Frame/RC counters from HudPushLoop via HudController.diag().
                 val diag = hudController.diag()
@@ -2359,7 +2434,7 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
             appendLine("--- helper daemon ---")
             try {
                 appendLine("alive: ${helperDiag.alive?.toString() ?: "(unknown — probe timed out)"}")
-                // The car's own «Опц. содержимое → Навигация» gate (#269), read only.
+                // The car's own "Optional content → Navigation" gate (#269), read only.
                 appendLine("hud_navi_gate:")
                 HudDiagnostics.format(helperDiag.hud).forEach { appendLine(it) }
                 // The HUD master switch (#292) and the HUD type, read only.
@@ -2539,7 +2614,7 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
         }
 
         // File-write failures must surface so the user sees a meaningful
-        // error instead of a "запись начата" status next to an empty file.
+        // error instead of a "recording started" status next to an empty file.
         FileWriter(file, false).use { it.write(header) }
     }
 
@@ -2683,7 +2758,7 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
     // -------------------------------------------------------------------------
 
     /**
-     * «Сохранить конфигурацию» (#238): exports [parts] to Download and sends a copy to the bot when
+     * "Save configuration" (#238): exports [parts] to Download and sends a copy to the bot when
      * it is connected. The choice is remembered for the next save. Errors go to configStatus.
      */
     fun saveConfiguration(parts: Set<BackupPart>) {
@@ -2702,7 +2777,7 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
                     )
                     else -> null
                 }
-                // The «Поделиться» dialog shows the saved file instead of the status line.
+                // The «Udostępnij» dialog shows the saved file instead of the status line.
                 _uiState.update { it.copy(configStatus = null, savedBackup = SavedBackup(result.file, telegram)) }
             } catch (e: Exception) {
                 _uiState.update {
@@ -2735,7 +2810,7 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
         _uiState.update { it.copy(restoreCandidates = null) }
     }
 
-    /** A file tapped in the picker: reads the parts its manifest lists, then opens «Что восстановить». */
+    /** A file tapped in the picker: reads the parts its manifest lists, then opens «Co przywrócić». */
     fun pickRestoreFile(file: File) {
         closeRestorePicker()
         viewModelScope.launch(ioDispatcher) {
@@ -2784,7 +2859,7 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
         _uiState.update { it.copy(configStatus = null) }
     }
 
-    /** «Поделиться» in the dialog after a manual export (#237). */
+    /** «Udostępnij» in the dialog after a manual export (#237). */
     fun shareExportedBackup() {
         val file = _uiState.value.savedBackup?.file ?: return
         _uiState.update { it.copy(savedBackup = null) }
@@ -2861,14 +2936,14 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
         }
     }
 
-    /** «Отправлять записанный лог в Telegram»: the sender reads it at the end of each recording. */
+    /** "Send saved log to Telegram": the sender reads it at the end of each recording. */
     fun setTgLogAutoSendEnabled(enabled: Boolean) {
         _uiState.update { it.copy(tgLogAutoSendEnabled = enabled) }
         Log.i(TAG_TG_REPORT, "log auto-send: enabled=$enabled")
         viewModelScope.launch { settingsRepository.setTgLogAutoSendEnabled(enabled) }
     }
 
-    /** «Отчёт при выключении машины»; phase B arms the helper daemon from these settings. */
+    /** "Report when the car turns off"; phase B arms the helper daemon from these settings. */
     fun setTgReportOffEnabled(enabled: Boolean) {
         _uiState.update { it.copy(tgReportOffEnabled = enabled) }
         Log.i(TAG_TG_REPORT, "power-off report: enabled=$enabled")
@@ -2899,7 +2974,7 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
     }
 
     /**
-     * Token field edits stay in the state; the token is stored once «Проверить» accepts it.
+     * Token field edits stay in the state; the token is stored once «Sprawdź» accepts it.
      * Trimmed: a token pasted from a chat often carries a trailing space or newline.
      */
     fun updateTgBackupToken(value: String) {
@@ -2908,7 +2983,7 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
 
     private var tgCheckJob: Job? = null
 
-    /** «Проверить»: token, then bot name, then the chat bound by a code, then a greeting message. */
+    /** «Sprawdź»: token, then bot name, then the chat bound by a code, then a greeting message. */
     fun checkTelegramBackup() {
         val token = _uiState.value.tgBackupToken.trim()
         if (token.isEmpty() || _uiState.value.tgBackupChecking) return
@@ -2953,7 +3028,7 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
         return null
     }
 
-    /** «Назад» on the code step: drops the code, the token stays in the field for another try. */
+    /** «Wstecz» on the code step: drops the code, the token stays in the field for another try. */
     fun cancelTelegramCode() {
         tgCheckJob?.cancel()
         _uiState.update { it.copy(tgBackupCode = null, tgBackupStatus = null, tgBackupChecking = false) }
@@ -2967,7 +3042,7 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") constructor( // H
     )
 
     /**
-     * «Отключить»: stops a running check and a waiting scheduled run, then forgets token, chat and
+     * «Wyłącz»: stops a running check and a waiting scheduled run, then forgets token, chat and
      * bot name; backups stay local.
      */
     fun disconnectTelegramBackup() {
@@ -3170,4 +3245,90 @@ internal fun enabledSettingName(state: Int): String = when (state) {
     android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER -> "DISABLED_USER"
     android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED_UNTIL_USED -> "DISABLED_UNTIL_USED"
     else -> "UNKNOWN($state)"
+}
+
+
+/** Credential-free view of the bounded upload queue. Expiry has no retained history. */
+data class RemoteDiagnosticsState(
+    val automatic: Boolean = false,
+    val configured: Boolean = false,
+    val count: Int = 0,
+    val bytes: Long = 0,
+    val statuses: Set<String> = emptySet(),
+    val lastSuccessAtMs: Long? = null,
+    /** Every queued batch, newest first. */
+    val logs: List<RemoteDiagnosticLogBatch> = emptyList(),
+)
+
+@javax.inject.Singleton
+class RemoteDiagnosticsSettings @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val config: com.bydmate.app.diagnostics.DiagnosticUploadConfig,
+    private val queue: com.bydmate.app.diagnostics.DiagnosticUploadQueue,
+    private val scheduler: com.bydmate.app.diagnostics.DiagnosticUploadScheduler,
+    private val capture: com.bydmate.app.diagnostics.DiagnosticLogCapture,
+) {
+    private val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+    fun setAutomatic(enabled: Boolean) {
+        prefs.edit().putBoolean(AUTOMATIC, enabled).apply()
+    }
+    private val logCache = RemoteDiagnosticLogCache()
+    private class QueueCopy(val bodies: List<ByteArray>, val states: Map<String, String>, val lastSuccessAtMs: Long?)
+    fun snapshot(): RemoteDiagnosticsState {
+        // Copy bytes and states together under the queue monitor; parse after releasing it.
+        val copy = synchronized(queue) {
+            QueueCopy(queue.bodies(), queue.states(), queue.lastSuccess()?.optLong("atMs"))
+        }
+        return RemoteDiagnosticsState(
+            automatic = prefs.getBoolean(AUTOMATIC, false),
+            configured = config.read() != null,
+            count = copy.bodies.size,
+            bytes = copy.bodies.sumOf { it.size.toLong() },
+            statuses = copy.states.values.map { if (it == "pending") "queued" else it }.toSet(),
+            lastSuccessAtMs = copy.lastSuccessAtMs,
+            logs = logCache.project(copy.bodies, copy.states),
+        )
+    }
+    fun importDocument(document: String): Boolean {
+        if (!config.importDocument(document)) return false
+        queue.resumeBlocked()
+        scheduler.recover()
+        return true
+    }
+    /** Read only the chosen document, bounded before decoding; never retain a URI grant. */
+    fun importSelected(uri: android.net.Uri): Int {
+        val bytes = context.contentResolver.openInputStream(uri)?.use { readBounded(it) }
+            ?: return R.string.settings_remote_diagnostics_import_failed
+        if (bytes.size > IMPORT_LIMIT || !importDocument(bytes.toString(Charsets.UTF_8))) {
+            return R.string.settings_remote_diagnostics_import_failed
+        }
+        val deleted = runCatching {
+            if (!android.provider.DocumentsContract.isDocumentUri(context, uri)) return@runCatching false
+            val column = android.provider.DocumentsContract.Document.COLUMN_FLAGS
+            val deletable = context.contentResolver.query(uri, arrayOf(column), null, null, null)?.use {
+                it.moveToFirst() && it.getLong(0).and(
+                    android.provider.DocumentsContract.Document.FLAG_SUPPORTS_DELETE.toLong(),
+                ) != 0L
+            } == true
+            deletable && android.provider.DocumentsContract.deleteDocument(context.contentResolver, uri)
+        }.getOrDefault(false)
+        return if (deleted) R.string.settings_remote_diagnostics_imported
+            else R.string.settings_remote_diagnostics_imported_source_retained
+    }
+    private fun readBounded(stream: java.io.InputStream): ByteArray {
+        val bytes = ByteArray(IMPORT_LIMIT + 1)
+        var size = 0
+        while (size < bytes.size) {
+            val read = stream.read(bytes, size, bytes.size - size)
+            if (read < 0) break
+            size += read
+        }
+        return bytes.copyOf(size)
+    }
+    fun sendNow() { capture.sendNow() }
+    companion object {
+        private const val IMPORT_LIMIT = 1024
+        const val PREFS = "remote-diagnostics"
+        const val AUTOMATIC = "automatic"
+    }
 }

@@ -37,6 +37,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import com.bydmate.app.voice.VoiceUserPhrases
 
 /** Automation tab 3.19: last result per rule, the rule's own journal, the notes at the bottom. */
 @RunWith(RobolectricTestRunner::class)
@@ -53,11 +54,11 @@ class AutomationTabViewModelTest {
     private val dispatcher = mockk<ActionDispatcher>(relaxed = true)
     private val stored = MutableStateFlow<List<RuleEntity>>(emptyList())
 
-    private val limitText = "Можно создать не больше 50 правил. Удалите ненужное, чтобы добавить новое."
+    private val limitText = "Można utworzyć najwyżej 50 reguł. Usuń niepotrzebną, aby dodać nową."
 
     @Before fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        LocalePreferences(ctx).setLanguage("ru")
+        LocalePreferences(ctx).setLanguage("pl")
         ctx.getSharedPreferences("automation", Context.MODE_PRIVATE).edit()
             .putBoolean("templates_inserted", true).putBoolean("templates_tg_report_inserted", true).commit()
         every { ruleDao.getAll() } returns stored
@@ -76,6 +77,7 @@ class AutomationTabViewModelTest {
         actionDispatcher = dispatcher,
         settingsRepository = mockk(relaxed = true),
         context = ctx,
+        userPhrases = VoiceUserPhrases(),
     ).also { testDispatcher.scheduler.advanceUntilIdle() }
 
     private fun log(id: Long, ruleId: Long) = RuleLogEntity(
@@ -131,19 +133,19 @@ class AutomationTabViewModelTest {
     }
 
     @Test fun `a park-only test run off P is refused, noted and journaled`() {
-        val rule = RuleEntity(id = 7, name = "Окна", triggers = "[]", actions = "[]", requirePark = true)
+        val rule = RuleEntity(id = 7, name = "Szyby", triggers = "[]", actions = "[]", requirePark = true)
         coEvery { ruleDao.getById(7) } returns rule
         val inserted = slot<RuleLogEntity>()
         coEvery { ruleLogDao.insert(capture(inserted)) } returns 1L
         val vm = vm()
         vm.liveSnapshot = { diParsData(gear = 4) }
-        vm.updateEditing { copy(id = 7, isNew = false, name = "Окна", requirePark = true, actions = listOf(ActionDef("车窗关闭", "x"))) }
+        vm.updateEditing { copy(id = 7, isNew = false, name = "Szyby", requirePark = true, actions = listOf(ActionDef("车窗关闭", "x"))) }
 
         vm.testRun()
         testDispatcher.scheduler.advanceUntilIdle()
 
         coVerify(exactly = 0) { dispatcher.dispatch(any(), any()) }
-        assertEquals("Не выполнено: правило работает только на парковке. Включите P.", vm.uiState.value.message)
+        assertEquals("Nie wykonano: reguła działa tylko na postoju. Włącz P.", vm.uiState.value.message)
         assertEquals(7L, inserted.captured.ruleId)
         assertEquals("skipped", JSONArray(inserted.captured.actionsResult).getJSONObject(0).getString("result"))
         assertTrue(inserted.captured.triggersSnapshot.contains(TEST_RUN_KEY))
@@ -159,7 +161,7 @@ class AutomationTabViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
 
         coVerify(exactly = 0) { ruleLogDao.insert(any()) }
-        assertEquals("Не выполнено: правило работает только на парковке. Включите P.", vm.uiState.value.message)
+        assertEquals("Nie wykonano: reguła działa tylko na postoju. Włącz P.", vm.uiState.value.message)
     }
 
     @Test fun `a park-only test run in P runs`() {
@@ -186,7 +188,7 @@ class AutomationTabViewModelTest {
         vm.elapsedNow = { 50_000L }
         vm.openNewRule()
         // A pause has no speed gate: nothing later checks the snapshot's age.
-        vm.updateEditing { copy(requirePark = true, actions = listOf(ActionDef("", "Пауза", "delay", "10"))) }
+        vm.updateEditing { copy(requirePark = true, actions = listOf(ActionDef("", "Pauza", "delay", "10"))) }
         vm.testRun()
         testDispatcher.scheduler.advanceUntilIdle()
         return vm
@@ -195,7 +197,7 @@ class AutomationTabViewModelTest {
     @Test fun `a park-only test run on a P left by a stopped service is refused`() {
         val vm = parkOnlyRunWith(TimedSnapshot(diParsData(gear = 1, speed = 0), measuredAtElapsedMs = 49_000L), running = false)
         coVerify(exactly = 0) { dispatcher.dispatch(any(), any()) }
-        assertEquals("Не выполнено: правило работает только на парковке. Включите P.", vm.uiState.value.message)
+        assertEquals("Nie wykonano: reguła działa tylko na postoju. Włącz P.", vm.uiState.value.message)
     }
 
     @Test fun `a park-only test run on an old P is refused`() {
@@ -208,14 +210,14 @@ class AutomationTabViewModelTest {
         val vm = vm()
         vm.openNewRule()
         vm.updateEditing {
-            copy(name = "R", triggers = listOf(TriggerDef("Gear", "档位", ">", "1", "Передача")), actions = listOf(ActionDef("车窗关闭", "x")))
+            copy(name = "R", triggers = listOf(TriggerDef("Gear", "档位", ">", "1", "Bieg")), actions = listOf(ActionDef("车窗关闭", "x")))
         }
 
         vm.saveRule()
         testDispatcher.scheduler.advanceUntilIdle()
 
         coVerify(exactly = 0) { ruleDao.insert(any()) }
-        assertEquals("Выберите «равно» или «не равно» в условии 1", vm.uiState.value.editorError)
+        assertEquals("Wybierz „równe” lub „różne od” w warunku 1", vm.uiState.value.editorError)
     }
 
     @Test fun `a park-only test run with no polled snapshot is refused`() {

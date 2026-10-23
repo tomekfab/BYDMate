@@ -38,7 +38,7 @@ class ActionDispatcherVolumeTest {
     }
 
     private fun volume(payload: String) =
-        ActionDef(command = "media_volume", displayName = "Громкость", kind = "media_volume", payload = payload)
+        ActionDef(command = "media_volume", displayName = "Głośność", kind = "media_volume", payload = payload)
 
     @Test fun `explicit set delegates to the atomic duck-aware apply`() = runBlocking {
         every { audioCapture.pendingRestoreVolume() } returns 10   // duck active, pre-duck 10

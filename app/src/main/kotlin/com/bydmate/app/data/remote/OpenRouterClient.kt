@@ -1,5 +1,7 @@
 package com.bydmate.app.data.remote
 
+import com.bydmate.app.diagnostics.DiagnosticEmitters
+
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
@@ -34,7 +36,7 @@ class OpenRouterClient @Inject constructor(
     }
 
     /** Warms a pooled connection to the LLM host before the turn's first request, see [HttpPrewarm]. */
-    fun prewarm(baseUrl: String) = HttpPrewarm.fire(httpClient, baseUrl)
+    fun prewarm(baseUrl: String) = HttpPrewarm.fire(httpClient, baseUrl, "openrouter")
 
     /**
      * Fetches a model list from any OpenAI-compatible endpoint (not just OpenRouter).
@@ -126,7 +128,9 @@ class OpenRouterClient @Inject constructor(
                 .post(payload.toString().toRequestBody(JSON_MEDIA))
                 .build()
 
+            val started = System.nanoTime()
             val response = httpClient.newCall(request).execute()
+            DiagnosticEmitters.request("openrouter", "chat", (System.nanoTime() - started) / 1_000_000, outcome = if (response.isSuccessful) "success" else "failure", httpStatus = response.code)
             val body = response.body?.string()
 
             if (!response.isSuccessful) {
@@ -142,6 +146,7 @@ class OpenRouterClient @Inject constructor(
                 .optJSONObject("message")
                 ?.optString("content")
         } catch (e: Exception) {
+            DiagnosticEmitters.failure("openrouter", e)
             Log.e(TAG, "chat failed: ${e.message}")
             null
         }
@@ -193,21 +198,23 @@ class OpenRouterClient @Inject constructor(
                 .addHeader("X-Title", "BYDMate")
                 .post(payload.toString().toRequestBody(JSON_MEDIA))
                 .build()
+            val started = System.nanoTime()
             httpClient.newCall(request).execute().use { resp ->
+                DiagnosticEmitters.request("openrouter", "chat", (System.nanoTime() - started) / 1_000_000, outcome = if (resp.isSuccessful) "success" else "failure", httpStatus = resp.code)
                 if (!resp.isSuccessful) throw LlmHttpException(resp.code)
                 val bodyStr = resp.body?.string().takeUnless { it.isNullOrBlank() }
                     ?: throw IOException("LLM: empty body")
                 val choice = JSONObject(bodyStr).getJSONArray("choices").getJSONObject(0)
                 choice.getJSONObject("message").withFinishReason(choice)
             }
-        }
+        }.onFailure { DiagnosticEmitters.failure("openrouter", it) }
     }
 
     /** Dedicated client for SSE: the shared 15s readTimeout is a between-token timeout and
      *  would cut long generations. Voice-tuned bounds: a between-token stall of 20s means the
      *  car's network degraded (OpenRouter sends keep-alive comments well within that), and
      *  45s is the worst-case hard cap for one voice round — a frozen orb for minutes is worse
-     *  than an honest "не получилось". */
+     *  than an honest "nie udało się". */
     private val streamClient: OkHttpClient by lazy {
         httpClient.newBuilder()
             .readTimeout(20, TimeUnit.SECONDS)
@@ -238,6 +245,7 @@ class OpenRouterClient @Inject constructor(
                 .addHeader("X-Title", "BYDMate")
                 .post(payload.toString().toRequestBody(JSON_MEDIA))
                 .build()
+            val started = System.nanoTime()
             val call = streamClient.newCall(request)
             // A blocked call.execute()/readUtf8Line() never observes coroutine cancellation by itself.
             // A sibling watcher resumes on cancellation (on another thread) and cancels the OkHttp call,
@@ -252,6 +260,7 @@ class OpenRouterClient @Inject constructor(
             }
             try {
                 call.execute().use { resp ->
+                    DiagnosticEmitters.request("openrouter", "chat", (System.nanoTime() - started) / 1_000_000, outcome = if (resp.isSuccessful) "success" else "failure", httpStatus = resp.code)
                     if (!resp.isSuccessful) throw LlmHttpException(resp.code)
                     val body = resp.body ?: throw IOException("LLM: empty body")
                     val isSse = body.contentType()?.subtype.orEmpty().contains("event-stream")
@@ -272,7 +281,7 @@ class OpenRouterClient @Inject constructor(
             } finally {
                 watcher.cancel()
             }
-        }
+        }.onFailure { DiagnosticEmitters.failure("openrouter", it) }
     }
 
     private fun readSse(source: BufferedSource, onDelta: (String) -> Unit): JSONObject {

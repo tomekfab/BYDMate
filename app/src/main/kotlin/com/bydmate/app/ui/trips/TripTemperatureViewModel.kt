@@ -20,7 +20,7 @@ data class TripTemperatureUiState(
 )
 
 /**
- * Feeds the «Расход и температура» screen: one read of the whole trip table on open, all of the
+ * Feeds the «Zużycie i temperatura» screen: one read of the whole trip table on open, all of the
  * maths in [TripTemperatureStats]. The period is deliberately «everything» — a temperature
  * picture needs a year, not the week the list happens to show.
  */

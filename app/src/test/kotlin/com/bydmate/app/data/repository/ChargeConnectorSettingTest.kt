@@ -14,7 +14,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-// «Разъём для зарядки» in Settings -> «Авто и батарея»: GB/T by default (the Leopard 3 charges
+// Charging connector in Settings -> Car and battery: GB/T by default (the Leopard 3 charges
 // through GB/T), the choice survives a restart.
 class ChargeConnectorSettingTest {
 

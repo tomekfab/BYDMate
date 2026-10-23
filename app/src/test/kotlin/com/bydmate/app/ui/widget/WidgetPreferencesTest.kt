@@ -130,8 +130,14 @@ class WidgetPreferencesTest {
         assertEquals("ru.yandex.yandexnavi", prefs.getLeftTapAppPackage())
     }
 
-    @Test fun `leftTapAppLabel defaults to Russian name`() {
-        assertEquals("Яндекс.Навигатор", prefs.getLeftTapAppLabel())
+    @Test fun `leftTapAppLabel defaults to Polish Yandex Navigator name`() {
+        assertEquals("Nawigator Yandex", prefs.getLeftTapAppLabel())
+    }
+
+    @Test fun `persisted custom leftTap app label remains untouched`() {
+        store[WidgetPreferences.KEY_LEFT_TAP_APP_LABEL] = "Mój własny Nawigator"
+        val restored = WidgetPreferences(fakeSharedPrefs(store))
+        assertEquals("Mój własny Nawigator", restored.getLeftTapAppLabel())
     }
 
     @Test fun `setLeftTapApp stores both package and label`() {

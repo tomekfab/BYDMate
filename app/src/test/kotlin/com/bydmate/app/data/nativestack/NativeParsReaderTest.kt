@@ -284,7 +284,7 @@ class NativeParsReaderTest {
         assertEquals(0, data.keyBatteryStatus)
     }
 
-    /** tx=7 float fids: the motor currents must reach DiParsData so the «Техника» split works. */
+/** tx=7 float fids: the motor currents must reach DiParsData so the Technical data split works. */
     @Test
     fun `motor currents decode into DiParsData`() = runTest {
         val auto = mockk<AutoserviceClient>()
@@ -309,7 +309,7 @@ class NativeParsReaderTest {
         assertEquals(45.3f, data.motorCurrentRear!!, 0.01f)
     }
 
-    /** The BMS remaining-energy float must reach the snapshot the Dashboard and «Техника» read. */
+/** The BMS remaining-energy float must reach the snapshot the Dashboard and Technical data read. */
     @Test
     fun `battery remaining energy decodes into DiParsData`() = runTest {
         val auto = mockk<AutoserviceClient>()

@@ -1,19 +1,19 @@
 ---
-name: Предложение фичи
-about: Что хочется добавить или улучшить
+name: Feature request
+about: Something to add or improve
 title: ''
 labels: enhancement
 assignees: ''
 ---
 
-## Что хочется
+## Requested change
 
-(коротко — что должна делать новая фича)
+(Briefly describe what the feature should do.)
 
-## Зачем
+## Why
 
-(какую задачу это решит, какой кейс из жизни)
+(What problem or real-life case would this solve?)
 
-## Как видится
+## Proposed approach
 
-(если есть идея, как должен выглядеть UI или логика — опишите. Если нет, оставьте пустым)
+(Describe the UI or logic if you have an idea. Otherwise, leave this blank.)

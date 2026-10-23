@@ -33,7 +33,7 @@ import java.time.LocalDateTime
 /**
  * A one-shot rule on a real Room database: it fires once, and what keeps it from firing again
  * is the stored enabled=false, so a later check or a new process sees it spent. Cooldown and
- * «Только на парковке» only hold it back inside its day; a confirmation spends it either way.
+* “Only in Park” only holds it back inside its day; a confirmation spends it either way.
  */
 // SDK 33: on lower levels Robolectric rejects ContextCompat.registerReceiver (engine init).
 @RunWith(RobolectricTestRunner::class)
@@ -176,7 +176,7 @@ class AutomationEngineOneShotTest {
         assertFalse(stored(id).enabled)
         var reasons = journalReasons()
         repeat(20) { if (reasons.isEmpty()) { Thread.sleep(50); reasons = journalReasons() } }
-        assertEquals(listOf("Отменено в окне подтверждения"), reasons)
+        assertEquals(listOf("Anulowano w oknie potwierdzenia"), reasons)
         coVerify(exactly = 0) { dispatcher.dispatch(any(), any()) }
     }
 }

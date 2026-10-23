@@ -1,5 +1,7 @@
 package com.bydmate.app.voice
 
+import com.bydmate.app.diagnostics.DiagnosticEmitters
+
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioManager
@@ -9,11 +11,9 @@ import android.os.Build
 import android.os.SystemClock
 import android.util.Log
 import com.bydmate.app.platform.LegacyHeadUnit
-import com.bydmate.app.voice.online.TtsRouter
 import com.k2fsa.sherpa.onnx.OfflineTts
 import com.k2fsa.sherpa.onnx.OfflineTtsConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsModelConfig
-import com.k2fsa.sherpa.onnx.OfflineTtsSupertonicModelConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsVitsModelConfig
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,7 +48,6 @@ class SherpaTtsEngine(
     private val selectedVoice: () -> TtsVoice = { TtsVoiceCatalog.byId(TtsModelManager.DEFAULT_VOICE_ID) },
     private val rate: () -> Float = { 1.0f },
     private val liveliness: () -> Int = { 33 },
-    private val marker: RuStressMarker = RuStressMarker { null },
     private val loadGuard: AsrLoadGuard? = null,
 ) : TtsEngine {
 
@@ -58,7 +57,7 @@ class SherpaTtsEngine(
     private val generation = AtomicInteger(0)
 
     /** LRU of already-synthesized PCM for the short fixed phrases speak() keeps repeating
-     *  ("Готово.", "Не понял", persona lines): synthesis costs 0.3-0.8 s on DiLink, a hit costs
+     *  ("Gotowe.", "Nie zrozumiałem", persona lines): synthesis costs 0.3-0.8 s on DiLink, a hit costs
      *  nothing. Worker-thread-confined like [tts]/[track] -- only speak()/reload() touch it, both
      *  from the single tts worker, so no synchronization is needed. Only speak() caches: queued
      *  sentences of a streamed reply are unique text and would only evict the useful entries. */
@@ -77,11 +76,6 @@ class SherpaTtsEngine(
     // NEXT reply; the same short target also let audible() unmute the mic mid-speech.
     private var trackFramesWritten = 0L
 
-    init {
-        // First engine creation preloads the dictionary too, so the very first reply after app
-        // start doesn't pay the load latency (reload() covers voice switches afterwards).
-        marker.preload()
-    }
 
     // Frame position the currently written audio should reach once fully played, or -1 when
     // nothing is in flight (drained, or never started). audible() compares this against the
@@ -106,7 +100,10 @@ class SherpaTtsEngine(
     private val _speaking = MutableStateFlow(false)
     override val speaking: StateFlow<Boolean> = _speaking.asStateFlow()
 
-    override fun isReady(): Boolean = modelManager.isReady(selectedVoice()) && loadGuard?.isTripped() != true
+    override fun isReady(): Boolean {
+        val voice = selectedVoice()
+        return modelManager.isReady(voice) && loadGuard?.isTtsTripped(AsrLoadGuard.ttsScopeOf(voice)) != true
+    }
 
     /** Drops the cached engine/track so the next speak() re-initializes createTts()
      *  against the currently selected voice. Runs on the worker thread since tts/track
@@ -115,7 +112,6 @@ class SherpaTtsEngine(
      *  with them: a voice/model switch invalidates every synthesized sample. */
     override fun reload() {
         generation.incrementAndGet()
-        marker.preload()
         worker.execute {
             runCatching { tts?.release() }
             tts = null
@@ -148,6 +144,7 @@ class SherpaTtsEngine(
         val blank = text.isBlank()
         val ready = !blank && isReady()
         if (blank || !ready) {
+            DiagnosticEmitters.voiceFailure("speaking", reason = "not_ready")
             Log.i(TAG, "speak skipped: blank=$blank ready=$ready voice=${selectedVoice().id}")
             return false
         }
@@ -166,10 +163,10 @@ class SherpaTtsEngine(
                     }
                     val voice = selectedVoice()
                     val out = ensureTrackForRate(engine.sampleRate())
-                    val synthesisText = textForSynthesis(voice.engine, text, marker::mark)
+                    val synthesisText = text
                     val speed = TtsTuning.speed(rate())
                     val cacheKey = if (pcmCacheable(text)) {
-                        pcmCacheKey(voice.id, voice.speakerId, speed, liveliness(), engine.sampleRate(), synthesisText)
+                        pcmCacheKey(PcmCacheVoice(voice.id, voice.speakerId, voice.language), speed, liveliness(), engine.sampleRate(), synthesisText)
                     } else null
                     val cached = cacheKey?.let { pcmCache[it] }
                     if (cached != null) Log.i(TAG, "pcm cache hit: len=${text.length}")
@@ -227,7 +224,10 @@ class SherpaTtsEngine(
                         // cleanly; the next write resumes it with play().
                         if (generation.get() == myGen) runCatching { out.pause() }
                     }
-                }.onFailure { Log.w(TAG, "tts speak failed", it) }
+                }.onFailure {
+                    DiagnosticEmitters.voiceFailure("speaking", it)
+                    Log.w(TAG, "tts speak failed", it)
+                }
             } finally {
                 if (generation.get() == myGen) {
                     pendingTarget = null
@@ -282,7 +282,7 @@ class SherpaTtsEngine(
      *  the honest outcome: true only when all [samples] were actually written (real sound) or the
      *  write was cut short by a barge-in/stop (user interruption, not a route failure). Returns
      *  false and logs when write produced 0 / short bytes with no interruption -- that is silence
-     *  on a dead or wrong output route, and the caller (TtsRouter) drops the rest of the reply.
+     *  on a dead or wrong output route, and the caller drops the rest of the reply.
      *  The drain wait continues on the worker thread after the caller unblocks. */
     override fun playPcm(samples: FloatArray, sampleRate: Int): Boolean {
         if (samples.isEmpty()) return false
@@ -294,7 +294,7 @@ class SherpaTtsEngine(
         worker.execute {
             if (generation.get() != myGen) {
                 // Superseded before the write even started -- a deliberate interruption, not a
-                // silent-route failure; TtsRouter must not fall back.
+                // Silent-route failure; do not continue the reply.
                 writeOutcome.complete(true)
                 return@execute
             }
@@ -331,7 +331,7 @@ class SherpaTtsEngine(
                     val interrupted = generation.get() != myGen
                     val outcome = playbackOutcome(framesWritten.toInt(), samples.size, interrupted)
                     if (!outcome) Log.w(TAG, "playPcm failed: short write $framesWritten of ${samples.size}")
-                    // Signal the outcome to the calling thread BEFORE the drain wait so TtsRouter
+                    // Signal the outcome to the calling thread before the drain wait so the caller
                     // can decide immediately whether to fall back; drain continues here in background.
                     writeOutcome.complete(outcome)
                     drainAndPark(out, myGen, effectiveSampleRate)
@@ -579,7 +579,7 @@ class SherpaTtsEngine(
                     // write instead of leaving it stuck (stop() cannot see this write to undo it).
                     _speaking.value = true
                     if (generation.get() != myGen) { _speaking.value = false; return@execute }
-                    val synthesisText = textForSynthesis(voice.engine, text, marker::mark)
+                    val synthesisText = text
                     val samples = accumulateSentence(
                         generate = { onChunk ->
                             engine.generateWithCallback(
@@ -614,7 +614,10 @@ class SherpaTtsEngine(
                         }
                     }
                     // No drain and no speaking=false here: the queue stays hot for the next sentence.
-                }.onFailure { Log.w(TAG, "tts enqueue failed", it) }
+                }.onFailure {
+                    DiagnosticEmitters.voiceFailure("speaking", it)
+                    Log.w(TAG, "tts enqueue failed", it)
+                }
             }
             return true
         }
@@ -674,42 +677,25 @@ class SherpaTtsEngine(
     private fun createTts(): OfflineTts? = runCatching {
         val voice = selectedVoice()
         val dir = modelManager.modelDirPath(voice.modelDirId)
-        val modelConfig = if (voice.engine == TtsVoiceEngine.SUPERTONIC) {
-            // Supertonic: 4-model flow-matching pipeline, char-based (no tokens.txt, no stress
-            // dictionary); speaker is picked at synthesis time via sid, exactly like VITS_MULTI.
-            OfflineTtsModelConfig(
-                supertonic = OfflineTtsSupertonicModelConfig(
-                    durationPredictor = "$dir/duration_predictor.int8.onnx",
-                    textEncoder = "$dir/text_encoder.int8.onnx",
-                    vectorEstimator = "$dir/vector_estimator.int8.onnx",
-                    vocoder = "$dir/vocoder.int8.onnx",
-                    ttsJson = "$dir/tts.json",
-                    unicodeIndexer = "$dir/unicode_indexer.bin",
-                    voiceStyle = "$dir/voice.bin",
-                ),
-                numThreads = 2,
-                // NEVER "nnapi" — crashes on non-standard firmwares (sherpa-onnx#3611)
-                provider = "cpu",
-            )
-        } else {
-            val onnx = modelManager.onnxFile(voice.modelDirId)?.absolutePath ?: return null
-            val livelinessValue = liveliness()
-            OfflineTtsModelConfig(
+        val onnx = modelManager.onnxFile(voice.modelDirId)?.absolutePath ?: return null
+        val livelinessValue = liveliness()
+        val modelConfig = OfflineTtsModelConfig(
                 vits = OfflineTtsVitsModelConfig(
                     model = onnx,
                     tokens = "$dir/tokens.txt",
-                    dataDir = dataDirFor(voice.engine, dir),
+                    dataDir = dataDirFor(dir),
                     noiseScale = TtsTuning.noiseScale(livelinessValue),
                     noiseScaleW = TtsTuning.noiseScaleW(livelinessValue),
                 ),
                 numThreads = 2,
                 // NEVER "nnapi" — crashes on non-standard firmwares (sherpa-onnx#3611)
                 provider = "cpu",
-            )
-        }
-        loadGuard?.noteLoadBegin(AsrLoadGuard.ARTIFACT_TTS)
+        )
+        // Scoped by language and model for a non-Russian voice (see AsrLoadGuard.isTtsTripped).
+        val guardScope = AsrLoadGuard.ttsScopeOf(voice)
+        loadGuard?.noteTtsLoadBegin(guardScope)
         val ttsInstance = OfflineTts(config = OfflineTtsConfig(model = modelConfig))
-        loadGuard?.noteLoadSuccess(AsrLoadGuard.ARTIFACT_TTS)
+        loadGuard?.noteTtsLoadSuccess(guardScope)
         ttsInstance
     }.onFailure { Log.w(TAG, "tts init failed", it) }.getOrNull()
 
@@ -839,14 +825,14 @@ class SherpaTtsEngine(
 
         /** Pure outcome decision for [playPcm]: a write covering all expected frames is real
          *  sound; a short write (dead route, wrong stream, HAL refusing) is silence and must
-         *  surface as failure so [com.bydmate.app.voice.online.TtsRouter] can drop the rest of
+         *  surface as failure so the caller can drop the rest of
          *  the reply (online failures stay silent, never swapped to the offline voice). A
          *  generation bump mid-write is a deliberate user interruption -- the user heard speech
          *  and barged in -- so it is never treated as failure. */
         internal fun playbackOutcome(written: Int, expected: Int, interrupted: Boolean): Boolean =
             interrupted || written >= expected
 
-        // PCM cache bounds: short fixed phrases only ("Готово.", "Не понял", persona lines). A
+        // PCM cache bounds: short fixed phrases only ("Gotowe.", "Nie zrozumiałem", persona lines). A
         // 40-char phrase is ~2-3 s of float mono audio (~200 KB at 22050 Hz), so the full 32
         // entries cost a few MB at worst -- affordable on a 12 GB head unit, and the LRU keeps
         // only what is actually being repeated.
@@ -860,37 +846,33 @@ class SherpaTtsEngine(
         /** Every input the synthesized samples depend on: the voice model and its speaker, the
          *  synthesis speed, liveliness (noiseScale/noiseScaleW, baked into the engine by
          *  createTts) and the engine's output rate. Keyed on the ALREADY stress-marked text, not
-         *  the raw one -- [RuStressMarker] returns text unchanged until its dictionary finishes
+         *  the raw one. Gosia always synthesizes the supplied Polish text.
          *  loading, so a phrase synthesized in that window must not be replayed for the marked
-         *  pronunciation later. Pure so it is unit-testable without JNI. */
+         *  pronunciation later. A non-Russian [language] prefixes the key, so the same text of
+         *  two languages can never replay the other's audio; the Russian key is unchanged. Pure
+         *  so it is unit-testable without JNI. */
         internal fun pcmCacheKey(
-            voiceId: String,
-            speakerId: Int,
+            voice: PcmCacheVoice,
             speed: Float,
             liveliness: Int,
             sampleRate: Int,
             synthesisText: String,
-        ): String = "$voiceId|$speakerId|$speed|$liveliness|$sampleRate|$synthesisText"
+        ): String {
+            val key = "${voice.id}|${voice.speakerId}|$speed|$liveliness|$sampleRate|$synthesisText"
+            return "${voice.language.id}|$key"
+        }
 
         /** PIPER archives need espeak-ng-data/ for phonemization; the VITS_MULTI archive ships
          *  no espeak data and errors if pointed at a non-existent dir, so pass "" for it. */
-        internal fun dataDirFor(engine: TtsVoiceEngine, modelDir: String): String =
-            if (engine == TtsVoiceEngine.PIPER) "$modelDir/espeak-ng-data" else ""
+        internal fun dataDirFor(modelDir: String): String = "$modelDir/espeak-ng-data"
 
         /** Dictionary stress marking is engine-specific: VITS_MULTI needs '+', Supertonic needs
          *  uppercase stressed vowels because its char model speaks '+' / combining accents
          *  literally, and PIPER must stay untouched because espeak-ng predicts stress itself.
-         *  Pure so the routing seam is unit-testable without JNI (same pattern as
+         *  Only Russian text is marked: Polish (any engine) is returned untouched and [mark] never
+         *  runs. Pure so the routing seam is unit-testable without JNI (same pattern as
          *  accumulateSentence/writeSentence). */
-        internal fun textForSynthesis(
-            engine: TtsVoiceEngine,
-            text: String,
-            mark: (String, RuStressMarker.Style) -> String,
-        ): String = when (engine) {
-            TtsVoiceEngine.VITS_MULTI -> mark(text, RuStressMarker.Style.PLUS)
-            TtsVoiceEngine.SUPERTONIC -> mark(text, RuStressMarker.Style.UPPERCASE)
-            TtsVoiceEngine.PIPER -> text
-        }
+        internal fun textForSynthesis(text: String): String = text
 
         /** Runs synthesis via [generate] (stands in for OfflineTts.generateWithCallback in
          *  production), buffering every chunk instead of writing it to the track as it streams
@@ -945,12 +927,13 @@ class SherpaTtsEngine(
         private const val STREAM_POLL_MS = 40L
         internal const val STREAM_WAIT_BOUND_MS = 60_000L
 
-        // The stall limit must never give up before TtsRouter does: the router always puts the
+        // The stall limit must never give up before the producer does: it always puts the
         // end marker, but only after its stream timeout plus a possible whole-sentence fallback
         // with the same timeout. Barge-in does not wait for it -- the generation check ends the
         // pump within one poll. Stays below STREAM_WAIT_BOUND_MS, the caller's hang rescue.
         private const val STREAM_STALL_MARGIN_MS = 4_000L
-        internal const val STREAM_STALL_MS = 2 * TtsRouter.SYNTH_TIMEOUT_MS + STREAM_STALL_MARGIN_MS
+        internal const val SYNTH_TIMEOUT_MS = 20_000L
+        internal const val STREAM_STALL_MS = 2 * SYNTH_TIMEOUT_MS + STREAM_STALL_MARGIN_MS
 
         /** What [pumpStream] did. [played] = the stream reached its end marker with every received
          *  frame written, and there was something to write. */
@@ -1151,3 +1134,5 @@ class SherpaTtsEngine(
         }
     }
 }
+
+internal data class PcmCacheVoice(val id: String, val speakerId: Int, val language: VoiceLanguage = VoiceLanguage.PL)

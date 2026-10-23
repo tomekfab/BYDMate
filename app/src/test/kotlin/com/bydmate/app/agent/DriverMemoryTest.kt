@@ -12,13 +12,13 @@ class DriverMemoryTest {
 
     @Test fun remember_trims_and_collapses_whitespace() {
         val mem = memory()
-        assertTrue(mem.remember("  Водителя   зовут\nАндрей  ") is RememberResult.Stored)
-        assertEquals(listOf("Водителя зовут Андрей"), mem.facts())
+        assertTrue(mem.remember("  Kierowca   ma na imię\nAndrzej  ") is RememberResult.Stored)
+        assertEquals(listOf("Kierowca ma na imię Andrzej"), mem.facts())
     }
 
     @Test fun remember_caps_fact_length() {
         val mem = memory()
-        mem.remember("я".repeat(DriverMemory.MAX_FACT_CHARS + 40))
+        mem.remember("a".repeat(DriverMemory.MAX_FACT_CHARS + 40))
         assertEquals(DriverMemory.MAX_FACT_CHARS, mem.facts().single().length)
     }
 
@@ -31,45 +31,45 @@ class DriverMemoryTest {
 
     @Test fun duplicate_ignores_case_and_does_not_grow_the_list() {
         val mem = memory()
-        mem.remember("Любит 22 градуса в салоне")
-        assertEquals(RememberResult.Duplicate, mem.remember("любит 22 ГРАДУСА в салоне"))
+        mem.remember("Lubi 22 stopnie w kabinie")
+        assertEquals(RememberResult.Duplicate, mem.remember("lubi 22 STOPNIE w kabinie"))
         assertEquals(1, mem.facts().size)
     }
 
     @Test fun overflow_evicts_the_oldest_fact() {
         val mem = memory()
-        repeat(DriverMemory.MAX_FACTS) { mem.remember("факт $it") }
-        val result = mem.remember("факт свежий")
-        assertEquals("факт 0", (result as RememberResult.Stored).evicted)
+        repeat(DriverMemory.MAX_FACTS) { mem.remember("fakt $it") }
+        val result = mem.remember("nowy fakt")
+        assertEquals("fakt 0", (result as RememberResult.Stored).evicted)
         assertEquals(DriverMemory.MAX_FACTS, mem.facts().size)
-        assertEquals("факт 1", mem.facts().first())
-        assertEquals("факт свежий", mem.facts().last())
+        assertEquals("fakt 1", mem.facts().first())
+        assertEquals("nowy fakt", mem.facts().last())
     }
 
     @Test fun stored_below_the_cap_evicts_nothing() {
         val mem = memory()
-        assertNull((mem.remember("Водителя зовут Андрей") as RememberResult.Stored).evicted)
+        assertNull((mem.remember("Kierowca ma na imię Andrzej") as RememberResult.Stored).evicted)
     }
 
     @Test fun forget_matches_substring_ignoring_case() {
         val mem = memory()
-        mem.remember("Водителя зовут Андрей")
-        mem.remember("Любит 22 градуса в салоне")
-        assertEquals(listOf("Водителя зовут Андрей"), mem.forget("андрей"))
-        assertEquals(listOf("Любит 22 градуса в салоне"), mem.facts())
+        mem.remember("Kierowca ma na imię Andrzej")
+        mem.remember("Lubi 22 stopnie w kabinie")
+        assertEquals(listOf("Kierowca ma na imię Andrzej"), mem.forget("andrzej"))
+        assertEquals(listOf("Lubi 22 stopnie w kabinie"), mem.facts())
     }
 
     @Test fun forget_with_blank_query_changes_nothing() {
         val mem = memory()
-        mem.remember("Водителя зовут Андрей")
+        mem.remember("Kierowca ma na imię Andrzej")
         assertTrue(mem.forget("  ").isEmpty())
         assertEquals(1, mem.facts().size)
     }
 
     @Test fun forget_all_reports_the_count() {
         val mem = memory()
-        mem.remember("один")
-        mem.remember("два")
+        mem.remember("jeden")
+        mem.remember("dwa")
         assertEquals(2, mem.forgetAll())
         assertTrue(mem.facts().isEmpty())
         assertEquals(0, mem.forgetAll())
@@ -81,11 +81,11 @@ class DriverMemoryTest {
 
     @Test fun prompt_block_lists_facts_as_bullets() {
         val mem = memory()
-        mem.remember("Водителя зовут Андрей")
-        mem.remember("Любит 22 градуса в салоне")
+        mem.remember("Kierowca ma na imię Andrzej")
+        mem.remember("Lubi 22 stopnie w kabinie")
         val block = mem.promptBlock()
-        assertTrue(block.contains("О ВОДИТЕЛЕ"))
-        assertTrue(block.contains("- Водителя зовут Андрей"))
-        assertTrue(block.contains("- Любит 22 градуса в салоне"))
+        assertTrue(block.contains("O KIEROWCY"))
+        assertTrue(block.contains("- Kierowca ma na imię Andrzej"))
+        assertTrue(block.contains("- Lubi 22 stopnie w kabinie"))
     }
 }

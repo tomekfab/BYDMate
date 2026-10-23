@@ -55,8 +55,9 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowToast
 import java.io.File
+import com.bydmate.app.voice.VoiceUserPhrases
 
-/** Import, share and «Тестовый запуск» through the real AutomationViewModel. */
+/** Import, share and “Test run” through the real AutomationViewModel. */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29])
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -98,6 +99,7 @@ class AutomationRuleShareViewModelTest {
         actionDispatcher = actionDispatcher,
         settingsRepository = mockk(relaxed = true),
         context = ctx,
+        userPhrases = VoiceUserPhrases(),
     ).also {
         it.downloadsDir = { downloads }
         it.ioDispatcher = testDispatcher
@@ -127,7 +129,7 @@ class AutomationRuleShareViewModelTest {
     }
 
     @Test fun `unknown place stays unresolved and the rule is added disabled`() {
-        places.value = listOf(PlaceEntity(id = 1, name = "Дом", lat = 54.0, lon = 27.0))
+        places.value = listOf(PlaceEntity(id = 1, name = "Dom", lat = 54.0, lon = 27.0))
         val vm = vm()
         vm.importFile(copyFixture("bydmate_rule_dacha.json"))
 
@@ -147,17 +149,17 @@ class AutomationRuleShareViewModelTest {
         assertEquals("Navi", inserted.captured.name)
         val trigger = TriggerDef.listFromJson(inserted.captured.triggers).single()
         assertNull(trigger.placeId)
-        assertEquals("Дача", trigger.placeName)
+        assertEquals("Dacza", trigger.placeName)
     }
 
     @Test fun `resolved place and contact allow enabling right away`() {
-        val dacha = PlaceEntity(id = 5, name = "Дом", lat = 54.0, lon = 27.0)
+        val dacha = PlaceEntity(id = 5, name = "Dom", lat = 54.0, lon = 27.0)
         places.value = listOf(dacha)
         val vm = vm()
         vm.importFile(copyFixture("bydmate_rule_dacha.json"))
         val token = vm.uiState.value.importDraft!!.token
         vm.resolveImportPlace(token, 0, dacha)
-        vm.resolveImportContact(token, 0, "+375291234567", "Мама", true)
+        vm.resolveImportContact(token, 0, "+375291234567", "Mama", true)
         vm.setImportEnableNow(true)
 
         val inserted = slot<RuleEntity>()
@@ -167,7 +169,7 @@ class AutomationRuleShareViewModelTest {
 
         assertTrue(inserted.captured.enabled)
         assertEquals(5L, TriggerDef.listFromJson(inserted.captured.triggers).single().placeId)
-        assertEquals("Въезд в «Дом»", TriggerDef.listFromJson(inserted.captured.triggers).single().displayName)
+        assertEquals("Wjazd do «Dom»", TriggerDef.listFromJson(inserted.captured.triggers).single().displayName)
         assertTrue(ActionDef.listFromJson(inserted.captured.actions).first().payload!!.contains("+375291234567"))
     }
 
@@ -181,7 +183,7 @@ class AutomationRuleShareViewModelTest {
         vm.confirmImport()
         testDispatcher.scheduler.advanceUntilIdle()
 
-        assertEquals("Navi (импорт)", inserted.captured.name)
+        assertEquals("Navi (import)", inserted.captured.name)
         assertEquals("OR", inserted.captured.triggerLogic)
     }
 
@@ -200,14 +202,14 @@ class AutomationRuleShareViewModelTest {
             .replace(""""name": "Navi"""", """"name": "$name"""")
             .replace(""""trigger_logic": "OR"""", """"trigger_logic": "$logic"""")
             .replace(
-                """{"param":"Speed","chineseName":"车速","operator":">","value":"7","displayName":"Скорость","kind":"param"}""",
+                """{"param":"Speed","chineseName":"车速","operator":">","value":"7","displayName":"Prędkość","kind":"param"}""",
                 triggers,
             )
         return File(downloads, "bydmate_rule_power.json").apply { writeText(text) }
     }
 
     private fun powerState(value: String) =
-        """{"param":"PowerState","chineseName":"电源状态","operator":"==","value":"$value","displayName":"Питание","kind":"param"}"""
+        """{"param":"PowerState","chineseName":"电源状态","operator":"==","value":"$value","displayName":"Zasilanie","kind":"param"}"""
 
     @Test fun `an imported PowerState DRIVE condition comes in as the BYDMate start`() {
         val vm = vm()
@@ -244,9 +246,9 @@ class AutomationRuleShareViewModelTest {
 
     @Test fun `share writes a stripped file to Download`() {
         val rule = RuleEntity(
-            id = 4, name = "Багажник", triggerCount = 47, lastTriggeredAt = 1L,
-            triggers = TriggerDef.listToJson(listOf(TriggerDef("Speed", "车速", ">", "7", "Скорость"))),
-            actions = ActionDef.listToJson(listOf(ActionDef("", "Звонок", "call", """{"phone":"+375291234567"}"""))),
+            id = 4, name = "Bagażnik", triggerCount = 47, lastTriggeredAt = 1L,
+            triggers = TriggerDef.listToJson(listOf(TriggerDef("Speed", "车速", ">", "7", "Prędkość"))),
+            actions = ActionDef.listToJson(listOf(ActionDef("", "Połączenie", "call", """{"phone":"+375291234567"}"""))),
         )
         val vm = vm()
         vm.shareRule(rule)
@@ -254,15 +256,15 @@ class AutomationRuleShareViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
 
         val file = sharedFiles.single()
-        assertEquals("bydmate_rule_bagazhnik.json", file.name)
+        assertEquals("bydmate_rule_bagaznik.json", file.name)
         assertEquals(downloads, file.parentFile)
         assertFalse(file.readText().contains("375291234567"))
     }
 
     @Test fun `share shows the note first and writes only on continue`() {
         val rule = RuleEntity(
-            id = 4, name = "Багажник",
-            triggers = TriggerDef.listToJson(listOf(TriggerDef("Speed", "车速", ">", "7", "Скорость"))),
+            id = 4, name = "Bagażnik",
+            triggers = TriggerDef.listToJson(listOf(TriggerDef("Speed", "车速", ">", "7", "Prędkość"))),
             actions = ActionDef.listToJson(listOf(windowClose)),
         )
         val vm = vm()
@@ -281,9 +283,9 @@ class AutomationRuleShareViewModelTest {
         vm.confirmShare()
         assertNull(vm.uiState.value.pendingShare)
         testDispatcher.scheduler.advanceUntilIdle()
-        assertEquals(listOf("bydmate_rule_bagazhnik.json"), sharedFiles.map { it.name })
+        assertEquals(listOf("bydmate_rule_bagaznik.json"), sharedFiles.map { it.name })
         assertEquals(
-            ctx.appLocalizedContext().getString(R.string.automation_share_saved_toast, "bydmate_rule_bagazhnik.json"),
+            ctx.appLocalizedContext().getString(R.string.automation_share_saved_toast, "bydmate_rule_bagaznik.json"),
             ShadowToast.getTextOfLatestToast(),
         )
         assertFalse(vm.uiState.value.shareInProgress)
@@ -292,13 +294,13 @@ class AutomationRuleShareViewModelTest {
     @Test fun `test run dispatches every action and records nothing`() {
         val vm = vm()
         val actions = listOf(
-            ActionDef("车窗关闭", "Закрыть все окна"),
-            ActionDef("", "Пауза", "delay", "10"),
+            ActionDef("车窗关闭", "Zamknij wszystkie okna"),
+            ActionDef("", "Pauza", "delay", "10"),
         )
         vm.updateEditing {
             copy(
                 id = 9, isNew = false, name = "Navi",
-                triggers = listOf(TriggerDef("Speed", "车速", ">", "7", "Скорость")),
+                triggers = listOf(TriggerDef("Speed", "车速", ">", "7", "Prędkość")),
                 actions = actions,
             )
         }
@@ -325,14 +327,14 @@ class AutomationRuleShareViewModelTest {
     private fun AutomationViewModel.editWith(actions: List<ActionDef>) = updateEditing {
         copy(
             id = 9, isNew = false, name = "Navi",
-            triggers = listOf(TriggerDef("Speed", "车速", ">", "7", "Скорость")),
+            triggers = listOf(TriggerDef("Speed", "车速", ">", "7", "Prędkość")),
             actions = actions,
         )
     }
 
-    private val windowOpen = ActionDef("车窗全开", "Открыть все окна")
-    private val sunroofToggle = ActionDef("", "Люк", "toggle", ActionDispatcher.TOGGLE_SUNROOF)
-    private val windowClose = ActionDef("车窗关闭", "Закрыть все окна")
+    private val windowOpen = ActionDef("车窗全开", "Otwórz wszystkie szyby")
+    private val sunroofToggle = ActionDef("", "Dach", "toggle", ActionDispatcher.TOGGLE_SUNROOF)
+    private val windowClose = ActionDef("车窗关闭", "Zamknij wszystkie okna")
 
     @Test fun `test run skips speed-gated actions without a snapshot`() {
         val vm = vm()
@@ -373,12 +375,12 @@ class AutomationRuleShareViewModelTest {
 
     @Test fun `speed gate covers window, sunroof, frunk and unlock only`() {
         assertTrue(isSpeedGatedAction(windowOpen))
-        assertTrue(isSpeedGatedAction(ActionDef("车门解锁", "Открыть замки")))
-        assertTrue(isSpeedGatedAction(ActionDef("", "Замки", "toggle", ActionDispatcher.TOGGLE_LOCKS)))
-        assertTrue(isSpeedGatedAction(ActionDef("", "Капот", "toggle", ActionDispatcher.TOGGLE_FRONT_TRUNK)))
+        assertTrue(isSpeedGatedAction(ActionDef("车门解锁", "Otwórz zamki")))
+        assertTrue(isSpeedGatedAction(ActionDef("", "Zamki", "toggle", ActionDispatcher.TOGGLE_LOCKS)))
+        assertTrue(isSpeedGatedAction(ActionDef("", "Przedni bagażnik", "toggle", ActionDispatcher.TOGGLE_FRONT_TRUNK)))
         assertTrue(isSpeedGatedAction(sunroofToggle))
         assertFalse(isSpeedGatedAction(windowClose))
-        assertFalse(isSpeedGatedAction(ActionDef("", "Аварийка", "toggle", ActionDispatcher.TOGGLE_HAZARD)))
+        assertFalse(isSpeedGatedAction(ActionDef("", "Światła awaryjne", "toggle", ActionDispatcher.TOGGLE_HAZARD)))
         val sample = TimedSnapshot(snapshot(0), 1_000L)
         assertFalse(isSampleFresh(sample, true, 1_000L + TEST_RUN_MAX_SNAPSHOT_AGE_MS))
         assertTrue(isSampleFresh(sample, true, 1_000L + TEST_RUN_MAX_SNAPSHOT_AGE_MS - 1))
@@ -424,7 +426,7 @@ class AutomationRuleShareViewModelTest {
     }
 
     @Test fun `test run survives a command number too long for an Int`() {
-        val huge = ActionDef("天窗打开999999999999999999999", "Люк")
+        val huge = ActionDef("天窗打开999999999999999999999", "Dach")
         assertFalse(ActionDispatcher.isSunroofOpenCommand(huge.command))
         assertFalse(ActionDispatcher.isSunroofOpenCommand("天窗打开150"))
         assertTrue(ActionDispatcher.isSunroofOpenCommand("天窗打开100"))
@@ -449,7 +451,7 @@ class AutomationRuleShareViewModelTest {
             DispatchResult(true)
         }
         val vm = vm()
-        vm.editWith(listOf(windowClose, ActionDef("", "Пауза", "delay", "10")))
+        vm.editWith(listOf(windowClose, ActionDef("", "Pauza", "delay", "10")))
         vm.testRun()
         testDispatcher.scheduler.runCurrent()
         assertTrue(vm.uiState.value.testRunning)
@@ -463,15 +465,15 @@ class AutomationRuleShareViewModelTest {
     }
 
     @Test fun `import preview names a call by what it does, not by its label`() {
-        val action = ActionDef("", "Уведомление", "call", """{"phone":"+375291234567","autoDial":true}""")
+        val action = ActionDef("", "Powiadomienie", "call", """{"phone":"+375291234567","autoDial":true}""")
         val lc = ctx.appLocalizedContext()
         assertEquals(
             "${lc.getString(R.string.automation_action_call)}: +375291234567, ${lc.getString(R.string.automation_call_auto_dial_label)}",
             RuleImportSummary.action(action, ctx),
         )
-        val param = RuleImportSummary.action(ActionDef("车窗全开", "Уведомление"), ctx)
+        val param = RuleImportSummary.action(ActionDef("车窗全开", "Powiadomienie"), ctx)
         assertTrue(param, param.endsWith("(车窗全开)"))
-        val trigger = RuleImportSummary.trigger(TriggerDef("Speed", "车速", ">", "7", "Уведомление"), ctx)
+        val trigger = RuleImportSummary.trigger(TriggerDef("Speed", "车速", ">", "7", "Powiadomienie"), ctx)
         assertTrue(trigger, trigger.contains("> 7"))
     }
 
@@ -552,7 +554,7 @@ class AutomationRuleShareViewModelTest {
         vm.pickImportFile(copyFixture("bydmate_rule_dacha.json").copyTo(File(downloads, "bydmate_rule_dacha_2.json")))
         testDispatcher.scheduler.advanceUntilIdle()
 
-        vm.resolveImportContact(oldToken, 0, "+375291234567", "Мама", true)
+        vm.resolveImportContact(oldToken, 0, "+375291234567", "Mama", true)
         assertEquals(listOf(0), vm.uiState.value.importDraft!!.rule.unresolvedCallIndexes())
         assertTrue(vm.uiState.value.importDraft!!.token != oldToken)
     }
@@ -571,7 +573,7 @@ class AutomationRuleShareViewModelTest {
         testDispatcher.scheduler.runCurrent()
         assertTrue(vm.uiState.value.importDraft!!.saving)
 
-        // Neither a late switch nor «Отмена» changes what is being added.
+// Neither a late switch nor Cancel changes what is being added.
         vm.setImportEnableNow(false)
         vm.closeImport()
         vm.confirmImport()
@@ -589,7 +591,7 @@ class AutomationRuleShareViewModelTest {
         val file = File(downloads, "bydmate_rule_link.json")
         file.writeText(
             requireNotNull(javaClass.classLoader?.getResource("rule-share/bydmate_rule_speed.json")).readText().replace(
-                """{"command":"车窗关闭","displayName":"Закрыть все окна","kind":"param"}""",
+                """{"command":"车窗关闭","displayName":"Zamknij wszystkie okna","kind":"param"}""",
                 """{"command":"","displayName":"","kind":"url","payload":"{\"url\":\"\",\"minimize\":false,\"urlRequired\":true}"}""",
             )
         )
@@ -612,14 +614,14 @@ class AutomationRuleShareViewModelTest {
         val file = File(downloads, "bydmate_rule_sms.json")
         file.writeText(
             requireNotNull(javaClass.classLoader?.getResource("rule-share/bydmate_rule_speed.json")).readText().replace(
-                """{"command":"车窗关闭","displayName":"Закрыть все окна","kind":"param"}""",
+                """{"command":"车窗关闭","displayName":"Zamknij wszystkie okna","kind":"param"}""",
                 """{"command":"","displayName":"sms:","kind":"url","payload":"{\"url\":\"sms:?body=hello\",\"minimize\":false,\"contactRequired\":true}"}""",
             )
         )
         val vm = vm()
         vm.importFile(file)
         val token = vm.uiState.value.importDraft!!.token
-        vm.resolveImportContact(token, 0, "+375291234567", "Мама", false)
+        vm.resolveImportContact(token, 0, "+375291234567", "Mama", false)
         val action = vm.uiState.value.importDraft!!.rule.actions.single()
         assertEquals("sms:+375291234567?body=hello", action.urlString())
         assertTrue(vm.uiState.value.importDraft!!.preview.actions.single().contains("sms:+375291234567?body=hello"))
@@ -632,12 +634,12 @@ class AutomationRuleShareViewModelTest {
         assertEquals(ctx.appLocalizedContext().getString(R.string.automation_import_invalid), vm.uiState.value.importError)
     }
 
-    @Test fun `the import preview asks the dispatcher about «Поехали»`() {
+@Test fun `the import preview asks the dispatcher about Start`() {
         val file = File(downloads, "bydmate_rule_navi.json")
         file.writeText(
             requireNotNull(javaClass.classLoader?.getResource("rule-share/bydmate_rule_speed.json")).readText().replace(
-                """{"command":"车窗关闭","displayName":"Закрыть все окна","kind":"param"}""",
-                """{"command":"","displayName":"Дача","kind":"navigate","payload":"{\"lat\":54.1,\"lon\":27.2,\"go\":true}"}""",
+                """{"command":"车窗关闭","displayName":"Zamknij wszystkie okna","kind":"param"}""",
+                """{"command":"","displayName":"Dacza","kind":"navigate","payload":"{\"lat\":54.1,\"lon\":27.2,\"go\":true}"}""",
             )
         )
         val go = ctx.appLocalizedContext().getString(R.string.automation_import_nav_go)
@@ -661,8 +663,8 @@ class AutomationRuleShareViewModelTest {
 
     @Test fun `two quick shares write one file`() {
         val rule = RuleEntity(
-            id = 4, name = "Багажник",
-            triggers = TriggerDef.listToJson(listOf(TriggerDef("Speed", "车速", ">", "7", "Скорость"))),
+            id = 4, name = "Bagażnik",
+            triggers = TriggerDef.listToJson(listOf(TriggerDef("Speed", "车速", ">", "7", "Prędkość"))),
             actions = ActionDef.listToJson(listOf(windowClose)),
         )
         val vm = vm()
@@ -673,9 +675,9 @@ class AutomationRuleShareViewModelTest {
         vm.confirmShare()
         testDispatcher.scheduler.advanceUntilIdle()
 
-        assertEquals(listOf("bydmate_rule_bagazhnik.json"), downloads.list()!!.toList())
+        assertEquals(listOf("bydmate_rule_bagaznik.json"), downloads.list()!!.toList())
         assertEquals(1, sharedFiles.size)
         assertFalse(vm.uiState.value.shareInProgress)
-        assertTrue(RuleShare.parse(File(downloads, "bydmate_rule_bagazhnik.json").readText(), "x") is RuleParseResult.Ok)
+        assertTrue(RuleShare.parse(File(downloads, "bydmate_rule_bagaznik.json").readText(), "x") is RuleParseResult.Ok)
     }
 }

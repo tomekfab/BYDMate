@@ -72,7 +72,7 @@ class AgentToolsNavigateVerifyTest {
         }
         val out = JSONObject(t.execute(call("navigate_to", """{"lat":55.0,"lon":37.0}""")))
         assertTrue(out.has("error"))
-        assertTrue(out.getString("error").contains("не вышел на передний план"))
+        assertTrue(out.getString("error").contains("nie pojawił się na pierwszym planie"))
     }
 
     /** Seam returns false on the first poll, true on the second: dispatch must be reported ok. */
@@ -91,7 +91,7 @@ class AgentToolsNavigateVerifyTest {
     /** When dispatch itself fails the foreground seam must never be invoked. */
     @Test fun `verification skipped when dispatch fails`() = runTest {
         coEvery { dispatcher.dispatch(any(), any()) } returns
-            DispatchResult(false, "Нет приложения для обработки: x")
+            DispatchResult(false, "Brak aplikacji do obsługi: x")
         val t = tools().also {
             it.naviForegroundCheck = { throw AssertionError("must not be called") }
             it.naviVerifyAttempts = 1
@@ -103,7 +103,7 @@ class AgentToolsNavigateVerifyTest {
     }
 
     /** When home shortcut dispatch succeeds but Navigator never surfaces, the error must say
-     *  "не вышел на передний план" rather than the generic "адрес не найден" fallback. */
+*  the foreground-specific failure rather than the generic address-not-found fallback. */
     @Test fun `home shortcut failure reports foreground reason`() = runTest {
         coEvery { places.getAllSnapshot() } returns emptyList()
         coEvery { dispatcher.dispatch(any(), any()) } returns DispatchResult(true)
@@ -114,8 +114,8 @@ class AgentToolsNavigateVerifyTest {
         }
         val out = JSONObject(t.execute(call("navigate_to", """{"destination":"домой"}""")))
         assertTrue(out.has("error"))
-        assertTrue(out.getString("error").contains("не вышел на передний план"))
-        assertFalse(out.getString("error").contains("адрес не найден"))
+        assertTrue(out.getString("error").contains("nie pojawił się na pierwszym planie"))
+        assertFalse(out.getString("error").contains("nie znaleziono adresu"))
     }
 
     /** #305: a route pinned to Waze is proven by Waze reaching the front, not the Navigator. */
@@ -143,7 +143,7 @@ class AgentToolsNavigateVerifyTest {
         }
         val out = JSONObject(t.execute(call("navigate_to", """{"lat":55.0,"lon":37.0}""")))
         assertTrue(out.has("error"))
-        assertTrue(out.getString("error"), out.getString("error").contains("Waze не вышел на передний план"))
+        assertTrue(out.getString("error"), out.getString("error").contains("Waze nie pojawił się na pierwszym planie"))
     }
 
     /** #190: 2GIS had the same defect - the check now waits for its package as well. */
@@ -160,15 +160,15 @@ class AgentToolsNavigateVerifyTest {
         assertTrue(out.toString(), out.optBoolean("ok"))
     }
 
-    /** Home/Work always opens Yandex Navigator's own shortcut, so that is what the check waits for. */
-    @Test fun `waze chosen home shortcut waits for the navigator`() = runTest {
+    /** The foreground check follows the dispatcher package for saved Waze favorites. */
+    @Test fun `waze chosen home shortcut waits for waze`() = runTest {
         coEvery { places.getAllSnapshot() } returns emptyList()
-        every { dispatcher.willOpenPinned(match { it.has("shortcut") }) } returns null
+        every { dispatcher.willOpenPinned(match { it.has("shortcut") }) } returns "com.waze"
         every { dispatcher.willOpenPinned(match { !it.has("shortcut") }) } returns "com.waze"
         coEvery { dispatcher.dispatch(any(), any()) } returns DispatchResult(true)
         val t = tools().also {
-            it.naviForegroundCheck = { true }
-            it.pinnedForegroundCheck = { _, _ -> throw AssertionError("must wait for the Navigator") }
+            it.naviForegroundCheck = { false }
+            it.pinnedForegroundCheck = { _, pkg -> pkg == "com.waze" }
             it.naviVerifyAttempts = 1
             it.naviVerifyIntervalMs = 1L
         }

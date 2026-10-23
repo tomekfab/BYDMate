@@ -6,7 +6,7 @@ import android.view.accessibility.AccessibilityNodeInfo
  *
  *  Originally added for speed limit and exit number (absent from the guidance notification).
  *  As of the 2026 Navigator build (Maps engine, package ru.yandex.yandexnavi) the app posts a
- *  static stub notification ("Навигатор запущен", contentView=null, never updated), so this
+ *  static stub notification (exact Yandex text: "Навигатор запущен", contentView=null, never updated), so this
  *  screen reader is now the FALLBACK data source for all guidance fields: maneuver distance,
  *  remaining distance / time, arrival time, current street.  Notification (NaviRouteHolder) stays
  *  primary when it carries real data (older Navigator builds).

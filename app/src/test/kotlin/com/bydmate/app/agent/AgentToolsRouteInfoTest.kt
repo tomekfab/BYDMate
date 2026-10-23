@@ -200,8 +200,8 @@ class AgentToolsRouteInfoTest {
         t.naviScreenProvider = { null }
         val out = JSONObject(t.execute(AgentToolCall("1", "get_route_info", "{}")))
         assertFalse(out.has("error"))
-        assertEquals("направо", out.getString("maneuver"))
-        assertEquals("300 м", out.getString("maneuver_distance"))
+        assertEquals("w prawo", out.getString("maneuver"))
+        assertEquals("300 m", out.getString("maneuver_distance"))
         assertEquals("пр. Мира", out.getString("street"))
         assertEquals("60", out.getString("speed_limit"))
         assertEquals(30L, out.getLong("hub_age_sec"))
@@ -221,7 +221,7 @@ class AgentToolsRouteInfoTest {
 
     @Test fun `notification fields win over hub`() = runTest {
         NavGuidanceHub.update(
-            NavGuidance(maneuverGaode = 1, distanceMeters = 999, road = "хаб-улица"),
+            NavGuidance(maneuverGaode = 1, distanceMeters = 999, road = "ulica hubu"),
             NavGuidanceHub.Source.A11Y,
             nowMs = 1_000_000_000_000L - 5_000L,
         )
@@ -251,8 +251,8 @@ class AgentToolsRouteInfoTest {
         val t = tools()
         t.naviScreenProvider = { null }
         val out = JSONObject(t.execute(AgentToolCall("1", "get_route_info", "{}")))
-        assertEquals("12.0 км", out.getString("remaining_distance"))
-        assertEquals("1 ч 05 мин", out.getString("remaining_time"))
+        assertEquals("12.0 km", out.getString("remaining_distance"))
+        assertEquals("1 godz. 05 min", out.getString("remaining_time"))
     }
 
     @Test fun `screen remaining fields win over hub`() = runTest {
@@ -277,7 +277,7 @@ class AgentToolsRouteInfoTest {
         val t = tools()
         t.naviScreenProvider = { null }
         val out = JSONObject(t.execute(AgentToolCall("1", "get_route_info", "{}")))
-        assertEquals("10 мин", out.getString("remaining_time"))
-        assertEquals("500 м", out.getString("remaining_distance"))
+        assertEquals("10 min", out.getString("remaining_time"))
+        assertEquals("500 m", out.getString("remaining_distance"))
     }
 }

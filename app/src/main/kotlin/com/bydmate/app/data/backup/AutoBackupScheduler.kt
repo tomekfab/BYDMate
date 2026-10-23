@@ -50,7 +50,7 @@ class AutoBackupScheduler @Inject constructor(
         WorkManager.getInstance(context).enqueueUniqueWork(WORK_NAME, ExistingWorkPolicy.KEEP, request.build())
     }
 
-    /** «Выкл» or «Отключить»: drops a scheduled run that is still waiting or retrying. */
+    /** «Wył.» or «Wyłącz»: drops a scheduled run that is still waiting or retrying. */
     fun cancelScheduled(context: Context) {
         Log.i(TAG, "scheduled run cancelled")
         WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)

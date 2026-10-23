@@ -55,8 +55,8 @@ private const val DASH = "—"
 private val CARD_CHROME_HEIGHT = 56.dp
 
 /**
- * «Расход и температура» — the full-screen picture behind the «Температура» chip on «Поездки»,
- * built like the «Техника» panel: same back circle, same cards, closed the same way. The chart
+ * "Consumption and temperature" — the full-screen picture behind the "Temperature" chip on Trips,
+ * built like the technical panel: same back circle, same cards, closed the same way. The chart
  * is on the left at full height, the numbers in a card on the right; every number comes out of
  * [TripTemperatureStats], this file only formats them.
  */
@@ -92,7 +92,7 @@ fun TripTemperatureScreen(
     }
 }
 
-/** Same shape as the «Техника» header: back circle, title, and the sample count on the right. */
+/** Same shape as the technical-panel header: back circle, title, and the sample count on the right. */
 @Composable
 private fun Header(onBack: () -> Unit) {
     Row(

@@ -44,11 +44,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import com.bydmate.app.R
 import com.bydmate.app.domain.calculator.ConsumptionAggregator
 import com.bydmate.app.domain.calculator.ConsumptionState
 import com.bydmate.app.domain.calculator.Trend
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import com.bydmate.app.voice.VoiceStatus
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
@@ -107,8 +110,8 @@ object WidgetController {
     private const val TAG = "WidgetController"
 
     // Widget dimensions in dp — matches FloatingWidgetView layout
-    private const val WIDGET_WIDTH_DP = 260
-    private const val WIDGET_HEIGHT_DP = 108
+    private const val WIDGET_WIDTH_DP = WidgetStyle.WIDTH_DP
+    private const val WIDGET_HEIGHT_DP = WidgetStyle.HEIGHT_DP
     private const val DRAG_THRESHOLD_DP = 8
     private const val TRASH_RADIUS_DP = 48
     private const val LONG_PRESS_MS = 1500L
@@ -168,6 +171,11 @@ object WidgetController {
     private var trashActive = mutableStateOf(false)
     // Continuous voice session (Wave B): drives the snake-border listening indication.
     private var listeningState = mutableStateOf(false)
+    private var voiceStatusState = mutableStateOf(VoiceStatus.IDLE)
+
+    internal suspend fun collectVoiceStatus(source: StateFlow<VoiceStatus>, sink: (VoiceStatus) -> Unit): Unit = source.collect(sink)
+    internal fun voiceStatusForTest(): VoiceStatus = voiceStatusState.value
+    internal fun applyVoiceStatusForTest(s: VoiceStatus) { voiceStatusState.value = s }
 
     // Expandable-buttons state. expandedState drives the button layer's slide
     // animation; collapsedX/Y remember the window origin so an edge-clamped
@@ -259,6 +267,7 @@ object WidgetController {
                     alpha = alphaState.value,
                     scaleFactor = scaleState.value,
                     listening = listeningState.value,
+                    voice = voiceStatusState.value,
                     kind = hybrid.kind,
                     fuelPercent = hybrid.fuelPercent,
                     fuelRangeKm = hybrid.fuelRangeKm,
@@ -397,6 +406,7 @@ object WidgetController {
         widgetParams = null
         expandedState.value = false
         listeningState.value = false
+        voiceStatusState.value = VoiceStatus.IDLE
         wm = null
         if (wasAttached) {
             Log.i(TAG, "widget: detached ($reason)")
@@ -498,7 +508,10 @@ object WidgetController {
                 val voiceController = EntryPointAccessors
                     .fromApplication(appCtx, ClusterEntryPoint::class.java)
                     .voiceController()
-                voiceController.listening.collect { listeningState.value = it }
+                coroutineScope {
+                    launch { voiceController.listening.collect { listeningState.value = it } }
+                    launch { collectVoiceStatus(voiceController.status) { voiceStatusState.value = it } }
+                }
             } catch (e: CancellationException) {
                 // The widget was taken down: the collector is cancelled by design, not broken.
                 throw e

@@ -110,7 +110,7 @@ class SettlementSearchClient @Inject constructor(private val http: OkHttpClient)
                 }
             } ?: run {
                 Log.w(TAG, "search: no answer within ${totalTimeoutMs}ms")
-                Result.failure(IOException("серверы карт не ответили за ${totalTimeoutMs / 1000} с"))
+                Result.failure(IOException("Serwery map nie odpowiedziały w ciągu ${totalTimeoutMs / 1000} s"))
             }
         }
 
@@ -121,7 +121,7 @@ class SettlementSearchClient @Inject constructor(private val http: OkHttpClient)
             try {
                 reverse(lat, lon)
             } catch (e: IOException) {
-                throw IOException("серверы карт недоступны: overpass ${outcome(overpassError)}, nominatim ${outcome(e)}")
+                throw IOException("Serwery map są niedostępne: Overpass ${outcome(overpassError)}, Nominatim ${outcome(e)}")
             }
         }
 

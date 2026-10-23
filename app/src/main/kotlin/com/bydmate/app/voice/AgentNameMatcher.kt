@@ -1,9 +1,10 @@
 package com.bydmate.app.voice
 
-/** Wake-name matching over ASR transcripts. Tokens are normalized (lowercase, ё->е,
- *  letters/digits only); a token matches the name exactly, or within Levenshtein
- *  distance 1 when the normalized name is 4+ chars AND token length differs by at
- *  most 1 (ASR near-misses like "лио" for "лео" come from vowel confusion). */
+/** Wake-name matching over ASR transcripts. Tokens are normalized (lowercase, letters/digits
+ *  only; Polish diacritics are folded because ASR emits both spellings); a
+ *  token matches the name exactly, or within Levenshtein distance 1 when the normalized name
+ *  is 4+ chars AND token length differs by at most 1 (ASR vowel-confusion near-misses come
+ *  from vowel confusion; the Polish vocative "Zosiu" for "Zosia" likewise). */
 object AgentNameMatcher {
     fun matches(transcript: String, name: String): Boolean {
         val target = normalize(name)
@@ -11,7 +12,7 @@ object AgentNameMatcher {
         return tokens(transcript).any { tokenMatches(it, target) }
     }
 
-    /** Drops a leading name token ("Лео, открой окно" -> "открой окно") so NLU/agent see
+    /** Drops a leading name token ("name, otwórz okno" -> "otwórz okno") so NLU/agent see
      *  the command itself; a transcript that is ONLY the name is returned unchanged. */
     fun stripLeadingName(transcript: String, name: String): String {
         val target = normalize(name)
@@ -21,8 +22,20 @@ object AgentNameMatcher {
         return raw.drop(1).joinToString(" ")
     }
 
-    private fun normalize(s: String): String =
-        s.lowercase().replace('ё', 'е').filter { it.isLetterOrDigit() }
+    private fun normalize(s: String): String {
+        val lower = s.lowercase()
+        return foldPolish(lower).filter { it.isLetterOrDigit() }
+    }
+
+    private fun foldPolish(s: String): String = buildString(s.length) {
+        for (c in s) append(
+            when (c) {
+                'ą' -> 'a'; 'ć' -> 'c'; 'ę' -> 'e'; 'ł' -> 'l'; 'ń' -> 'n'
+                'ó' -> 'o'; 'ś' -> 's'; 'ź', 'ż' -> 'z'
+                else -> c
+            }
+        )
+    }
 
     private fun tokens(s: String): List<String> =
         s.split(Regex("\\s+")).map(::normalize).filter { it.isNotEmpty() }

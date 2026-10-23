@@ -16,8 +16,11 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
 import java.io.File
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
+
+private class UpdateCheckException(message: String) : IOException(message)
 
 @Singleton
 class UpdateChecker @Inject constructor(
@@ -75,20 +78,20 @@ class UpdateChecker @Inject constructor(
             if (!response.isSuccessful) {
                 throw Exception("GitHub API: HTTP ${response.code}")
             }
-            response.body?.string() ?: throw Exception("Пустой ответ от GitHub")
+            response.body?.string() ?: throw UpdateCheckException("Pusta odpowiedź z GitHub")
         }
 
         val json = JSONObject(body)
         val tagName = json.optString("tag_name", "").removePrefix("v")
         val currentVersion = getAppVersion(context)
 
-        if (tagName.isEmpty()) throw Exception("Нет tag_name в ответе GitHub")
+        if (tagName.isEmpty()) throw UpdateCheckException("Brak tag_name w odpowiedzi GitHub")
         if (tagName == currentVersion || !isNewer(tagName, currentVersion)) {
             return@withContext null // genuinely up to date
         }
 
         val assets = json.optJSONArray("assets")
-            ?: throw Exception("Нет assets в релизе $tagName")
+            ?: throw UpdateCheckException("Brak assets w wydaniu $tagName")
         var apkUrl: String? = null
         for (i in 0 until assets.length()) {
             val asset = assets.getJSONObject(i)
@@ -99,7 +102,7 @@ class UpdateChecker @Inject constructor(
             }
         }
 
-        if (apkUrl == null) throw Exception("Нет APK в релизе $tagName")
+        if (apkUrl == null) throw UpdateCheckException("Brak APK w wydaniu $tagName")
 
         UpdateInfo(
             version = tagName,
@@ -110,7 +113,7 @@ class UpdateChecker @Inject constructor(
 
     /**
      * Download APK and report progress via [onProgress] callback.
-     * Calls [onProgress] with status strings like "Скачивание: 45%".
+     * Calls [onProgress] with status strings like "Pobieranie: 45%".
      * When done, triggers the install dialog.
      */
     suspend fun downloadAndInstall(

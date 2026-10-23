@@ -4,7 +4,7 @@ import androidx.compose.ui.unit.Constraints
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-/** Recent trips on Главная: at most 6 whole rows, stretched so the last one ends at the bottom
+/** Recent trips on Dashboard: at most 6 whole rows, stretched so the last one ends at the bottom
  *  edge and no empty band stays under the list. */
 class FitWholeRowsTest {
 

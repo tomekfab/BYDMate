@@ -311,7 +311,7 @@ class CommandTranslatorTest {
         assertEquals(1, r?.value)
     }
 
-    // ── DRL (ДХО) — dev=1004 carve-out, validated 2026-05-29 ──────────────────
+// ── DRL — dev=1004 carve-out, validated 2026-05-29 ────────────────────────
     @Test fun `open drl maps to drl_on val 1`() {
         val r = one("打开日行灯")
         assertEquals("drl_on", r?.actionName)
@@ -543,5 +543,23 @@ class CommandTranslatorTest {
     }
     @Test fun `seat commands no longer in composite fan-out`() {
         assertEquals(emptyList<CommandTranslator.Resolved>(), CommandTranslator.resolve("主驾座椅通风1档"))
+    }
+
+    // ── Driver seat massage: local-only commands, mode fid values 2 (pulse) and 1 (off) ──
+    @Test fun `seat massage commands map to the driver mode fid`() {
+        assertEquals(listOf(CommandTranslator.Resolved("driver_massage_pulse", 2)), CommandTranslator.resolve("主驾座椅按摩打开"))
+        assertEquals(listOf(CommandTranslator.Resolved("driver_massage_off", 1)), CommandTranslator.resolve("主驾座椅按摩关闭"))
+    }
+
+    @Test fun `seat massage commands are not seat heat or vent commands`() {
+        for (cmd in listOf("主驾座椅按摩打开", "主驾座椅按摩关闭")) {
+            assertEquals(null, CommandTranslator.resolveSeat(cmd))
+            assertEquals(null, com.bydmate.app.data.automation.SeatLevelMemory.parseSeatCommand(cmd))
+        }
+    }
+
+    @Test fun `LOCAL_VOICE_ONLY is exactly the two massage strings and each resolves`() {
+        assertEquals(setOf("主驾座椅按摩打开", "主驾座椅按摩关闭"), CommandTranslator.LOCAL_VOICE_ONLY)
+        for (cmd in CommandTranslator.LOCAL_VOICE_ONLY) assertTrue(cmd, CommandTranslator.resolve(cmd).isNotEmpty())
     }
 }

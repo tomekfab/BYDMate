@@ -3,7 +3,7 @@
 #
 # Promotes the [Unreleased] section of CHANGELOG.md into a dated version
 # section, fixes up the compare links, and prints plain-text release notes
-# (Russian headings, no markdown) ready for `gh release create --notes`.
+# (Polish headings, no markdown) ready for `gh release create --notes`.
 #
 # Workflow:
 #   1. before a release, write the changes under "## [Unreleased]" in CHANGELOG.md
@@ -53,14 +53,14 @@ echo "CHANGELOG.md: [Unreleased] -> [$VER] - $DATE (prev v$PREV)" >&2
 echo "" >&2
 echo "===== release notes for v$VER (plain text, paste into gh release) =====" >&2
 
-# --- print plain-text notes: Russian headings, drop markdown ### ---
+# --- print plain-text notes: Polish headings, drop markdown ### ---
 awk -v ver="$VER" '
   $0 ~ "^## \\[" ver "\\]" { f=1; next }
   /^## \[/ { f=0 }
   f {
-    if ($0 ~ /^### Added/)   { print "Новое";       next }
-    if ($0 ~ /^### Fixed/)   { print "Исправления"; next }
-    if ($0 ~ /^### Changed/) { print "Изменено";    next }
+    if ($0 ~ /^### Added/)   { print "Nowości";     next }
+    if ($0 ~ /^### Fixed/)   { print "Poprawki";    next }
+    if ($0 ~ /^### Changed/) { print "Zmiany";      next }
     if ($0 ~ /^### /)        { sub(/^### /, ""); print; next }
     print
   }

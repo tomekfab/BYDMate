@@ -1,5 +1,5 @@
 # Hybrid (31.8 kWh pack, fuel tank, mileage_hev/ev split), DiLink 5.0 build 20260608, BYDMate 3.19.6,
-# user dump 2026-10-04. The «Техника» screen showed «Остаток 0,0 кВт·ч» at SoC 39%: the remaining
+# user dump 2026-10-04. The "Technical" screen showed "Remaining 0.0 kWh" at SoC 39%: the remaining
 # energy fid 882901008 answers a flat 0.0 and never pushes an event. The rear inverter fid answers
 # 202 (°C, INT_RAW) parked at 9 °C outside. Kept: the header, the live snapshot, the hybrid probe,
 # the push rows of the fids involved and the raw `tech:` lines (AC switched on between the 2nd and

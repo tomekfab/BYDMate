@@ -6,7 +6,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * П7 origin-based agent defense: the dangerous tier gate. Dangerous = door
+* P7 origin-based agent defense: the dangerous tier gate. Dangerous = door
  * unlock, rear-trunk open, disabling sentry, or placing a call. Front trunk,
  * windows, and other params are excluded. Pure companion functions.
  */

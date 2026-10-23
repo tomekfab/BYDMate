@@ -10,7 +10,7 @@ import java.lang.ref.WeakReference
 import java.util.WeakHashMap
 
 /**
- * The one way a rule is added (editor, copy, «Сохранить как новое», import, voice agent), so the
+ * The one way a rule is added (editor, copy, «Zapisz jak nowe», import, voice agent), so the
  * rule limit holds when two of them race: a count checked and an insert made apart let two copies
  * made at 49 rules both in. Count and insert run behind one lock, inside one database transaction.
  */

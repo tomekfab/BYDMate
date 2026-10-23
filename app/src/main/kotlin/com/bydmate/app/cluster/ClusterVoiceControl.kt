@@ -21,7 +21,7 @@ class ClusterVoiceControl @Inject constructor(
 ) {
     /** Success-honest state of OUR projection (a failed FULLSCREEN stays OFF). The native IPC
      *  fid is useless here: mode 4 also means BYD's own Chinese map is on the cluster, which
-     *  made the tool claim «карта уже на приборке» while projecting nothing (APK 336). */
+     *  made the tool claim «mapa już na zestawie wskaźników» while projecting nothing (APK 336). */
     fun projectionMode(): ClusterMode = ClusterProjectionManager.currentMode
 
     /** Label of the user-selected projection app (settings row cache), for spoken replies. */

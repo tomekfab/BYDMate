@@ -1,0 +1,12 @@
+{
+  "metadataSource": "https://api.github.com/repos/k2-fsa/sherpa-onnx/releases/tags/asr-models",
+  "releaseTag": "asr-models",
+  "asset": {
+    "id": 271935959,
+    "name": "silero_vad.onnx",
+    "size": 643854,
+    "digest": "sha256:9e2449e1087496d8d4caba907f23e0bd3f78d91fa552479bb9c23ac09cbb1fd6",
+    "browser_download_url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx"
+  },
+  "verification": "Digest copied from existing official GitHub release API metadata. Model bytes were not downloaded for this repair."
+}

@@ -76,7 +76,7 @@ class AgentToolsAutomationEnumTest {
     private fun call(name: String, args: String) = AgentToolCall("1", name, args)
 
     private fun createArgs(trigger: String) =
-        """{"name":"Тест","trigger":$trigger,"actions":[{"kind":"param","command_id":"windows_close_all"}]}"""
+        """{"name":"Test","trigger":$trigger,"actions":[{"kind":"param","command_id":"windows_close_all"}]}"""
 
     /** Runs create_automation for [trigger], asserts success, returns the persisted TriggerDef. */
     private suspend fun savedTrigger(trigger: String): TriggerDef {
@@ -125,6 +125,13 @@ class AgentToolsAutomationEnumTest {
         val schemas = tools().schemas().toString()
         assertFalse(schemas.contains("PowerState"))
         assertFalse(schemas.contains("DRIVE"))
+    }
+
+    @Test fun automation_schema_descriptions_are_polish_not_romanized_russian() = runTest {
+        val schemas = tools().schemas().toString()
+        assertFalse(schemas.contains("Dlya kind="))
+        assertFalse(schemas.contains("Minimalnyi"))
+        assertFalse(schemas.contains("Proigrat"))
     }
 
     @Test fun power_state_drive_from_the_agent_is_stored_as_the_app_start() = runTest {

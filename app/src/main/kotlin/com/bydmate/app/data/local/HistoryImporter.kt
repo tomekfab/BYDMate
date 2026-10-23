@@ -103,12 +103,12 @@ class HistoryImporter @Inject @Suppress("LongParameterList") constructor( // Hil
     suspend fun syncFromEnergyData(): ImportResult {
         if (!syncMutex.tryLock()) {
             Log.d(TAG, "syncFromEnergyData: already running, skipping")
-            return ImportResult(trips = 0, details = "Синхронизация уже идёт")
+            return ImportResult(trips = 0, details = "Synchronizacja już trwa")
         }
         return try {
             if (!energyDataReader.peekSourceChanged(context)) {
                 Log.d(TAG, "syncFromEnergyData: source unchanged, skipping")
-                return ImportResult(trips = 0, details = "Без изменений")
+                return ImportResult(trips = 0, details = "Brak zmian")
             }
             val result = doSync()
             // Mark only on success — a thrown EnergyDataException leaves the
@@ -146,7 +146,7 @@ class HistoryImporter @Inject @Suppress("LongParameterList") constructor( // Hil
         // each trip to its own driving session instead of sharing one snapshot.
 
         if (bydRecords.isEmpty()) {
-            return ImportResult(trips = 0, details = "Нет новых записей")
+            return ImportResult(trips = 0, details = "Brak nowych wpisów")
         }
 
         var tripsImported = 0
@@ -296,7 +296,7 @@ class HistoryImporter @Inject @Suppress("LongParameterList") constructor( // Hil
         return ImportResult(
             trips = tripsImported,
             idleDrains = idleDrainsImported,
-            details = "+$tripsImported поездок, +$idleDrainsImported стоянок, $skippedDuplicate дублей"
+            details = "+$tripsImported podróży, +$idleDrainsImported postojów, $skippedDuplicate duplikatów"
         )
     }
 

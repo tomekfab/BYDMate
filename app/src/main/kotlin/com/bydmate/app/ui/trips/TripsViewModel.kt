@@ -30,7 +30,7 @@ enum class TripFilter { ALL, TRIPS_ONLY, STOPS_ONLY }
 enum class ChartMetric { PER_100, KWH, COST }
 
 data class ChartBar(
-    val label: String,      // "08.04", "Мар", "09:36"
+    val label: String,      // "08.04", "Mar", "09:36"
     val value: Double,      // metric value
     val tripCount: Int      // number of trips in this bar
 )

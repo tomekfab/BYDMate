@@ -306,7 +306,7 @@ class TraceJournalTest {
 
     @Test fun `values pass through the sanitizer`() = runTest {
         val j = journal()
-        j.event(TraceArea.NET, "overpass", "url" to "https://overpass-api.de/api/interpreter?data=55.75,37.61", "q" to "закрой окна")
+        j.event(TraceArea.NET, "overpass", "url" to "https://overpass-api.de/api/interpreter?data=55.75,37.61", "q" to "zamknij okna, proszę")
         assertTrue(eventLines(j)[0], eventLines(j)[0].contains("net    overpass url=overpass-api.de/... q=<text> #1"))
         closeAll()
     }

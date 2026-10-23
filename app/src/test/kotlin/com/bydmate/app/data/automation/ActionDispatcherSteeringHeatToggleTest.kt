@@ -52,7 +52,7 @@ class ActionDispatcherSteeringHeatToggleTest {
     }
 
     private val toggleSteering =
-        ActionDef(command = "", displayName = "Переключить", kind = "toggle", payload = "steering_heat")
+        ActionDef(command = "", displayName = "Przełącz", kind = "toggle", payload = "steering_heat")
 
     @Test fun `a heated wheel is switched off`() = runTest {
         coEvery { helper.read(1023, 1116733454, any()) } returns 2L

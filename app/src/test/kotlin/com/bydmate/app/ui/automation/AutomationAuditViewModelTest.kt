@@ -33,6 +33,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import com.bydmate.app.voice.VoiceUserPhrases
 
 /** Automation audit 3.19, editor save path: what is refused and what is renamed on save. */
 @RunWith(RobolectricTestRunner::class)
@@ -52,7 +53,7 @@ class AutomationAuditViewModelTest {
 
     @Before fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        LocalePreferences(ctx).setLanguage("ru")
+        LocalePreferences(ctx).setLanguage("pl")
         ctx.getSharedPreferences("automation", Context.MODE_PRIVATE).edit()
             .putBoolean("templates_inserted", true).putBoolean("templates_tg_report_inserted", true).commit()
         every { ruleDao.getAll() } returns stored
@@ -70,6 +71,7 @@ class AutomationAuditViewModelTest {
         actionDispatcher = mockk(relaxed = true),
         settingsRepository = mockk(relaxed = true),
         context = ctx,
+        userPhrases = VoiceUserPhrases(),
     ).also { testDispatcher.scheduler.advanceUntilIdle() }
 
     private fun AutomationViewModel.draft(trigger: TriggerDef) = updateEditing {
@@ -98,22 +100,22 @@ class AutomationAuditViewModelTest {
     @Test fun `a steering key trigger with no key is not saved`() {
         val vm = vm()
         vm.openNewRule()
-        vm.draft(TriggerDef("steering_key", "", "==", "0", "Клавиша", kind = "steering_key"))
+        vm.draft(TriggerDef("steering_key", "", "==", "0", "Klawisz", kind = "steering_key"))
 
         assertEquals(null, saved(vm))
-        assertEquals("Клавиша не назначена", vm.uiState.value.editorError)
+        assertEquals("Klawisz nieprzypisany", vm.uiState.value.editorError)
     }
 
     // Item 8: the names follow the catalog as saved.
     @Test fun `names are rebuilt from the catalog on save`() {
         val vm = vm()
         vm.openNewRule()
-        vm.draft(TriggerDef("Trunk", "后备箱门", "==", "2", "Багажник == 0"))
+        vm.draft(TriggerDef("Trunk", "后备箱门", "==", "2", "Bagażnik == 0"))
 
         val rule = saved(vm)!!
 
-        assertEquals("Багажник == Закрыт", TriggerDef.listFromJson(rule.triggers).single().displayName)
-        assertEquals("Закрыть все окна", ActionDef.listFromJson(rule.actions).single().displayName)
+        assertEquals("Bagażnik == Zamknięty", TriggerDef.listFromJson(rule.triggers).single().displayName)
+        assertEquals("Zamknij wszystkie szyby", ActionDef.listFromJson(rule.actions).single().displayName)
     }
 
     // Item 9: 50 rules is the limit for a new rule and for a copy.
@@ -124,7 +126,7 @@ class AutomationAuditViewModelTest {
         vm.draft(TriggerDef("SOC", "电量百分比", "<", "20", "SOC"))
 
         assertEquals(null, saved(vm))
-        assertEquals("Можно создать не больше 50 автоматизаций", vm.uiState.value.editorError)
+        assertEquals("Można mieć najwyżej 50 automatyzacji", vm.uiState.value.editorError)
     }
 
     @Test fun `a copy over the limit is refused`() {
@@ -174,6 +176,6 @@ class AutomationAuditViewModelTest {
         assertEquals(null, saved(vm))
         assertTrue(vm.uiState.value.showEditor)
         assertFalse(vm.uiState.value.editing.saving)
-        assertEquals("Можно создать не больше 50 автоматизаций", vm.uiState.value.editorError)
+        assertEquals("Można mieć najwyżej 50 automatyzacji", vm.uiState.value.editorError)
     }
 }

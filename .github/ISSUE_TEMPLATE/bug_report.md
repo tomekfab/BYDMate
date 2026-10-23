@@ -1,31 +1,31 @@
 ---
-name: Сообщение об ошибке
-about: Что-то работает не так, как должно
+name: Bug report
+about: Something does not work as expected
 title: ''
 labels: bug
 assignees: ''
 ---
 
-## Что происходит
+## What happens
 
-(коротко — что не работает или работает неверно)
+(Briefly describe what does not work or works incorrectly.)
 
-## Как воспроизвести
+## How to reproduce
 
 1.
 2.
 3.
 
-## Что ожидалось
+## Expected result
 
-(что должно было произойти)
+(What should have happened?)
 
-## Окружение
+## Environment
 
-- Версия BYDMate: (например, v2.5.5)
-- Модель машины: (Leopard 3 / Song / другое)
-- DiLink: (5.0 — Android 12, или другая)
+- BYDMate version: (for example, v2.5.5)
+- Car model: (Leopard 3 / Song / other)
+- DiLink: (5.0 — Android 12, or another version)
 
-## Скриншоты / логи
+## Screenshots / logs
 
-(если есть — приложите)
+(Attach them if available.)

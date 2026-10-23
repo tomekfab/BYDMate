@@ -87,6 +87,9 @@ class WriteAllowlist(private val map: Map<String, WriteEntry>) {
             // #311). Only 1 (on) and 2 (off) pass, see [RESTRICTED_VALUES]; the rest of the
             // charging device stays banned. Carve-out approved by the owner 2026-10-10.
             BATTERY_PREHEAT_DEV to BATTERY_PREHEAT_SET_FID,
+            // SET_MAIN_DRIVER_SEAT_MASSAGE_WORKING_MODE_SET — driver seat massage mode. Only 1 (off)
+            // and 2 (pulse) pass, see [RESTRICTED_VALUES]; owner request 2026-10-23, unvalidated on a car.
+            SEAT_MASSAGE_DEV to DRIVER_MASSAGE_MODE_FID,
         )
 
         /** Drive mode: written and read back on the Setting device (dev=1023). */
@@ -104,6 +107,14 @@ class WriteAllowlist(private val map: Map<String, WriteEntry>) {
         const val HUD_SWITCH_STATUS_FID = 951058460
         /** SET_HUD_CONFIG (tx=5): 1 = W-HUD, 2 = AR-HUD; a car without a HUD reads 65535. */
         const val HUD_CONFIG_FID = 951058453
+
+        /**
+         * Driver seat massage mode (dev=1023): SET_MAIN_DRIVER_SEAT_MASSAGE_WORKING_MODE_SET,
+         * 1 = off, 2 = pulse. The other modes and the intensity and passenger fids stay banned.
+         * Unvalidated: the catalogs have no massage read fid.
+         */
+        const val SEAT_MASSAGE_DEV = 1023
+        const val DRIVER_MASSAGE_MODE_FID = 1276190752
 
         /** Battery warm-up (#311): written on the Charging device (dev=1009), 1 = on, 2 = off. */
         const val BATTERY_PREHEAT_DEV = 1009
@@ -135,6 +146,7 @@ class WriteAllowlist(private val map: Map<String, WriteEntry>) {
             (DRIVE_MODE_DEV to DRIVE_MODE_WRITE_FID) to DriveMode.entries.map { it.value }.toSet(),
             (HUD_DEV to HUD_SWITCH_FID) to setOf(1, 2),
             (BATTERY_PREHEAT_DEV to BATTERY_PREHEAT_SET_FID) to setOf(1, 2),
+            (SEAT_MASSAGE_DEV to DRIVER_MASSAGE_MODE_FID) to setOf(1, 2),
         )
 
         /** False when [entry] sits on a [RESTRICTED_VALUES] fid with a value outside its set. */
@@ -396,6 +408,10 @@ class WriteAllowlist(private val map: Map<String, WriteEntry>) {
             // the car refuses the warm-up on a warm battery.
             WriteEntry("battery_preheat_on",  1009, 1324617774, null, 1, 1, "energy", false, "byd-sdk carsetting ChargingPreheat"),
             WriteEntry("battery_preheat_off", 1009, 1324617774, null, 2, 2, "energy", false, "byd-sdk carsetting ChargingPreheat"),
+            // Driver seat massage (dev=1023 carve-out) — mode fid, 1=off, 2=pulse. Override the
+            // competitor's same-named entries; no readbackFid, the catalogs have no massage read fid.
+            WriteEntry("driver_massage_off",   1023, 1276190752, null, 1, 1, "seats", false, "competitor-actions + Setting.SET_MAIN_DRIVER_SEAT_MASSAGE_WORKING_MODE_SET"),
+            WriteEntry("driver_massage_pulse", 1023, 1276190752, null, 2, 2, "seats", false, "competitor-actions + Setting.SET_MAIN_DRIVER_SEAT_MASSAGE_WORKING_MODE_SET"),
             WriteEntry("driver_seat_heat_fallback",    1001, 1125122068, null, 1, 6, "seats", false, "competitor-v80"),
             WriteEntry("driver_seat_vent_fallback",    1001, 1125122064, null, 1, 6, "seats", false, "competitor-v80"),
             WriteEntry("passenger_seat_heat_fallback", 1001, 1125122076, null, 1, 6, "seats", false, "competitor-v80"),

@@ -19,4 +19,12 @@ class VoiceCommandSpecTest {
             )
         }
     }
+
+    @Test fun local_only_commands_are_dispatchable_and_outside_the_catalog() {
+        val catalog = VoiceCatalog.ALL.filter { it.value == null }.map { it.command(null) }.toSet()
+        for (cmd in com.bydmate.app.data.vehicle.CommandTranslator.LOCAL_VOICE_ONLY) {
+            assertTrue("not dispatchable: $cmd", com.bydmate.app.data.vehicle.CommandTranslator.resolve(cmd).isNotEmpty())
+            assertTrue("$cmd must stay out of VoiceCatalog", cmd !in catalog)
+        }
+    }
 }

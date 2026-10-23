@@ -1,7 +1,7 @@
 package com.bydmate.app.hud
 
 /**
- * The script of a road name on its way to the glass (#269, #294: glass drawing «иероглифы»), for
+ * The script of a road name on its way to the glass (#269, #294: the glass draws unreadable glyphs), for
  * the trace: the class alone, never the text. Digits, punctuation and spaces belong to no script;
  * a name made only of them reads as latin (plain ASCII draws like it). A replacement character,
  * a private-use or unassigned code point and any script but Latin and Cyrillic count as other.

@@ -200,7 +200,7 @@ class AutoserviceClientImplTest {
     fun `isAvailable returns true when SoH is sentinel but lifetime_kwh works`() = runTest {
         // Simulates BMS-calibrating-after-full-charge: SoH probe returns FEATURE_LINK_ERROR
         // sentinel for ~30 sec but lifetime_kwh stays valid. Without 3-fid fallback the user
-        // would see "ADB не отвечает" while catch-up still works.
+// would see an ADB-unavailable message while catch-up still works.
         val adb = FakeAdb(responses = mapOf(
             // SoH int returns 0xFFFF = FEATURE_LINK_ERROR sentinel → null
             "service call autoservice 5 i32 1014 i32 ${FidRegistry.FID_SOH}" to parcelInt(0xFFFF),

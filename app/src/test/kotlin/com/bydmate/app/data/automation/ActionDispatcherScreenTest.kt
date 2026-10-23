@@ -24,7 +24,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-/** «Экран: выключить / включить» (#275): each answer of the daemon is its own outcome and driver text. */
+/** “Screen: off / on” (#275): each answer of the daemon is its own outcome and driver text. */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29])
 class ActionDispatcherScreenTest {
@@ -81,31 +81,31 @@ class ActionDispatcherScreenTest {
 
     @Test fun `a firmware without the call says the car cannot do it`() = runTest {
         assertEquals(
-            "На этой машине управление экраном недоступно" to "Screen control is not available on this car",
+            "W tym samochodzie sterowanie ekranem jest niedostępne" to "Screen control is not available on this car",
             reasons(reply(HelperBinderProtocol.SCREEN_BACKLIGHT_ABSENT)),
         )
     }
 
     @Test fun `a status that did not follow is not confirmed`() = runTest {
         assertEquals(
-            "Машина не подтвердила команду" to "The car did not confirm the command",
+            "Samochód nie potwierdził polecenia" to "The car did not confirm the command",
             reasons(reply(HelperBinderProtocol.SCREEN_BACKLIGHT_NOT_FOLLOWED, 1)),
         )
     }
 
     @Test fun `a call that threw is a failed command`() = runTest {
         assertEquals(
-            "Не удалось выполнить команду" to "Could not run the command",
+            "Nie udało się wykonać polecenia" to "Could not run the command",
             reasons(reply(HelperBinderProtocol.SCREEN_BACKLIGHT_THREW, detail = "turnBacklightOff SecurityException: x")),
         )
     }
 
     @Test fun `an outcome this build does not know is a failed command`() = runTest {
-        assertEquals("Не удалось выполнить команду" to "Could not run the command", reasons(reply(99)))
+        assertEquals("Nie udało się wykonać polecenia" to "Could not run the command", reasons(reply(99)))
     }
 
     @Test fun `no answer means the command did not reach the car, daemon gone or outdated`() = runTest {
-        val expected = "Команда не дошла до машины" to "The command did not reach the car"
+        val expected = "Polecenie nie dotarło do samochodu" to "The command did not reach the car"
         assertEquals(expected, reasons(null, daemonAlive = false))
         assertEquals(expected, reasons(null, daemonAlive = true))
     }

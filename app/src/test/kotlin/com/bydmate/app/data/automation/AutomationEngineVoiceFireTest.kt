@@ -37,7 +37,7 @@ class AutomationEngineVoiceFireTest {
         confirm: Boolean = false,
     ) = RuleEntity(
         id = id, name = "voice rule", enabled = enabled, triggerLogic = "AND",
-        triggers = """[{"param":"Voice","chineseName":"语音","operator":"==","value":"навигатор","displayName":"навигатор","kind":"voice"}]""",
+        triggers = """[{"param":"Voice","chineseName":"语音","operator":"==","value":"nawigacja","displayName":"nawigacja","kind":"voice"}]""",
         actions = ActionDef.listToJson(actions),
         requirePark = requirePark, confirmBeforeExecute = confirm,
     )
@@ -54,7 +54,7 @@ class AutomationEngineVoiceFireTest {
     }
 
     private val appAction = ActionDef(
-        command = "", displayName = "Навигатор", kind = "app_launch",
+        command = "", displayName = "Nawigacja", kind = "app_launch",
         payload = """{"packageName":"ru.yandex.yandexnavi"}"""
     )
 
@@ -104,7 +104,7 @@ class AutomationEngineVoiceFireTest {
     // engine's own scope so cancelling the caller has no effect on it.
     @Test fun `caller cancellation after fireVoiceRule returns does not stop the sequence`() = runBlocking {
         val actionA = ActionDef(command = "", displayName = "A", kind = "app_launch", payload = """{"packageName":"a"}""")
-        val delayAction = ActionDef(command = "", displayName = "Пауза", kind = "delay", payload = "50")
+        val delayAction = ActionDef(command = "", displayName = "Pauza", kind = "delay", payload = "50")
         val actionB = ActionDef(command = "", displayName = "B", kind = "app_launch", payload = """{"packageName":"b"}""")
         val r = rule(actions = listOf(actionA, delayAction, actionB))
         val ruleDao = mockk<RuleDao> {
@@ -114,7 +114,7 @@ class AutomationEngineVoiceFireTest {
         val bDispatched = AtomicInteger(0)
         val dispatcher = mockk<ActionDispatcher> {
             coEvery { dispatch(match { it.kind == "delay" }, any()) } coAnswers {
-                delay(50) // simulates the pause the tester hit "Кондёр включится и идёт пауза"
+                delay(50) // Simulates a pause after the climate-control action.
                 DispatchResult(true, null)
             }
             coEvery { dispatch(match { it.kind == "app_launch" && it.displayName == "B" }, any()) } coAnswers {
@@ -147,7 +147,7 @@ class AutomationEngineVoiceFireTest {
     }
 
     @Test fun `window-open action with null snapshot returns SpeedUnknown`() = runBlocking {
-        val windowAction = ActionDef(command = "车窗全开", displayName = "Открыть окна", kind = "param")
+        val windowAction = ActionDef(command = "车窗全开", displayName = "Otwórz okna", kind = "param")
         val r = rule(actions = listOf(windowAction))
         val ruleDao = mockk<RuleDao> { coEvery { getById(7) } returns r }
         val dispatcher = mockk<ActionDispatcher>(relaxed = true)
@@ -158,7 +158,7 @@ class AutomationEngineVoiceFireTest {
     // After the T12 predicate split 天窗 is no longer an isWindowOpenCommand subject —
     // the fail-closed guard must also check isSunroofOpenCommand.
     @Test fun `sunroof-open action with null snapshot returns SpeedUnknown`() = runBlocking {
-        val sunroofAction = ActionDef(command = "天窗打开100", displayName = "Открыть люк", kind = "param")
+        val sunroofAction = ActionDef(command = "天窗打开100", displayName = "Otwórz szyberdach", kind = "param")
         val r = rule(actions = listOf(sunroofAction))
         val ruleDao = mockk<RuleDao> { coEvery { getById(7) } returns r }
         val dispatcher = mockk<ActionDispatcher>(relaxed = true)

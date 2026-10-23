@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** One completed voice session, recorded for the «Журнал голоса» debug screen and the dump:
+/** One completed voice session, recorded for the Voice Journal debug screen and the dump:
  *  what ASR heard, what it became and, if nothing, why. */
 data class VoiceJournalEntry(
     val timestampMs: Long = System.currentTimeMillis(),

@@ -33,7 +33,7 @@ class RuleJournalTest {
     private lateinit var db: AppDatabase
     private lateinit var dao: RuleLogDao
     private lateinit var journal: RuleJournal
-    private val rule = RuleEntity(id = 7, name = "Окна", triggers = "[]", actions = "[]")
+    private val rule = RuleEntity(id = 7, name = "Okna", triggers = "[]", actions = "[]")
 
     @Before
     fun setUp() {
@@ -59,19 +59,19 @@ class RuleJournalTest {
         val e = only()
         assertFalse(e.success)
         assertEquals(1_000L, e.triggeredAt)
-        assertEquals("Отменено в окне подтверждения", reasonOf(e))
+        assertEquals("Anulowano w oknie potwierdzenia", reasonOf(e))
     }
 
     @Test fun `an unanswered confirmation is journaled with its reason`() = runTest {
         journal.timeout(rule, "{}", 1_000L)
 
-        assertEquals("Нет ответа в окне подтверждения, не выполнено", reasonOf(only()))
+        assertEquals("Brak odpowiedzi w oknie potwierdzenia, nie wykonano", reasonOf(only()))
     }
 
     @Test fun `a park-only refusal is journaled with its reason`() = runTest {
         journal.parkRequired(rule, """{"button_press":"1"}""", 4)
 
-        assertEquals("Не выполнено: правило только на парковке, а передача не P", reasonOf(only()))
+        assertEquals("Nie wykonano: reguła tylko na postoju, a bieg to nie P", reasonOf(only()))
     }
 
     @Test fun `prune drops entries older than 30 days and keeps the newest 2000`() = runTest {
@@ -92,8 +92,8 @@ class RuleJournalTest {
     @Test fun `dump lists the newest entries with every step and its reason`() = runTest {
         dao.insert(
             RuleLogEntity(
-                ruleId = 7, ruleName = "Окна", triggeredAt = 5_000L, triggersSnapshot = """{"Speed":0}""",
-                actionsResult = """[{"kind":"param","success":true},{"kind":"param","success":false,"reason":"Машина не подтвердила команду"}]""",
+                ruleId = 7, ruleName = "Okna", triggeredAt = 5_000L, triggersSnapshot = """{"Speed":0}""",
+                actionsResult = """[{"kind":"param","success":true},{"kind":"param","success":false,"reason":"Samochód nie potwierdził polecenia"}]""",
                 success = false,
             )
         )
@@ -102,8 +102,8 @@ class RuleJournalTest {
         val lines = journal.dumpLines()
 
         assertEquals(2, lines.size)
-        assertTrue(lines[0], lines[0].contains("rule=7 \"Окна\" ok=false steps=[timeout:fail(Нет ответа в окне подтверждения, не выполнено)]"))
-        assertTrue(lines[1], lines[1].contains("steps=[param:ok, param:fail(Машина не подтвердила команду)] trig={\"Speed\":0}"))
+        assertTrue(lines[0], lines[0].contains("rule=7 \"Okna\" ok=false steps=[timeout:fail(Brak odpowiedzi w oknie potwierdzenia, nie wykonano)]"))
+        assertTrue(lines[1], lines[1].contains("steps=[param:ok, param:fail(Samochód nie potwierdził polecenia)] trig={\"Speed\":0}"))
     }
 
     @Test fun `dump caps at the newest 50 entries`() = runTest {
@@ -114,15 +114,15 @@ class RuleJournalTest {
 
     @Test fun `dump never prints a link a stored reason carries`() = runTest {
         val reasons = listOf(
-            "Нет приложения для обработки: No Activity found to handle Intent { act=android.intent.action.VIEW " +
+            "Brak aplikacji do obsługi: No Activity found to handle Intent { act=android.intent.action.VIEW " +
                 "dat=geo:53.9045,27.5615?q=53.9045,27.5615 flg=0x10000000 }",
-            "Нет разрешения: https://api.example.com/hook?token=SECRET123&chat=42",
-            "yandexnavi://build_route_on_map?lat_to=53.9&lon_to=27.5 и geo:53.9,27.5",
+            "Brak uprawnienia: https://api.example.com/hook?token=SECRET123&chat=42",
+            "yandexnavi://build_route_on_map?lat_to=53.9&lon_to=27.5 i geo:53.9,27.5",
         )
         reasons.forEach { reason ->
             dao.insert(
                 RuleLogEntity(
-                    ruleId = 7, ruleName = "Окна", triggeredAt = 5_000L, triggersSnapshot = "{}",
+                    ruleId = 7, ruleName = "Okna", triggeredAt = 5_000L, triggersSnapshot = "{}",
                     actionsResult = JSONArray().put(
                         org.json.JSONObject().put("kind", "url").put("success", false).put("reason", reason)
                     ).toString(),
@@ -136,9 +136,9 @@ class RuleJournalTest {
         listOf("53.9", "27.5", "SECRET123", "token", "api.example.com", "chat=42").forEach {
             assertFalse("$it leaked: $dump", dump.contains(it))
         }
-        assertTrue(dump, dump.contains("url:fail(Нет приложения для обработки: No Activity found to handle Intent { act=android.intent.action.VIEW <uri> flg=0x10000000 })"))
-        assertTrue(dump, dump.contains("url:fail(Нет разрешения: <uri>)"))
-        assertTrue(dump, dump.contains("url:fail(<uri> и <uri>)"))
+        assertTrue(dump, dump.contains("url:fail(Brak aplikacji do obsługi: No Activity found to handle Intent { act=android.intent.action.VIEW <uri> flg=0x10000000 })"))
+        assertTrue(dump, dump.contains("url:fail(Brak uprawnienia: <uri>)"))
+        assertTrue(dump, dump.contains("url:fail(<uri> i <uri>)"))
     }
 
     // Journal rows stay per attempt; the log line is once per rule and reason per minute.
@@ -158,9 +158,9 @@ class RuleJournalTest {
 
         val lines = ShadowLog.getLogsForTag("AutomationEngine").map { it.msg }
         assertEquals(10, dao.getAll().first().size)
-        assertEquals(2, lines.count { it == "rule 7 'Окна' skipped: confirm cancelled" })
-        assertEquals(1, lines.count { it == "rule 7 'Окна' skipped: confirm timed out" })
-        assertEquals(1, lines.count { it == "rule 7 'Окна' skipped: park only, gear=4" })
+        assertEquals(2, lines.count { it == "rule 7 'Okna' skipped: confirm cancelled" })
+        assertEquals(1, lines.count { it == "rule 7 'Okna' skipped: confirm timed out" })
+        assertEquals(1, lines.count { it == "rule 7 'Okna' skipped: park only, gear=4" })
     }
 
     @Test fun `an empty journal says so`() = runTest {
@@ -169,20 +169,20 @@ class RuleJournalTest {
 
     // --- The actions as they were (review 3.20 items 1-2) ---
 
-    private val call = ActionDef("", "Звонок", "call", """{"phone":"+375291234567","name":"Мама","autoDial":true}""")
-    private val callNoName = ActionDef("", "Звонок", "call", """{"phone":"+375291234567","name":"","autoDial":true}""")
-    private val nav = ActionDef("", "Навигатор", "navigate", """{"lat":53.9,"lon":27.56,"name":"Дом"}""")
-    private val note = ActionDef("", "Уведомление", "notification", """{"title":"Заряд","text":"секретный текст"}""")
-    private val pause = ActionDef("", "Пауза", "delay", "30000")
-    private val window = ActionDef("车窗关闭", "Закрыть окна")
+    private val call = ActionDef("", "Połączenie", "call", """{"phone":"+375291234567","name":"Mama","autoDial":true}""")
+    private val callNoName = ActionDef("", "Połączenie", "call", """{"phone":"+375291234567","name":"","autoDial":true}""")
+    private val nav = ActionDef("", "Nawigacja", "navigate", """{"lat":53.9,"lon":27.56,"name":"Dom"}""")
+    private val note = ActionDef("", "Powiadomienie", "notification", """{"title":"Ładowanie","text":"tajny tekst"}""")
+    private val pause = ActionDef("", "Pauza", "delay", "30000")
+    private val window = ActionDef("车窗关闭", "Zamknij okna")
 
     @Test fun `only the field the line shows is kept of a payload`() {
-        assertEquals("""{"name":"Мама"}""", RuleJournal.shownPayload(call))
+        assertEquals("""{"name":"Mama"}""", RuleJournal.shownPayload(call))
         assertEquals("""{"phone":"+375291234567"}""", RuleJournal.shownPayload(callNoName))
-        assertEquals("""{"name":"Дом"}""", RuleJournal.shownPayload(nav))
-        assertEquals("""{"title":"Заряд"}""", RuleJournal.shownPayload(note))
+        assertEquals("""{"name":"Dom"}""", RuleJournal.shownPayload(nav))
+        assertEquals("""{"title":"Ładowanie"}""", RuleJournal.shownPayload(note))
         assertEquals("30000", RuleJournal.shownPayload(pause))
-        assertEquals("0", RuleJournal.shownPayload(ActionDef("screen", "Экран: выключить", "screen", "0")))
+        assertEquals("0", RuleJournal.shownPayload(ActionDef("screen", "Ekran: wyłącz", "screen", "0")))
         assertEquals(null, RuleJournal.shownPayload(window))
         // The payload key is there even when empty: it marks an entry that recorded payloads.
         assertTrue(RuleJournal.recordedAction(window).has("payload"))
@@ -196,20 +196,20 @@ class RuleJournalTest {
         assertEquals(2, actions.length())
         assertEquals("delay", actions.getJSONObject(0).getString("kind"))
         assertEquals("30000", actions.getJSONObject(0).getString("payload"))
-        assertEquals("""{"title":"Заряд"}""", actions.getJSONObject(1).getString("payload"))
+        assertEquals("""{"title":"Ładowanie"}""", actions.getJSONObject(1).getString("payload"))
     }
 
     @Test fun `the dump prints no recorded payload`() = runTest {
         journal.cancelled(rule.copy(actions = ActionDef.listToJson(listOf(call, nav, note))), "{}", 1_000L)
         dao.insert(
             RuleLogEntity(
-                ruleId = 7, ruleName = "Окна", triggeredAt = 2_000L, triggersSnapshot = "{}", success = true,
+                ruleId = 7, ruleName = "Okna", triggeredAt = 2_000L, triggersSnapshot = "{}", success = true,
                 actionsResult = JSONArray().put(RuleJournal.recordedAction(callNoName).put("success", true)).toString(),
             )
         )
 
         val dump = journal.dumpLines().joinToString("\n")
-        for (secret in listOf("Мама", "+375291234567", "Дом", "Заряд", "секретный")) {
+        for (secret in listOf("Mama", "+375291234567", "Dom", "Ładowanie", "tajny")) {
             assertFalse("$secret in $dump", dump.contains(secret))
         }
         assertTrue(dump, dump.contains("steps=[call:ok]"))

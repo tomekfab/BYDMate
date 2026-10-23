@@ -11,25 +11,25 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-/** The rule card names an enum trigger value («Передача = P»), not its stored code («= 1»). */
+/** The rule card names an enum trigger value (Gear = P), not its stored code (= 1). */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29])
 class TriggerValueLabelTest {
 
     private val ctx: Context get() = ApplicationProvider.getApplicationContext()
 
-    @Before fun setUp() { LocalePreferences(ctx).setLanguage("ru") }
+    @Before fun setUp() { LocalePreferences(ctx).setLanguage("pl") }
 
     private fun label(param: String, value: String) =
         triggerValueLabel(TriggerDef(param, "", "==", value, param), ctx)
 
     @Test fun `gear 1 is P`() = assertEquals("P", label("Gear", "1"))
 
-    @Test fun `drive mode 4 is snow`() = assertEquals("Снег", label("DriveMode", "4"))
+    @Test fun `drive mode 4 is snow`() = assertEquals("Śnieg", label("DriveMode", "4"))
 
     @Test fun `turn signal codes are named`() {
-        assertEquals("Левый", label("TurnSignal", "2"))
-        assertEquals("Аварийка", label("TurnSignal", "6"))
+        assertEquals("Lewy", label("TurnSignal", "2"))
+        assertEquals("Awaryjne", label("TurnSignal", "6"))
     }
 
     @Test fun `numeric params and unknown codes stay as stored`() {

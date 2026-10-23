@@ -80,16 +80,16 @@ class AgentToolsQueryDatesTest {
         assertEquals(cal.timeInMillis + 24L * 3600_000 - 1, slotTo.captured)
     }
 
-    @Test fun query_trips_bad_date_returns_russian_error() = runTest {
-        val res = tools().execute(call("query_trips", """{"from":"июнь"}"""))
-        assertTrue(res.contains("ГГГГ-ММ-ДД"))
+    @Test fun query_trips_bad_date_returns_polish_error() = runTest {
+        val res = tools().execute(call("query_trips", """{"from":"czerwiec"}"""))
+        assertTrue(res.contains("RRRR-MM-DD"))
     }
 
     @Test fun query_trips_date_with_trailing_garbage_is_rejected() = runTest {
         // SimpleDateFormat.parse accepts a valid prefix and ignores the tail, so without the
         // explicit shape check this would silently succeed as 2026-06-01.
         val res = tools().execute(call("query_trips", """{"from":"2026-06-01xyz"}"""))
-        assertTrue(res.contains("ГГГГ-ММ-ДД"))
+        assertTrue(res.contains("RRRR-MM-DD"))
     }
 
     @Test fun query_trips_period_still_works_without_dates() = runTest {

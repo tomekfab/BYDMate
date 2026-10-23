@@ -6,12 +6,7 @@ import org.junit.Test
 class LocaleBootstrapTest {
 
     @Test
-    fun `upgrader gets ru`() {
-        assertEquals("ru", decideLanguage(setupCompleted = true))
-    }
-
-    @Test
-    fun `fresh install gets en`() {
-        assertEquals("en", decideLanguage(setupCompleted = false))
+    fun `startup gets Polish`() {
+        assertEquals("pl", decideLanguage())
     }
 }

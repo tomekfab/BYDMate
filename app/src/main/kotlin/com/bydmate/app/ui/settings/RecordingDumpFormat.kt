@@ -23,6 +23,8 @@ internal object RecordingDumpFormat {
     private val APPS: List<Pair<String, List<String>>> = listOf(
         "yandexnavi" to NavPackages.YANDEX_NAVI.toList(),
         "yandexmaps" to NavPackages.YANDEX_MAPS.toList(),
+        "googlemaps" to listOf("com.google.android.apps.maps"),
+        "waze" to listOf("com.waze"),
         "music" to listOf("ru.yandex.music"),
         "dublgis" to listOf("ru.dublgis.dgismobile"),
         "spotify" to listOf("com.spotify.music"),
@@ -56,7 +58,7 @@ internal object RecordingDumpFormat {
     /**
      * The hub snapshot without its data: the maneuver and camera icons as their byte counts
      * instead of a few KB of numbers, the road as the script it is written in instead of the
-     * street name (privacy, and the «иероглифы» reports need only the script).
+     * street name (privacy, and reports with non-Latin scripts need only the script).
      */
     fun hubSnapshot(s: NavGuidanceHub.Snapshot): String {
         var text = s.toString()

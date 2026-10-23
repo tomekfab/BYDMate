@@ -13,7 +13,7 @@ import java.text.Normalizer
  * it; the SOME/IP frames keep the navigator's text.
  *
  * Unlike OpenBYD, Russian and Belarusian letters go through our own practical table first: ICU's
- * per-letter ISO 9 turns Щукина into "Sukina", which tells a driver nothing.
+ * per-letter ISO 9 can produce misleading names, which tells a driver nothing.
  */
 internal object HudTextSanitizer {
     private const val TAG = "HudTextSanitizer"
@@ -26,7 +26,7 @@ internal object HudTextSanitizer {
         'ы' to "y", 'ь' to "", 'э' to "e", 'ю' to "yu", 'я' to "ya", 'і' to "i", 'ў' to "w",
     )
 
-    /** Belarusian writes ъ as an apostrophe; after a Cyrillic letter it is dropped like ъ. */
+    /** Belarusian writes the hard sign as an apostrophe; after a Cyrillic letter it is dropped. */
     private val apostrophes = setOf('’', 'ʼ')
 
     private val icu: Transliterator? by lazy {
@@ -57,7 +57,7 @@ internal object HudTextSanitizer {
         return out.toString().trim()
     }
 
-    /** An all-caps word stays all caps (ЖУКОВА is ZHUKOVA); otherwise only the first letter is (Жукова is Zhukova). */
+    /** An all-caps word stays all caps; otherwise only its first letter is capitalized. */
     private fun capital(latin: String, text: String, i: Int): String {
         val capsNeighbour = text.getOrNull(i - 1)?.isUpperCase() == true || text.getOrNull(i + 1)?.isUpperCase() == true
         return if (capsNeighbour) latin.uppercase() else latin.replaceFirstChar { it.uppercaseChar() }

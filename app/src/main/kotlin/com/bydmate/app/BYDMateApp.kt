@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import com.bydmate.app.data.local.DataThinningWorker
 import com.bydmate.app.data.local.HistoryImporter
+import com.bydmate.app.data.local.AppLocaleResolver
 import com.bydmate.app.data.local.LocalePreferences
 import com.bydmate.app.data.local.decideLanguage
 import com.bydmate.app.data.automation.DriveModeRuleMigration
@@ -31,6 +32,8 @@ import com.bydmate.app.diagnostics.TraceJournal
 import com.bydmate.app.ui.widget.WidgetController
 import com.bydmate.app.ui.widget.WidgetPreferences
 import com.bydmate.app.util.CrashLog
+import com.bydmate.app.voice.LegacyRussianAssetCleanup
+import com.bydmate.app.voice.VoiceProfileStore
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -59,6 +62,8 @@ class BYDMateApp : Application(), Configuration.Provider {
     @Inject lateinit var trunkRuleMigration: TrunkRuleMigration
     @Inject lateinit var powerStateRuleMigration: PowerStateRuleMigration
     @Inject lateinit var traceJournal: TraceJournal
+    @Inject lateinit var voiceProfileStore: VoiceProfileStore
+    @Inject lateinit var legacyRussianAssetCleanup: LegacyRussianAssetCleanup
 
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -91,6 +96,7 @@ class BYDMateApp : Application(), Configuration.Provider {
         }
         installCrashHandler()
         bootstrapLocale()
+        voiceProfileStore.migrateInstalledSelection()
         initOsmdroid()
         appScope.launch {
             // v2.8.1: clear stale "DIPLUS" data_source value from pre-native-stack
@@ -124,6 +130,7 @@ class BYDMateApp : Application(), Configuration.Provider {
             }
         }
         scheduleDataThinning()
+        appScope.launch { legacyRussianAssetCleanup.runAfterMigration() }
         appScope.launch {
             com.bydmate.app.service.UpdateApkCleanup.run(
                 android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS),
@@ -163,21 +170,24 @@ class BYDMateApp : Application(), Configuration.Provider {
     }
 
     private fun bootstrapLocale() {
-        // Already decided on a previous launch: AppCompat autoStoreLocales handles
-        // applying the saved locale before this point, nothing to do.
-        if (localePreferences.getLanguage() != null) return
-
-        val setupCompleted = if (localePreferences.isSetupCompletedMirror()) {
-            true
-        } else {
-            // First v2.8.0 launch - older versions didn't write the mirror flag.
-            // Single Room read, gated to one-time, far below the ANR threshold.
-            runBlocking { settingsRepository.isSetupCompleted() }
+        val hasStoredLanguage = localePreferences.hasStoredLanguage()
+        val appCompatLanguage = AppCompatDelegate.getApplicationLocales()[0]?.toLanguageTag()
+        val lang = when {
+            hasStoredLanguage -> localePreferences.getLanguage()
+            !appCompatLanguage.isNullOrBlank() -> AppLocaleResolver.resolve(appCompatLanguage)
+            else -> {
+                val setupCompleted = if (localePreferences.isSetupCompletedMirror()) {
+                    true
+                } else {
+                    // First v2.8.0 launch - older versions didn't write the mirror flag.
+                    // Single Room read, gated to one-time, far below the ANR threshold.
+                    runBlocking { settingsRepository.isSetupCompleted() }
+                }
+                if (setupCompleted) localePreferences.markSetupCompletedMirror()
+                decideLanguage()
+            }
         }
-
-        val lang = decideLanguage(setupCompleted)
         localePreferences.setLanguage(lang)
-        if (setupCompleted) localePreferences.markSetupCompletedMirror()
         AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(lang))
     }
 

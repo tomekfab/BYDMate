@@ -4,7 +4,7 @@ import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
 
 /**
- * The Navigator's «Поехали» button — the one the driver presses to turn a built route into
+ * The Navigator start button — the one the driver presses to turn a built route into
  * active guidance — read and pressed through the a11y tree the HUD already walks.
  *
  * Matched by TEXT, never by the coordinates uiautomator reports: they move with the window
@@ -13,7 +13,7 @@ import android.view.accessibility.AccessibilityNodeInfo
  */
 object NaviGoButton {
 
-    /** Is the route-preview screen with «Поехали» on it right now? */
+    /** Is the route-preview screen with the Navigator start button on it right now? */
     fun visible(root: AccessibilityNodeInfo?): Boolean = root != null && node(root) != null
 
     /** Presses it; false when the button is not there or the framework refused the click. */
@@ -37,7 +37,7 @@ object NaviGoButton {
         return clicked
     }
 
-    /** The «Поехали» text node, compared without case or spaces. */
+    /** The Navigator start-button text node, compared without case or spaces. */
     private fun node(root: AccessibilityNodeInfo): AccessibilityNodeInfo? =
         runCatching { root.findAccessibilityNodeInfosByText(GO_TEXT) }.getOrNull()
             ?.firstOrNull { candidate ->

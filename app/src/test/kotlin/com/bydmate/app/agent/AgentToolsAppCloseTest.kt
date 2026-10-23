@@ -25,7 +25,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** create_automation with the steps added in 3.20: «Закрыть приложение» (#280), «Медиа: играть / пауза» (#212, #275). */
+/** create_automation with the steps added in 3.20: “Close application” (#280), “Media: play / pause” (#212, #275). */
 class AgentToolsAppCloseTest {
 
     private val ruleDao = mockk<RuleDao> { coEvery { getCount() } returns 0 }
@@ -43,29 +43,29 @@ class AgentToolsAppCloseTest {
     )
 
     private suspend fun create(t: AgentTools, actions: String) = JSONObject(t.execute(AgentToolCall("1", "create_automation",
-        """{"name":"Ночной свет","trigger":{"kind":"param","param":"SOC","operator":"<","value":"20"},"actions":$actions}""")))
+        """{"name":"Tryb nocny","trigger":{"kind":"param","param":"SOC","operator":"<","value":"20"},"actions":$actions}""")))
 
     @Test fun `create with app_close action resolves app by label`() = runTest {
         coEvery { ruleDao.getAllList() } returns emptyList()
         val saved = slot<RuleEntity>()
         coEvery { ruleDao.insert(capture(saved)) } returns 1L
         val t = tools()
-        t.launcherAppsProvider = { listOf("Шахматы" to "com.example.chess", "Радио" to "com.example.radio") }
-        val out = create(t, """[{"kind":"app_close","app":"радио"}]""")
+        t.launcherAppsProvider = { listOf("Szachy" to "com.example.chess", "Radio" to "com.example.radio") }
+        val out = create(t, """[{"kind":"app_close","app":"radio"}]""")
         assertTrue(out.getBoolean("ok"))
         val a = ActionDef.listFromJson(saved.captured.actions).single()
         assertEquals("app_close", a.kind)
         val payload = JSONObject(a.payload!!)
         assertEquals("com.example.radio", payload.getString("packageName"))
-        assertEquals("Радио", payload.getString("appLabel"))
+        assertEquals("Radio", payload.getString("appLabel"))
     }
 
     @Test fun `app_close action with unknown app is rejected`() = runTest {
         coEvery { ruleDao.getAllList() } returns emptyList()
         val t = tools()
-        t.launcherAppsProvider = { listOf("Шахматы" to "com.example.chess") }
-        val out = create(t, """[{"kind":"app_close","app":"тетрис"}]""")
-        assertTrue(out.getString("error").contains("не найдено"))
+        t.launcherAppsProvider = { listOf("Szachy" to "com.example.chess") }
+        val out = create(t, """[{"kind":"app_close","app":"tetris"}]""")
+        assertTrue(out.getString("error").contains("nie znaleziono"))
     }
 
     @Test fun `create with media_key play and pause`() = runTest {

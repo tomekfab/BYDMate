@@ -34,8 +34,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import com.bydmate.app.voice.VoiceUserPhrases
 
-/** «Сохранить» in the editor through the real AutomationViewModel: a rule deleted meanwhile, a save that returns late. */
+/** Save in the editor through the real AutomationViewModel: a rule deleted meanwhile, a save that returns late. */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29])
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -48,7 +49,7 @@ class AutomationEditorSaveViewModelTest {
     private val ruleLogDao = mockk<RuleLogDao>(relaxed = true)
     private val placeRepository = mockk<PlaceRepository>(relaxed = true)
 
-    private val windowClose = ActionDef("车窗关闭", "Закрыть все окна")
+    private val windowClose = ActionDef("车窗关闭", "Zamknij wszystkie szyby")
 
     @Before fun setUp() {
         Dispatchers.setMain(testDispatcher)
@@ -70,12 +71,13 @@ class AutomationEditorSaveViewModelTest {
         actionDispatcher = mockk(relaxed = true),
         settingsRepository = mockk(relaxed = true),
         context = ctx,
+        userPhrases = VoiceUserPhrases(),
     ).also { testDispatcher.scheduler.advanceUntilIdle() }
 
     private fun AutomationViewModel.editWith(actions: List<ActionDef>) = updateEditing {
         copy(
             id = 9, isNew = false, name = "Navi",
-            triggers = listOf(TriggerDef("Speed", "车速", ">", "7", "Скорость")),
+            triggers = listOf(TriggerDef("Speed", "车速", ">", "7", "Prędkość")),
             actions = actions,
         )
     }
@@ -286,7 +288,7 @@ class AutomationEditorSaveViewModelTest {
         assertTrue(vm.uiState.value.showEditor)
         assertEquals("B", vm.uiState.value.editing.name)
 
-        // Same when A turns out deleted: B does not get A's «Правило уже удалено».
+// Same when A turns out deleted: B does not get A's already-deleted error.
         val gate2 = CompletableDeferred<Unit>()
         storedRow = null
         coEvery { ruleDao.getById(9) } coAnswers {

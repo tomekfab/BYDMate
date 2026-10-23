@@ -60,44 +60,44 @@ class AgentOrchestratorDetachedTest {
     // withheld there, and the driver facts must not ride in its system prompt either.
     @Test
     fun `detached prompt carries no driver memory block`() = runTest {
-        val backend = FakeBackend(reply = answer("ок"))
+        val backend = FakeBackend(reply = answer("ok"))
         val repo = mockk<SettingsRepository>()
         coEvery { repo.isAgentEnabled() } returns true
         val orch = AgentOrchestrator(
             backend, defaultTools(), repo, isMoving = { false },
-            memoryBlock = { "\nО ВОДИТЕЛЕ (факты):\n- Водителя зовут Андрей" },
+            memoryBlock = { "\nO KIEROWCY (fakty):\n- Kierowca ma na imię Andrzej" },
         )
-        orch.askDetached("сводка")
+        orch.askDetached("podsumowanie")
         val sys = (backend.requests.single().first() as AgentMessage.System).content
-        assertFalse(sys.contains("Водителя зовут Андрей"))
+        assertFalse(sys.contains("Kierowca ma na imię Andrzej"))
     }
 
     @Test
     fun `answer is returned without touching the shared history`() = runTest {
-        val orch = makeOrchestrator(reply = answer("Погода солнечная"))
-        val r = orch.askDetached("сводка погоды")
-        assertEquals("Погода солнечная", (r as AgentResult.Answer).text)
+        val orch = makeOrchestrator(reply = answer("Pogoda jest słoneczna"))
+        val r = orch.askDetached("podsumowanie pogody")
+        assertEquals("Pogoda jest słoneczna", (r as AgentResult.Answer).text)
         // Shared conversation stays untouched: no follow-up window opened.
         assertFalse(orch.expectsFollowUp())
     }
 
     @Test
     fun `detached question does not open a follow-up window`() = runTest {
-        val orch = makeOrchestrator(reply = answer("Какое окно?"))  // ends with "?"
-        orch.askDetached("открой окно")
+        val orch = makeOrchestrator(reply = answer("Które okno?"))  // ends with "?"
+        orch.askDetached("otwórz okno")
         assertFalse(orch.expectsFollowUp())
     }
 
     @Test
     fun `disabled agent returns Disabled`() = runTest {
         val orch = makeOrchestrator(agentEnabled = false)
-        assertEquals(AgentResult.Disabled, orch.askDetached("привет"))
+        assertEquals(AgentResult.Disabled, orch.askDetached("cześć"))
     }
 
     @Test
     fun `unconfigured backend returns Error`() = runTest {
         val orch = makeOrchestrator(configured = false)
-        assertTrue(orch.askDetached("привет") is AgentResult.Error)
+        assertTrue(orch.askDetached("cześć") is AgentResult.Error)
     }
 
     @Test
@@ -110,35 +110,35 @@ class AgentOrchestratorDetachedTest {
     @Test
     fun `detached prompt is not tagged while the car moves`() = runTest {
         moving = true
-        val backend = FakeBackend(reply = answer("Погода солнечная"))
-        makeOrchestrator(backend = backend).askDetached("сводка погоды")
+        val backend = FakeBackend(reply = answer("Pogoda jest słoneczna"))
+        makeOrchestrator(backend = backend).askDetached("podsumowanie pogody")
         val user = backend.requests.single().last() as AgentMessage.User
-        assertEquals("сводка погоды (время 07:30)", user.content)
+        assertEquals("podsumowanie pogody (czas 07:30)", user.content)
     }
 
     // A scheduled "morning summary" needs the clock as much as the driver does.
     @Test
     fun `detached prompt carries the local time`() = runTest {
-        val backend = FakeBackend(reply = answer("Доброе утро"))
-        makeOrchestrator(backend = backend).askDetached("утренняя сводка")
+        val backend = FakeBackend(reply = answer("Dzień dobry"))
+        makeOrchestrator(backend = backend).askDetached("poranne podsumowanie")
         val user = backend.requests.single().last() as AgentMessage.User
-        assertEquals("утренняя сводка (время 07:30)", user.content)
+        assertEquals("poranne podsumowanie (czas 07:30)", user.content)
     }
 
     // No memory rides in a detached prompt, so both system messages must be byte-identical
     // between two turns minutes apart: the time lives only on the user line.
     @Test
     fun `detached system messages do not change with the clock`() = runTest {
-        val first = FakeBackend(reply = answer("ок"))
-        makeOrchestrator(backend = first).askDetached("сводка")
+        val first = FakeBackend(reply = answer("ok"))
+        makeOrchestrator(backend = first).askDetached("podsumowanie")
         clock += 17 * 60_000L
-        val second = FakeBackend(reply = answer("ок"))
-        makeOrchestrator(backend = second).askDetached("сводка")
+        val second = FakeBackend(reply = answer("ok"))
+        makeOrchestrator(backend = second).askDetached("podsumowanie")
         val a = first.requests.single().filterIsInstance<AgentMessage.System>()
         val b = second.requests.single().filterIsInstance<AgentMessage.System>()
         assertEquals(2, a.size)
         assertEquals(a, b)
-        assertEquals("сводка (время 07:47)", (second.requests.single().last() as AgentMessage.User).content)
+        assertEquals("podsumowanie (czas 07:47)", (second.requests.single().last() as AgentMessage.User).content)
     }
 
     @Test
@@ -146,8 +146,8 @@ class AgentOrchestratorDetachedTest {
         // verify tools.schemas(includeAutomationTools = false) was called (mockk coVerify)
         val tools = mockk<AgentTools>(relaxed = true)
         coEvery { tools.schemas(includeAutomationTools = false) } returns JSONArray()
-        val orch = makeOrchestrator(reply = answer("ок"), tools = tools)
-        orch.askDetached("тест")
+        val orch = makeOrchestrator(reply = answer("ok"), tools = tools)
+        orch.askDetached("test")
         io.mockk.coVerify(exactly = 1) { tools.schemas(includeAutomationTools = false) }
     }
 }

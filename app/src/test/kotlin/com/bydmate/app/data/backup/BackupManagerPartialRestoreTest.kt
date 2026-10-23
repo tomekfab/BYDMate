@@ -222,7 +222,7 @@ class BackupManagerPartialRestoreTest {
 
             val error = assertThrows(IllegalStateException::class.java) { manager().restore(zip, parts) }
 
-            assertEquals("Файл бэкапа повреждён: версия базы не совпадает с описанием", error.message)
+            assertEquals("Plik kopii zapasowej jest uszkodzony: wersja bazy nie zgadza się z opisem", error.message)
             live { db -> assertEquals("live", text(db, "SELECT name FROM automation_rules")) }
             assertTrue(!prefs(PostRestoreCheck.PREFS_NAME).getBoolean(PostRestoreCheck.KEY_PENDING, false))
         }
@@ -239,7 +239,7 @@ class BackupManagerPartialRestoreTest {
 
         val error = assertThrows(IllegalStateException::class.java) { manager().restore(zip, setOf(BackupPart.TABLES)) }
 
-        assertEquals("Файл бэкапа повреждён: нарушены связи между таблицами", error.message)
+        assertEquals("Plik kopii zapasowej jest uszkodzony: powiązania między tabelami są naruszone", error.message)
         live { db ->
             assertEquals("live", text(db, "SELECT source FROM trips"))
             assertEquals(1, count(db, "charge_points"))

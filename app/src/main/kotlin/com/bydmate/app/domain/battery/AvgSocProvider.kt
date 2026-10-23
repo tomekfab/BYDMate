@@ -11,7 +11,7 @@ data class AvgSoc(val sinceCharge: Int?, val allTime: Int?)
 
 /**
  * Cheap on-open aggregation over a few hundred Room rows — no polling. Extracted from
- * DashboardViewModel when the battery-health dialog became the «Техника» screen, so both
+ * DashboardViewModel when the battery-health dialog became the Technical screen, so both
  * screens read the same numbers.
  */
 @Singleton

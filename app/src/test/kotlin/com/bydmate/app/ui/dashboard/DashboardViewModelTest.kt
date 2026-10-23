@@ -500,9 +500,9 @@ class DashboardViewModelTest {
     fun setInsightPeriod_reloads_dynamics_for_month() = runTest {
         val mockInsightsManager = mockk<InsightsManager>(relaxed = true)
         coEvery { mockInsightsManager.getDisplayInsight(30) } returns InsightData(
-            title = "Расход за месяц", summary = "Средний 18.0 кВт·ч/100 за месяц",
+            title = "Zużycie w miesiącu", summary = "Średnio 18.0 kWh/100 w miesiącu",
             dynamics = listOf(
-                DynamicMetric(label = "Расход", current = "18.0", previous = null,
+                DynamicMetric(label = "Zużycie", current = "18.0", previous = null,
                     changePct = null, sentiment = "neutral", section = null, kind = "consumption")
             ),
             insights = emptyList(), tone = "good"
@@ -517,7 +517,7 @@ class DashboardViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
 
         assertEquals(30, vm.uiState.value.insightPeriodDays)
-        assertEquals("Расход", vm.uiState.value.insightDynamics.single().label)
+        assertEquals("Zużycie", vm.uiState.value.insightDynamics.single().label)
     }
 
     @Test
@@ -542,9 +542,9 @@ class DashboardViewModelTest {
     fun `refresh after setInsightPeriod resets period back to 7`() = runTest {
         val mockInsightsManager = mockk<InsightsManager>(relaxed = true)
         coEvery { mockInsightsManager.getDisplayInsight(30) } returns InsightData(
-            title = "Расход за месяц", summary = "Средний 18.0 кВт·ч/100 за месяц",
+            title = "Zużycie w miesiącu", summary = "Średnio 18.0 kWh/100 w miesiącu",
             dynamics = listOf(
-                DynamicMetric(label = "Расход", current = "18.0", previous = null,
+                DynamicMetric(label = "Zużycie", current = "18.0", previous = null,
                     changePct = null, sentiment = "neutral", section = null, kind = "consumption")
             ),
             insights = emptyList(), tone = "good"
@@ -552,7 +552,7 @@ class DashboardViewModelTest {
         coEvery { mockInsightsManager.getDisplayInsight(7) } returns InsightData(
             title = "Title", summary = "Summary",
             dynamics = listOf(
-                DynamicMetric(label = "Расход", current = "20.0", previous = null,
+                DynamicMetric(label = "Zużycie", current = "20.0", previous = null,
                     changePct = null, sentiment = "neutral", section = null, kind = "consumption")
             ),
             insights = emptyList(), tone = "good"
@@ -568,7 +568,7 @@ class DashboardViewModelTest {
         assertEquals(30, vm.uiState.value.insightPeriodDays)
 
         // loadInsight() (run by refresh()) always assigns the cached 7-day insight —
-        // the period chip must snap back to 7 to match, no stale Месяц label over weekly data.
+// the period chip must snap back to 7 to match, with no stale month label over weekly data.
         vm.refresh()
         testDispatcher.scheduler.advanceUntilIdle()
 

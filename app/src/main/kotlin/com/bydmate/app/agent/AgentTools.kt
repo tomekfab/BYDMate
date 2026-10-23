@@ -58,6 +58,8 @@ import com.bydmate.app.data.camera.CameraStateMonitor
 import com.bydmate.app.media.NaviRouteHolder
 import com.bydmate.app.media.NaviScreenReader
 import com.bydmate.app.navdata.NavPackages
+import com.bydmate.app.navdata.NavAppId
+import com.bydmate.app.navdata.NavGuidanceHub
 import com.bydmate.app.service.TrackingService
 import com.bydmate.app.ui.automation.OPERATORS
 import com.bydmate.app.ui.automation.TRIGGER_PARAMS
@@ -74,6 +76,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
+import java.text.Normalizer
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.concurrent.atomic.AtomicBoolean
@@ -204,7 +207,7 @@ class AgentTools @Inject constructor(
     /** Test seam — deterministic time for period queries. */
     internal var nowMs: () -> Long = { System.currentTimeMillis() }
 
-    /** Test seam — overlay confirm gate for dangerous agent actions (П7). */
+    /** Test seam — overlay confirm gate for dangerous agent actions (P7). */
     internal var confirmGate: (Context, String, String, () -> Unit, () -> Unit) -> Boolean =
         { ctx, ruleName, summary, onConfirm, onCancel ->
             ConfirmOverlayManager.show(ctx, ruleName, summary, onConfirm, onCancel)
@@ -313,10 +316,10 @@ class AgentTools @Inject constructor(
             else -> naviForegroundCheck
         }
         val appName = when {
-            maps -> "Яндекс Карты"
-            pinned == RouteNavigatorUris.DGIS_PACKAGE -> "2ГИС"
+            maps -> "Yandex Maps"
+            pinned == RouteNavigatorUris.DGIS_PACKAGE -> "2GIS"
             pinned == RouteNavigatorUris.WAZE_PACKAGE -> "Waze"
-            else -> "Навигатор"
+            else -> "Nawigator"
         }
         val result = actionDispatcher.dispatch(
             ActionDef(command = "", displayName = displayName, kind = "navigate",
@@ -327,8 +330,8 @@ class AgentTools @Inject constructor(
             delay(naviVerifyIntervalMs)
         }
         return DispatchResult(false,
-            "интент отправлен, но $appName не вышел на передний план: маршрут скорее всего " +
-                "не построен, предложи пользователю открыть приложение вручную")
+            "Intent został wysłany, ale $appName nie pojawił się na pierwszym planie: trasa prawdopodobnie " +
+                "nie została wyznaczona; zaproponuj użytkownikowi ręczne otwarcie aplikacji")
     }
 
     /**
@@ -371,126 +374,126 @@ class AgentTools @Inject constructor(
     suspend fun schemas(includeAutomationTools: Boolean = true): JSONArray = JSONArray().apply {
         put(tool(
             "get_vehicle_state",
-            "Текущее состояние машины: заряд, запас хода, скорость, температуры, климат, окна, двери, шины, свет, подогрев сидений, GPS-позиция и название сохранённого Места, если машина в нём. " +
-                "Поле age_s = сколько секунд назад получены данные; если больше 60, предупреди, что данные могли устареть.",
+            "Bieżący stan samochodu: naładowanie, zasięg, prędkość, temperatury, klimatyzacja, okna, drzwi, opony, światła, ogrzewanie siedzeń, pozycja GPS i nazwa zapisanego Miejsca, jeśli samochód jest w nim. " +
+                "Pole age_s oznacza wiek danych w sekundach; jeśli przekracza 60, ostrzeż, że dane mogą być nieaktualne.",
             JSONObject(), emptyList(),
         ))
         put(tool(
             "query_trips",
-            "Статистика поездок за период: количество, километраж, расход энергии, средний расход, стоимость.",
+            "Statystyki podróży za okres: liczba, kilometraż, zużycie energii, średnie zużycie i koszt.",
             JSONObject().put("period", periodParam())
                 .put("from", JSONObject().put("type", "string")
-                    .put("description", "Начало диапазона, дата ГГГГ-ММ-ДД (например 2026-06-01)"))
+                    .put("description", "Początek zakresu, data RRRR-MM-DD (na przykład 2026-06-01)"))
                 .put("to", JSONObject().put("type", "string")
-                    .put("description", "Конец диапазона включительно, ГГГГ-ММ-ДД; без to = один день from")),
+                    .put("description", "Koniec zakresu włącznie, RRRR-MM-DD; bez to = jeden dzień from")),
             emptyList(),
         ))
         put(tool(
             "query_charges",
-            "Статистика зарядок за период: сессии, кВт·ч, стоимость, разбивка AC (медленная) / DC (быстрая).",
+            "Statystyki ładowania za okres: sesje, kWh, koszt, podział AC (wolne) / DC (szybkie).",
             JSONObject().put("period", periodParam())
                 .put("from", JSONObject().put("type", "string")
-                    .put("description", "Начало диапазона, дата ГГГГ-ММ-ДД (например 2026-06-01)"))
+                    .put("description", "Początek zakresu, data RRRR-MM-DD (na przykład 2026-06-01)"))
                 .put("to", JSONObject().put("type", "string")
-                    .put("description", "Конец диапазона включительно, ГГГГ-ММ-ДД; без to = один день from")),
+                    .put("description", "Koniec zakresu włącznie, RRRR-MM-DD; bez to = jeden dzień from")),
             emptyList(),
         ))
         put(tool(
             "add_charge",
-            "Записать зарядку вручную в журнал (как ручное добавление на экране Зарядки). " +
-                "Либо soc_start+soc_end (кВтч посчитается из ёмкости батареи), либо kwh напрямую. " +
-                "Тариф по умолчанию берётся из настроек по типу. Прочитай пользователю итог из ответа.",
+            "Dodaj ręcznie sesję ładowania do historii (jak ręczne dodanie na ekranie Ładowania). " +
+                "Podaj soc_start+soc_end (kWh zostanie obliczone z pojemności baterii) albo bezpośrednio kwh. " +
+                "Taryfa jest domyślnie pobierana z ustawień dla typu. Odczytaj użytkownikowi wynik z odpowiedzi.",
             JSONObject()
                 .put("type", JSONObject().put("type", "string")
                     .put("enum", JSONArray(listOf("AC", "DC")))
-                    .put("description", "AC медленная (дом), DC быстрая станция. По умолчанию AC"))
+                    .put("description", "AC wolna (dom), DC szybka stacja. Według domyślnie AC"))
                 .put("soc_start", JSONObject().put("type", "integer")
-                    .put("description", "Процент заряда до зарядки, 0..100"))
+                    .put("description", "Procent naładowania przed ładowaniem, 0..100"))
                 .put("soc_end", JSONObject().put("type", "integer")
-                    .put("description", "Процент заряда после зарядки, 0..100, больше soc_start"))
+                    .put("description", "Procent naładowania po ładowaniu, 0..100, większy niż soc_start"))
                 .put("kwh", JSONObject().put("type", "number")
-                    .put("description", "Сколько кВтч залито, если SOC неизвестен"))
+                    .put("description", "Liczba pobranych kWh, jeśli SOC jest nieznany"))
                 .put("tariff", JSONObject().put("type", "number")
-                    .put("description", "Цена за кВтч, если пользователь назвал; иначе из настроек"))
+                    .put("description", "Cena za kWh, jeśli podał ją użytkownik; w przeciwnym razie z ustawień"))
                 .put("date", JSONObject().put("type", "string")
-                    .put("description", "Дата зарядки ГГГГ-ММ-ДД, если не сегодня")),
+                    .put("description", "Data ładowania RRRR-MM-DD, jeśli nie dzisiaj")),
             emptyList(),
         ))
         put(tool(
             "get_stats_summary",
-            "Сводка динамики: расход, поездки, короткие поездки, средняя дистанция, расход на " +
-                "стоянке. Текущий период против предыдущего. Озвучь коротко главное.",
+            "Podsumowanie trendów: zużycie, podróże, krótkie podróże, średnia odległość i zużycie na postoju. " +
+                "Porównaj bieżący okres z poprzednim. Powiedz krótko, co najważniejsze.",
             JSONObject().put("period", JSONObject().put("type", "string")
                 .put("enum", JSONArray(listOf("week", "month")))
-                .put("description", "week = 7 дней (по умолчанию), month = 30 дней")),
+                .put("description", "week = 7 dni (po domyślnie), month = 30 dni")),
             emptyList(),
         ))
         put(tool(
             "vehicle_control",
-            "Выполнить команду управления машиной. У окон ровно три положения: полностью открыть, " +
-                "наполовину и проветривание; произвольный процент машина не умеет — если водитель " +
-                "назвал процент, выбери ближайшее из трёх и скажи в ответе, какое. " +
-                "command — идентификатор из списка:\n" +
+            "Wykonaj polecenie sterowania samochodem. Okna mają dokładnie trzy położenia: całkowicie otwarte, " +
+                "do połowy i wentylacja; samochód nie obsługuje dowolnego procentu — jeśli kierowca " +
+                "podał procent, wybierz najbliższe z trzech i powiedz w odpowiedzi, które. " +
+                "command — identyfikator z listy:\n" +
                 AgentCommandCatalog.idsDoc(),
             JSONObject()
                 .put("command", JSONObject()
                     .put("type", "string")
                     .put("enum", JSONArray(AgentCommandCatalog.ALL.map { it.id }))
-                    .put("description", "Идентификатор команды из списка"))
+                    .put("description", "Identyfikator polecenia z listy"))
                 .put("value", JSONObject()
                     .put("type", "integer")
-                    .put("description", "Значение для команд с value, например температура")),
+                    .put("description", "Wartość dla poleceń z value, na przykład temperatura")),
             listOf("command"),
         ))
         put(tool(
             "media_volume",
-            "Громкость медиа: op = число (уровень), \"+N\"/\"-N\" (шаг), \"mute\", \"unmute\".",
+            "Głośność multimediów: op = liczba (poziom), \"+N\"/\"-N\" (krok), \"mute\", \"unmute\".",
             JSONObject().put("op", JSONObject().put("type", "string")),
             listOf("op"),
         ))
         put(tool(
             "get_weather",
-            "Погода сейчас и прогноз на 3 дня. city — только если пользователь явно спросил про другое место, " +
-                "иначе берётся текущая GPS-позиция машины.",
+            "Pogoda teraz i prognoza na 3 dni. city — tylko jeśli użytkownik wyraźnie pyta o inne miejsce; " +
+                "w przeciwnym razie użyj bieżącej pozycji GPS samochodu.",
             JSONObject().put("city", JSONObject()
                 .put("type", "string")
-                .put("description", "Город, если вопрос не про текущее местоположение машины")),
+                .put("description", "Miasto, jeśli pytanie nie dotyczy bieżącej pozycji samochodu")),
             emptyList(),
         ))
         put(tool(
             "call_contact",
-            "Позвонить контакту из телефонной книги по имени. Если совпадений несколько, " +
-                "задай ровно один уточняющий вопрос, какой контакт нужен.",
+            "Zadzwoń do kontaktu z książki telefonicznej po nazwie. Jeśli jest kilka dopasowań, " +
+                "zadaj dokładnie jedno pytanie doprecyzowujące, który kontakt jest potrzebny.",
             JSONObject().put("name", JSONObject()
                 .put("type", "string")
-                .put("description", "Имя контакта, как записано в телефонной книге")),
+                .put("description", "Nazwa kontaktu, jak zapisano w książce telefonicznej")),
             listOf("name"),
         ))
         put(tool(
             "where_am_i",
-            "Где сейчас машина: ближайшие населённые пункты вокруг текущей GPS-позиции (данные " +
-                "OpenStreetMap) с расстоянием до центра в км и стороной света от машины, ближайший " +
-                "первым, плюс ближайший город. Известны только центры, не границы: ответ говорит, " +
-                "насколько машина близко к месту, а не в каком месте она. Вызывай на вопросы \"где я\", " +
-                "\"что рядом\", \"какой это населённый пункт\"; не ищи координаты через web_search.",
+            "Gdzie jest teraz samochód: najbliższe miejscowości wokół aktualnej pozycji GPS (dane " +
+                "OpenStreetMap), z odległością do centrum w km i kierunkiem od samochodu, najbliższa " +
+                "jako pierwsza, oraz najbliższe miasto. Znane są tylko centra, nie granice: odpowiedź mówi, " +
+                "jak blisko samochód jest danej miejscowości, a nie w jakiej miejscowości się znajduje. Wywołuj przy pytaniach \"gdzie jestem\", " +
+                "\"co jest w pobliżu\", \"jaka to miejscowość\"; nie szukaj współrzędnych przez web_search.",
             JSONObject(), emptyList(),
         ))
         // Always declared: with no Exa key the execute path below falls back to the primary
         // connection's native search (openrouter:web_search server tool or z.ai web_search).
         put(tool(
             "web_search",
-            "Поиск в интернете по актуальным вопросам, которых нет в других инструментах.",
+            "Wyszukiwanie w internecie dla aktualnych pytań, których nie obsługują inne narzędzia.",
             JSONObject().put("query", JSONObject()
                 .put("type", "string")
-                .put("description", "Поисковый запрос")),
+                .put("description", "Zapytanie do wyszukiwania")),
             listOf("query"),
         ))
         if (includeAutomationTools) {
             val ruleNames = enabledRuleNames()
             put(tool(
                 "run_automation",
-                if (ruleNames.isEmpty()) "Запустить сохранённую автоматизацию по имени. Сейчас включённых автоматизаций нет."
-                else "Запустить сохранённую автоматизацию пользователя по имени.",
+                if (ruleNames.isEmpty()) "Uruchom zapisaną automatyzację po nazwie. Nie ma obecnie włączonych automatyzacji."
+                else "Uruchom zapisaną automatyzację użytkownika po nazwie.",
                 JSONObject().put("name", JSONObject().apply {
                     put("type", "string")
                     if (ruleNames.isNotEmpty()) put("enum", JSONArray(ruleNames))
@@ -500,38 +503,38 @@ class AgentTools @Inject constructor(
         }
         put(tool(
             "list_automations",
-            "Список всех сохранённых автоматизаций пользователя (включая выключенные) с их триггерами и действиями.",
+            "Lista wszystkich zapisanych automatyzacji użytkownika, także wyłączonych, z ich wyzwalaczami i działaniami.",
             JSONObject(), emptyList(),
         ))
         if (includeAutomationTools) {
             put(tool(
                 "set_automation_enabled",
-                "Включить или выключить сохранённую автоматизацию по имени.",
+                "Włącz lub wyłączyć zapisaną automatyzację po nazwie.",
                 JSONObject()
-                    .put("name", JSONObject().put("type", "string").put("description", "Имя автоматизации"))
-                    .put("enabled", JSONObject().put("type", "boolean").put("description", "true = включить, false = выключить")),
+                    .put("name", JSONObject().put("type", "string").put("description", "Nazwa automatyzacji"))
+                    .put("enabled", JSONObject().put("type", "boolean").put("description", "true = włączyć, false = wyłączyć")),
                 listOf("name", "enabled"),
             ))
         }
         put(tool(
             "list_places",
-            "Список сохранённых Мест (дом, работа и т.п.): имя, координаты, радиус в метрах. " +
-                "Места используются в триггерах place_enter/place_exit и в get_vehicle_state.",
+            "Lista zapisanych miejsc (dom, praca itd.): nazwa, współrzędne i promień w metrach. " +
+                "Miejsca są używane przez wyzwalacze place_enter/place_exit i get_vehicle_state.",
             JSONObject(), emptyList(),
         ))
         put(tool(
             "create_place",
-            "Сохранить новое Место. Без lat/lon берётся текущая GPS-позиция машины " +
-                "(подходит для \"запомни это место как Дом\").",
+            "Zapisz nowe miejsce. Bez lat/lon używana jest bieżąca pozycja GPS samochodu " +
+                "(na przykład „zapamiętaj to miejsce jako Dom”).",
             JSONObject()
                 .put("name", JSONObject().put("type", "string")
-                    .put("description", "Имя Места, уникальное, до 40 символов"))
+                    .put("description", "Nazwa miejsca, unikalna, do 40 znaków"))
                 .put("lat", JSONObject().put("type", "number")
-                    .put("description", "Широта; вместе с lon, иначе GPS"))
+                    .put("description", "Szerokość geograficzna; razem z lon, inaczej GPS"))
                 .put("lon", JSONObject().put("type", "number")
-                    .put("description", "Долгота; вместе с lat, иначе GPS"))
+                    .put("description", "Długość geograficzna; razem z lat, inaczej GPS"))
                 .put("radius_m", JSONObject().put("type", "integer")
-                    .put("description", "Радиус в метрах, 20..500, по умолчанию 100")),
+                    .put("description", "Promień w metrach, 20..500, domyślnie 100")),
             listOf("name"),
         ))
         // Memory tools live behind the automation gate: a session started BY an automation
@@ -539,261 +542,252 @@ class AgentTools @Inject constructor(
         if (includeAutomationTools) {
             put(tool(
                 "remember_fact",
-                "Запомнить устойчивый факт о водителе на будущее: имя, как обращаться, " +
-                    "предпочтения (температура, музыка, маршруты), семья. Одна короткая фраза, " +
-                    "например \"Водителя зовут Андрей\", \"Любит 22 градуса в салоне\". " +
-                    "Не сохранять разовые команды и состояние машины.",
+                "Zapamiętaj trwały fakt o kierowcy na przyszłość: imię, forma zwracania się, " +
+                    "preferencje (temperatura, muzyka, trasy) lub rodzina. Jedno krótkie zdanie, " +
+                    "na przykład „Kierowca ma na imię Andrzej”, „Lubi 22 stopnie w kabinie”. " +
+                    "Nie zapisuj jednorazowych poleceń ani stanu samochodu.",
                 JSONObject().put("fact", JSONObject().put("type", "string")
-                    .put("description", "Факт одной короткой фразой")),
+                    .put("description", "Fakt w jednym krótkim zdaniu")),
                 listOf("fact"),
             ))
             put(tool(
                 "forget_fact",
-                "Забыть сохранённый факт о водителе. fact = часть текста факта; " +
-                    "all = true чтобы забыть всё.",
+                "Zapomnij zapisany fakt o kierowcy. fact = fragment tekstu faktu; " +
+                    "all = true, aby usunąć wszystkie fakty.",
                 JSONObject()
                     .put("fact", JSONObject().put("type", "string")
-                        .put("description", "Часть текста факта, который нужно забыть"))
+                    .put("description", "Fragment tekstu faktu do usunięcia"))
                     .put("all", JSONObject().put("type", "boolean")
-                        .put("description", "true = забыть все факты о водителе")),
+                    .put("description", "true = usuń wszystkie fakty o kierowcy")),
                 emptyList(),
             ))
         }
         put(tool(
             "navigate_to",
-            "Построить маршрут от текущей позиции: по умолчанию в приложении, выбранном в " +
-                "настройках (Навигатор/2ГИС/Карты), app=\"maps\" - явно в Яндекс Картах, если " +
-                "пользователь просит именно их. Команды поехали домой, до дома, " +
-                "на работу - ЭТОТ инструмент: передай destination \"Дом\" или \"Работа\", маршрут " +
-                "построится по Месту BYDMate или по адресу, сохранённому в самом Навигаторе. " +
-                "destination: имя сохранённого Места, город или населённый пункт (маршрут строится " +
-                "сразу) либо точный адрес (откроется поиск на карте, пользователь выберет точку). " +
-                "Ответ может содержать проверку запаса хода: если enough=false или есть charge_note, " +
-                "предупреди пользователя и предложи find_chargers. Для поиска места без маршрута " +
-                "(поищи, найди) используй search_on_map.",
+            "Wyznacz trasę od bieżącej pozycji w aplikacji wybranej w ustawieniach " +
+                "(Nawigator/2GIS/Mapy). app=\"maps\" wybierz tylko dla Yandex Maps, gdy użytkownik " +
+                "wyraźnie o to prosi. Polecenia „jedź do domu”, „do domu” i „do pracy” obsługuje " +
+                "to narzędzie: przekaż destination \"Dom\" lub \"Praca\". Trasa zostanie wyznaczona " +
+                "do miejsca BYDMate lub adresu zapisanego w Nawigatorze. destination może być nazwą " +
+                "zapisanego miejsca, miastem lub miejscowością (trasa powstaje od razu) albo dokładnym " +
+                "adresem (otworzy się wyszukiwanie na mapie, a użytkownik wybierze punkt). Odpowiedź może " +
+                "zawierać ocenę zasięgu: gdy enough=false lub jest charge_note, ostrzeż użytkownika i " +
+                "zaproponuj find_chargers. Do wyszukiwania miejsca bez trasy " +
+                "(poszukaj, znajdź) użyj search_on_map.",
             JSONObject().put("destination", JSONObject().put("type", "string")
-                .put("description", "Куда ехать: имя Места, адрес или название"))
+                .put("description", "Dokąd jechać: nazwa miejsca, adres lub miejscowość"))
                 .put("lat", JSONObject().put("type", "number")
-                    .put("description", "Широта точки, если известны точные координаты (например из find_chargers)"))
+                    .put("description", "Szerokość punktu, jeśli znane są dokładne współrzędne (na przykład z find_chargers)"))
                 .put("lon", JSONObject().put("type", "number")
-                    .put("description", "Долгота точки"))
+                    .put("description", "Długość geograficzna punkty"))
                 .put("go", JSONObject().put("type", "boolean")
-                    .put("description", "true, когда водитель сказал поехали/вези/едем/повёз - " +
-                        "начать движение по маршруту, кнопку Поехали нажмёт приложение. " +
-                        "false (по умолчанию) для построй/покажи/проложи маршрут - только " +
-                        "построить, водитель нажмёт Поехали сам"))
+                    .put("description", "true, gdy kierowca mówi „jedź/prowadź/zawieź” — rozpocznij " +
+                        "prowadzenie po trasie, aplikacja naciśnie przycisk Jedź. false (domyślnie) " +
+                        "dla „wyznacz/pokaż trasę” — tylko " +
+                        "wyznaczyć, kierowca naciśnie Jedź sam"))
                 .put("app", JSONObject().put("type", "string")
                     .put("enum", JSONArray().put("navigator").put("maps"))
-                    .put("description", "navigator = приложение из настроек (Навигатор/2ГИС/Карты, по умолчанию), " +
-                        "maps = явно Яндекс Карты; maps передавай только когда пользователь явно просит Яндекс Карты")),
+                    .put("description", "navigator = aplikacja z ustawień (Nawigator/2GIS/Mapy, po domyślnie), " +
+                        "maps = Yandex Maps; maps przekazuj tylko, gdy użytkownik wyraźnie prosi o Yandex Maps")),
             emptyList(),
         ))
         put(tool(
             "search_on_map",
-            "Открыть поиск места в приложении, выбранном в настройках (app=\"maps\" - явно в " +
-                "Яндекс Картах, если пользователь просит именно их): на карте появится выдача, " +
-                "пользователь сам выберет точку. Использовать для команд вроде: поищи кафе, найди заправку, " +
-                "где ближайшая аптека. Если пользователь просит ПОЕХАТЬ куда-то, в том числе " +
-                "домой или на работу, используй navigate_to.",
+            "Otwórz wyszukiwanie miejsca w aplikacji wybranej w ustawieniach (app=\"maps\" tylko dla " +
+                "Yandex Maps, gdy użytkownik wyraźnie o to prosi). Na mapie pojawią się wyniki, a użytkownik " +
+                "sam wybierze punkt. Używaj dla poleceń takich jak „poszukaj kawiarni”, „znajdź stację paliw” " +
+                "lub „gdzie jest najbliższa apteka”. Gdy użytkownik chce gdzieś jechać, także " +
+                "do domu lub na pracę, użyj navigate_to.",
             JSONObject().put("query", JSONObject().put("type", "string")
-                .put("description", "Что искать: название места или категория"))
+                .put("description", "Czego szukać: nazwa miejsca lub kategoria"))
                 .put("app", JSONObject().put("type", "string")
                     .put("enum", JSONArray().put("navigator").put("maps"))
-                    .put("description", "navigator = приложение из настроек (Навигатор/2ГИС/Карты, по умолчанию), " +
-                        "maps = явно Яндекс Карты; maps передавай только когда пользователь явно просит Яндекс Карты")),
+                    .put("description", "navigator = aplikacja z ustawień (Nawigator/2GIS/Mapy, po domyślnie), " +
+                        "maps = Yandex Maps; maps przekazuj tylko, gdy użytkownik wyraźnie prosi o Yandex Maps")),
             listOf("query"),
         ))
         put(tool(
             "show_point_on_map",
-            "Показать точку на карте БЕЗ построения маршрута (по умолчанию приложение из " +
-                "настроек, app=\"maps\" - явно Яндекс Карты): команды вроде " +
-                "покажи на карте, где находится. destination: имя Места, город или адрес; " +
-                "либо lat/lon, если координаты известны (например из find_chargers). " +
-                "Для маршрута используй navigate_to, для поиска по категории search_on_map.",
+            "Pokaż punkt na mapie bez wyznaczania trasy (domyślnie w aplikacji z " +
+                "ustawień, app=\"maps\" tylko dla Yandex Maps): polecenia takie jak " +
+                "pokaż na mapie, gdzie znajduje się. destination: nazwa Miejsca, miasto lub adres; " +
+                "albo lat/lon, jeśli współrzędne znane (na przykład z find_chargers). " +
+                "Do trasy użyj navigate_to, a do wyszukiwania kategorii search_on_map.",
             JSONObject().put("destination", JSONObject().put("type", "string")
-                .put("description", "Что показать: имя Места, адрес или название"))
-                .put("lat", JSONObject().put("type", "number").put("description", "Широта, если известна"))
-                .put("lon", JSONObject().put("type", "number").put("description", "Долгота"))
+                .put("description", "Co pokaż: nazwa Miejsca, adres lub nazwa"))
+                .put("lat", JSONObject().put("type", "number").put("description", "Szerokość geograficzna, jeśli znana"))
+                .put("lon", JSONObject().put("type", "number").put("description", "Długość geograficzna"))
                 .put("app", JSONObject().put("type", "string")
                     .put("enum", JSONArray().put("navigator").put("maps"))
-                    .put("description", "navigator = приложение из настроек (Навигатор/2ГИС/Карты, по умолчанию), " +
-                        "maps = явно Яндекс Карты; maps передавай только когда пользователь явно просит Яндекс Карты")),
+                    .put("description", "navigator = aplikacja z ustawień (Nawigator/2GIS/Mapy, po domyślnie), " +
+                        "maps = Yandex Maps; maps przekazuj tylko, gdy użytkownik wyraźnie prosi o Yandex Maps")),
             emptyList(),
         ))
         put(tool(
             "find_chargers",
-            "Найти электрозарядные станции. В Беларуси с живой занятостью разъёмов, мощностью и " +
-                "ценой (карта ассоциации BETA), иначе только станции (OpenStreetMap). Без city ищет " +
-                "от текущей позиции машины. where: «по пути», «впереди», «по дороге» - ahead (станции " +
-                "по ходу движения, а после маршрута navigate_to - с небольшим крюком к его точке); " +
-                "«рядом», «вокруг», «ближайшая» - around; без where в движении ищет ahead, на месте around. " +
-                "Поля станции: distance_km по прямой; direction_from_car - сторона света; position " +
-                "ahead/behind/aside - впереди, позади, в стороне по ходу; detour_km - лишний крюк; status " +
-                "free/busy/unavailable и connectors_free из connectors_total - разъёмы типа машины, " +
-                "connectors_unknown - по стольким из них нет данных о занятости; status_scope=station - " +
-                "занятость всей станции, не разъёма машины; " +
-                "max_power_kw; price_per_kwh и currency; status_age_min - сколько минут назад обновлена " +
-                "занятость, status_stale=true - устарела; beyond_range=true - дальше запаса хода. " +
-                "connector_known=false - разъёмы, мощность и цена неизвестны; status_known=false - занятость " +
-                "неизвестна. Когда водитель выберет станцию, вызови navigate_to с lat и lon выбранной станции.",
+            "Znajdź stacje ładowania. Na Białorusi pokazuje bieżącą zajętość złączy, moc i cenę " +
+                "(mapa BETA), a gdzie indziej tylko stacje z OpenStreetMap. Bez city szuka od bieżącej " +
+                "pozycji samochodu. where: „po drodze” lub „przed nami” = ahead (stacje w kierunku jazdy; " +
+                "po trasie navigate_to z niewielkim objazdem do celu), „w pobliżu” = around. Bez where " +
+                "podczas jazdy szuka ahead, na postoju around. Pola stacji: distance_km w linii prostej; " +
+                "direction_from_car = kierunek świata; position ahead/behind/aside = przed, za lub z boku " +
+                "w kierunku jazdy; detour_km = dodatkowy objazd; status free/busy/unavailable oraz " +
+                "connectors_free z connectors_total = złącza zgodne z samochodem; connectors_unknown = brak " +
+                "danych o zajętości części złączy; status_scope=station = zajętość całej stacji, nie złącza; " +
+                "max_power_kw; price_per_kwh i currency; status_age_min = wiek zajętości w minutach; " +
+                "status_stale=true = dane nieaktualne; beyond_range=true = poza zasięgiem. connector_known=false " +
+                "= nieznane złącza, moc i cena; status_known=false = nieznana zajętość. Gdy kierowca wybierze " +
+                "stację, wywołaj navigate_to z jej lat i lon.",
             JSONObject()
                 .put("city", JSONObject().put("type", "string")
-                    .put("description", "Город/точка поиска, если не вокруг машины"))
+                    .put("description", "Miasto lub punkt wyszukiwania, jeśli nie wokół samochodu"))
                 .put("radius_km", JSONObject().put("type", "integer")
-                    .put("description", "Радиус поиска в км, по умолчанию 30 (ahead: 30-100 по скорости), максимум 100"))
+                    .put("description", "Promień wyszukiwania w km, domyślnie 30 (ahead: 30-100 zależnie od prędkości), maksimum 100"))
                 .put("connector", JSONObject().put("type", "string")
                     .put("enum", JSONArray(ChargeConnector.entries.map { it.label }))
-                    .put("description", "Тип разъёма, только если водитель назвал другой; по умолчанию из настроек"))
+                    .put("description", "Typ złącza, tylko gdy kierowca podał inny; domyślnie z ustawień"))
                 .put("where", JSONObject().put("type", "string")
                     .put("enum", JSONArray(ChargerWhere.entries.map { it.code }))
-                    .put("description", "ahead - по ходу движения, around - вокруг машины")),
+                    .put("description", "ahead - po kierunku jazdy jazdy, around - wokół samochodu")),
             emptyList(),
         ))
         put(tool(
             "range_to_destination",
-            "Хватит ли текущего заряда доехать до точки: расстояние до неё против запаса хода. " +
-                "Расстояние оценивается по прямой с дорожным коэффициентом, поэтому примерное. " +
-                "Если reserve_km меньше 20% расстояния, предупреди что впритык и предложи зарядку.",
+            "Sprawdź, czy bieżący ładunek wystarczy do celu: porównaj odległość z zasięgiem. " +
+                "Odległość jest szacowana w linii prostej ze współczynnikiem drogowym, więc jest przybliżona. " +
+                "Jeśli reserve_km to mniej niż 20% odległości, ostrzeż, że zasięg jest na granicy, i zaproponuj ładowanie.",
             JSONObject().put("destination", JSONObject().put("type", "string")
-                .put("description", "Куда ехать: сохранённое Место или город/населённый пункт")),
+                .put("description", "Dokąd jechać: zapisane miejsce albo miasto lub miejscowość")),
             listOf("destination"),
         ))
         put(tool(
             "get_route_info",
-            "Состояние ведения Яндекс Навигатора: следующий манёвр (maneuver, maneuver_distance, " +
-                "street), строки уведомления route_lines (обычно остаток пути и время прибытия), " +
-                "лимит скорости speed_limit и номер съезда exit_number (только когда Навигатор " +
-                "на экране), заряд soc и запас хода range_km. Отвечай по этим полям на вопросы " +
-                "сколько ехать, какой поворот, когда приедем, хватит ли заряда. Если поля нет " +
-                "в ответе, этих данных сейчас нет - скажи честно." +
-                " Поле energy_estimate: сколько кВтч уйдёт до конца маршрута и сколько процентов батареи останется на финише.",
+            "Stan prowadzenia w Yandex Navigatorze: następny manewr (maneuver, maneuver_distance, " +
+                "street), wiersze powiadomienia route_lines (zwykle pozostała droga i czas przyjazdu), " +
+                "limit prędkości speed_limit i numer zjazdu exit_number (tylko gdy Nawigator jest na " +
+                "ekranie), ładunek soc i zasięg range_km. Odpowiadaj na pytania o czas jazdy, skręt, " +
+                "przyjazd i zasięg według tych pól. Jeśli pola nie ma w odpowiedzi, dane nie są teraz " +
+                "dostępne — powiedz to wprost. Pole energy_estimate: ile kWh zużyje trasa i ile procent " +
+                "baterii zostanie na końcu.",
             JSONObject(), emptyList(),
         ))
         put(tool(
             "go_home",
-            "Свернуть все окна и показать домашний экран (рабочий стол) машины. Использовать для " +
-                "команд вроде: домой на экран, на рабочий стол, сверни всё.",
+            "Zwiń wszystkie okna i pokaż ekran główny samochodu. Używaj dla poleceń takich jak " +
+                "„wróć do ekranu głównego”, „pokaż pulpit” i „zwiń wszystko”.",
             JSONObject(), emptyList(),
         ))
         put(tool(
             "end_conversation",
-            "Закрыть голосового помощника (тебя самого). Вызывать ТОЛЬКО когда водитель прямо просит " +
-                "закрыть, выключить или остановить помощника или говорит, что разговор окончен: " +
-                "\"закрой агента\", \"выключись\", \"отключись\", \"всё, спасибо, хватит\". Никогда не " +
-                "вызывать просто после выполненной команды. После вызова ответь очень коротким прощанием.",
+            "Zamknij asystenta głosowego. Wywołuj tylko, gdy kierowca wprost prosi o zamknięcie, " +
+                "wyłączenie lub zatrzymanie asystenta albo mówi, że rozmowa się skończyła. Nigdy nie " +
+                "wywołuj tego tylko po wykonaniu polecenia. Po wywołaniu odpowiedz bardzo krótkim pożegnaniem.",
             JSONObject(), emptyList(),
         ))
         put(tool(
             "play_music",
-            "Включить музыку в Яндекс Музыке. Без query играет персональная подборка (Моя волна). " +
-                "С query ищет и включает трек, альбом или исполнителя.",
+            "Włącz muzykę w Yandex Music. Bez query gra osobista propozycja (Moja fala). " +
+                "Z query wyszukuje i włącza utwór, album albo wykonawcę.",
             JSONObject().put("query", JSONObject().put("type", "string")
-                .put("description", "Трек, альбом или исполнитель; не передавать для Моей волны"))
+                .put("description", "Utwór, album lub wykonawca; nie przekazuj dla Mojej fali"))
                 .put("mode", JSONObject().put("type", "string")
                     .put("enum", JSONArray(listOf("play", "search")))
-                    .put("description", "play = сразу включить лучшее совпадение (\"включи/поставь X\"), " +
-                        "search = только открыть поиск (\"найди X\"). По умолчанию play.")),
+                    .put("description", "play = od razu włączyć najlepsze dopasowanie (\"włącz/ustaw X\"), " +
+                        "search = tylko otworzyć wyszukiwanie (\"znajdź X\"). Według domyślnie play.")),
             emptyList(),
         ))
         put(tool(
             "youtube",
-            "YouTube: включить видео по запросу или открыть поиск. \"включи на ютубе X\" = mode " +
-                "play (сразу запускает лучшее совпадение), \"найди на ютубе X\" = mode search. " +
-                "Для простого запуска приложения без запроса используй launch_app.",
+            "YouTube: włącz wideo według zapytania albo otwórz wyszukiwanie. „Włącz na YouTube X” = " +
+                "mode play (od razu uruchamia najlepsze dopasowanie), „znajdź na YouTube X” = mode search. " +
+                "Do samego uruchomienia aplikacji bez zapytania użyj launch_app.",
             JSONObject()
                 .put("query", JSONObject().put("type", "string")
-                    .put("description", "Что искать: название видео, канала или тема"))
+                    .put("description", "Czego szukać: nazwa filmu, kanału lub temat"))
                 .put("mode", JSONObject().put("type", "string")
                     .put("enum", JSONArray(listOf("play", "search")))
-                    .put("description", "play = включить, search = показать результаты. По умолчанию play.")),
+                    .put("description", "play = włącz, search = pokaż wyniki. Domyślnie play.")),
             listOf("query"),
         ))
         put(tool(
             "launch_app",
-            "Запустить установленное приложение по названию. Понимает русские названия штатных " +
-                "приложений машины: навигатор, яндекс карты, музыка, камера, видеорегистратор, " +
-                "браузер, ютуб, настройки машины, файлы, режимы вождения, часовой, АБРП, " +
-                "медиацентр, телефон.",
+            "Uruchom zainstalowaną aplikację po nazwie. Rozumie polskie nazwy fabrycznych aplikacji " +
+                "samochodu: nawigator, mapy, muzyka, kamera, wideorejestrator, przeglądarka, YouTube, " +
+                "ustawienia samochodu, pliki, tryb jazdy, tryb ochrony, ABRP, centrum multimediów i telefon.",
             JSONObject().put("name", JSONObject().put("type", "string")
-                .put("description", "Название приложения, как на домашнем экране")),
+                .put("description", "Nazwa aplikacji taka jak na ekranie głównym")),
             listOf("name"),
         ))
         put(tool(
             "set_cluster_projection",
-            "Показать или убрать выбранное приложение (обычно Навигатор) на приборной панели перед " +
-                "рулём, как кнопка-звезда на руле. То же самое: \"пусти навигатор на приборку\" = on; " +
-                "\"убери с приборки\", \"верни навигатор на основной экран\", \"верни на большой " +
-                "экран\" = off (убрать с приборки и вернуть на основной экран - одно действие).",
+            "Pokaż lub ukryj wybraną aplikację (zwykle Nawigator) na zestawie wskaźników przed " +
+                "kierowcą, jak przyciskiem gwiazdki na kierownicy. Włączenie pokazuje aplikację, a " +
+                "wyłączenie usuwa ją z zestawu wskaźników i przywraca na ekran główny.",
             JSONObject().put("on", JSONObject().put("type", "boolean")
-                .put("description", "true = показать карту на приборке, false = убрать")),
+                .put("description", "true = pokaż mapę na zestawie wskaźników, false = ukryj")),
             listOf("on"),
         ))
         put(tool(
             "set_sentry",
-            "Включить или выключить охранный режим (Sentry, караульный режим) — камеры следят за " +
-                "обстановкой вокруг припаркованной машины. \"поставь на охрану\", \"включи охрану\" = on; " +
-                "\"сними с охраны\", \"выключи охрану\" = off.",
+            "Włącz lub wyłącz tryb ochrony (Sentry) — kamery obserwują otoczenie zaparkowanego samochodu.",
             JSONObject().put("on", JSONObject().put("type", "boolean")
-                .put("description", "true = включить охранный режим, false = выключить")),
+                .put("description", "true = włączyć ochronny tryb, false = wyłączyć")),
             listOf("on"),
         ))
         put(tool(
             "set_hotspot",
-            "Включить или выключить точку доступа Wi-Fi (раздачу интернета с машины). " +
-                "\"включи раздачу интернета\", \"включи точку доступа\" = on; " +
-                "\"выключи раздачу\" = off.",
+            "Włącz lub wyłączyć punkt dostępu Wi-Fi (udostępnianie internetu z samochodu). " +
+                "\"włącz udostępnianie internetu\", \"włącz punkt dostępu\" = on; " +
+                "\"wyłącz udostępnianie\" = off.",
             JSONObject().put("on", JSONObject().put("type", "boolean")
-                .put("description", "true = включить точку доступа, false = выключить")),
+                .put("description", "true = włączyć punkt dostępu, false = wyłączyć")),
             listOf("on"),
         ))
         put(tool(
             "set_screen",
-            "Погасить или зажечь центральный экран магнитолы (приборку и HUD не трогает). Гаснет только " +
-                "подсветка: музыка и приложения продолжают работать, касание экрана зажигает его снова. " +
-                "\"выключи экран\", \"погаси экран\" = off; \"включи экран\" = on.",
+            "Wyłącz lub włącz centralny ekran multimediów (bez zestawu wskaźników i HUD). Gaśnie tylko " +
+                "podświetlenie: muzyka i aplikacje nadal działają, a dotknięcie ekranu włącza go ponownie.",
             JSONObject().put("on", JSONObject().put("type", "boolean")
-                .put("description", "true = включить экран, false = выключить")),
+                .put("description", "true = włączyć ekran, false = wyłączyć")),
             listOf("on"),
         ))
         put(tool(
             "split_screen",
-            "Разделённый экран: два приложения рядом (1/3 + 2/3). " +
-                "action=start — запустить пару (без narrow_app/wide_app = восстановить последнюю пару); " +
-                "mirror — перенести узкую панель на другую сторону; " +
-                "swap — поменять приложения местами; " +
-                "change — заменить приложение в панели (side = сторона экрана, app = приложение); " +
-                "exit — выйти из разделённого режима.",
+            "Podzielony ekran: dwie aplikacje obok siebie (1/3 + 2/3). action=start uruchamia parę " +
+                "(bez narrow_app/wide_app przywraca ostatnią parę); mirror przenosi wąski panel na drugą " +
+                "stronę; swap zamienia aplikacje miejscami; change zmienia aplikację w panelu (side = " +
+                "strona ekranu, app = aplikacja); exit kończy tryb podzielonego ekranu.",
             JSONObject()
                 .put("action", JSONObject().put("type", "string")
                     .put("enum", JSONArray(listOf("start", "mirror", "swap", "change", "exit")))
-                    .put("description", "Операция над разделённым экраном"))
+                    .put("description", "Operacja na podzielonym ekranie"))
                 .put("narrow_app", JSONObject().put("type", "string")
-                    .put("description", "Для action=start: приложение в узкой панели (1/3)"))
+                    .put("description", "Dla action=start: aplikacja w wąskim panelu (1/3)"))
                 .put("wide_app", JSONObject().put("type", "string")
-                    .put("description", "Для action=start: приложение в широкой панели (2/3)"))
+                    .put("description", "Dla action=start: aplikacja w szerokim panelu (2/3)"))
                 .put("side", JSONObject().put("type", "string")
                     .put("enum", JSONArray(listOf("left", "right")))
-                    .put("description", "Для action=start: сторона узкой панели (по умолчанию right). " +
-                        "Для action=change: сторона экрана заменяемой панели"))
+                    .put("description", "Dla action=start: strona wąskim panelu (po domyślnie right). " +
+                        "Dla action=change: strona ekranu zmienianego panelu"))
                 .put("app", JSONObject().put("type", "string")
-                    .put("description", "Только для action=change: новое приложение")),
+                    .put("description", "Tylko dla action=change: nowe aplikacja")),
             listOf("action"),
         ))
         if (includeAutomationTools) {
             put(tool(
                 "create_automation",
-                "Создать новую автоматизацию: \"если <триггер>, то <действия>\". Один триггер, одно или " +
-                    "несколько действий. Триггеры: точное время и расписание (kind=time_range, value=\"HH:MM-HH:MM\", " +
-                    "одинаковые начало и конец = сработать ровно в это время, weekdays = дни недели; пример: " +
-                    "\"каждый будний день в 8:00\" -> value=\"08:00-08:00\", weekdays=[1,2,3,4,5]), " +
-                    "голосовая фраза (kind=voice, поле phrase), кнопка виджета (kind=button_press, поле button), " +
-                    "параметр машины (kind=param), въезд/выезд из места, время суток (kind=time_of_day).",
+                "Utwórz nową automatyzację: „jeśli <wyzwalacz>, to <działania>”. Jeden wyzwalacz i jedno lub " +
+                    "więcej działań. Wyzwalacze: dokładny czas i harmonogram (kind=time_range, value=\"HH:MM-HH:MM\", " +
+                    "identyczny początek i koniec = uruchom dokładnie o tej porze, weekdays = dni tygodnia; przykład: " +
+                    "\"każdy roboczy dzień w 8:00\" -> value=\"08:00-08:00\", weekdays=[1,2,3,4,5]), " +
+                    "fraza głosowa (kind=voice, pole phrase), przycisk widżetu (kind=button_press, pole button), " +
+                    "parametr samochodu (kind=param), wjazd/wyjazd z miejsca, pora dnia (kind=time_of_day).",
                 JSONObject()
                     .put("name", JSONObject().put("type", "string")
-                        .put("description", "Имя автоматизации, должно быть уникальным"))
+                        .put("description", "Nazwa automatyzacji, musi być unikalna"))
                     .put("trigger", JSONObject()
                         .put("type", "object")
-                        .put("description", "Условие срабатывания, ровно один триггер")
+                        .put("description", "Warunek uruchomienia, dokładnie jeden wyzwalacz")
                         .put("properties", JSONObject()
                             .put("kind", JSONObject()
                                 .put("type", "string")
@@ -801,43 +795,43 @@ class AgentTools @Inject constructor(
                                     "param", "place_enter", "place_exit", "time_of_day",
                                     "time_range", "service_start", "network_available",
                                     "voice", "button_press")))
-                                .put("description", "Тип триггера"))
+                                .put("description", "Typ wyzwalacza"))
                             .put("param", JSONObject()
                                 .put("type", "string")
                                 .put("enum", JSONArray(TRIGGER_PARAMS.map { it.param }))
-                                .put("description", "Только для kind=param: параметр машины"))
+                                .put("description", "Tylko dla kind=param: parametr samochodu"))
                             .put("operator", JSONObject()
                                 .put("type", "string")
                                 .put("enum", JSONArray(OPERATORS))
-                                .put("description", "Только для kind=param: оператор сравнения"))
+                                .put("description", "Tylko dla kind=param: operator porównania"))
                             .put("value", JSONObject()
-                                .put("description", "Только для kind=param: пороговое значение. Числовые параметры " +
-                                    "(скорость, SOC, температуры, давление, проценты) — число строкой. " +
-                                    "Параметры-переключатели принимают код ИЛИ название, лучше код: ${enumValueGuide()}. " +
-                                    "ACStatus/FanLevel — числом (ACStatus 1=вкл, 0=выкл). " +
-                                    "Для kind=time_of_day: dawn/day/dusk/night; для kind=time_range: \"HH:MM-HH:MM\" " +
-                                    "(одинаковые начало и конец = сработать ровно в это время)")
+                                .put("description", "Tylko dla kind=param: wartość progu. Parametry liczbowe " +
+                                    "(prędkość, SOC, temperatura, ciśnienie, procenty) podaj jako tekst liczby. " +
+                                    "Parametry przełączników przyjmują kod LUB nazwę, lepiej użyć kodu: ${enumValueGuide()}. " +
+                                    "ACStatus/FanLevel podaj liczbą (ACStatus 1=włączony, 0=wyłączony). " +
+                                    "Dla kind=time_of_day: dawn/day/dusk/night; dla kind=time_range: \"HH:MM-HH:MM\" " +
+                                    "(identyczny początek i koniec = uruchom dokładnie o tej porze)")
                                 .put("anyOf", JSONArray(listOf(
                                     JSONObject().put("type", "string"),
                                     JSONObject()
                                         .put("type", "string")
                                         .put("enum", JSONArray(listOf("dawn", "day", "dusk", "night")))
-                                        .put("description", "Для kind=time_of_day: время суток"),
+                                        .put("description", "Dla kind=time_of_day: czas doby"),
                                 ))))
                             .put("place_name", JSONObject()
                                 .put("type", "string")
-                                .put("description", "Только для kind=place_enter/place_exit: имя сохранённого места"))
+                                .put("description", "Tylko dla kind=place_enter/place_exit: nazwa zapisanego miejsca"))
                             .put("phrase", JSONObject().put("type", "string")
-                                .put("description", "Только для kind=voice: фраза, после которой сработает правило"))
+                                .put("description", "Tylko dla kind=voice: fraza uruchamiająca regułę"))
                             .put("button", JSONObject().put("type", "integer")
-                                .put("description", "Только для kind=button_press: номер кнопки виджета, 1-4"))
+                                .put("description", "Tylko dla kind=button_press: numer przycisku widżetu, 1-4"))
                             .put("weekdays", JSONObject().put("type", "array")
                                 .put("items", JSONObject().put("type", "integer"))
-                                .put("description", "Только для kind=time_range: дни недели, 1=понедельник .. 7=воскресенье. Не указано = каждый день")))
+                                .put("description", "Tylko dla kind=time_range: dni tygodnia, 1=poniedziałek .. 7=niedziela. Brak = każdy dzień")))
                         .put("required", JSONArray(listOf("kind"))))
                     .put("actions", JSONObject()
                         .put("type", "array")
-                        .put("description", "Список действий, минимум одно")
+                        .put("description", "Lista działań, minimum jedno")
                         .put("items", JSONObject()
                             .put("type", "object")
                             .put("properties", JSONObject()
@@ -850,66 +844,66 @@ class AgentTools @Inject constructor(
                                         "cluster_projection", "speak", "agent_query",
                                         "split_screen", "split_screen_close",
                                         "split_screen_toggle", "youtube", "go_home")))
-                                    .put("description", "Тип действия. split_screen_close, " +
-                                        "split_screen_toggle и go_home дополнительных полей не требуют"))
+                                    .put("description", "Typ działania. split_screen_close, " +
+                                        "split_screen_toggle i go_home nie wymagają dodatkowych pól"))
                                 // No second enum: the same ~90 ids already ship with
                                 // vehicle_control, and repeating them here cost ~2 kB of the
                                 // static prefix on every single turn.
                                 .put("command_id", JSONObject()
                                     .put("type", "string")
-                                    .put("description", "Только для kind=param: идентификатор команды " +
-                                        "из списка инструмента vehicle_control"))
+                                    .put("description", "Tylko dla kind=param: identyfikator polecenia " +
+                                        "ze schematu narzędzia vehicle_control"))
                                 .put("value", JSONObject().put("type", "integer")
-                                    .put("description", "Только для kind=param: значение, если команда его требует"))
+                                    .put("description", "Tylko dla kind=param: wartość, jeśli polecenie jej wymaga"))
                                 .put("ms", JSONObject().put("type", "integer")
-                                    .put("description", "Только для kind=delay: пауза в мс, 0..60000"))
+                                    .put("description", "Tylko dla kind=delay: pauza w ms, 0..60000"))
                                 .put("op", JSONObject().put("type", "string")
-                                    .put("description", "Только для kind=media_volume: число / \"+N\" / \"-N\" / mute / unmute"))
+                                    .put("description", "Tylko dla kind=media_volume: liczba / \"+N\" / \"-N\" / mute / unmute"))
                                 .put("title", JSONObject().put("type", "string")
-                                    .put("description", "Только для kind=notification: заголовок"))
+                                    .put("description", "Tylko dla kind=notification: tytuł"))
                                 .put("text", JSONObject().put("type", "string")
-                                    .put("description", "Для kind=notification: текст уведомления. Для kind=speak: текст, который машина озвучит"))
+                                    .put("description", "Dla kind=notification: tekst powiadomienia. Dla kind=speak: tekst, który samochód odczyta"))
                                 .put("phone", JSONObject().put("type", "string")
-                                    .put("description", "Только для kind=call: номер телефона"))
+                                    .put("description", "Tylko dla kind=call: numer telefonu"))
                                 .put("lat", JSONObject().put("type", "number")
-                                    .put("description", "Только для kind=navigate: широта"))
+                                    .put("description", "Tylko dla kind=navigate: szerokość geograficzna"))
                                 .put("lon", JSONObject().put("type", "number")
-                                    .put("description", "Только для kind=navigate: долгота"))
+                                    .put("description", "Tylko dla kind=navigate: długość geograficzna"))
                                 .put("go", JSONObject().put("type", "boolean")
-                                    .put("description", "Только для kind=navigate: true - сразу начать " +
-                                        "движение по маршруту (нажать Поехали), false - только построить"))
+                                    .put("description", "Tylko dla kind=navigate: true - od razu rozpocząć " +
+                                        "prowadzenie po trasie, false - tylko wyznaczyć trasę"))
                                 .put("url", JSONObject().put("type", "string")
-                                    .put("description", "Только для kind=url: ссылка со схемой, например https://"))
+                                    .put("description", "Tylko dla kind=url: łącze ze schematem, na przykład https://"))
                                 .put("mode", JSONObject().put("type", "string")
-                                    .put("description", "Для kind=yandex_music: режим, например mybeat. " +
-                                        "Для kind=youtube: play (включить) или search (открыть поиск), по умолчанию play"))
+                                    .put("description", "Dla kind=yandex_music: tryb, na przykład mybeat. " +
+                                        "Dla kind=youtube: play (włączyć) lub search (otworzyć wyszukiwanie), po domyślnie play"))
                                 .put("query", JSONObject().put("type", "string")
-                                    .put("description", "Только для kind=youtube: что искать на YouTube"))
+                                    .put("description", "Tylko dla kind=youtube: co szukać na YouTube"))
                                 .put("on", JSONObject().put("type", "boolean")
-                                    .put("description", "Для kind=sentry: включить/выключить охрану. Для kind=cluster_projection: true = вывести проекцию на приборку, false = убрать. Для kind=hotspot: включить/выключить точку доступа Wi-Fi. Для kind=screen: включить/выключить центральный экран"))
+                                    .put("description", "Dla kind=sentry: włączyć/wyłączyć ochronę. Dla kind=cluster_projection: true = wyświetlić projekcję na zestaw wskaźników, false = usuń. Dla kind=hotspot: włączyć/wyłączyć punkt dostępu Wi-Fi. Dla kind=screen: włączyć/wyłączyć centralny ekran"))
                                 .put("app", JSONObject().put("type", "string")
-                                    .put("description", "Для kind=app_launch и kind=app_close: название приложения, как на домашнем экране. " +
-                                        "app_close закрывает приложение полностью"))
+                                    .put("description", "Dla kind=app_launch i kind=app_close: nazwa aplikacji taka jak na ekranie głównym. " +
+                                        "app_close zamyka aplikację całkowicie"))
                                 .put("key", JSONObject().put("type", "string")
                                     .put("enum", JSONArray(listOf("play", "pause")))
-                                    .put("description", "Только для kind=media_key: play - играть, pause - пауза. " +
-                                        "Плеер должен быть уже запущен"))
+                                    .put("description", "Tylko dla kind=media_key: play - odtwarzaj, pause - pauza. " +
+                                        "Odtwarzacz musi być już uruchomiony"))
                                 .put("narrow_app", JSONObject().put("type", "string")
-                                    .put("description", "Только для kind=split_screen: приложение в узкой панели (1/3), название как на домашнем экране"))
+                                    .put("description", "Tylko dla kind=split_screen: aplikacja w wąskim panelu (1/3), nazwa jak na ekranie głównym"))
                                 .put("wide_app", JSONObject().put("type", "string")
-                                    .put("description", "Только для kind=split_screen: приложение в широкой панели (2/3), название как на домашнем экране"))
+                                    .put("description", "Tylko dla kind=split_screen: aplikacja w szerokim panelu (2/3), nazwa jak na ekranie głównym"))
                                 .put("side", JSONObject().put("type", "string")
                                     .put("enum", JSONArray(listOf("left", "right")))
-                                    .put("description", "Только для kind=split_screen: сторона узкой панели, left или right (по умолчанию right)"))
+                                    .put("description", "Tylko dla kind=split_screen: strona wąskim panelu, left lub right (po domyślnie right)"))
                                 .put("prompt", JSONObject().put("type", "string")
-                                    .put("description", "Только для kind=agent_query: запрос агенту, ответ будет озвучен")))
+                                    .put("description", "Tylko dla kind=agent_query: pytanie do asystenta, odpowiedź zostanie odczytana")))
                             .put("required", JSONArray(listOf("kind")))))
                     .put("cooldown_seconds", JSONObject()
                         .put("type", "integer")
-                        .put("description", "Минимальный интервал между срабатываниями в секундах, минимум 1, по умолчанию 60"))
+                        .put("description", "Minimalny odstęp między uruchomieniami w sekundach, minimum 1, domyślnie 60"))
                     .put("play_sound", JSONObject()
                         .put("type", "boolean")
-                        .put("description", "Проиграть звуковой сигнал при срабатывании правила, по умолчанию false")),
+                        .put("description", "Odtwórz sygnał dźwiękowy przy uruchomieniu reguły, domyślnie false")),
                 listOf("name", "trigger", "actions"),
             ))
         }
@@ -940,7 +934,7 @@ class AgentTools @Inject constructor(
         // mid-tool-call would silently turn into an error JSON instead of cancelling the session.
         return try {
             if (!allowAutomationTools && call.name in AUTOMATION_TOOLS) {
-                return """{"error":"инструмент ${call.name} недоступен в сессии, запущенной автоматизацией"}"""
+                return """{"error":"narzędzie ${call.name} niedostępny w sesje, uruchomionej przez automatyzację"}"""
             }
             when (call.name) {
                 "get_vehicle_state" -> vehicleState()
@@ -979,7 +973,7 @@ class AgentTools @Inject constructor(
                 "split_screen" -> splitScreen(args)
                 "set_automation_enabled" -> setAutomationEnabled(args)
                 "create_automation" -> createAutomation(args)
-                else -> """{"error":"неизвестный инструмент ${call.name}"}"""
+                else -> """{"error":"nieznane narzędzie ${call.name}"}"""
             }
         } catch (e: CancellationException) {
             throw e
@@ -992,7 +986,7 @@ class AgentTools @Inject constructor(
 
     private suspend fun vehicleState(): String {
         val d = gate.vehicleSnapshot()
-            ?: return """{"error":"нет данных с машины (нет связи или машина спит)"}"""
+            ?: return """{"error":"brak danych z samochodu (brak połączenia lub samochód śpi)"}"""
         val o = JSONObject()
         fun putIf(key: String, v: Any?) { if (v != null) o.put(key, v) }
         // The snapshot is never cleared on transport loss, so the model needs its age to
@@ -1011,11 +1005,11 @@ class AgentTools @Inject constructor(
         // Same 1..5 enum the blow-direction actions write (CommandTranslator ac_wind_mode):
         // the agent could set it but not read it back, which is worse than not having it.
         putIf("ac_wind_mode", when (d.acWindMode) {
-            1 -> "в лицо"
-            2 -> "в лицо и ноги"
-            3 -> "в ноги"
-            4 -> "в ноги и на стекло"
-            5 -> "на стекло"
+            1 -> "na twarz"
+            2 -> "na twarz i nogi"
+            3 -> "na nogi"
+            4 -> "na nogi i szybę"
+            5 -> "na szybę"
             else -> null
         })
         putIf("recirculation_inner", d.acCirc?.let { it == 1 })
@@ -1050,16 +1044,16 @@ class AgentTools @Inject constructor(
         val tirePressures = listOfNotNull(d.tirePressFL, d.tirePressFR, d.tirePressRL, d.tirePressRR)
         if (tirePressures.isNotEmpty() && tirePressures.any { it < TIRE_WARN_MIN_KPA }) {
             o.put("tire_pressure_warning",
-                "давление в одном из колёс ниже нормы, предупреди водителя")
+                "ciśnienie w jednym z kół jest poniżej normy, ostrzeż kierowcę")
         }
-        // Power split between the motors, from the same helper the «Техника» screen uses.
+        // Power split between the motors, from the same helper the «Tekhnika» screen uses.
         // Null = single-motor car or no data; Idle = standing still, where the ratio is noise.
         when (val split = motorSplitPercent(d.motorCurrentFront, d.motorCurrentRear)) {
             is MotorSplit.Share -> {
                 o.put("motor_share_front_pct", split.frontPercent)
                 o.put("motor_share_rear_pct", split.rearPercent)
             }
-            MotorSplit.Idle -> o.put("motor_share", "моторы сейчас не тянут")
+            MotorSplit.Idle -> o.put("motor_share", "silniki obecnie nie napędzają samochodu")
             null -> Unit
         }
         // What the BMS allows right now; the peak on hard acceleration is higher.
@@ -1112,7 +1106,7 @@ class AgentTools @Inject constructor(
         val driverUnbuckled = d.seatbeltFL == 0
         val passengerUnbuckled = d.occupancyFR == 2 && d.seatbeltFR == 0
         if (moving && (driverUnbuckled || passengerUnbuckled)) {
-            o.put("seatbelt_warning", "кто-то не пристёгнут при движении, предупреди водителя")
+            o.put("seatbelt_warning", "ktoś nie ma zapiętego pasa podczas jazdy, ostrzeż kierowcę")
         }
         locationProvider()?.let { (lat, lon) ->
             o.put("gps_lat", lat)
@@ -1190,7 +1184,7 @@ class AgentTools @Inject constructor(
             lon = geo.lon
             location = geo.name.ifBlank { null }
         } else {
-            val gps = locationProvider() ?: return """{"error":"нет GPS и не указан город"}"""
+            val gps = locationProvider() ?: return """{"error":"brak GPS i nie podano miasto"}"""
             lat = gps.first
             lon = gps.second
             location = placeNameAt(lat, lon)
@@ -1222,7 +1216,7 @@ class AgentTools @Inject constructor(
     // into the error JSON the LLM reads back to the driver; only WeatherClient.UserError carries
     // deliberately user-facing Russian text.
     private fun weatherErrorJson(e: Throwable): String {
-        val msg = (e as? WeatherClient.UserError)?.message ?: "погода недоступна"
+        val msg = (e as? WeatherClient.UserError)?.message ?: "pogoda jest niedostępna"
         return JSONObject().put("error", msg).toString()
     }
 
@@ -1232,20 +1226,20 @@ class AgentTools @Inject constructor(
     // only the contact's name, and the ambiguous branch reports only candidate names.
     private suspend fun callContact(args: JSONObject): String {
         val name = args.optString("name").trim()
-        if (name.isEmpty()) return """{"error":"не указано имя"}"""
+        if (name.isEmpty()) return """{"error":"nie podano nazwy"}"""
         val hasPermission = runCatchingCancellable { contactLookup.hasPermission() }.getOrDefault(false)
-        if (!hasPermission) return """{"error":"нет доступа к контактам, включите в Настройках"}"""
+        if (!hasPermission) return """{"error":"brak dostępu do kontaktów, włącz go w ustawieniach"}"""
         val matches = runCatchingCancellable { contactLookup.findByName(name) }
-            .getOrElse { return """{"error":"не удалось прочитать контакты"}""" }
+            .getOrElse { return """{"error":"nie udało się odczytać kontaktów"}""" }
         return when {
-            matches.isEmpty() -> """{"error":"контакт не найден"}"""
+            matches.isEmpty() -> """{"error":"nie znaleziono kontaktu"}"""
             matches.size == 1 -> {
                 val m = matches.first()
                 val action = ActionDef(
                     command = "", displayName = m.name, kind = "call",
                     payload = JSONObject().put("phone", m.phone).put("autoDial", true).toString(),
                 )
-                return confirmDangerous(action, "Звонок: ${m.name}")
+                return confirmDangerous(action, "Połączenie: ${m.name}")
             }
             else -> JSONObject().put("matches", JSONArray(matches.map { it.name })).toString()
         }
@@ -1258,7 +1252,7 @@ class AgentTools @Inject constructor(
     // messages from search engines are English and must never reach the LLM.
     private suspend fun webSearch(args: JSONObject): String {
         val query = args.optString("query").trim()
-        if (query.isEmpty()) return """{"error":"не указан запрос"}"""
+        if (query.isEmpty()) return """{"error":"nie podano zapytanie"}"""
         val exaKey = runCatchingCancellable {
             settingsRepository.getString(SettingsRepository.KEY_EXA_API_KEY, "")
         }.getOrDefault("")
@@ -1284,7 +1278,7 @@ class AgentTools @Inject constructor(
     private suspend fun openRouterWebSearch(conn: LlmConnection, query: String): String {
         val messages = JSONArray()
             .put(JSONObject().put("role", "system").put("content",
-                "Найди в интернете актуальную информацию по запросу пользователя и изложи факты кратко, по-русски, с датами и источниками."))
+                "Znajdź w internecie aktualne informacje na prośbę użytkownika i przedstaw fakty krótko, po polsku, z datami i źródłami."))
             .put(JSONObject().put("role", "user").put("content", query))
         val tools = JSONArray().put(JSONObject().put("type", "openrouter:web_search"))
         val message = openRouterClient.chatRaw(conn.baseUrl, conn.apiKey, conn.model, messages, tools)
@@ -1370,7 +1364,7 @@ class AgentTools @Inject constructor(
         if (socStart != null && socStart !in 0..100) return BAD_ARGS_ERROR
         if (socEnd != null && socEnd !in 0..100) return BAD_ARGS_ERROR
         if (socStart != null && socEnd != null && socEnd <= socStart) {
-            return """{"error":"конечный процент должен быть больше начального"}"""
+            return """{"error":"końcowy procent musi być większy od początkowego"}"""
         }
 
         val kwhFromSoc = if (socStart != null && socEnd != null) {
@@ -1380,7 +1374,7 @@ class AgentTools @Inject constructor(
         } else null
         val kwhManual = if (args.has("kwh")) args.optDouble("kwh").takeIf { it > 0.0 } else null
         val kwh = kwhFromSoc ?: kwhManual
-            ?: return """{"error":"нужен либо процент заряда с и по, либо количество кВтч"}"""
+            ?: return """{"error":"wymagane jest albo procent naładowania z i po, albo liczba kWh"}"""
 
         val spokenTariff = if (args.has("tariff")) {
             args.optDouble("tariff").takeIf { it >= 0.0 } ?: return BAD_ARGS_ERROR
@@ -1388,7 +1382,7 @@ class AgentTools @Inject constructor(
 
         val startTs = args.optString("date").trim().let { dateStr ->
             if (dateStr.isEmpty()) System.currentTimeMillis()
-            else parseDayToNoon(dateStr) ?: return """{"error":"дата должна быть в формате ГГГГ-ММ-ДД"}"""
+            else parseDayToNoon(dateStr) ?: return """{"error":"data powinna być w formacie RRRR-MM-DD"}"""
         }
 
         val cost = chargeCost(spokenTariff, startTs, type, kwh)
@@ -1458,7 +1452,7 @@ class AgentTools @Inject constructor(
         val periodDays = if (args.optString("period") == "month") 30 else 7
         val metrics = runCatchingCancellable { insightsManager.dynamicsFor(periodDays) }
             .getOrElse { return INTERNAL_ERROR }
-        if (metrics.isEmpty()) return """{"error":"недостаточно данных за период"}"""
+        if (metrics.isEmpty()) return """{"error":"za mało danych za ten okres"}"""
         val arr = JSONArray()
         for (m in metrics) {
             arr.put(JSONObject().apply {
@@ -1486,7 +1480,7 @@ class AgentTools @Inject constructor(
 
     // --- control tools ---
 
-    // П7 origin-based defense: a dangerous agent-initiated action never fires
+    // P7 origin-based defense: a dangerous agent-initiated action never fires
     // directly. It shows a confirmation overlay and dispatches ONLY from the
     // user's "confirm" tap (via confirmScope, off the UI thread). Fail-closed:
     // if the overlay cannot be shown (SYSTEM_ALERT_WINDOW not granted), the
@@ -1494,7 +1488,7 @@ class AgentTools @Inject constructor(
     private fun confirmDangerous(action: ActionDef, summary: String): String {
         val shown = confirmGate(
             context,
-            "Голосовой агент",
+            "Agent głosowy",
             summary,
             // Re-read live vehicle data at confirm time (mirrors AutomationEngine ~line 573):
             // the overlay can sit open while the car accelerates, so the >30 km/h unlock
@@ -1503,28 +1497,28 @@ class AgentTools @Inject constructor(
             { },
         )
         return if (shown) {
-            JSONObject().put("ok", true).put("status", "ожидает подтверждения на экране").toString()
+            JSONObject().put("ok", true).put("status", "oczekuje potwierdzenia na ekranie").toString()
         } else {
             JSONObject().put("ok", false)
-                .put("error", "нужно подтверждение на экране, но нет разрешения на оверлей")
+                .put("error", "wymagane jest potwierdzenie na ekranie, ale brak uprawnienia do nakładki")
                 .toString()
         }
     }
 
     private suspend fun vehicleControl(args: JSONObject): String {
         val input = args.optString("command").trim()
-        if (input.isEmpty()) return """{"error":"не указана команда"}"""
+        if (input.isEmpty()) return """{"error":"nie podano polecenie"}"""
         val valueOrNull = if (args.has("value")) args.optInt("value") else null
         // Documented surface is the readable id catalog; raw Chinese strings are
         // still accepted for backward compat (pre-catalog callers, T4 free string).
         val command = AgentCommandCatalog.resolve(input, valueOrNull)
-            ?: input.takeIf { CommandTranslator.resolve(it).isNotEmpty() }
+            ?: input.takeIf { it.removePrefix("迪加") !in CommandTranslator.LOCAL_VOICE_ONLY && CommandTranslator.resolve(it).isNotEmpty() }
             ?: return unknownCommandError(input)
         val snapshot = gate.vehicleSnapshot()
         // Fail-closed, same invariant as VoiceController.execute: getBlockReason()
         // allows window-open when the whole snapshot is missing, so refuse here.
         if (snapshot == null && (ActionDispatcher.isWindowOpenCommand(command) || ActionDispatcher.isSunroofOpenCommand(command))) {
-            return """{"error":"скорость неизвестна, окна и люк не открываю"}"""
+            return """{"error":"prędkość jest nieznana, nie otwieram okien ani szyberdachu"}"""
         }
         val actionDef = ActionDef(command = command, displayName = command, kind = "param")
         if (ActionDispatcher.isDangerousAction(actionDef)) {
@@ -1536,12 +1530,12 @@ class AgentTools @Inject constructor(
 
     private fun unknownCommandError(input: String): String {
         val sample = AgentCommandCatalog.ALL.take(10).joinToString(", ") { it.id }
-        return JSONObject().put("error", "неизвестная команда '$input'. Доступные команды: $sample…").toString()
+        return JSONObject().put("error", "nieznane polecenie: $input. Dostępne polecenia: $sample…").toString()
     }
 
     private suspend fun mediaVolume(args: JSONObject): String {
         val op = args.optString("op").trim()
-        if (op.isEmpty()) return """{"error":"не указана операция"}"""
+        if (op.isEmpty()) return """{"error":"nie podano operacja"}"""
         val result = actionDispatcher.dispatch(
             ActionDef(command = "media_volume", displayName = "media_volume",
                 kind = "media_volume", payload = op),
@@ -1552,23 +1546,23 @@ class AgentTools @Inject constructor(
 
     private suspend fun runAutomation(args: JSONObject): String {
         val name = args.optString("name").trim()
-        if (name.isEmpty()) return """{"error":"не указано имя"}"""
+        if (name.isEmpty()) return """{"error":"nie podano nazwy"}"""
         val rule = ruleDao.getEnabled()
             .firstOrNull { it.name.trim().equals(name, ignoreCase = true) }
-            ?: return """{"error":"автоматизация не найдена"}"""
+            ?: return """{"error":"nie znaleziono automatyzacji"}"""
         return when (val r = automationEngine.fireVoiceRule(rule.id, gate.vehicleSnapshot())) {
             is VoiceFireResult.Fired ->
-                if (r.success) OK else """{"error":"часть действий не выполнилась"}"""
-            VoiceFireResult.Confirming -> """{"ok":true,"status":"ожидает подтверждения на экране"}"""
-            VoiceFireResult.ParkRequired -> """{"error":"выполняется только на паркинге"}"""
-            VoiceFireResult.SpeedUnknown -> """{"error":"скорость неизвестна"}"""
-            VoiceFireResult.NotFound -> """{"error":"автоматизация не найдена"}"""
+                if (r.success) OK else """{"error":"nie wykonano części działań"}"""
+            VoiceFireResult.Confirming -> """{"ok":true,"status":"oczekuje potwierdzenia na ekranie"}"""
+            VoiceFireResult.ParkRequired -> """{"error":"działa tylko na postoju"}"""
+            VoiceFireResult.SpeedUnknown -> """{"error":"prędkość jest nieznana"}"""
+            VoiceFireResult.NotFound -> """{"error":"nie znaleziono automatyzacji"}"""
         }
     }
 
     private suspend fun listAutomations(): String {
         val rules = runCatchingCancellable { ruleDao.getAllList() }
-            .getOrElse { return """{"error":"не удалось прочитать автоматизации"}""" }
+            .getOrElse { return """{"error":"nie udało się odczytać automatyzacji"}""" }
         val arr = JSONArray()
         rules.forEach { rule ->
             arr.put(JSONObject().apply {
@@ -1585,7 +1579,7 @@ class AgentTools @Inject constructor(
 
     private suspend fun listPlaces(): String {
         val places = runCatchingCancellable { placeRepository.getAllSnapshot() }
-            .getOrElse { return """{"error":"не удалось прочитать места"}""" }
+            .getOrElse { return """{"error":"nie udało się odczytać miejsc"}""" }
         val arr = JSONArray()
         places.forEach { p ->
             arr.put(JSONObject()
@@ -1599,14 +1593,14 @@ class AgentTools @Inject constructor(
 
     private suspend fun createPlace(args: JSONObject): String {
         val name = args.optString("name").trim()
-        if (name.isEmpty()) return """{"error":"не указано имя"}"""
-        if (name.length > 40) return """{"error":"имя длиннее 40 символов"}"""
+        if (name.isEmpty()) return """{"error":"nie podano nazwy"}"""
+        if (name.length > 40) return """{"error":"nazwa jest dłuższa niż 40 znaków"}"""
         val existing = runCatchingCancellable { placeRepository.getAllSnapshot() }
-            .getOrElse { return """{"error":"не удалось создать место"}""" }
+            .getOrElse { return """{"error":"nie udało się utwórz miejsce"}""" }
         if (existing.any { it.name.trim().equals(name, ignoreCase = true) }) {
-            return JSONObject().put("error", "место с именем «$name» уже существует").toString()
+            return JSONObject().put("error", "miejsce o nazwie «$name» już istnieje").toString()
         }
-        if (existing.size >= MAX_PLACES) return """{"error":"достигнут предел в 50 мест"}"""
+        if (existing.size >= MAX_PLACES) return """{"error":"osiągnięto limit w 50 miejsc"}"""
         val hasLat = args.has("lat") && !args.isNull("lat")
         val hasLon = args.has("lon") && !args.isNull("lon")
         val coords: Pair<Double, Double> = when {
@@ -1614,19 +1608,19 @@ class AgentTools @Inject constructor(
                 val la = args.optDouble("lat", Double.NaN)
                 val lo = args.optDouble("lon", Double.NaN)
                 if (!la.isFinite() || la !in -90.0..90.0 || !lo.isFinite() || lo !in -180.0..180.0) {
-                    return """{"error":"некорректные координаты"}"""
+                    return """{"error":"nieprawidłowe współrzędne"}"""
                 }
                 la to lo
             }
-            hasLat != hasLon -> return """{"error":"нужны обе координаты lat и lon"}"""
+            hasLat != hasLon -> return """{"error":"wymagane są oba współrzędne lat i lon"}"""
             else -> locationProvider()
-                ?: return """{"error":"нет GPS-позиции; назови координаты или создай место на экране Автоматизации"}"""
+                ?: return """{"error":"brak pozycji GPS; podaj współrzędne albo utwórz miejsce na ekranie Automatyzacje"}"""
         }
         // Same radius bounds as PlaceEditDialog (20..500 m).
         val radius = args.optInt("radius_m", 100).coerceIn(20, 500)
         runCatchingCancellable {
             placeRepository.insert(PlaceEntity(name = name, lat = coords.first, lon = coords.second, radiusM = radius))
-        }.getOrElse { return """{"error":"не удалось создать место"}""" }
+        }.getOrElse { return """{"error":"nie udało się utwórz miejsce"}""" }
         return JSONObject().put("ok", true).put("name", name).put("radius_m", radius).toString()
     }
 
@@ -1647,7 +1641,7 @@ class AgentTools @Inject constructor(
             return JSONObject().put("ok", true).put("forgotten_all", driverMemory.forgetAll()).toString()
         }
         val query = args.optString("fact").trim()
-        if (query.isEmpty()) return """{"error":"не указано, что забыть"}"""
+        if (query.isEmpty()) return """{"error":"nie podano, co zapomnieć"}"""
         return JSONObject().put("ok", true)
             .put("forgotten", JSONArray(driverMemory.forget(query))).toString()
     }
@@ -1661,44 +1655,44 @@ class AgentTools @Inject constructor(
     private fun navApp(args: JSONObject): String =
         if (args.optString("app").trim().equals("maps", ignoreCase = true)) "maps" else ""
 
-    /** Per-command options of a route: «поехали» vs «построй маршрут», and which map app. */
+    /** Per-command options of a route: «jedźmy» vs «wyznacz trasa», and which map app. */
     private data class NavOptions(val go: Boolean = false, val app: String = "")
 
     private suspend fun navigateTo(args: JSONObject): String {
         val destination = args.optString("destination").trim()
-        // «поехали туда» vs «построй маршрут»: only the first one lets us press «Поехали».
+        // «jedźmy tam» vs «wyznacz trasa»: only the first one lets us press «Jedź».
         val opts = NavOptions(args.optBoolean("go", false), navApp(args))
         if (args.has("lat") && args.has("lon")) {
-            val label = destination.ifEmpty { "точка" }
+            val label = destination.ifEmpty { "punkt" }
             return dispatchRoute(args.getDouble("lat"), args.getDouble("lon"), "destination", label, opts)
         }
-        if (destination.isEmpty()) return """{"error":"не указано, куда ехать"}"""
+        if (destination.isEmpty()) return """{"error":"nie podano, dokąd jechać"}"""
         homeWorkTarget(destination)?.let { return navigateHomeWork(it, opts) }
         val placesResult = runCatchingCancellable { placeRepository.getAllSnapshot() }
         val place = placesResult.getOrNull()?.firstOrNull { it.name.equals(destination, ignoreCase = true) }
         if (place != null) return dispatchRoute(place.lat, place.lon, "place", place.name, opts)
         // Free text: geocode (Open-Meteo, city-level) so the Navigator builds a real route from
-        // the current position instead of just opening map search (field defect APK 336: «маршрут
-        // до Орши» opened a search window). Street-level addresses do not geocode and fall back.
+        // the current position instead of just opening map search (field defect APK 336: «trasa
+        // do Orshi» opened a search window). Street-level addresses do not geocode and fall back.
         val geo = runCatchingCancellable { weatherClient.geocode(destination) }
             .getOrNull()?.getOrNull()
         if (geo != null) return dispatchRoute(geo.lat, geo.lon, "destination", geo.name, opts)
-        val result = dispatchNavigate("Навигация", JSONObject().put("query", destination).putApp(opts.app))
+        val result = dispatchNavigate("Nawigacja", JSONObject().put("query", destination).putApp(opts.app))
         if (!result.success) return JSONObject()
-            .put("error", result.reason ?: "не получилось открыть Навигатор").toString()
+            .put("error", result.reason ?: "nie udało się otworzyć Nawigator").toString()
         routeDestination = null
         return JSONObject().put("ok", true).put("mode", "search")
-            .put("note", "точку не удалось найти автоматически, открыт поиск на карте").toString()
+            .put("note", "nie udało się automatycznie znaleźć punktu, otwarto wyszukiwanie na mapie").toString()
     }
 
     private suspend fun searchOnMap(args: JSONObject): String {
         val query = args.optString("query").trim()
-        if (query.isEmpty()) return """{"error":"не указано, что искать"}"""
-        val result = dispatchNavigate("Поиск на карте", JSONObject().put("query", query).putApp(navApp(args)))
+        if (query.isEmpty()) return """{"error":"nie podano, co szukać"}"""
+        val result = dispatchNavigate("Szukaj na mapie", JSONObject().put("query", query).putApp(navApp(args)))
         if (!result.success) return JSONObject()
-            .put("error", result.reason ?: "не получилось открыть Навигатор").toString()
+            .put("error", result.reason ?: "nie udało się otworzyć Nawigator").toString()
         return JSONObject().put("ok", true).put("mode", "search")
-            .put("note", "открыта выдача в Навигаторе, пользователь выберет точку сам").toString()
+            .put("note", "otwarto wyniki wyszukiwania w Nawigatorze; użytkownik sam wybierze punkt").toString()
     }
 
     private suspend fun showPointOnMap(args: JSONObject): String {
@@ -1706,7 +1700,7 @@ class AgentTools @Inject constructor(
         if (destination.isEmpty() && !(args.has("lat") && args.has("lon"))) return BAD_ARGS_ERROR
         // Explicit coordinates take priority; otherwise resolve from saved places or geocode.
         val coords: Triple<Double, Double, String>? = if (args.has("lat") && args.has("lon")) {
-            Triple(args.getDouble("lat"), args.getDouble("lon"), destination.ifEmpty { "точка" })
+            Triple(args.getDouble("lat"), args.getDouble("lon"), destination.ifEmpty { "punkt" })
         } else {
             val place = runCatchingCancellable { placeRepository.getAllSnapshot() }
                 .getOrNull()?.firstOrNull { it.name.equals(destination, ignoreCase = true) }
@@ -1718,48 +1712,57 @@ class AgentTools @Inject constructor(
         // user still sees the point in the Navigator's search results.
         if (coords == null) return searchOnMap(
             JSONObject().put("query", destination).putApp(navApp(args)))
-        val result = dispatchNavigate("Точка на карте",
+        val result = dispatchNavigate("Punkt na mapie",
             JSONObject().put("show", true).put("lat", coords.first)
                 .put("lon", coords.second).put("label", coords.third).putApp(navApp(args)))
         if (!result.success) return JSONObject()
-            .put("error", result.reason ?: "не получилось открыть Навигатор").toString()
+            .put("error", result.reason ?: "nie udało się otworzyć Nawigatora").toString()
         return JSONObject().put("ok", true).put("mode", "show").put("point", coords.third).toString()
     }
 
-    private data class HomeWork(val placeName: String, val shortcut: String)
+    private data class HomeWork(
+        val placeName: String,
+        val shortcut: String,
+        val legacyPlaceName: String? = null,
+    )
 
     private fun homeWorkTarget(destination: String): HomeWork? =
         when (destination.lowercase()) {
+            "dom", "do domu", "mój dom" -> HomeWork("Dom", "home", legacyPlaceName = "Дом")
             "дом", "домой", "до дома", "мой дом", "home" -> HomeWork("Дом", "home")
+            "praca", "do pracy", "moja praca" -> HomeWork("Praca", "work", legacyPlaceName = "Работа")
             "работа", "работу", "на работу", "моя работа", "work" -> HomeWork("Работа", "work")
             else -> null
         }
 
-    // "домой"/"на работу": the BYDMate Place wins (exact coordinates, range assessment works),
+    // Home/work aliases: the BYDMate Place wins (exact coordinates, range assessment works),
     // then the Navigator's own saved Home/Work via its exported shortcut actions.
     private suspend fun navigateHomeWork(target: HomeWork, opts: NavOptions): String {
-        val place = runCatchingCancellable { placeRepository.getAllSnapshot() }
-            .getOrNull()?.firstOrNull { it.name.equals(target.placeName, ignoreCase = true) }
+        val places = runCatchingCancellable { placeRepository.getAllSnapshot() }.getOrNull()
+        val place = places?.firstOrNull { it.name.equals(target.placeName, ignoreCase = true) }
+            ?: target.legacyPlaceName?.let { legacyPlaceName ->
+                places?.firstOrNull { it.name.equals(legacyPlaceName, ignoreCase = true) }
+            }
         if (place != null) return dispatchRoute(place.lat, place.lon, "place", place.name, opts)
-        val result = dispatchNavigate("Навигация",
+        val result = dispatchNavigate("Nawigacja",
             JSONObject().put("shortcut", target.shortcut).put("go", opts.go).putApp(opts.app))
         if (!result.success) return JSONObject().put("error",
-            result.reason ?: ("адрес не найден: добавь Место \"${target.placeName}\" в BYDMate " +
-                "или сохрани точку \"${target.placeName}\" в Навигаторе")).toString()
+            result.reason ?: ("nie znaleziono adresu: dodaj Miejsce \"${target.placeName}\" w BYDMate " +
+                "lub zapisz punkt \"${target.placeName}\" w Nawigatorze")).toString()
         // A new route to a point we do not know: the previous destination is no longer the route.
         routeDestination = null
         return JSONObject().put("ok", true).put("mode", "route").put("target", target.placeName)
-            .put("note", "если адрес \"${target.placeName}\" сохранён в Навигаторе, " +
-                "маршрут построится по нему; запас хода не оценивался, координаты неизвестны").toString()
+            .put("note", "jeśli adres \"${target.placeName}\" jest zapisany w Nawigatorze, " +
+                "trasa zostanie do niego wyznaczona; zasięg nie został oceniony, współrzędne są nieznane").toString()
     }
 
     private suspend fun dispatchRoute(
         lat: Double, lon: Double, labelKey: String, label: String, opts: NavOptions = NavOptions(),
     ): String {
-        val result = dispatchNavigate("Навигация",
+        val result = dispatchNavigate("Nawigacja",
             JSONObject().put("lat", lat).put("lon", lon).put("go", opts.go).putApp(opts.app))
         if (!result.success) return JSONObject()
-            .put("error", result.reason ?: "не получилось открыть Навигатор").toString()
+            .put("error", result.reason ?: "nie udało się otworzyć Nawigatora").toString()
         rememberRoute(lat, lon)
         val json = JSONObject().put("ok", true).put("mode", "route").put(labelKey, label)
         rangeAssessment(lat, lon)?.let { ra ->
@@ -1785,11 +1788,11 @@ class AgentTools @Inject constructor(
             .put("range_km", range)
             .put("enough", range >= distanceKm)
             .put("reserve_km", reserve)
-            .put("note", "distance_km примерное (по прямой с коэффициентом 1.25), не называй его " +
-                "точным остатком пути; точный километраж и время даёт get_route_info во время ведения")
+            .put("note", "distance_km jest przybliżone (w linii prostej ze współczynnikiem 1.25); nie nazywaj go " +
+                "dokładnym pozostałym dystansem; dokładny dystans i czas podaje get_route_info podczas prowadzenia")
         if (range < distanceKm || reserve < distanceKm * 0.2) {
             json.put("charge_note",
-                "заряда впритык или не хватит, предупреди и предложи найти зарядки по пути")
+                "ładunek jest na granicy lub go zabraknie; ostrzeż i zaproponuj znalezienie ładowarek po drodze")
         }
         return json
     }
@@ -1842,8 +1845,8 @@ class AgentTools @Inject constructor(
         val origin = if (city.isNotEmpty()) {
             runCatchingCancellable { weatherClient.geocode(city) }.getOrNull()?.getOrNull()
                 ?.let { LatLon(it.lat, it.lon) }
-                ?: return """{"error":"не нашёл такую точку, уточни название"}"""
-        } else locationProvider()?.let { LatLon(it.first, it.second) } ?: return """{"error":"нет GPS и не указан город"}"""
+                ?: return """{"error":"nie znaleziono takiego miejsca, doprecyzuj nazwę"}"""
+        } else locationProvider()?.let { LatLon(it.first, it.second) } ?: return """{"error":"brak GPS i nie podano miasta"}"""
         val connector = ChargeConnector.parse(args.optString("connector"))
             ?: runCatchingCancellable { settingsRepository.getChargeConnector() }.getOrDefault(ChargeConnector.GBT)
         // The direction of travel belongs to the car, not to a city asked by name.
@@ -1852,7 +1855,7 @@ class AgentTools @Inject constructor(
         val found = runCatchingCancellable {
             chargerSearchClient.find(origin.lat, origin.lon, radiusKm * 1000, connector)
         }.getOrNull()?.getOrNull()
-            ?: return """{"error":"сервис поиска зарядок недоступен, попробуй позже"}"""
+            ?: return """{"error":"usługa wyszukiwania ładowarek jest niedostępna, spróbuj później"}"""
         val choice = ChargerSelection.choose(origin, found.stations, connector, where, trip.course, trip.destination)
         // Counts and modes only: no place, name or coordinate.
         Log.i(TAG, "find_chargers: source=${found.source.code} found=${found.stations.size} picks=${choice.picks.size} " +
@@ -1946,27 +1949,27 @@ class AgentTools @Inject constructor(
     }
 
     private fun chargersNote(choice: ChargerChoice, connector: ChargeConnector, radiusKm: Int, stationScope: Boolean): String {
-        if (choice.picks.isEmpty()) return "в радиусе $radiusKm км зарядок не найдено"
+        if (choice.picks.isEmpty()) return "nie znaleziono ładowarek w promieniu $radiusKm km"
         val parts = mutableListOf<String>()
         when (choice.ahead) {
             AheadOutcome.NOTHING_AHEAD ->
-                parts += "впереди по ходу движения станций не найдено, показаны ближайшие вокруг: скажи об этом"
+                parts += "nie znaleziono stacji na trasie; pokazano najbliższe w pobliżu: powiedz o tym"
             AheadOutcome.NO_COURSE ->
-                parts += "показаны станции вокруг: направление движения неизвестно, машина стоит или проехала мало"
+                parts += "pokazano stacje w pobliżu: kierunek jazdy jest nieznany, samochód stoi albo przejechał niewiele"
             AheadOutcome.DESTINATION ->
-                parts += "станции по пути к точке маршрута, detour_km - лишний крюк по прямой"
+                parts += "stacje są na drodze do celu trasy, detour_km oznacza dodatkowy objazd w linii prostej"
             AheadOutcome.CORRIDOR, AheadOutcome.NOT_ASKED -> Unit
         }
         if (choice.connectorMissing) {
-            parts += "станций с разъёмом ${connector.label} в радиусе нет, показаны станции с другими " +
-                "разъёмами (connector_types): скажи об этом"
+            parts += "w promieniu nie ma stacji ze złączem ${connector.label}; pokazano stacje z innymi " +
+                "złączami (connector_types): powiedz o tym"
         }
-        if (stationScope) parts += "занятость по станции целиком, про разъём машины неизвестно"
+        if (stationScope) parts += "zajętość dotyczy całej stacji, stan złącza samochodu jest nieznany"
         if (choice.picks.any { (it.summary?.unknown ?: 0) > 0 }) {
-            parts += "по части разъёмов (connectors_unknown) нет данных о занятости: так и скажи, не называй их занятыми"
+            parts += "dla części złączy (connectors_unknown) brak danych o zajętości: powiedz to, nie nazywaj ich zajętymi"
         }
-        parts += "distance_km по прямой, по дороге дальше: говори «по прямой»"
-        parts += "когда водитель выберет станцию, вызови navigate_to с её lat и lon"
+        parts += "distance_km jest w linii prostej, drogą będzie dalej: powiedz „w linii prostej”"
+        parts += "gdy kierowca wybierze stację, wywołaj navigate_to z jej lat i lon"
         return parts.joinToString("; ")
     }
 
@@ -1974,11 +1977,11 @@ class AgentTools @Inject constructor(
 
     private suspend fun whereAmI(): String {
         val fix = gpsFixProvider()
-            ?: return """{"error":"нет GPS-позиции машины, не могу определить, где мы"}"""
+            ?: return """{"error":"brak pozycji GPS samochodu, nie mogę określić, gdzie jesteśmy"}"""
         val lat = fix.lat
         val lon = fix.lon
         val client = settlementSearchClient
-            ?: return """{"error":"поиск населённых пунктов недоступен"}"""
+            ?: return """{"error":"wyszukiwanie miejscowości jest niedostępne"}"""
         Log.i(TAG, "where_am_i: request, fix age=${fix.ageMs / 1000}s live=${fix.live}")
         val searchStartMs = nowMs()
         val answer = runCatchingCancellable {
@@ -1986,7 +1989,7 @@ class AgentTools @Inject constructor(
         }.getOrNull()?.getOrElse {
             Log.w(TAG, "where_am_i: search failed: ${it.message}")
             null
-        } ?: return """{"error":"сервис карт недоступен, не могу определить, где мы"}"""
+        } ?: return """{"error":"usługa map jest niedostępna, nie mogę określić, gdzie jesteśmy"}"""
         val latencyMs = nowMs() - searchStartMs
         return when (answer) {
             is SettlementSearchClient.Surroundings.Nearby -> nearbyJson(fix, answer.settlements, latencyMs, client.lastEndpoint)
@@ -2004,7 +2007,7 @@ class AgentTools @Inject constructor(
         val lat = fix.lat
         val lon = fix.lon
         fun km(s: SettlementSearchClient.Settlement) = PlaceGeometry.distanceMeters(lat, lon, s.lat, s.lon) / 1000.0
-        // A lone farmstead is a poor answer to "где я" while any real settlement is around.
+        // A lone farmstead is a poor answer to "where am I" while any real settlement is around.
         val regular = found.filter { it.place != "isolated_dwelling" }
         val nearest = (regular.ifEmpty { found }).sortedBy { km(it) }.take(MAX_SETTLEMENTS)
         val town = found.filter { it.place == "city" || it.place == "town" }.minByOrNull { km(it) }
@@ -2018,16 +2021,16 @@ class AgentTools @Inject constructor(
         staleFixNote(fix)?.let { json.put("fix_note", it) }
         if (nearest.isEmpty()) {
             return json.put("settlements", JSONArray())
-                .put("note", "рядом населённых пунктов в OpenStreetMap не найдено; не называй место наугад")
+                .put("note", "w pobliżu nie znaleziono miejscowości w OpenStreetMap; nie zgaduj lokalizacji")
                 .toString()
         }
         json.put("settlements", JSONArray().apply {
             nearest.forEach { put(settlementJson(lat, lon, it)) }
         })
         if (town != null) json.put("nearest_town", settlementJson(lat, lon, town))
-        return json.put("note", "distance_km - по прямой до центра населённого пункта, direction_from_car - " +
-            "в какой стороне он от машины. Границ в данных нет: даже при малом расстоянии не говори, что машина " +
-            "в нём, говори «примерно N км от X, X к северу от нас». Называй только эти места").toString()
+        return json.put("note", "distance_km to odległość w linii prostej do centrum miejscowości, direction_from_car to " +
+            "strona względem samochodu. Dane nie zawierają granic: nawet przy małej odległości nie mów, że samochód " +
+            "jest w niej; powiedz „około N km od X, X na północ od nas”. Wymieniaj tylko te miejscowości").toString()
     }
 
     /** where_am_i when only Nominatim answered: the address of the point itself, no centres, so
@@ -2053,9 +2056,9 @@ class AgentTools @Inject constructor(
             .putOpt("country", address.country)
             .takeIf { it.length() > 0 }
             ?.let { json.put("address", it) }
-        return json.put("note", "в этом ответе нет расстояний: это адрес точки машины по OpenStreetMap. " +
-            "settlements - населённый пункт из адреса, машина в нём или рядом с ним; address - улица, район, " +
-            "область, страна. Говори «мы в X или рядом, улица Y». Называй только эти места").toString()
+        return json.put("note", "ta odpowiedź nie zawiera odległości: to adres punktu samochodu z OpenStreetMap. " +
+            "settlements to miejscowość z adresu, samochód jest w niej lub obok niej; address to ulica, dzielnica, " +
+            "region i kraj. Powiedz „jesteśmy w X lub obok, ulica Y”. Wymieniaj tylko te miejsca").toString()
     }
 
     /** Null for a fresh fix. A stale fix always gets a hedge, live or seed: the 8 m GPS filter
@@ -2066,11 +2069,11 @@ class AgentTools @Inject constructor(
         if (fix.ageMs <= FRESH_FIX_MS) return null
         val min = fix.ageMs / 60_000L
         return if (fix.live) {
-            "GPS-позиция не обновлялась $min мин: машина могла стоять, либо сигнал пропал - " +
-                "всегда говори «по последним данным»"
+            "pozycja GPS nie była aktualizowana przez $min min: samochód mógł stać albo sygnał zniknął — " +
+                "zawsze mów „według ostatnich danych”"
         } else {
-            "свежего GPS-сигнала после запуска не было, позиция сохранена $min мин назад - говори " +
-                "«по последним данным»"
+            "po uruchomieniu nie było świeżego sygnału GPS, pozycję zapisano $min min temu — mów " +
+                "„według ostatnich danych”"
         }
     }
 
@@ -2101,29 +2104,29 @@ class AgentTools @Inject constructor(
         val destination = args.optString("destination").trim()
         if (destination.isEmpty()) return BAD_ARGS_ERROR
         val gps = locationProvider()
-            ?: return """{"error":"нет GPS-позиции машины"}"""
+            ?: return """{"error":"brak pozycji GPS samochodu"}"""
         val place = runCatchingCancellable { placeRepository.getAllSnapshot() }
             .getOrNull()?.firstOrNull { it.name.equals(destination, ignoreCase = true) }
         val target = if (place != null) Triple(place.lat, place.lon, place.name)
             else runCatchingCancellable { weatherClient.geocode(destination) }
                 .getOrNull()?.getOrNull()?.let { Triple(it.lat, it.lon, it.name) }
-                ?: return """{"error":"не нашёл такую точку, уточни название"}"""
+                ?: return """{"error":"nie znaleziono takiego miejsca, doprecyzuj nazwę"}"""
         val straightKm = PlaceGeometry.distanceMeters(
             gps.first, gps.second, target.first, target.second) / 1000.0
         val distanceKm = (straightKm * ROAD_FACTOR).roundToInt()
         val d = gate.vehicleSnapshot()
-            ?: return """{"error":"нет данных с машины (нет связи или машина спит)"}"""
+            ?: return """{"error":"brak danych z samochodu (brak połączenia lub samochód śpi)"}"""
         val rangeKm = runCatchingCancellable {
             rangeCalculator.estimate(d.soc, d.totalElecConsumption, d.avgBatTemp)
         }.getOrNull()
-            ?: return """{"error":"не хватает данных для оценки запаса хода (нужен пробег с учётом расхода)"}"""
+            ?: return """{"error":"brakuje danych do oceny zasięgu (potrzebny jest przebieg z uwzględnieniem zużycia)"}"""
         return JSONObject()
             .put("destination", target.third)
             .put("distance_km", distanceKm)
             .put("range_km", rangeKm.roundToInt())
             .put("enough", rangeKm.roundToInt() >= distanceKm)
             .put("reserve_km", rangeKm.roundToInt() - distanceKm)
-            .put("note", "расстояние по прямой с дорожным коэффициентом 1.25, оценка примерная")
+            .put("note", "odległość w linii prostej ze współczynnikiem drogowym 1.25; ocena jest przybliżona")
             .toString()
     }
 
@@ -2133,9 +2136,14 @@ class AgentTools @Inject constructor(
         // projected to the cluster. The hub keeps the last 90 s of guidance from the
         // a11y feed / notification channel for moments when no window read succeeds.
         val screen = runCatching { naviScreenProvider() }.getOrNull()
-        val hub = com.bydmate.app.navdata.NavGuidanceHub.snapshot(nowMs())
+        val hub = NavGuidanceHub.snapshot(nowMs())
+        // The direct holder and window are Yandex-specific. A live foreign owner must hide
+        // all of them, including SOC/range and energy fallback, rather than mixing two trips.
+        if (hub.active && hub.owner != NavAppId.YANDEX) {
+            return """{"error":"Brak danych trasy Yandex: inne prowadzenie jest aktywne"}"""
+        }
         if (snap == null && screen == null && !hub.active)
-            return """{"error":"Навигатор не ведёт маршрут, или данных нет: нет уведомления, окно Навигатора не найдено и свежих данных ведения нет"}"""
+            return """{"error":"Nawigator nie prowadzi trasy albo brak danych: nie ma powiadomienia, nie znaleziono okna Nawigatora ani świeżych danych prowadzenia"}"""
         return JSONObject().apply {
             snap?.maneuver?.let { put("maneuver", it) }
             if (snap?.maneuver == null) snap?.maneuverIcon?.let { put("maneuver_icon", it) }
@@ -2152,7 +2160,7 @@ class AgentTools @Inject constructor(
             screen?.exitNumber?.let { put("exit_number", it) }
             // Unified hub fallback: numerics captured by the HUD a11y feed or the
             // notification channel fill gaps left by both direct sources.
-            if (hub.active) {
+            if (hub.active && hub.owner == NavAppId.YANDEX) {
                 if (!has("maneuver")) {
                     com.bydmate.app.navdata.NavManeuverCodes.gaodePhrase(hub.maneuverGaode)
                         ?.let { put("maneuver", it) }
@@ -2179,7 +2187,7 @@ class AgentTools @Inject constructor(
             }
             // Remaining route length: hub numeric first, else the Navigator screen string.
             val remainingRouteKm: Double? =
-                if (hub.active && hub.totalDistMeters > 0) hub.totalDistMeters / 1000.0
+                if (hub.active && hub.owner == NavAppId.YANDEX && hub.totalDistMeters > 0) hub.totalDistMeters / 1000.0
                 else parseDistanceKm(screen?.remainingDistance)
             // Guard capacityKwh > 0 so the division for soc_at_arrival never produces NaN.
             if (routeEst != null && routeEst.capacityKwh > 0 && routeEst.avgKwhPer100 > 0
@@ -2194,22 +2202,22 @@ class AgentTools @Inject constructor(
                     put("soc_at_arrival_percent", socAtArrival.roundToInt().coerceIn(0, 100))
                     put("enough", routeEst.remainingKwh >= needed)
                     if (socAtArrival < 10.0) put("warning",
-                        "на финише останется меньше 10 процентов батареи, предупреди водителя")
-                    put("note", "расход средний по данным приложения, оценка примерная")
+                        "na mecie pozostanie mniej niż 10 procent baterii; ostrzeż kierowcę")
+                    put("note", "zużycie jest średnią z danych aplikacji; ocena jest przybliżona")
                 })
             }
             // Screen values are live; notification age matters only when it is the source.
             put("age_min", if (snap != null) ((nowMs() - snap.postedAtMs) / 60_000L) else 0L)
-            put("note", "данные из уведомления Навигатора, его окна (включая приборку и " +
-                "свёрнутый режим) и накопленных данных ведения (hub_age_sec = их возраст)")
+            put("note", "dane z powiadomienia Nawigatora, jego okna (w tym zestawu wskaźników i " +
+                "trybu zminimalizowanego) oraz zgromadzonych danych prowadzenia (hub_age_sec = ich wiek)")
         }.toString()
     }
 
     private fun formatMeters(meters: Int): String =
-        if (meters >= 1000) String.format(java.util.Locale.US, "%.1f км", meters / 1000.0)
-        else "$meters м"
+        if (meters >= 1000) String.format(java.util.Locale.US, "%.1f km", meters / 1000.0)
+        else "$meters m"
 
-    // Strict full-string match: "124 км", "1,5 км", "800 м", "1 234 км" (thousands
+    // Strict full-string match for a distance with an optional decimal or thousands separator (thousands
     // separators: space or NBSP). Signs, latin units or extra text -> null.
     private fun parseDistanceKm(text: String?): Double? {
         if (text == null) return null
@@ -2224,15 +2232,15 @@ class AgentTools @Inject constructor(
     private fun formatEtaSeconds(seconds: Int): String {
         val min = seconds / 60
         return if (min >= 60)
-            String.format(java.util.Locale.US, "%d ч %02d мин", min / 60, min % 60)
-        else "$min мин"
+            String.format(java.util.Locale.US, "%d godz. %02d min", min / 60, min % 60)
+        else "$min min"
     }
 
     private suspend fun goHomeScreen(): String {
         val result = actionDispatcher.dispatch(
-            ActionDef(command = "", displayName = "Домой", kind = "go_home"), data = null)
+            ActionDef(command = "", displayName = "Strona główna", kind = "go_home"), data = null)
         return if (result.success) """{"ok":true}"""
-        else JSONObject().put("error", result.reason ?: "не получилось").toString()
+        else JSONObject().put("error", result.reason ?: "nie udało się").toString()
     }
 
     private suspend fun playMusic(args: JSONObject): String {
@@ -2241,11 +2249,11 @@ class AgentTools @Inject constructor(
         val payload = if (query.isEmpty()) JSONObject().put("mode", "mybeat")
             else JSONObject().put("mode", mode).put("query", query)
         val result = actionDispatcher.dispatch(
-            ActionDef(command = "", displayName = "Музыка", kind = "yandex_music",
+            ActionDef(command = "", displayName = "Muzyka", kind = "yandex_music",
                 payload = payload.toString()), data = null)
         return if (result.success) JSONObject().put("ok", true)
-            .put("playing", if (query.isEmpty()) "Моя волна" else query).toString()
-        else JSONObject().put("error", result.reason ?: "не получилось включить музыку").toString()
+            .put("playing", if (query.isEmpty()) "Moja fala" else query).toString()
+        else JSONObject().put("error", result.reason ?: "nie udało się włączyć muzyki").toString()
     }
 
     private suspend fun youtubeTool(args: JSONObject): String {
@@ -2257,42 +2265,67 @@ class AgentTools @Inject constructor(
                 payload = JSONObject().put("mode", mode).put("query", query).toString()), data = null)
         return if (result.success) JSONObject().put("ok", true).put(
             if (mode == "play") "playing" else "searching", query).toString()
-        else JSONObject().put("error", result.reason ?: "не получилось открыть YouTube").toString()
+        else JSONObject().put("error", result.reason ?: "nie udało się otworzyć YouTube").toString()
     }
 
     /** Resolve a human app name to (label, packageName) via aliases + launcher labels. */
     private suspend fun resolveLauncherApp(name: String): Built<Pair<String, String>> {
         val apps = runCatchingCancellable { launcherAppsProvider() }.getOrNull()
-            ?: return Built.Error("список приложений недоступен")
-        val needle = name.lowercase()
-        // Alias hit: resolve to the first candidate package present in the launcher list, so an
-        // alias never launches an app this car does not have; miss falls through to label match.
-        val aliasMatch = APP_ALIASES[needle]?.firstNotNullOfOrNull { pkg ->
+            ?: return Built.Error("lista aplikacji jest niedostępna")
+        val needle = normalizedLauncherName(name)
+        // An exact alias keeps its declared package priority. It still resolves through the
+        // launcher list, so a fleet-specific alias cannot launch a package that is absent.
+        val exactAliasMatch = APP_ALIASES.entries.firstOrNull { (alias, _) ->
+            normalizedLauncherName(alias) == needle
+        }?.value?.firstNotNullOfOrNull { pkg ->
             apps.firstOrNull { it.second == pkg }
         }
-        if (aliasMatch != null) return Built.Value(aliasMatch)
-        val exact = apps.filter { it.first.lowercase() == needle }
-        val matches = exact.ifEmpty { apps.filter { it.first.lowercase().contains(needle) } }
+        if (exactAliasMatch != null) return Built.Value(exactAliasMatch)
+
+        // A partial Polish alias is useful when the installed launcher label is external data
+        // (for example, Chinese or Russian). Keep every installed target so a short request
+        // remains ambiguous when it can mean more than one app.
+        val aliasMatches = APP_ALIASES.entries
+            .asSequence()
+            .filter { (alias, _) -> normalizedLauncherName(alias).contains(needle) }
+            .flatMap { (_, packages) -> packages.asSequence() }
+            .mapNotNull { pkg -> apps.firstOrNull { it.second == pkg } }
+            .distinctBy { it.second }
+            .toList()
+        if (aliasMatches.size == 1) return Built.Value(aliasMatches.single())
+
+        val labelExact = apps.filter { normalizedLauncherName(it.first) == needle }
+        val labelMatches = labelExact.ifEmpty {
+            apps.filter { normalizedLauncherName(it.first).contains(needle) }
+        }
+        val matches = (aliasMatches + labelMatches).distinctBy { it.second }
         return when {
-            matches.isEmpty() -> Built.Error("приложение не найдено: $name")
+            matches.isEmpty() -> Built.Error("nie znaleziono aplikacji: $name")
             matches.size > 1 -> Built.Error(
-                "несколько совпадений: ${matches.take(5).joinToString(", ") { it.first }}. Уточни название")
+                "kilka dopasowań: ${matches.take(5).joinToString(", ") { it.first }}. Doprecyzuj nazwę")
             else -> Built.Value(matches.single())
         }
     }
 
+    private fun normalizedLauncherName(value: String): String = buildString {
+        Normalizer.normalize(value, Normalizer.Form.NFD)
+            .lowercase(Locale.ROOT)
+            .filterNot { Character.getType(it) == Character.NON_SPACING_MARK.toInt() }
+            .forEach { append(CYRILLIC_LATIN[it] ?: it) }
+    }
+
     private suspend fun launchAppTool(args: JSONObject): String {
         val name = args.optString("name").trim()
-        if (name.isEmpty()) return """{"error":"не указано название приложения"}"""
+        if (name.isEmpty()) return """{"error":"nie podano nazwy aplikacji"}"""
         val (label, pkg) = when (val r = resolveLauncherApp(name)) {
             is Built.Error -> return JSONObject().put("error", r.message).toString()
             is Built.Value -> r.value
         }
         val result = actionDispatcher.dispatch(
-            ActionDef(command = "", displayName = "Запуск $label", kind = "app_launch",
+            ActionDef(command = "", displayName = "Uruchomienie $label", kind = "app_launch",
                 payload = JSONObject().put("packageName", pkg).toString()), data = null)
         return if (result.success) JSONObject().put("ok", true).put("app", label).toString()
-        else JSONObject().put("error", result.reason ?: "не получилось запустить $label").toString()
+        else JSONObject().put("error", result.reason ?: "nie udało się uruchomić $label").toString()
     }
 
     // --- cluster projection ---
@@ -2302,7 +2335,7 @@ class AgentTools @Inject constructor(
     // verdict in DispatchResult is the honest one and the voice turn waits for exactly one
     // poll (5 s budget) instead of a second 15 s poll of its own.
     private suspend fun setClusterProjection(args: JSONObject): String {
-        if (!args.has("on")) return """{"error":"не указано, включить или выключить проекцию"}"""
+        if (!args.has("on")) return """{"error":"nie podano, czy włączyć czy wyłączyć projekcję"}"""
         val on = args.optBoolean("on")
         val want = if (on) ClusterMode.FULLSCREEN else ClusterMode.OFF
         // Treat an unreadable state as OFF: for on=true we then still actuate (worst case a
@@ -2310,21 +2343,21 @@ class AgentTools @Inject constructor(
         val before = runCatchingCancellable { clusterVoiceControl.projectionMode() }
             .getOrDefault(ClusterMode.OFF)
         val label = runCatchingCancellable { clusterVoiceControl.projectedAppLabel() }
-            .getOrNull() ?: "Навигатор"
+            .getOrNull() ?: "Nawigator"
         if (before == want) return JSONObject().put("ok", true)
-            .put("note", if (on) "$label уже на приборке" else "проекции уже нет на приборке")
+            .put("note", if (on) "$label jest już na zestawie wskaźników" else "projekcji nie ma już na zestawie wskaźników")
             .toString()
         val result = actionDispatcher.dispatch(
-            ActionDef(command = "cluster_projection", displayName = "Вывод на приборку",
+            ActionDef(command = "cluster_projection", displayName = "Wyświetlenie na zestawie wskaźników",
                 kind = "cluster_projection", payload = if (on) "1" else "0"), data = null)
         return when {
             result.success -> JSONObject().put("ok", true).put("app", label).toString()
             // The daemon restart is a "try again in a minute", not a failed command.
             on && result.daemonRestarting -> JSONObject().put("ok", false)
-                .put("note", "служебный процесс перезапускается, попробуй ещё раз через минуту").toString()
+                .put("note", "proces usługi uruchamia się ponownie, spróbuj ponownie za minutę").toString()
             on -> JSONObject().put("error",
-                "проекция не включилась. Попробуй повторить команду через несколько секунд").toString()
-            else -> JSONObject().put("error", "не получилось убрать проекцию с приборки").toString()
+                "projekcja nie została włączona. Spróbuj ponownie za kilka sekund").toString()
+            else -> JSONObject().put("error", "nie udało się usunąć projekcji z zestawu wskaźników").toString()
         }
     }
 
@@ -2333,9 +2366,9 @@ class AgentTools @Inject constructor(
     // DispatchResult carries the real success/failure, unlike a fire-and-forget projection.
     private suspend fun setSentry(args: JSONObject): String {
         val on = requireBoolArg(args, "on")
-            ?: return """{"error":"не указано, включить или выключить охрану"}"""
+            ?: return """{"error":"nie podano, czy włączyć czy wyłączyć ochronę"}"""
         val action = ActionDef(command = "sentry",
-            displayName = if (on) "Включить охрану" else "Выключить охрану",
+            displayName = if (on) "Włącz ochronę" else "Wyłącz ochronę",
             kind = "sentry", payload = if (on) "1" else "0")
         if (ActionDispatcher.isDangerousAction(action)) {
             return confirmDangerous(action, action.displayName)
@@ -2348,9 +2381,9 @@ class AgentTools @Inject constructor(
     // action, so the reported result is the real one.
     private suspend fun setHotspot(args: JSONObject): String {
         val on = requireBoolArg(args, "on")
-            ?: return """{"error":"не указано, включить или выключить точку доступа"}"""
+            ?: return """{"error":"nie podano, czy włączyć czy wyłączyć punkt dostępu"}"""
         val action = ActionDef(command = "hotspot",
-            displayName = if (on) "Включить точку доступа" else "Выключить точку доступа",
+            displayName = if (on) "Włącz punkt dostępu" else "Wyłącz punkt dostępu",
             kind = "hotspot", payload = if (on) "1" else "0")
         if (ActionDispatcher.isDangerousAction(action)) {
             return confirmDangerous(action, action.displayName)
@@ -2363,9 +2396,9 @@ class AgentTools @Inject constructor(
     // automation action, so the reported result is the real one.
     private suspend fun setScreen(args: JSONObject): String {
         val on = requireBoolArg(args, "on")
-            ?: return """{"error":"не указано, включить или выключить экран"}"""
+            ?: return """{"error":"nie podano, czy włączyć czy wyłączyć ekran"}"""
         val action = ActionDef(command = "screen",
-            displayName = if (on) "Включить экран" else "Выключить экран",
+            displayName = if (on) "Włącz ekran" else "Wyłącz ekran",
             kind = "screen", payload = if (on) "1" else "0")
         val result = actionDispatcher.dispatch(action, data = null)
         return dispatchJson(result)
@@ -2406,10 +2439,10 @@ class AgentTools @Inject constructor(
 
     private suspend fun splitScreen(args: JSONObject): String {
         if (!splitPrefs.isFeatureEnabled()) {
-            return """{"error":"разделение экрана выключено в настройках"}"""
+            return """{"error":"podział ekranu jest wyłączony w ustawieniach"}"""
         }
         val mgr = splitMgr
-            ?: return """{"error":"разделение экрана недоступно"}"""
+            ?: return """{"error":"podział ekranu jest niedostępny"}"""
         return when (val action = args.optString("action").trim()) {
             "start" -> {
                 val narrowName = args.optString("narrow_app").trim().takeIf { it.isNotEmpty() }
@@ -2418,7 +2451,7 @@ class AgentTools @Inject constructor(
                     narrowName == null && wideName == null -> {
                         // No apps specified — restore the last saved pair.
                         val result = mgr.startLastPair()
-                            ?: return """{"error":"нет сохранённой пары приложений для восстановления"}"""
+                            ?: return """{"error":"brak zapisanej pary aplikacji do przywrócenia"}"""
                         splitStartResultJson(result)
                     }
                     narrowName != null && wideName != null -> {
@@ -2431,40 +2464,40 @@ class AgentTools @Inject constructor(
                             is Built.Value -> r.value
                         }
                         if (narrowPkg == widePkg) {
-                            return """{"error":"оба приложения одинаковые, выбери разные"}"""
+                            return """{"error":"obie aplikacje są takie same, wybierz różne"}"""
                         }
                         val side = parseSplitSide(args.optString("side"))
                         splitStartResultJson(mgr.start(SplitPair(narrowPkg, widePkg, side)))
                     }
-                    else -> """{"error":"укажи оба приложения (narrow_app и wide_app) или ни одного"}"""
+                    else -> """{"error":"podaj obie aplikacje (narrow_app i wide_app) albo żadnej"}"""
                 }
             }
             "mirror" -> {
                 if (mgr.state.value is SplitSessionState.Idle) {
-                    return """{"error":"сплит не запущен"}"""
+                    return """{"error":"podział ekranu nie jest uruchomiony"}"""
                 }
                 // mirror() is a silent no-op in half a dozen states (pane on the cluster,
-                // move in progress): report the reason instead of an empty "готово".
+                // move in progress): report the reason instead of an empty "done".
                 mgr.mirror()?.let { return JSONObject().put("error", it).toString() }
                 OK
             }
             "swap" -> {
                 if (mgr.state.value is SplitSessionState.Idle) {
-                    return """{"error":"сплит не запущен"}"""
+                    return """{"error":"podział ekranu nie jest uruchomiony"}"""
                 }
                 mgr.swapApps()
                 OK
             }
             "change" -> {
                 val active = mgr.state.value as? SplitSessionState.Active
-                    ?: return """{"error":"сплит не запущен"}"""
+                    ?: return """{"error":"podział ekranu nie jest uruchomiony"}"""
                 val sideStr = args.optString("side").trim()
                 if (sideStr.isEmpty()) {
-                    return """{"error":"не указана сторона (поле side: left или right)"}"""
+                    return """{"error":"nie podano strony (pole side: left albo right)"}"""
                 }
                 val appName = args.optString("app").trim()
                 if (appName.isEmpty()) {
-                    return """{"error":"не указано приложение (поле app)"}"""
+                    return """{"error":"nie podano aplikacji (pole app)"}"""
                 }
                 val (_, newPkg) = when (val r = resolveLauncherApp(appName)) {
                     is Built.Error -> return JSONObject().put("error", r.message).toString()
@@ -2476,18 +2509,18 @@ class AgentTools @Inject constructor(
                 // Reject if the replacement would make both panes show the same app.
                 val otherPkg = if (pane == Pane.NARROW) active.pair.widePkg else active.pair.narrowPkg
                 if (newPkg == otherPkg) {
-                    return """{"error":"оба приложения одинаковые, выбери разные"}"""
+                    return """{"error":"obie aplikacje są takie same, wybierz różne"}"""
                 }
                 splitStartResultJson(mgr.changeApp(pane, newPkg))
             }
             "exit" -> {
                 if (mgr.state.value is SplitSessionState.Idle) {
-                    return """{"error":"сплит не запущен"}"""
+                    return """{"error":"podział ekranu nie jest uruchomiony"}"""
                 }
                 mgr.exit()
                 OK
             }
-            else -> JSONObject().put("error", "неизвестное действие split_screen: $action").toString()
+            else -> JSONObject().put("error", "nieznane działanie split_screen: $action").toString()
         }
     }
 
@@ -2501,30 +2534,30 @@ class AgentTools @Inject constructor(
         // #139: a reboot never enables freeform on firmwares that ignore the flag.
         SplitStartResult.FREEFORM_UNAVAILABLE ->
             if (splitMgr?.freeformUnsupported() == true) {
-                """{"error":"разделение экрана недоступно на прошивке этой машины"}"""
+                """{"error":"podział ekranu jest niedostępny w oprogramowaniu tego samochodu"}"""
             } else {
-                """{"error":"разделение экрана будет доступно после перезагрузки машины"}"""
+                """{"error":"podział ekranu będzie dostępny po ponownym uruchomieniu samochodu"}"""
             }
         SplitStartResult.LAUNCH_FAILED ->
-            """{"error":"не удалось запустить приложение"}"""
+            """{"error":"nie udało się uruchomić aplikacji"}"""
         SplitStartResult.DISABLED ->
-            """{"error":"разделение экрана выключено в настройках"}"""
+            """{"error":"podział ekranu jest wyłączony w ustawieniach"}"""
     }
 
     private suspend fun setAutomationEnabled(args: JSONObject): String {
         val name = args.optString("name").trim()
-        if (name.isEmpty()) return """{"error":"не указано имя"}"""
-        val enabled = requireEnabledArg(args) ?: return """{"error":"не указано значение enabled"}"""
+        if (name.isEmpty()) return """{"error":"nie podano nazwy"}"""
+        val enabled = requireEnabledArg(args) ?: return """{"error":"nie podano wartości enabled"}"""
         val matches = runCatchingCancellable { ruleDao.getAllList() }
-            .getOrElse { return """{"error":"не удалось изменить автоматизацию"}""" }
+            .getOrElse { return """{"error":"nie udało się zmienić automatyzacji"}""" }
             .filter { it.name.trim().equals(name, ignoreCase = true) }
         return when {
-            matches.isEmpty() -> JSONObject().put("error", "автоматизация не найдена: $name").toString()
+            matches.isEmpty() -> JSONObject().put("error", "nie znaleziono automatyzacji: $name").toString()
             matches.size > 1 ->
-                JSONObject().put("error", "несколько автоматизаций с именем $name, переименуйте").toString()
+                JSONObject().put("error", "kilka automatyzacji ma nazwę $name, zmień nazwę").toString()
             else -> {
                 runCatchingCancellable { ruleDao.setEnabled(matches.first().id, enabled) }
-                    .getOrElse { return """{"error":"не удалось изменить автоматизацию"}""" }
+                    .getOrElse { return """{"error":"nie udało się zmienić automatyzacji"}""" }
                 JSONObject().put("ok", true).put("name", name).put("enabled", enabled).toString()
             }
         }
@@ -2532,7 +2565,7 @@ class AgentTools @Inject constructor(
 
     // --- create_automation ---
 
-    /** Result of parsing one trigger/action draft: either a built value, or a fixed Russian error. */
+    /** Result of parsing one trigger/action draft: either a built value or a fixed validation error. */
     private sealed class Built<out T> {
         data class Value<T>(val value: T) : Built<T>()
         data class Error(val message: String) : Built<Nothing>()
@@ -2540,17 +2573,17 @@ class AgentTools @Inject constructor(
 
     private suspend fun createAutomation(args: JSONObject): String {
         val name = args.optString("name").trim()
-        if (name.isEmpty()) return """{"error":"не указано имя"}"""
+        if (name.isEmpty()) return """{"error":"nie podano nazwy"}"""
         val triggerArg = args.optJSONObject("trigger")
-            ?: return """{"error":"не указан триггер"}"""
+            ?: return """{"error":"nie podano wyzwalacza"}"""
         val actionsArg = args.optJSONArray("actions")
-        if (actionsArg == null || actionsArg.length() == 0) return """{"error":"не указаны действия"}"""
+        if (actionsArg == null || actionsArg.length() == 0) return """{"error":"nie podano działań"}"""
 
         val existing = runCatchingCancellable { ruleDao.getAllList() }
-            .getOrElse { return """{"error":"не удалось создать автоматизацию"}""" }
-        if (existing.size >= MAX_AUTOMATIONS) return """{"error":"достигнут предел в 50 автоматизаций"}"""
+            .getOrElse { return """{"error":"nie udało się utworzyć automatyzacji"}""" }
+        if (existing.size >= MAX_AUTOMATIONS) return """{"error":"osiągnięto limit 50 automatyzacji"}"""
         if (existing.any { it.name.trim().equals(name, ignoreCase = true) }) {
-            return JSONObject().put("error", "автоматизация с именем «$name» уже существует").toString()
+            return JSONObject().put("error", "automatyzacja o nazwie «$name» już istnieje").toString()
         }
 
         val trigger = when (val r = buildTrigger(triggerArg)) {
@@ -2567,7 +2600,7 @@ class AgentTools @Inject constructor(
         val actions = mutableListOf<ActionDef>()
         for (i in 0 until actionsArg.length()) {
             val obj = actionsArg.optJSONObject(i)
-                ?: return """{"error":"некорректное описание действия"}"""
+                ?: return """{"error":"nieprawidłowy opis działania"}"""
             when (val r = buildAction(obj)) {
                 is Built.Error -> return JSONObject().put("error", r.message).toString()
                 is Built.Value -> actions += r.value
@@ -2587,22 +2620,22 @@ class AgentTools @Inject constructor(
             confirmBeforeExecute = actions.any { ActionDispatcher.isDangerousAction(it) },
         )
         runCatchingCancellable { RuleInserts.insertWithinLimit(ruleDao, rule, MAX_AUTOMATIONS) }
-            .getOrElse { return """{"error":"не удалось создать автоматизацию"}""" }
-            ?: return """{"error":"достигнут предел в 50 автоматизаций"}"""
-        // One compact Russian line the model is told to read back: the driver hears exactly
+            .getOrElse { return """{"error":"nie udało się utworzyć automatyzacji"}""" }
+            ?: return """{"error":"osiągnięto limit 50 automatyzacji"}"""
+        // One compact Polish line the model is told to read back: the driver hears exactly
         // what was created and catches a wrong threshold or action on the spot.
         return JSONObject()
             .put("ok", true)
             .put("name", name)
             .put("rule", ruleSummary(name, trigger, actions))
-            .put("hint", "скажи «выключи автоматизацию $name» чтобы отключить")
+            .put("hint", "powiedz „wyłącz automatyzację $name”, aby ją wyłączyć")
             .toString()
     }
 
     /** One spoken line describing the rule that was just created, so the model can repeat it
-     *  back instead of an unverifiable "готово". Both display names are already Russian. */
+     *  back instead of an unverifiable "done". Both display names are already Polish. */
     private fun ruleSummary(name: String, trigger: TriggerDef, actions: List<ActionDef>): String =
-        "«$name»: если ${trigger.displayName}, то " + actions.joinToString(", ") { it.displayName }
+        "«$name»: jeśli ${trigger.displayName}, to " + actions.joinToString(", ") { it.displayName }
 
     /** Enum trigger params persist a numeric code; the agent may pass the code ("4") or the
      *  human label it saw in get_vehicle_state ("D"/"d"). Returns the code, or null when the
@@ -2637,11 +2670,11 @@ class AgentTools @Inject constructor(
                 val paramArg = t.optString("param").trim()
                 if (paramArg.equals(PowerStateRuleMigration.PARAM, ignoreCase = true)) return powerStateTrigger(t)
                 val option = TRIGGER_PARAMS.firstOrNull { it.param.equals(paramArg, ignoreCase = true) }
-                    ?: return Built.Error("неизвестный параметр триггера: $paramArg")
+                    ?: return Built.Error("nieznany parametr wyzwalacza: $paramArg")
                 val operator = t.optString("operator").trim()
-                if (operator !in OPERATORS) return Built.Error("недопустимый оператор: $operator")
+                if (operator !in OPERATORS) return Built.Error("niedozwolony operator: $operator")
                 val rawValue = t.optString("value").trim()
-                if (rawValue.isEmpty()) return Built.Error("не указано значение триггера")
+                if (rawValue.isEmpty()) return Built.Error("nie podano wartości wyzwalacza")
                 // Enum params persist a numeric code ("4"=Drive), but the LLM naturally writes
                 // the human label it saw in get_vehicle_state ("D"). The engine parses
                 // value.toDoubleOrNull(), so a raw label silently makes the predicate false
@@ -2651,7 +2684,7 @@ class AgentTools @Inject constructor(
                 val value = if (option.enumValues != null) {
                     resolveEnumCode(option, rawValue)
                         ?: return Built.Error(
-                            "недопустимое значение «$rawValue» для «${option.param}»; допустимо: ${enumValuesHint(option)}")
+                            "niedozwolona wartość «$rawValue» dla «${option.param}»; dozwolone: ${enumValuesHint(option)}")
                 } else rawValue
                 val displayValue = option.localizedEnumLabel(value, context)
                 Built.Value(TriggerDef(
@@ -2664,16 +2697,16 @@ class AgentTools @Inject constructor(
             }
             "place_enter", "place_exit" -> {
                 val placeName = t.optString("place_name").trim()
-                if (placeName.isEmpty()) return Built.Error("не указано имя места")
+                if (placeName.isEmpty()) return Built.Error("nie podano nazwy miejsca")
                 val places = runCatchingCancellable { placeRepository.getAllSnapshot() }
-                    .getOrElse { return Built.Error("не удалось создать автоматизацию") }
+                    .getOrElse { return Built.Error("nie udało się utworzyć automatyzacji") }
                 val matches = places.filter { it.name.trim().equals(placeName, ignoreCase = true) }
                 when {
-                    matches.isEmpty() -> Built.Error("место не найдено: $placeName")
-                    matches.size > 1 -> Built.Error("несколько мест с именем $placeName, переименуйте")
+                    matches.isEmpty() -> Built.Error("nie znaleziono miejsca: $placeName")
+                    matches.size > 1 -> Built.Error("kilka miejsc ma nazwę $placeName, zmień nazwę")
                     else -> {
                         val place = matches.first()
-                        val verb = if (kind == "place_enter") "Въезд в" else "Выезд из"
+                        val verb = if (kind == "place_enter") "Wjazd do" else "Wyjazd z"
                         Built.Value(TriggerDef(
                             param = "Place", chineseName = "位置", operator = "==", value = "enter",
                             displayName = "$verb «${place.name}»",
@@ -2685,7 +2718,7 @@ class AgentTools @Inject constructor(
             "time_of_day" -> {
                 val value = t.optString("value").trim().lowercase()
                 if (value !in setOf("dawn", "day", "dusk", "night")) {
-                    return Built.Error("недопустимое время суток: $value")
+                    return Built.Error("niedozwolona pora dnia: $value")
                 }
                 Built.Value(TriggerDef(
                     param = "TimeOfDay", chineseName = "时间段", operator = "==",
@@ -2698,13 +2731,13 @@ class AgentTools @Inject constructor(
                 val from = parts.getOrNull(0)?.let { hhmmToMinute(it.trim()) }
                 val to = parts.getOrNull(1)?.let { hhmmToMinute(it.trim()) }
                 if (parts.size != 2 || from == null || to == null) {
-                    return Built.Error("неверный формат времени, ожидается HH:MM-HH:MM")
+                    return Built.Error("nieprawidłowy format czasu, oczekiwano HH:MM-HH:MM")
                 }
                 val days = mutableSetOf<Int>()
                 t.optJSONArray("weekdays")?.let { arr ->
                     for (i in 0 until arr.length()) {
                         val day = arr.optInt(i, -1)
-                        if (day !in 1..7) return Built.Error("день недели должен быть числом 1-7 (1=понедельник, 7=воскресенье)")
+                        if (day !in 1..7) return Built.Error("dzień tygodnia musi być liczbą 1-7 (1=poniedziałek, 7=niedziela)")
                         days += day
                     }
                 }
@@ -2716,33 +2749,33 @@ class AgentTools @Inject constructor(
             }
             "service_start" -> Built.Value(TriggerDef(
                 param = "ServiceStart", chineseName = "服务启动", operator = "==", value = "true",
-                displayName = "Запуск приложения", kind = "service_start",
+                displayName = "Uruchomienie aplikacji", kind = "service_start",
             ))
             "network_available" -> Built.Value(TriggerDef(
                 param = "NetworkAvailable", chineseName = "网络可用", operator = "==", value = "true",
-                displayName = "Есть сеть", kind = "network_available",
+                displayName = "Sieć jest dostępna", kind = "network_available",
             ))
             // Mirrors newVoiceTrigger in AutomationScreen.kt: phrase is stored as both value
             // and displayName; collision validation (builtin / taken) runs in createAutomation.
             "voice" -> {
                 val phrase = t.optString("phrase").trim()
-                if (phrase.isEmpty()) return Built.Error("не указана голосовая фраза (поле phrase)")
+                if (phrase.isEmpty()) return Built.Error("nie podano frazy głosowej (pole phrase)")
                 Built.Value(TriggerDef(
                     param = "Voice", chineseName = "语音", operator = "==",
                     value = phrase, displayName = phrase, kind = "voice",
                 ))
             }
             // Mirrors newButtonPressTrigger in AutomationViewModel.kt: value is button number
-            // as string; displayName is "Кнопка N".
+            // as string; displayName is "Przycisk N".
             "button_press" -> {
                 val button = t.optInt("button", -1)
-                if (button !in 1..4) return Built.Error("номер кнопки виджета должен быть от 1 до 4 (поле button)")
+                if (button !in 1..4) return Built.Error("numer przycisku widżetu musi być od 1 do 4 (pole button)")
                 Built.Value(TriggerDef(
                     param = "button", chineseName = "", operator = "==",
-                    value = button.toString(), displayName = "Кнопка $button", kind = "button_press",
+                    value = button.toString(), displayName = "Przycisk $button", kind = "button_press",
                 ))
             }
-            else -> Built.Error("недопустимый тип триггера: $kind")
+            else -> Built.Error("niedozwolony typ wyzwalacza: $kind")
         }
     }
 
@@ -2761,8 +2794,8 @@ class AgentTools @Inject constructor(
         )
         val converted = PowerStateRuleMigration.convert("AND", listOf(legacy), AGENT_POWER_LABELS, driveIsGear = false)
             ?: return Built.Error(
-                "условия PowerState нет: на выключенной машине правило не сработает. " +
-                    "При включении машины: kind=service_start; при движении: param=Gear, value=4")
+                "brak warunku PowerState: reguła nie zadziała przy wyłączonym samochodzie. " +
+                    "Przy uruchomieniu samochodu: kind=service_start; podczas jazdy: param=Gear, value=4")
         return Built.Value(converted.single())
     }
 
@@ -2772,24 +2805,24 @@ class AgentTools @Inject constructor(
             "param" -> {
                 val id = a.optString("command_id").trim()
                 val cmd = AgentCommandCatalog.ALL.firstOrNull { it.id == id }
-                    ?: return Built.Error("неизвестная команда: $id")
+                    ?: return Built.Error("nieznane polecenie: $id")
                 val value = if (a.has("value") && !a.isNull("value")) a.optInt("value") else null
                 val chinese = AgentCommandCatalog.resolve(id, value)
-                    ?: return Built.Error("неверное значение для команды $id")
-                Built.Value(ActionDef(command = chinese, displayName = cmd.ru, kind = "param"))
+                    ?: return Built.Error("nieprawidłowa wartość dla polecenia $id")
+                Built.Value(ActionDef(command = chinese, displayName = cmd.label, kind = "param"))
             }
             "delay" -> {
                 val hasMs = a.has("ms") && !a.isNull("ms")
                 val ms = if (hasMs) a.optInt("ms", -1) else -1
                 if (!hasMs || ms !in 0..MAX_DELAY_MS) {
-                    return Built.Error("не указана длительность паузы (мс, 0..$MAX_DELAY_MS)")
+                    return Built.Error("nie podano czasu pauzy (ms, 0..$MAX_DELAY_MS)")
                 }
-                Built.Value(ActionDef(command = "delay", displayName = "Пауза $ms мс",
+                Built.Value(ActionDef(command = "delay", displayName = "Pauza $ms ms",
                     kind = "delay", payload = ms.toString()))
             }
             "media_volume" -> {
                 val op = a.optString("op").trim()
-                Built.Value(ActionDef(command = "media_volume", displayName = "Громкость $op",
+                Built.Value(ActionDef(command = "media_volume", displayName = "Głośność $op",
                     kind = "media_volume", payload = op))
             }
             // Accept legacy kind names and normalize all three to the canonical "notification".
@@ -2797,14 +2830,14 @@ class AgentTools @Inject constructor(
                 val title = a.optString("title").trim()
                 val text = a.optString("text").trim()
                 val payload = JSONObject().put("title", title).put("text", text).toString()
-                Built.Value(ActionDef(command = "notification", displayName = title.ifBlank { "Уведомление" },
+                Built.Value(ActionDef(command = "notification", displayName = title.ifBlank { "Powiadomienie" },
                     kind = "notification", payload = payload))
             }
             "call" -> {
                 val phone = a.optString("phone").trim()
                 // displayName has no phone number: list_automations serializes it straight back
                 // to the LLM (the payload, which does carry the phone for the dispatcher, never is).
-                Built.Value(ActionDef(command = "call", displayName = "Звонок", kind = "call",
+                Built.Value(ActionDef(command = "call", displayName = "Połączenie", kind = "call",
                     payload = JSONObject().put("phone", phone).put("autoDial", true).toString()))
             }
             "navigate" -> {
@@ -2813,93 +2846,93 @@ class AgentTools @Inject constructor(
                 val lat = if (hasLat) a.optDouble("lat", Double.NaN) else Double.NaN
                 val lon = if (hasLon) a.optDouble("lon", Double.NaN) else Double.NaN
                 if (!hasLat || !hasLon || !lat.isFinite() || !lon.isFinite()) {
-                    return Built.Error("не указаны координаты lat/lon")
+                    return Built.Error("nie podano współrzędnych lat/lon")
                 }
-                Built.Value(ActionDef(command = "navigate", displayName = "Маршрут", kind = "navigate",
+                Built.Value(ActionDef(command = "navigate", displayName = "Trasa", kind = "navigate",
                     payload = JSONObject().put("lat", lat).put("lon", lon)
                         .put("go", a.optBoolean("go", false)).toString()))
             }
             "url" -> {
                 val url = a.optString("url").trim()
-                Built.Value(ActionDef(command = "url", displayName = url.ifBlank { "Ссылка" }, kind = "url",
+                Built.Value(ActionDef(command = "url", displayName = url.ifBlank { "Łącze" }, kind = "url",
                     payload = JSONObject().put("url", url).toString()))
             }
             "yandex_music" -> {
                 val mode = a.optString("mode").trim()
-                if (mode.isEmpty()) return Built.Error("не указан режим Я.Музыки")
-                Built.Value(ActionDef(command = "yandex_music", displayName = "Я.Музыка",
+                if (mode.isEmpty()) return Built.Error("nie podano trybu Yandex Muzyki")
+                Built.Value(ActionDef(command = "yandex_music", displayName = "Yandex Muzyka",
                     kind = "yandex_music", payload = JSONObject().put("mode", mode).toString()))
             }
             "youtube" -> {
                 val query = a.optString("query").trim()
-                if (query.isEmpty()) return Built.Error("не указано, что включить на YouTube (поле query)")
+                if (query.isEmpty()) return Built.Error("nie podano, co włączyć na YouTube (pole query)")
                 val mode = a.optString("mode").trim().takeIf { it == "search" } ?: "play"
                 Built.Value(ActionDef(command = "", displayName = "YouTube: $query", kind = "youtube",
                     payload = JSONObject().put("mode", mode).put("query", query).toString()))
             }
             "go_home" -> Built.Value(
-                ActionDef(command = "", displayName = "Домой", kind = "go_home"))
+                ActionDef(command = "", displayName = "Strona główna", kind = "go_home"))
             "sentry" -> {
-                val on = requireBoolArg(a, "on") ?: return Built.Error("не указано состояние охранного режима")
+                val on = requireBoolArg(a, "on") ?: return Built.Error("nie podano stanu ochrony")
                 Built.Value(ActionDef(command = "sentry",
-                    displayName = if (on) "Включить охрану" else "Выключить охрану",
+                    displayName = if (on) "Włącz ochronę" else "Wyłącz ochronę",
                     kind = "sentry", payload = if (on) "1" else "0"))
             }
             "hotspot" -> {
-                val on = requireBoolArg(a, "on") ?: return Built.Error("для hotspot укажи on: true или false")
+                val on = requireBoolArg(a, "on") ?: return Built.Error("dla hotspot podaj on: true albo false")
                 Built.Value(ActionDef(command = "hotspot",
-                    displayName = if (on) "Включить точку доступа" else "Выключить точку доступа",
+                    displayName = if (on) "Włącz punkt dostępu" else "Wyłącz punkt dostępu",
                     kind = "hotspot", payload = if (on) "1" else "0"))
             }
             "screen" -> {
-                val on = requireBoolArg(a, "on") ?: return Built.Error("для screen укажи on: true или false")
+                val on = requireBoolArg(a, "on") ?: return Built.Error("dla screen podaj on: true albo false")
                 Built.Value(ActionDef(command = "screen",
-                    displayName = if (on) "Включить экран" else "Выключить экран",
+                    displayName = if (on) "Włącz ekran" else "Wyłącz ekran",
                     kind = "screen", payload = if (on) "1" else "0"))
             }
             "app_launch", "app_close" -> {
                 val name = a.optString("app").trim()
-                if (name.isEmpty()) return Built.Error("не указано приложение (поле app)")
+                if (name.isEmpty()) return Built.Error("nie podano aplikacji (pole app)")
                 val (label, pkg) = when (val r = resolveLauncherApp(name)) {
                     is Built.Error -> return r
                     is Built.Value -> r.value
                 }
                 val payload = JSONObject().put("packageName", pkg).put("appLabel", label)
                 Built.Value(if (kind == "app_launch") ActionDef(
-                    command = "", displayName = "Запуск $label", kind = "app_launch",
+                    command = "", displayName = "Uruchomienie $label", kind = "app_launch",
                     payload = payload.put("minimize", false).toString(),
-                ) else ActionDef(command = "", displayName = "Закрыть $label", kind = "app_close",
+                ) else ActionDef(command = "", displayName = "Zamknij $label", kind = "app_close",
                     payload = payload.toString()))
             }
             "media_key" -> {
                 val key = a.optString("key").trim()
-                if (ActionDispatcher.mediaKeyCode(key) == null) return Built.Error("для media_key укажи key: play или pause")
-                Built.Value(ActionDef(command = "", displayName = if (key == "play") "Медиа: играть" else "Медиа: пауза",
+                if (ActionDispatcher.mediaKeyCode(key) == null) return Built.Error("dla media_key podaj key: play albo pause")
+                Built.Value(ActionDef(command = "", displayName = if (key == "play") "Multimedia: odtwarzaj" else "Multimedia: pauza",
                     kind = "media_key", payload = key))
             }
             "cluster_projection" -> {
                 val on = requireBoolArg(a, "on")
-                    ?: return Built.Error("не указано состояние проекции на приборку")
-                Built.Value(ActionDef(command = "cluster_projection", displayName = "Вывод на приборку",
+                    ?: return Built.Error("nie podano stanu projekcji na zestaw wskaźników")
+                Built.Value(ActionDef(command = "cluster_projection", displayName = "Wyświetlenie na zestawie wskaźników",
                     kind = "cluster_projection", payload = if (on) "1" else "0"))
             }
             "speak" -> {
                 val text = a.optString("text").trim()
-                if (text.isEmpty()) return Built.Error("не задан текст для озвучки")
-                Built.Value(ActionDef(command = "", displayName = "Озвучить текст", kind = "speak",
+                if (text.isEmpty()) return Built.Error("nie podano tekstu do odczytania")
+                Built.Value(ActionDef(command = "", displayName = "Odczytaj tekst", kind = "speak",
                     payload = JSONObject().put("text", text).toString()))
             }
             "agent_query" -> {
                 val prompt = a.optString("prompt").trim()
-                if (prompt.isEmpty()) return Built.Error("не задан запрос агенту")
-                Built.Value(ActionDef(command = "", displayName = "Запрос агенту", kind = "agent_query",
+                if (prompt.isEmpty()) return Built.Error("nie podano zapytania do agenta")
+                Built.Value(ActionDef(command = "", displayName = "Zapytanie do agenta", kind = "agent_query",
                     payload = JSONObject().put("prompt", prompt).toString()))
             }
             "split_screen" -> {
                 val narrowName = a.optString("narrow_app").trim()
-                if (narrowName.isEmpty()) return Built.Error("не указано приложение 1/3 (поле narrow_app)")
+                if (narrowName.isEmpty()) return Built.Error("nie podano aplikacji 1/3 (pole narrow_app)")
                 val wideName = a.optString("wide_app").trim()
-                if (wideName.isEmpty()) return Built.Error("не указано приложение 2/3 (поле wide_app)")
+                if (wideName.isEmpty()) return Built.Error("nie podano aplikacji 2/3 (pole wide_app)")
                 val (narrowLabel, narrowPkg) = when (val r = resolveLauncherApp(narrowName)) {
                     is Built.Error -> return r
                     is Built.Value -> r.value
@@ -2910,7 +2943,7 @@ class AgentTools @Inject constructor(
                 }
                 val side = if (a.optString("side").trim().lowercase() == "left") "left" else "right"
                 Built.Value(ActionDef(
-                    command = "", displayName = "Сплит: $narrowLabel + $wideLabel",
+                    command = "", displayName = "Podział ekranu: $narrowLabel + $wideLabel",
                     kind = "split_screen",
                     payload = JSONObject().put("narrow", narrowPkg).put("wide", widePkg)
                         .put("side", side).toString(),
@@ -2919,76 +2952,74 @@ class AgentTools @Inject constructor(
             // Both target the running session, so they carry no payload (mirrors
             // newSplitScreenCloseAction/newSplitScreenToggleAction in AutomationViewModel).
             "split_screen_close" -> Built.Value(ActionDef(
-                command = "", displayName = "Закрыть разделённый экран",
+                command = "", displayName = "Zamknij podzielony ekran",
                 kind = "split_screen_close", payload = null,
             ))
             "split_screen_toggle" -> Built.Value(ActionDef(
-                command = "", displayName = "Переключить разделённый экран",
+                command = "", displayName = "Przełącz podzielony ekran",
                 kind = "split_screen_toggle", payload = null,
             ))
-            else -> Built.Error("недопустимый тип действия: $kind")
+            else -> Built.Error("niedozwolony typ działania: $kind")
         }
     }
 
     private fun triggerErrorText(err: TriggerValidationError): String = when (err) {
-        is TriggerValidationError.ValueNotNumber -> "значение для «${err.param}» должно быть числом"
-        TriggerValidationError.SteeringKeyUnassigned -> "не назначена клавиша руля"
+        is TriggerValidationError.ValueNotNumber -> "wartość dla «${err.param}» musi być liczbą"
+        TriggerValidationError.SteeringKeyUnassigned -> "nie przypisano przycisku kierownicy"
         TriggerValidationError.OneShotInvalid,
         TriggerValidationError.OneShotWithOr,
         TriggerValidationError.OneShotWithEvent,
-        TriggerValidationError.OneShotTwice -> "разовое правило по дате этим инструментом не создаётся"
-        TriggerValidationError.VoicePhraseEmpty -> "не указана голосовая фраза"
+        TriggerValidationError.OneShotTwice -> "to narzędzie nie tworzy jednorazowej reguły według daty"
+        TriggerValidationError.VoicePhraseEmpty -> "nie podano frazy głosowej"
         is TriggerValidationError.VoicePhraseBuiltin ->
-            "эта фраза уже используется встроенной командой «${err.command}», выбери другую"
-        is TriggerValidationError.VoicePhraseTaken -> "эта фраза уже используется автоматизацией «${err.rule}»"
+            "tej frazy używa już wbudowane polecenie «${err.command}», wybierz inną"
+        is TriggerValidationError.VoicePhraseTaken -> "tej frazy używa już automatyzacja «${err.rule}»"
     }
 
     private fun actionErrorJson(err: ActionValidationError): String {
         val msg = when (err) {
-            is ActionValidationError.CommandMissing -> "не указана команда (действие ${err.index})"
-            is ActionValidationError.NotifTitleEmpty -> "не указан заголовок уведомления (действие ${err.index})"
-            is ActionValidationError.AppNotSelected -> "не указано приложение (действие ${err.index})"
-            is ActionValidationError.PhoneInvalid -> "некорректный номер телефона (действие ${err.index})"
-            is ActionValidationError.NavDestMissing -> "не указан пункт назначения (действие ${err.index})"
-            is ActionValidationError.UrlEmpty -> "не указана ссылка (действие ${err.index})"
+            is ActionValidationError.CommandMissing -> "nie podano polecenia (działanie ${err.index})"
+            is ActionValidationError.NotifTitleEmpty -> "nie podano tytułu powiadomienia (działanie ${err.index})"
+            is ActionValidationError.AppNotSelected -> "nie podano aplikacji (działanie ${err.index})"
+            is ActionValidationError.PhoneInvalid -> "nieprawidłowy numer telefonu (działanie ${err.index})"
+            is ActionValidationError.NavDestMissing -> "nie podano celu trasy (działanie ${err.index})"
+            is ActionValidationError.UrlEmpty -> "nie podano łącza (działanie ${err.index})"
             is ActionValidationError.UrlNoScheme ->
-                "ссылка должна начинаться со схемы, например https:// (действие ${err.index})"
-            is ActionValidationError.YandexMusicModeMissing -> "не указан режим Я.Музыки (действие ${err.index})"
-            is ActionValidationError.MediaVolumeMissing -> "не указан уровень громкости (действие ${err.index})"
+                "łącze musi zaczynać się od schematu, na przykład https:// (działanie ${err.index})"
+            is ActionValidationError.YandexMusicModeMissing -> "nie podano trybu Yandex Muzyki (działanie ${err.index})"
+            is ActionValidationError.MediaVolumeMissing -> "nie podano poziomu głośności (działanie ${err.index})"
             is ActionValidationError.SentryInvalid ->
-                "некорректное состояние охранного режима (действие ${err.index})"
+                "nieprawidłowy stan ochrony (działanie ${err.index})"
             is ActionValidationError.HotspotInvalid ->
-                "некорректное состояние точки доступа (действие ${err.index})"
+                "nieprawidłowy stan punktu dostępu (działanie ${err.index})"
             is ActionValidationError.ScreenInvalid ->
-                "некорректное состояние экрана (действие ${err.index})"
+                "nieprawidłowy stan ekranu (działanie ${err.index})"
             is ActionValidationError.MediaKeyInvalid ->
-                "для media_key нужен key: play или pause (действие ${err.index})"
+                "dla media_key potrzebny jest key: play albo pause (działanie ${err.index})"
             is ActionValidationError.SpeakTextEmpty ->
-                "не задан текст для озвучки (действие ${err.index})"
+                "nie podano tekstu do odczytania (działanie ${err.index})"
             is ActionValidationError.AgentQueryPromptEmpty ->
-                "не задан запрос агенту (действие ${err.index})"
+                "nie podano zapytania do agenta (działanie ${err.index})"
             is ActionValidationError.SplitScreenNarrowEmpty ->
-                "не выбрано приложение 1/3 (действие ${err.index})"
+                "nie wybrano aplikacji 1/3 (działanie ${err.index})"
             is ActionValidationError.SplitScreenWideEmpty ->
-                "не выбрано приложение 2/3 (действие ${err.index})"
+                "nie wybrano aplikacji 2/3 (działanie ${err.index})"
             is ActionValidationError.SplitScreenSamePackage ->
-                "оба приложения должны быть разными (действие ${err.index})"
+                "obie aplikacje muszą być różne (działanie ${err.index})"
             is ActionValidationError.SplitScreenInvalidSide ->
-                "неверная сторона split_screen (действие ${err.index})"
+                "nieprawidłowa strona split_screen (działanie ${err.index})"
             is ActionValidationError.TelegramReportEmpty ->
-                "в отчёте в Telegram не выбран ни один пункт (действие ${err.index})"
+                "w raporcie Telegram nie wybrano żadnej pozycji (działanie ${err.index})"
         }
         return JSONObject().put("error", msg).toString()
     }
 
-    // ActionDispatcher's reason is either a Russian safety-gate message meant to be voiced back
-    // (e.g. "скорость выше 80 км/ч") or a raw English exception message from its own catch —
-    // only the former may reach the LLM, so a Cyrillic-letter check gates which one this is.
+    // Only a local safety-gate reason explicitly marked by ActionDispatcher may reach the LLM.
+    // Unmarked reasons can contain raw exception data and must use the generic reply.
     private fun dispatchJson(result: DispatchResult): String {
         if (result.success) return OK
-        val reason = result.reason
-        val safeReason = reason?.takeIf { it.any { c -> c in 'Ѐ'..'ӿ' } }
-        return JSONObject().put("error", safeReason ?: "не выполнено").toString()
+        val safeReason = result.reason?.takeIf { result.trustedLocalizedReason }
+        return JSONObject().put("error", safeReason ?: "nie wykonano").toString()
     }
 
     // --- helpers ---
@@ -2996,8 +3027,9 @@ class AgentTools @Inject constructor(
     private fun periodParam(): JSONObject = JSONObject()
         .put("type", "string")
         .put("enum", JSONArray(listOf("day", "week", "month")))
-        .put("description", "Период от текущего момента: day = 24 часа, week = 7 дней, month = 30 дней. " +
-            "Для конкретного месяца или дат используй from/to вместо period")
+        .put("description", "Okres od bieżącej chwili: day = 24 godziny, week = 7 dni, month = 30 dni. " +
+            "Dla konkretnego miesiąca lub dat użyj from/to zamiast period")
+
 
     private fun tool(
         name: String,
@@ -3030,17 +3062,16 @@ class AgentTools @Inject constructor(
 
         private const val DAY_MS = 24L * 3600_000
         private const val PERIOD_ERROR =
-            """{"error":"укажи period (day/week/month) или даты from и to в формате ГГГГ-ММ-ДД"}"""
+            """{"error":"podaj period (day/week/month) lub daty from i to w formacie RRRR-MM-DD"}"""
         private const val OK = """{"ok":true}"""
-        private const val SEARCH_ERROR = """{"error":"поиск недоступен"}"""
+        private const val SEARCH_ERROR = """{"error":"wyszukiwanie jest niedostępne"}"""
         private const val MAX_AUTOMATIONS = 50
         private const val MAX_DELAY_MS = 60_000
         // The display names buildTrigger gives a service_start and a Gear == 4 trigger.
-        private val AGENT_POWER_LABELS = PowerStateRuleMigration.Labels("Запуск приложения", "Gear == D")
+        private val AGENT_POWER_LABELS = PowerStateRuleMigration.Labels("Uruchomienie aplikacji", "Gear == D")
         private const val MAX_PLACES = 50
-        private const val BAD_ARGS_ERROR = """{"error":"некорректные аргументы"}"""
-        private const val CALL_CONTACT_FAILED = """{"error":"не удалось позвонить"}"""
-        private const val INTERNAL_ERROR = """{"error":"внутренняя ошибка инструмента"}"""
+        private const val BAD_ARGS_ERROR = """{"error":"nieprawidłowe argumenty"}"""
+        private const val INTERNAL_ERROR = """{"error":"błąd wewnętrzny narzędzia"}"""
         // Straight-line distance underestimates real road distance; this fudge factor
         // brings the estimate closer to typical highway/road routing.
         private const val ROAD_FACTOR = 1.25
@@ -3058,11 +3089,11 @@ class AgentTools @Inject constructor(
         // find_chargers: occupancy imported longer ago than this is not "free now".
         private const val STALE_STATUS_MIN = 60L
         private val SETTLEMENT_TYPES = mapOf(
-            "city" to "город", "town" to "город", "village" to "деревня или посёлок",
-            "hamlet" to "деревня", "suburb" to "район города", "isolated_dwelling" to "хутор",
+            "city" to "miasto", "town" to "miasto", "village" to "wieś lub osada",
+            "hamlet" to "wieś", "suburb" to "dzielnica miasta", "isolated_dwelling" to "przysiółek",
         )
         private val COMPASS_RU = listOf(
-            "север", "северо-восток", "восток", "юго-восток", "юг", "юго-запад", "запад", "северо-запад",
+            "północ", "północno-wschód", "wschód", "południowo-wschód", "południe", "południowo-zachód", "zachód", "północno-zachód",
         )
 
         // Any wheel below this is clearly deflated (Leopard 3 cold placard ~250 kPa).
@@ -3072,40 +3103,56 @@ class AgentTools @Inject constructor(
         // alias never drifts from the guidance-source set.
         private val YANDEX_MAPS_PACKAGES = NavPackages.YANDEX_MAPS.toList()
 
-        // RU aliases for stock DiLink apps whose launcher labels are Chinese/English and thus
+        // Polish aliases for stock DiLink apps whose launcher labels are Chinese/English and thus
         // unreachable by label match. Values are candidate packages in priority order; an alias
         // fires only when one of them is actually installed on this car (fleet cars differ).
         // App store and fridge app are excluded deliberately (user decision, 2026-07-05).
         internal val APP_ALIASES: Map<String, List<String>> = mapOf(
-            "навигатор" to listOf("ru.yandex.yandexnavi"),
-            "яндекс навигатор" to listOf("ru.yandex.yandexnavi"),
-            "яндекс карты" to YANDEX_MAPS_PACKAGES,
-            "карты" to YANDEX_MAPS_PACKAGES,
-            "музыка" to listOf("ru.yandex.music"),
-            "яндекс музыка" to listOf("ru.yandex.music"),
-            "камера" to listOf("com.byd.avc"),
-            "камеры" to listOf("com.byd.avc"),
-            "видеорегистратор" to listOf("com.byd.cdr"),
-            "регистратор" to listOf("com.byd.cdr"),
-            "браузер" to listOf("com.android.chrome"),
-            "хром" to listOf("com.android.chrome"),
-            "ютуб" to listOf("anddea.youtube", "com.google.android.youtube"),
-            "настройки машины" to listOf("com.byd.carsettings"),
-            "настройки автомобиля" to listOf("com.byd.carsettings"),
-            "файлы" to listOf("com.byd.filemanager"),
-            "файловый менеджер" to listOf("com.byd.filemanager"),
-            "режимы вождения" to listOf("com.byd.drivemode"),
-            "режим вождения" to listOf("com.byd.drivemode"),
-            "часовой" to listOf("com.byd.sentrymode"),
-            "охрана" to listOf("com.byd.sentrymode"),
-            "охранный режим" to listOf("com.byd.sentrymode"),
-            "абрп" to listOf("com.iternio.abrpapp"),
-            "маршрутный планировщик" to listOf("com.iternio.abrpapp"),
-            "медиацентр" to listOf("com.byd.mediacenter"),
-            "медиа центр" to listOf("com.byd.mediacenter"),
-            "плеер" to listOf("com.byd.mediacenter"),
-            "телефон" to listOf("com.byd.bluetoothcall"),
-            "звонки" to listOf("com.byd.bluetoothcall"),
+            "nawigator" to listOf("ru.yandex.yandexnavi"),
+            "yandex nawigator" to listOf("ru.yandex.yandexnavi"),
+            "yandex mapy" to YANDEX_MAPS_PACKAGES,
+            "mapy" to YANDEX_MAPS_PACKAGES,
+            "muzyka" to listOf("ru.yandex.music"),
+            "yandex muzyka" to listOf("ru.yandex.music"),
+            "kamera" to listOf("com.byd.avc"),
+            "kamery" to listOf("com.byd.avc"),
+            "przeglądarka" to listOf("com.android.chrome"),
+            "chrome" to listOf("com.android.chrome"),
+            "youtube" to listOf("anddea.youtube", "com.google.android.youtube"),
+            "ustawienia" to listOf("com.android.settings"),
+            "ustawienia samochodu" to listOf("com.byd.carsettings"),
+            "ustawienia auta" to listOf("com.byd.carsettings"),
+            "ustawienia pojazdu" to listOf("com.byd.carsettings"),
+            "pliki" to listOf("com.byd.filemanager"),
+            "menedżer plików" to listOf("com.byd.filemanager"),
+            "tryb jazdy" to listOf("com.byd.drivemode"),
+            "tryby jazdy" to listOf("com.byd.drivemode"),
+            "tryb ochrony" to listOf("com.byd.sentrymode"),
+            "ochrona" to listOf("com.byd.sentrymode"),
+            "ochronny tryb" to listOf("com.byd.sentrymode"),
+            "abrp" to listOf("com.iternio.abrpapp"),
+            "planer tras" to listOf("com.iternio.abrpapp"),
+            "centrum multimediów" to listOf("com.byd.mediacenter"),
+            "centrum medialne" to listOf("com.byd.mediacenter"),
+            "odtwarzacz" to listOf("com.byd.mediacenter"),
+            "telefon" to listOf("com.byd.bluetoothcall"),
+            "połączenia" to listOf("com.byd.bluetoothcall"),
+            "wideorejestrator" to listOf("com.byd.cdr"),
+            "rejestrator" to listOf("com.byd.cdr"),
+        )
+
+        // Launcher labels are external data. Transliterate them only for matching; the returned
+        // label remains unchanged, so the user sees the device's own app name in the result.
+        private val CYRILLIC_LATIN = mapOf(
+            '\u0430' to "a", '\u0431' to "b", '\u0432' to "v", '\u0433' to "g",
+            '\u0434' to "d", '\u0435' to "e", '\u0451' to "e", '\u0436' to "zh",
+            '\u0437' to "z", '\u0438' to "i", '\u0439' to "i", '\u043a' to "k",
+            '\u043b' to "l", '\u043c' to "m", '\u043d' to "n", '\u043e' to "o",
+            '\u043f' to "p", '\u0440' to "r", '\u0441' to "s", '\u0442' to "t",
+            '\u0443' to "u", '\u0444' to "f", '\u0445' to "h", '\u0446' to "ts",
+            '\u0447' to "ch", '\u0448' to "sh", '\u0449' to "shch", '\u044a' to "",
+            '\u044b' to "y", '\u044c' to "", '\u044d' to "e", '\u044e' to "yu",
+            '\u044f' to "ya",
         )
     }
 }

@@ -51,11 +51,11 @@ class AgentToolsAutomationAuditTest {
         coEvery { ruleDao.getAllList() } returns emptyList()
         coEvery { ruleDao.insert(any()) } returns 1L
 
-        val ok = create("Пауза", socTrigger, """[{"kind":"delay","ms":60000}]""")
-        val over = create("Длинная", socTrigger, """[{"kind":"delay","ms":60001}]""")
+        val ok = create("Pauza", socTrigger, """[{"kind":"delay","ms":60000}]""")
+        val over = create("Za długa", socTrigger, """[{"kind":"delay","ms":60001}]""")
 
         assertTrue(ok.toString(), ok.getBoolean("ok"))
-        assertEquals("не указана длительность паузы (мс, 0..60000)", over.getString("error"))
+        assertEquals("nie podano czasu pauzy (ms, 0..60000)", over.getString("error"))
         coVerify(exactly = 1) { ruleDao.insert(any()) }
     }
 
@@ -64,9 +64,9 @@ class AgentToolsAutomationAuditTest {
         coEvery { ruleDao.getAllList() } returns emptyList()
         coEvery { ruleDao.getCount() } returns 50
 
-        val out = create("Поздно", socTrigger, """[{"kind":"param","command_id":"windows_close_all"}]""")
+        val out = create("Za późno", socTrigger, """[{"kind":"param","command_id":"windows_close_all"}]""")
 
-        assertEquals("достигнут предел в 50 автоматизаций", out.getString("error"))
+        assertEquals("osiągnięto limit 50 automatyzacji", out.getString("error"))
         coVerify(exactly = 0) { ruleDao.insert(any()) }
     }
 
@@ -74,10 +74,10 @@ class AgentToolsAutomationAuditTest {
     @Test fun `a threshold that is not a number is refused`() = runTest {
         coEvery { ruleDao.getAllList() } returns emptyList()
 
-        val out = create("Мало", """{"kind":"param","param":"SOC","operator":"<","value":"мало"}""",
+        val out = create("Za mało", """{"kind":"param","param":"SOC","operator":"<","value":"mało"}""",
             """[{"kind":"param","command_id":"windows_close_all"}]""")
 
-        assertEquals("значение для «SOC» должно быть числом", out.getString("error"))
+        assertEquals("wartość dla «SOC» musi być liczbą", out.getString("error"))
         coVerify(exactly = 0) { ruleDao.insert(any()) }
     }
 }

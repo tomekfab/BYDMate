@@ -285,8 +285,8 @@ class OffReportTest {
     @Test fun `a late pending report keeps the map link last, the mark goes right above it`() {
         answers = { noNet }
         reads[level] = 2
-        val map = "📍 <a href=\"https://yandex.ru/maps/?pt=1&amp;z=16\">Открыть на карте</a>"
-        arm("a1", "<b>off at ${TelegramReportBuilder.TIME_PLACEHOLDER}</b>\n\n🔋 Заряд <b>64%</b>\n\n$map")
+        val map = "📍 <a href=\"https://yandex.ru/maps/?pt=1&amp;z=16\">Otwórz na mapie</a>"
+        arm("a1", "<b>off at ${TelegramReportBuilder.TIME_PLACEHOLDER}</b>\n\n🔋 Naładowanie <b>64%</b>\n\n$map")
         push(level, 2)
         push(level, 0)
         val offAt = wall
@@ -295,7 +295,7 @@ class OffReportTest {
         answers = { ok }
         arm("b1")
         val stamp = TelegramReportBuilder.formatTime(offAt)
-        assertEquals("<b>off at $stamp</b>\n\n🔋 Заряд <b>64%</b>\n\n<i>(at $stamp)</i>\n\n$map", sent.last().text)
+        assertEquals("<b>off at $stamp</b>\n\n🔋 Naładowanie <b>64%</b>\n\n<i>(at $stamp)</i>\n\n$map", sent.last().text)
     }
 
     @Test fun `a pending file written by 3_19_0 is still delivered, its HTML text as it was`() {

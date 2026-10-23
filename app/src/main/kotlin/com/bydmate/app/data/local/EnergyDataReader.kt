@@ -58,36 +58,36 @@ open class EnergyDataReader @Inject constructor(
      */
     suspend fun diagnose(): String = withContext(Dispatchers.IO) {
         val sb = StringBuilder()
-        sb.appendLine("=== Хранилище BYD ===")
+        sb.appendLine("=== Pamięć BYD ===")
 
         val energyDir = File(ENERGY_DIR_PATH)
-        sb.appendLine("Путь: $ENERGY_DIR_PATH")
-        sb.appendLine("Существует: ${energyDir.exists()}")
+        sb.appendLine("Ścieżka: $ENERGY_DIR_PATH")
+        sb.appendLine("Istnieje: ${energyDir.exists()}")
         sb.appendLine("isDirectory: ${energyDir.isDirectory}")
 
         if (!energyDir.exists()) {
-            sb.appendLine("ОШИБКА: директория не найдена!")
+            sb.appendLine("BŁĄD: nie znaleziono katalogu!")
             return@withContext sb.toString()
         }
 
         // Try listFiles
         val allFiles = energyDir.listFiles()
         if (allFiles == null) {
-            sb.appendLine("listFiles(): null (нет доступа)")
+            sb.appendLine("listFiles(): null (brak dostępu)")
         } else {
-            sb.appendLine("listFiles(): ${allFiles.size} файлов")
+            sb.appendLine("listFiles(): ${allFiles.size} plików")
             allFiles.forEach { f ->
                 sb.appendLine("  ${f.name} (${f.length()} bytes, ${if (f.isFile) "file" else "dir"})")
             }
         }
 
         // Try known names
-        sb.appendLine("\nПроверка известных имён:")
+        sb.appendLine("\nSprawdzanie znanych nazw:")
         for (name in KNOWN_DB_NAMES) {
             val f = File(energyDir, name)
             val status = when {
-                !f.exists() -> "не найден"
-                f.length() == 0L -> "пустой"
+                !f.exists() -> "nie znaleziony"
+                f.length() == 0L -> "pusty"
                 else -> "${f.length()} bytes, canRead=${f.canRead()}"
             }
             sb.appendLine("  $name: $status")
@@ -96,15 +96,15 @@ open class EnergyDataReader @Inject constructor(
         // Try to find and read the DB
         val sourceDb = findDbViaListFiles(energyDir) ?: findDbViaKnownNames(energyDir)
         if (sourceDb == null) {
-            sb.appendLine("\nОШИБКА: не удалось найти БД!")
+            sb.appendLine("\nBŁĄD: nie udało się znaleźć baza danych!")
             return@withContext sb.toString()
         }
 
-        sb.appendLine("\nИсточник: ${sourceDb.name} (${sourceDb.length()} bytes)")
+        sb.appendLine("\nŹródło: ${sourceDb.name} (${sourceDb.length()} bajtów)")
 
         try {
             val localDb = copyToLocal(sourceDb)
-            sb.appendLine("Копия: ${localDb.absolutePath} (${localDb.length()} bytes)")
+            sb.appendLine("Kopia: ${localDb.absolutePath} (${localDb.length()} bytes)")
 
             // READWRITE on our private copy: read-only open cannot replay the -wal sidecar.
             val db = SQLiteDatabase.openDatabase(
@@ -116,17 +116,17 @@ open class EnergyDataReader @Inject constructor(
                 database.rawQuery(
                     "SELECT name FROM sqlite_master WHERE type='table'", null
                 ).use { c -> while (c.moveToNext()) tables.add(c.getString(0)) }
-                sb.appendLine("\n=== Таблицы в БД ===")
+                sb.appendLine("\n=== Tabele w bazie danych ===")
                 sb.appendLine(tables.joinToString(", "))
 
                 if (!tables.contains("EnergyConsumption")) {
-                    sb.appendLine("ОШИБКА: таблица EnergyConsumption не найдена!")
+                    sb.appendLine("BŁĄD: nie znaleziono tabeli EnergyConsumption!")
                     return@withContext sb.toString()
                 }
 
                 // Columns
                 database.rawQuery("PRAGMA table_info(EnergyConsumption)", null).use { c ->
-                    sb.appendLine("\n=== Колонки EnergyConsumption ===")
+                    sb.appendLine("\n=== Kolumny EnergyConsumption ===")
                     while (c.moveToNext()) {
                         sb.appendLine("  ${c.getString(1)} (${c.getString(2)})")
                     }
@@ -140,13 +140,13 @@ open class EnergyDataReader @Inject constructor(
                     "SELECT COUNT(*) FROM EnergyConsumption WHERE is_deleted = 0", null
                 ).use { c -> if (c.moveToFirst()) c.getInt(0) else 0 }
 
-                sb.appendLine("\n=== Строки ===")
-                sb.appendLine("Всего: $totalCount")
-                sb.appendLine("Активных (is_deleted=0): $activeCount")
-                sb.appendLine("Удалённых: ${totalCount - activeCount}")
+                sb.appendLine("\n=== Wiersze ===")
+                sb.appendLine("Łącznie: $totalCount")
+                sb.appendLine("Aktywne (is_deleted=0): $activeCount")
+                sb.appendLine("Usunięte: ${totalCount - activeCount}")
 
                 // Sample data (first 5)
-                sb.appendLine("\n=== Примеры данных (первые 5) ===")
+                sb.appendLine("\n=== Przykładowe dane (pierwsze 5) ===")
                 database.rawQuery(
                     """SELECT _id, start_timestamp, end_timestamp, duration, trip, electricity, is_deleted
                        FROM EnergyConsumption
@@ -171,7 +171,7 @@ open class EnergyDataReader @Inject constructor(
                 }
             }
         } catch (e: Exception) {
-            sb.appendLine("ОШИБКА при чтении БД: ${e.message}")
+            sb.appendLine("BŁĄD podczas odczytu bazy danych: ${e.message}")
         }
 
         sb.toString()
@@ -272,14 +272,14 @@ open class EnergyDataReader @Inject constructor(
         val energyDir = energyDataDir()
         if (!energyDir.exists()) {
             Log.w(TAG, "readTrips: directory ${energyDir.path} missing — throwing")
-            throw EnergyDataException("Директория energydata не найдена: ${energyDir.path}")
+            throw EnergyDataException("Nie znaleziono katalogu energydata: ${energyDir.path}")
         }
 
         val sourceDb = findDbViaListFiles(energyDir)
             ?: findDbViaKnownNames(energyDir)
             ?: run {
                 Log.w(TAG, "readTrips: no .db files in ${energyDir.path} — throwing")
-                throw EnergyDataException("Не найдены файлы БД в ${energyDir.path}")
+                throw EnergyDataException("Nie znaleziono plików bazy danych w ${energyDir.path}")
             }
         Log.i(TAG, "readTrips: source=${sourceDb.name} size=${sourceDb.length()}B")
 
@@ -355,7 +355,7 @@ open class EnergyDataReader @Inject constructor(
 
     internal fun copyToLocal(source: File): File {
         val extDir = context.getExternalFilesDir(null)
-            ?: throw EnergyDataException("ExternalFilesDir не доступен")
+            ?: throw EnergyDataException("ExternalFilesDir jest niedostępny")
         val localFile = File(extDir, LOCAL_DB_NAME)
         copyFile(source, localFile)
         // WAL may hold committed trips the main file does not have yet (AC-04):

@@ -2,6 +2,7 @@ package com.bydmate.app.media
 
 import android.app.Notification
 import android.widget.RemoteViews
+import com.bydmate.app.navdata.NavManeuverCodes
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -21,6 +22,8 @@ class NaviNotificationParserTest {
         NaviNotificationParser.RvAction(view, method, value)
 
     @Test fun `maps content actions to maneuver distance street`() {
+        // POLISH-ONLY-EXCEPTION: yandex-input begin
+        // These values are unmodified external Yandex notification input.
         val parsed = NaviNotificationParser.fromActions(
             content = listOf(
                 rv("primaryIconTinted", "setImageResource", "notification_right_sdl"),
@@ -32,11 +35,13 @@ class NaviNotificationParserTest {
                 rv("124", "setText", "42 км"),
             ),
         )
-        assertEquals("направо", parsed.maneuver)
+        assertEquals("w prawo", parsed.maneuver)
         assertEquals("notification_right_sdl", parsed.maneuverResource)
+        assertEquals(2, NavManeuverCodes.fromNotificationRes(parsed.maneuverResource))
         assertEquals("350 м", parsed.distance)
         assertEquals("улица Ленина", parsed.street)
         assertEquals(listOf("18:40", "42 км"), parsed.bigTexts)
+        // POLISH-ONLY-EXCEPTION: yandex-input end
     }
 
     @Test fun `unknown maneuver resource keeps raw name with null phrase`() {
@@ -46,6 +51,16 @@ class NaviNotificationParserTest {
         )
         assertNull(parsed.maneuver)
         assertEquals("notification_new_thing", parsed.maneuverResource)
+    }
+
+    @Test fun `Polish maneuver label keeps Yandex icon numeric HUD arrow`() {
+        val parsed = NaviNotificationParser.fromActions(
+            content = listOf(rv("primaryIconTinted", "setImageResource", "notification_right_sdl")),
+            big = emptyList(),
+        )
+
+        assertEquals("w prawo", parsed.maneuver)
+        assertEquals(2, NavManeuverCodes.fromNotificationRes(parsed.maneuverResource))
     }
 
     @Test fun `empty actions produce empty parsed`() {
@@ -61,6 +76,7 @@ class NaviNotificationParserTest {
     @Test fun `parse extracts setText action from real contentView`() {
         val ctx = RuntimeEnvironment.getApplication()
         val views = RemoteViews(ctx.packageName, android.R.layout.simple_list_item_1)
+        // POLISH-ONLY-EXCEPTION: yandex-input begin
         views.setTextViewText(android.R.id.text1, "350 м")
         @Suppress("DEPRECATION")
         val notification = Notification().apply { contentView = views }
@@ -70,6 +86,7 @@ class NaviNotificationParserTest {
         }
 
         assertEquals("350 м", parsed.distance)
+        // POLISH-ONLY-EXCEPTION: yandex-input end
     }
 
     @Test fun `parse survives notification without custom views`() {

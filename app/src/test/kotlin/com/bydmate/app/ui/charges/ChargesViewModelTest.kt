@@ -564,7 +564,7 @@ class ChargesViewModelTest {
     }
 
     /**
-     * #224: the raw SoH reaches the divisor, as on «Техника». sohFactor drops SoH below 50 % to
+* #224: the raw SoH reaches the divisor, as on Technical data. sohFactor drops SoH below 50 % to
      * 1.0, which would have divided by the full nominal instead of nominal × (100 + 40) / 200.
      */
     @Test
@@ -674,7 +674,7 @@ class ChargesViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
 
         val draft = vm.uiState.value.editingCharge
-        assertTrue("editingCharge должен быть установлен", draft != null)
+        assertTrue("editingCharge must be set", draft != null)
         assertEquals(0L, draft!!.id)
         assertEquals("manual", draft.detectionSource)
         assertEquals("AC", draft.type)
@@ -699,7 +699,7 @@ class ChargesViewModelTest {
         vm.onSaveEdit(draft)
         testDispatcher.scheduler.advanceUntilIdle()
 
-        assertTrue("insert должен быть вызван", dao.lastInserted != null)
+        assertTrue("insert must be called", dao.lastInserted != null)
         assertEquals(12.5, dao.lastInserted!!.kwhCharged!!, 0.0001)
         assertEquals("manual", dao.lastInserted!!.detectionSource)
         assertEquals(null, dao.lastUpdated)
@@ -718,7 +718,7 @@ class ChargesViewModelTest {
         vm.onSaveEdit(edited)
         testDispatcher.scheduler.advanceUntilIdle()
 
-        assertTrue("update должен быть вызван", dao.lastUpdated != null)
+        assertTrue("update must be called", dao.lastUpdated != null)
         assertEquals(7L, dao.lastUpdated!!.id)
         assertEquals(9.9, dao.lastUpdated!!.kwhCharged!!, 0.0001)
         assertEquals("DC", dao.lastUpdated!!.type)

@@ -9,29 +9,29 @@ import org.junit.Test
 class VoicePhraseTest {
     // Collisions are as exact as matching: another inflection is another phrase.
     @Test fun `inflections normalize apart`() {
-        assertNotEquals(VoicePhrase.normalize("форточка"), VoicePhrase.normalize("форточки"))
-        assertNotEquals(VoicePhrase.normalize("открой окно"), VoicePhrase.normalize("открой окна"))
+        assertNotEquals(VoicePhrase.normalize("okienko"), VoicePhrase.normalize("okienka"))
+        assertNotEquals(VoicePhrase.normalize("otwórz okno"), VoicePhrase.normalize("otwórz okna"))
     }
     @Test fun `strips punctuation and case and collapses spaces`() {
-        assertEquals("поехали домой", VoicePhrase.normalize("  Поехали, домой!  "))
+        assertEquals("jedź do domu", VoicePhrase.normalize("  Jedź do domu!  "))
     }
     @Test fun `blank yields blank`() {
         assertEquals("", VoicePhrase.normalize("   "))
     }
 
-    @Test fun `yo and fillers normalize away`() {
-        assertEquals(VoicePhrase.normalize("елка"), VoicePhrase.normalize("Эй, ёлка, пожалуйста"))
+    @Test fun `Polish fillers normalize away`() {
+        assertEquals(VoicePhrase.normalize("choinka"), VoicePhrase.normalize("Ej, choinka, proszę"))
     }
 
     @Test fun `exactness compares words without stemming`() {
-        assertFalse(VoicePhrase.isExact("открой окно", "открой окна"))
-        assertTrue(VoicePhrase.isExact("слушай открой окно пожалуйста", "открой окно"))
-        assertTrue(VoicePhrase.isExact("Открой, ёлку!", "открой елку"))
-        assertFalse(VoicePhrase.isExact("пожалуйста", "пожалуйста"))
+        assertFalse(VoicePhrase.isExact("otwórz okno", "otwórz okna"))
+        assertTrue(VoicePhrase.isExact("słuchaj otwórz okno proszę", "otwórz okno"))
+        assertTrue(VoicePhrase.isExact("Otwórz choinkę!", "otwórz choinkę"))
+        assertFalse(VoicePhrase.isExact("proszę", "proszę"))
     }
 
     @Test fun `a phrase inside a longer utterance is not exact`() {
-        assertFalse(VoicePhrase.isExact("открой окно в машине", "окно в"))
-        assertFalse(VoicePhrase.isExact("окновать", "окно"))
+        assertFalse(VoicePhrase.isExact("otwórz okno w samochodzie", "okno w"))
+        assertFalse(VoicePhrase.isExact("okienkować", "okno"))
     }
 }

@@ -27,7 +27,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 
-/** The Automation tab's words: card phrase, last result, journal lines, what «Сохранить» misses. */
+/** The Automation tab's words: card phrase, last result, journal lines, what Save misses. */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29])
 class RuleTextTest {
@@ -36,7 +36,7 @@ class RuleTextTest {
     private val zone: ZoneId = ZoneOffset.UTC
     private val now = LocalDateTime.of(2026, 9, 27, 10, 0).atZone(zone).toInstant().toEpochMilli()
 
-    @Before fun setUp() { LocalePreferences(ctx).setLanguage("ru") }
+    @Before fun setUp() { LocalePreferences(ctx).setLanguage("pl") }
 
     private fun ms(y: Int, m: Int, d: Int, h: Int, min: Int) =
         LocalDateTime.of(y, m, d, h, min).atZone(zone).toInstant().toEpochMilli()
@@ -50,82 +50,82 @@ class RuleTextTest {
     // --- Conditions, every kind ---
 
     @Test fun `numeric param with unit and word operator`() =
-        assertEquals("Скорость меньше 5 км/ч", phrase(listOf(param("Speed", "<", "5"))))
+        assertEquals("Prędkość poniżej 5 km/h", phrase(listOf(param("Speed", "<", "5"))))
 
     @Test fun `every operator reads as a word`() {
-        val words = listOf(">" to "больше", "<" to "меньше", ">=" to "не меньше", "<=" to "не больше", "==" to "равно", "!=" to "не равно")
+        val words = listOf(">" to "powyżej", "<" to "poniżej", ">=" to "co najmniej", "<=" to "co najwyżej", "==" to "równe", "!=" to "różne od")
         for ((op, word) in words) assertEquals("SOC $word 20%", phrase(listOf(param("SOC", op, "20"))))
     }
 
     @Test fun `hint units in brackets stay out`() =
-        assertEquals("Датчик дождя больше 0", phrase(listOf(param("Rain", ">", "0"))))
+        assertEquals("Czujnik deszczu powyżej 0", phrase(listOf(param("Rain", ">", "0"))))
 
     @Test fun `enum equals and not equals`() {
-        assertEquals("Передача P", phrase(listOf(param("Gear", "==", "1"))))
-        assertEquals("Передача не D", phrase(listOf(param("Gear", "!=", "4"))))
-        assertEquals("Режим вождения снег", phrase(listOf(param("DriveMode", "==", "4"))))
+        assertEquals("Bieg P", phrase(listOf(param("Gear", "==", "1"))))
+        assertEquals("Bieg nie D", phrase(listOf(param("Gear", "!=", "4"))))
+        assertEquals("Tryb jazdy śnieg", phrase(listOf(param("DriveMode", "==", "4"))))
     }
 
-    @Test fun `doors are named in full`() {
-        assertEquals("Дверь водителя открыта", phrase(listOf(param("DoorFL", "==", "1"))))
-        assertEquals("Дверь сзади справа закрыта", phrase(listOf(param("DoorRR", "==", "0"))))
-        assertEquals("Окно сзади слева больше 50% откр.", phrase(listOf(param("WindowRL", ">", "50"))))
+    @Test fun `doors use Polish plural state forms and other opening labels stay unchanged`() {
+        assertEquals("Drzwi kierowcy otwarte", phrase(listOf(param("DoorFL", "==", "1"))))
+        assertEquals("Drzwi tylne prawe zamknięte", phrase(listOf(param("DoorRR", "==", "0"))))
+        assertEquals("Szyba tylna lewa powyżej 50% otw.", phrase(listOf(param("WindowRL", ">", "50"))))
     }
 
     @Test fun `wheels are named in full`() =
-        assertEquals("Давление левой передней шины меньше 230 кПа", phrase(listOf(param("TirePressFL", "<", "230"))))
+        assertEquals("Ciśnienie lewej przedniej opony poniżej 230 kPa", phrase(listOf(param("TirePressFL", "<", "230"))))
 
     @Test fun `cell voltages differ in the first word`() {
-        assertEquals("Мин. напряжение ячейки меньше 3,2 В", phrase(listOf(param("MinCellVoltage", "<", "3,2"))))
-        assertEquals("Макс. напряжение ячейки больше 4 В", phrase(listOf(param("MaxCellVoltage", ">", "4"))))
+        assertEquals("Min. napięcie ogniwa poniżej 3,2 V", phrase(listOf(param("MinCellVoltage", "<", "3,2"))))
+        assertEquals("Maks. napięcie ogniwa powyżej 4 V", phrase(listOf(param("MaxCellVoltage", ">", "4"))))
     }
 
     @Test fun `place enter and exit`() {
-        val enter = TriggerDef("Place", "", "==", "enter", "", kind = "place_enter", placeId = 1, placeName = "Дом")
-        assertEquals("Въезд в «Дом»", phrase(listOf(enter)))
-        assertEquals("Выезд из «Дом»", phrase(listOf(enter.copy(kind = "place_exit"))))
+        val enter = TriggerDef("Place", "", "==", "enter", "", kind = "place_enter", placeId = 1, placeName = "Dom")
+        assertEquals("Wjazd do „Dom”", phrase(listOf(enter)))
+        assertEquals("Wyjazd z „Dom”", phrase(listOf(enter.copy(kind = "place_exit"))))
     }
 
     @Test fun `time of day`() =
-        assertEquals("Рассвет", phrase(listOf(TriggerDef("TimeOfDay", "", "==", "DAWN", "", kind = "time_of_day"))))
+        assertEquals("Świt", phrase(listOf(TriggerDef("TimeOfDay", "", "==", "DAWN", "", kind = "time_of_day"))))
 
     @Test fun `schedule exact, window and days`() {
         fun sched(spec: ScheduleSpec) = TriggerDef("Schedule", "", "==", spec.toJson(), "", kind = "time_range")
-        assertEquals("В 08:00", phrase(listOf(sched(ScheduleSpec(480, 480, emptySet())))))
-        assertEquals("По будням с 08:00 до 10:00", phrase(listOf(sched(ScheduleSpec(480, 600, setOf(1, 2, 3, 4, 5))))))
-        assertEquals("По выходным в 09:30", phrase(listOf(sched(ScheduleSpec(570, 570, setOf(6, 7))))))
-        assertEquals("Пн, Ср в 07:00", phrase(listOf(sched(ScheduleSpec(420, 420, setOf(3, 1))))))
+        assertEquals("O 08:00", phrase(listOf(sched(ScheduleSpec(480, 480, emptySet())))))
+        assertEquals("W dni robocze od 08:00 do 10:00", phrase(listOf(sched(ScheduleSpec(480, 600, setOf(1, 2, 3, 4, 5))))))
+        assertEquals("W weekendy o 09:30", phrase(listOf(sched(ScheduleSpec(570, 570, setOf(6, 7))))))
+        assertEquals("Pn, Śr o 07:00", phrase(listOf(sched(ScheduleSpec(420, 420, setOf(3, 1))))))
     }
 
     @Test fun `service start and internet`() {
-        assertEquals("Запуск BYDMate", phrase(listOf(TriggerDef("ServiceStart", "", "==", "true", "", kind = "service_start"))))
-        assertEquals("Доступен интернет", phrase(listOf(TriggerDef("NetworkAvailable", "", "==", "true", "", kind = "network_available"))))
+        assertEquals("Uruchomienie BYDMate", phrase(listOf(TriggerDef("ServiceStart", "", "==", "true", "", kind = "service_start"))))
+        assertEquals("Dostępny internet", phrase(listOf(TriggerDef("NetworkAvailable", "", "==", "true", "", kind = "network_available"))))
     }
 
     @Test fun `button, steering key and voice`() {
-        assertEquals("Кнопка 1 на виджете", phrase(listOf(newButtonPressTrigger(1))))
-        assertEquals("Клавиша руля не назначена", phrase(listOf(newSteeringKeyTrigger(0))))
-        assertTrue(phrase(listOf(newSteeringKeyTrigger(383))).startsWith("Клавиша руля «"))
-        assertEquals("Голосом «открой багажник»", phrase(listOf(TriggerDef("Voice", "", "==", "открой багажник", "", kind = "voice"))))
+        assertEquals("Przycisk 1 na widżecie", phrase(listOf(newButtonPressTrigger(1))))
+        assertEquals("Przycisk kierownicy nieprzypisany", phrase(listOf(newSteeringKeyTrigger(0))))
+        assertTrue(phrase(listOf(newSteeringKeyTrigger(383))).startsWith("Przycisk kierownicy „"))
+        assertEquals("Głosem „otwórz bagażnik”", phrase(listOf(TriggerDef("Voice", "", "==", "otwórz bagażnik", "", kind = "voice"))))
     }
 
     @Test fun `one-shot with a param closes with a comma`() {
         val once = TriggerDef(OneShotTrigger.PARAM, "", "==", "2026-09-30T07:30", "", kind = OneShotTrigger.KIND)
         assertEquals(
-            "30 сентября в 07:30, один раз, и температура снаружи меньше 5 °C: авто AC, температура: 22 °C",
+            "30 września o 07:30, jednorazowo, i temperatura na zewnątrz poniżej 5 °C: auto AC, temperatura: 22 °C",
             phrase(listOf(once, param("ExtTemp", "<", "5")), listOf(cmd("自动空调"), cmd("设置温度22"))),
         )
     }
 
     @Test fun `one-shot tomorrow`() {
         val once = TriggerDef(OneShotTrigger.PARAM, "", "==", "2026-09-28T07:30", "", kind = OneShotTrigger.KIND)
-        assertEquals("Завтра в 07:30, один раз", phrase(listOf(once)))
+        assertEquals("Jutro o 07:30, jednorazowo", phrase(listOf(once)))
     }
 
     @Test fun `and, or and several actions`() {
         val t = listOf(param("Gear", "==", "1"), param("Speed", "<", "5"))
-        assertEquals("Передача P и скорость меньше 5 км/ч: закрыть все окна", phrase(t, listOf(cmd("车窗关闭"))))
-        assertEquals("Передача P или скорость меньше 5 км/ч", phrase(t, logic = "OR"))
+        assertEquals("Bieg P i prędkość poniżej 5 km/h: zamknij wszystkie szyby", phrase(t, listOf(cmd("车窗关闭"))))
+        assertEquals("Bieg P lub prędkość poniżej 5 km/h", phrase(t, logic = "OR"))
     }
 
     // --- Actions ---
@@ -133,27 +133,27 @@ class RuleTextTest {
     @Test fun `actions by kind`() {
         val lc = ctx
         fun act(a: ActionDef) = phrase(listOf(param("Speed", ">", "0")), listOf(a)).substringAfter(": ")
-        assertEquals("передний багажник, переключить",
+        assertEquals("przedni bagażnik, przełącz",
             act(ActionDef("", "x", "toggle", ActionDispatcher.TOGGLE_FRONT_TRUNK)))
-        assertEquals("подождать 30 с", act(ActionDef("delay_30000", "x", "delay", "30000")))
-        assertEquals("подождать 0,5 с", act(ActionDef("delay_500", "x", "delay", "500")))
-        assertEquals("подождать 1 мин", act(ActionDef("delay_60000", "x", "delay", "60000")))
-        assertEquals("уведомление «Закройте дверь»",
-            act(newNotificationAction(lc).withNotification("Закройте дверь", "")))
-        assertEquals("отчёт в Telegram", act(newTelegramReportAction(lc)))
-        assertEquals("режим охраны, включить", act(newSentryAction(lc)))
-        assertEquals("режим охраны, переключить", act(ActionDef("", "x", "toggle", ActionDispatcher.TOGGLE_SENTRY)))
-        assertEquals("громкость медиа 2", act(ActionDef("media_volume", "x", "media_volume", "2")))
+        assertEquals("poczekaj 30 s", act(ActionDef("delay_30000", "x", "delay", "30000")))
+        assertEquals("poczekaj 0,5 s", act(ActionDef("delay_500", "x", "delay", "500")))
+        assertEquals("poczekaj 1 min", act(ActionDef("delay_60000", "x", "delay", "60000")))
+        assertEquals("powiadomienie „Zamknij drzwi”",
+            act(newNotificationAction(lc).withNotification("Zamknij drzwi", "")))
+        assertEquals("raport w Telegramie", act(newTelegramReportAction(lc)))
+        assertEquals("tryb ochrony, włącz", act(newSentryAction(lc)))
+        assertEquals("tryb ochrony, przełącz", act(ActionDef("", "x", "toggle", ActionDispatcher.TOGGLE_SENTRY)))
+        assertEquals("głośność multimediów 2", act(ActionDef("media_volume", "x", "media_volume", "2")))
     }
 
     @Test fun `a long quoted text is cut`() {
-        val a = newSpeakAction(ctx).withSpeakText("а".repeat(60))
-        assertTrue(phrase(listOf(param("Speed", ">", "0")), listOf(a)).endsWith("…»"))
+        val a = newSpeakAction(ctx).withSpeakText("a".repeat(60))
+        assertTrue(phrase(listOf(param("Speed", ">", "0")), listOf(a)).endsWith("…”"))
     }
 
     // --- Every language ---
 
-    @Test fun `phrase and status in all six languages`() {
+    @Test fun `phrase and status in all retained languages`() {
         val rule = RuleEntity(
             name = "R",
             triggers = TriggerDef.listToJson(listOf(param("Gear", "==", "1"), param("Speed", "<", "5"))),
@@ -161,11 +161,11 @@ class RuleTextTest {
         )
         val log = RuleLogEntity(ruleId = 1, ruleName = "R", triggeredAt = ms(2026, 9, 27, 8, 12), triggersSnapshot = "{}", actionsResult = "[]", success = true)
         val expected = mapOf(
-            "ru" to "Передача P и скорость меньше 5 км/ч: закрыть все окна",
+            "pl" to "Bieg P i prędkość poniżej 5 km/h: zamknij wszystkie szyby",
             "en" to "Gear is P and speed below 5 km/h",
             "zh" to "档位为P且车速小于5 km/h",
         )
-        for (lang in listOf("ru", "en", "be", "pl", "pt", "zh")) {
+        for (lang in listOf("en", "be", "pl", "pt", "zh")) {
             LocalePreferences(ctx).setLanguage(lang)
             val text = rulePhrase(rule, ctx, now).text(ctx)
             assertFalse("$lang: $text", text.contains("==") || text.contains("<"))
@@ -192,10 +192,10 @@ class RuleTextTest {
     }
 
     @Test fun `status by the last entry`() {
-        assertEquals("Ещё не срабатывало", ruleStatus(rule(), null, ctx, now, zone).text)
-        assertEquals("Сработало сегодня в 08:12", ruleStatus(rule(), entry(ms(2026, 9, 27, 8, 12), true), ctx, now, zone).text)
-        assertEquals("Отменено вчера в 08:05", ruleStatus(rule(), entry(ms(2026, 9, 26, 8, 5), false, "timeout", "x"), ctx, now, zone).text)
-        assertEquals("Ошибка 25 сентября в 12:31", ruleStatus(rule(), entry(ms(2026, 9, 25, 12, 31), false), ctx, now, zone).text)
+        assertEquals("Jeszcze nie działała", ruleStatus(rule(), null, ctx, now, zone).text)
+        assertEquals("Wykonano dziś o 08:12", ruleStatus(rule(), entry(ms(2026, 9, 27, 8, 12), true), ctx, now, zone).text)
+        assertEquals("Anulowano wczoraj o 08:05", ruleStatus(rule(), entry(ms(2026, 9, 26, 8, 5), false, "timeout", "x"), ctx, now, zone).text)
+        assertEquals("Błąd 25 września o 12:31", ruleStatus(rule(), entry(ms(2026, 9, 25, 12, 31), false), ctx, now, zone).text)
         assertEquals(RuleStatusKind.SKIPPED, ruleStatus(rule(), entry(now, false, "skipped", "x"), ctx, now, zone).kind)
     }
 
@@ -203,7 +203,7 @@ class RuleTextTest {
         val once = TriggerDef(OneShotTrigger.PARAM, "", "==", "2026-09-30T07:30", "", kind = OneShotTrigger.KIND)
         val status = ruleStatus(rule(listOf(once)), null, ctx, now, zone)
         assertEquals(RuleStatusKind.PLANNED, status.kind)
-        assertEquals("Сработает 30 сентября в 07:30", status.text)
+        assertEquals("Zadziała 30 września o 07:30", status.text)
         assertEquals(RuleStatusKind.NEVER, ruleStatus(rule(listOf(once), enabled = false), null, ctx, now, zone).kind)
     }
 
@@ -211,31 +211,31 @@ class RuleTextTest {
 
     @Test fun `journal lines`() {
         val ok = journalLine(entry(ms(2026, 9, 27, 8, 12), true, snapshot = """{"Gear":1,"Speed":0.0}"""), ctx, now, zone)
-        assertEquals("Выполнено", ok.status)
-        assertEquals("Сегодня в 08:12", ok.time)
-        assertEquals("Температура: 22 °C", ok.what)
-        assertEquals("Передача P, скорость 0 км/ч", ok.why)
+        assertEquals("Wykonano", ok.status)
+        assertEquals("Dziś o 08:12", ok.time)
+        assertEquals("Temperatura: 22 °C", ok.what)
+        assertEquals("Bieg P, prędkość 0 km/h", ok.why)
 
-        val err = journalLine(entry(ms(2026, 9, 24, 8, 10), false, reason = "Машина не приняла команду"), ctx, now, zone)
+        val err = journalLine(entry(ms(2026, 9, 24, 8, 10), false, reason = "Samochód nie przyjął polecenia"), ctx, now, zone)
         assertEquals(RuleStatusKind.ERROR, err.kind)
-        assertEquals("Температура: 22 °C не выполнено", err.what)
-        assertEquals("Машина не приняла команду", err.why)
+        assertEquals("Temperatura: 22 °C nie wykonano", err.what)
+        assertEquals("Samochód nie przyjął polecenia", err.why)
 
-        val cancelled = journalLine(entry(now, false, "cancelled", "Отменено в окне подтверждения"), ctx, now, zone)
-        assertEquals("Отменено", cancelled.status)
+        val cancelled = journalLine(entry(now, false, "cancelled", "Anulowano w oknie potwierdzenia"), ctx, now, zone)
+        assertEquals("Anulowano", cancelled.status)
         // Written before the journal kept the actions: none, rather than the rule's current ones.
         assertEquals("", cancelled.what)
 
         val test = journalLine(entry(now, false, "skipped", "x", snapshot = """{"$TEST_RUN_KEY":true}"""), ctx, now, zone)
-        assertEquals("Не выполнено", test.status)
-        assertEquals("Тестовый запуск", test.what)
+        assertEquals("Nie wykonano", test.status)
+        assertEquals("Uruchomienie testowe", test.what)
 
         val once = journalLine(entry(now, true, snapshot = """{"once_at":"2026-09-27T07:30"}"""), ctx, now, zone)
-        assertEquals("Выполнено, правило выключено", once.status)
-        assertEquals("Разовое правило", once.why)
+        assertEquals("Wykonano, reguła wyłączona", once.status)
+        assertEquals("Reguła jednorazowa", once.why)
 
         val expired = journalLine(entry(now, false, "expired", "x"), ctx, now, zone)
-        assertEquals("Не выполнено, правило выключено", expired.status)
+        assertEquals("Nie wykonano, reguła wyłączona", expired.status)
     }
 
     private fun run(vararg steps: JSONObject, success: Boolean = true) = RuleLogEntity(
@@ -251,21 +251,21 @@ class RuleTextTest {
 
     @Test fun `a close step names the app it closes`() {
         val lc = ctx.appLocalizedContext()
-        val close = ActionDef("", "x", "app_close", """{"packageName":"com.example.radio","appLabel":"Радио"}""")
-        assertEquals("Закрыть приложение «Радио»", actionText(close, lc))
-        assertEquals("Закрыть приложение «Радио»", journalLine(run(recorded(close)), ctx, now, zone).what)
+        val close = ActionDef("", "x", "app_close", """{"packageName":"com.example.radio","appLabel":"Radio"}""")
+        assertEquals("Zamknij aplikację „Radio”", actionText(close, lc))
+        assertEquals("Zamknij aplikację „Radio”", journalLine(run(recorded(close)), ctx, now, zone).what)
     }
 
     @Test fun `a media key step reads as its picker entry, also in the journal`() {
         val lc = ctx.appLocalizedContext()
         val play = ActionDef("", "x", "media_key", "play")
         val pause = ActionDef("", "x", "media_key", "pause")
-        assertEquals("Медиа: играть", actionText(play, lc))
-        assertEquals("Медиа: пауза", actionText(pause, lc))
-        assertEquals("Медиа: пауза не выполнено", journalLine(run(recorded(pause, success = false), success = false), ctx, now, zone).what)
+        assertEquals("Multimedia: odtwórz", actionText(play, lc))
+        assertEquals("Multimedia: pauza", actionText(pause, lc))
+        assertEquals("Multimedia: pauza nie wykonano", journalLine(run(recorded(pause, success = false), success = false), ctx, now, zone).what)
     }
 
-    @Test fun `a screen step reads as its picker entry in all six languages, also in the journal`() {
+    @Test fun `a screen step reads as its picker entry in all retained languages, also in the journal`() {
         val off = ActionDef("screen", "x", "screen", "0")
         val on = ActionDef("screen", "x", "screen", "1")
         val labels = mapOf(
@@ -274,40 +274,40 @@ class RuleTextTest {
             "pl" to ("Ekran: wyłącz" to "Ekran: włącz"),
             "pt" to ("Tela: desligar" to "Tela: ligar"),
             "zh" to ("关闭屏幕" to "打开屏幕"),
-            "ru" to ("Экран: выключить" to "Экран: включить"),
         )
         for ((tag, expected) in labels) {
             LocalePreferences(ctx).setLanguage(tag)
             val lc = ctx.appLocalizedContext()
             assertEquals(tag, expected, actionText(off, lc) to actionText(on, lc))
         }
-        assertEquals("Экран: выключить не выполнено", journalLine(run(recorded(off, success = false), success = false), ctx, now, zone).what)
+        LocalePreferences(ctx).setLanguage("pl")
+        assertEquals("Ekran: wyłącz nie wykonano", journalLine(run(recorded(off, success = false), success = false), ctx, now, zone).what)
     }
 
     @Test fun `a run shows the parameters it recorded`() {
-        val pause = ActionDef("", "Пауза", "delay", "30000")
-        val note = ActionDef("", "Уведомление", "notification", """{"title":"Заряд","text":"t"}""")
-        val sentry = ActionDef("", "Охрана", "sentry", "1")
+        val pause = ActionDef("", "Pauza", "delay", "30000")
+        val note = ActionDef("", "Powiadomienie", "notification", """{"title":"Poziom naładowania","text":"t"}""")
+        val sentry = ActionDef("", "Ochrona", "sentry", "1")
         assertEquals(
-            "Подождать 30 с, уведомление «Заряд», режим охраны, включить",
+            "Poczekaj 30 s, powiadomienie „Poziom naładowania”, tryb ochrony, włącz",
             journalLine(run(recorded(pause), recorded(note), recorded(sentry)), ctx, now, zone).what,
         )
         assertEquals(
-            "Режим охраны, включить не выполнено",
+            "Tryb ochrony, włącz nie wykonano",
             journalLine(run(recorded(pause), recorded(sentry, success = false), success = false), ctx, now, zone).what,
         )
     }
 
     @Test fun `an old run never shows a parameter it did not record`() {
-        val line = journalLine(run(legacy(ActionDef("", "Пауза", "delay")), legacy(ActionDef("", "", "sentry"))), ctx, now, zone)
-        assertEquals("Пауза, режим охраны", line.what)
+        val line = journalLine(run(legacy(ActionDef("", "Pauza", "delay")), legacy(ActionDef("", "", "sentry"))), ctx, now, zone)
+        assertEquals("Pauza, tryb ochrony", line.what)
         // A param step reads its command, as before.
-        assertEquals("Закрыть все окна", journalLine(run(legacy(cmd("车窗关闭"))), ctx, now, zone).what)
+        assertEquals("Zamknij wszystkie szyby", journalLine(run(legacy(cmd("车窗关闭"))), ctx, now, zone).what)
     }
 
     @Test fun `a cancelled entry shows the actions it recorded`() {
         val entry = JSONObject().put("result", "cancelled").put("reason", "x")
-            .put("actions", JSONArray().put(RuleJournal.recordedAction(ActionDef("", "Багажник", "toggle", ActionDispatcher.TOGGLE_TRUNK))))
+            .put("actions", JSONArray().put(RuleJournal.recordedAction(ActionDef("", "Bagażnik", "toggle", ActionDispatcher.TOGGLE_TRUNK))))
         val line = journalLine(
             RuleLogEntity(ruleId = 1, ruleName = "R", triggeredAt = now, triggersSnapshot = "{}", success = false,
                 actionsResult = JSONArray().put(entry).toString()),
@@ -347,16 +347,16 @@ class RuleTextTest {
             listOf(Missing.Name, Missing.Param(1), Missing.Value(2), Missing.Number(3), Missing.Key(4), Missing.NoActions),
             missing,
         )
-        assertEquals("Выберите, что проверять в условии 1", saveReason(listOf(Missing.Param(1)), ctx))
-        assertEquals("Введите число в условии 1 и добавьте действие", saveReason(listOf(Missing.Number(1), Missing.NoActions), ctx))
-        assertEquals("Введите название и ещё 5", saveReason(missing, ctx))
+        assertEquals("Wybierz, co sprawdzać w warunku 1", saveReason(listOf(Missing.Param(1)), ctx))
+        assertEquals("Wpisz liczbę w warunku 1 i dodaj akcję", saveReason(listOf(Missing.Number(1), Missing.NoActions), ctx))
+        assertEquals("Wpisz nazwę i jeszcze 5", saveReason(missing, ctx))
         assertEquals(listOf(Missing.NoConditions), missingParts(complete.copy(triggers = emptyList()), ctx))
     }
 
     @Test fun `a list condition saved with a number operator asks for one`() {
         val gearAbove = complete.copy(triggers = listOf(param("Gear", ">", "1")))
         assertEquals(listOf(Missing.Operator(1)), missingParts(gearAbove, ctx))
-        assertEquals("Выберите «равно» или «не равно» в условии 1", saveReason(missingParts(gearAbove, ctx), ctx))
+        assertEquals("Wybierz „równe” lub „różne od” w warunku 1", saveReason(missingParts(gearAbove, ctx), ctx))
         assertTrue(missingParts(complete.copy(triggers = listOf(param("Gear", "!=", "1"))), ctx).isEmpty())
         // A number keeps all six operators.
         assertTrue(missingParts(complete.copy(triggers = listOf(param("Speed", ">=", "5"))), ctx).isEmpty())

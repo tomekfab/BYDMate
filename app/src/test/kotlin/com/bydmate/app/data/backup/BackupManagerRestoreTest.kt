@@ -103,7 +103,7 @@ class BackupManagerRestoreTest {
         }
         val (zip, _) = backupZip(dbBytes = foreign.readBytes())
 
-        assertRefusedAndUntouched(zip, "Файл базы данных в бэкапе не является базой BYDMate", live)
+        assertRefusedAndUntouched(zip, "Plik bazy danych w kopii zapasowej nie jest bazą BYDMate", live)
     }
 
     @Test
@@ -114,7 +114,7 @@ class BackupManagerRestoreTest {
         }
         val (zip, _) = backupZip(dbBytes = orphan)
 
-        assertRefusedAndUntouched(zip, "Файл бэкапа повреждён: нарушены связи между таблицами", live)
+        assertRefusedAndUntouched(zip, "Plik kopii zapasowej jest uszkodzony: powiązania między tabelami są naruszone", live)
     }
 
     @Test

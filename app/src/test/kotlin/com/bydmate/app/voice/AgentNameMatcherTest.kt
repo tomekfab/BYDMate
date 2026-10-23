@@ -6,28 +6,28 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AgentNameMatcherTest {
-    @Test fun `matches exact, case and yo insensitive`() {
-        assertTrue(AgentNameMatcher.matches("Лео, стой", "Лео"))
-        assertTrue(AgentNameMatcher.matches("эй лёва", "Лёва"))
-        assertTrue(AgentNameMatcher.matches("лева стоп", "Лёва"))
+    @Test fun `matches exact, case and diacritic insensitive`() {
+        assertTrue(AgentNameMatcher.matches("Łucja, stój", "Łucja"))
+        assertTrue(AgentNameMatcher.matches("ej lucja", "Łucja"))
+        assertTrue(AgentNameMatcher.matches("lucja stop", "Łucja"))
     }
     @Test fun `matches ASR near-misses within distance 1 for length ge 4`() {
-        assertTrue(AgentNameMatcher.matches("лева погоди", "Лёва"))
-        assertTrue(AgentNameMatcher.matches("тёма стой", "Тема"))
+        assertTrue(AgentNameMatcher.matches("lucjo poczekaj", "Łucja"))
+        assertTrue(AgentNameMatcher.matches("ania stój", "Ania"))
     }
     @Test fun `short names require exact token, longer words do not match`() {
-        assertFalse(AgentNameMatcher.matches("леонид звонил", "Лео"))
-        assertFalse(AgentNameMatcher.matches("леол", "Лео"))   // len 3 -> exact only
-        assertFalse(AgentNameMatcher.matches("открой окно", "Лео"))
+        assertFalse(AgentNameMatcher.matches("olaf dzwonił", "Ola"))
+        assertFalse(AgentNameMatcher.matches("olaś", "Ola"))   // len 3 -> exact only
+        assertFalse(AgentNameMatcher.matches("otwórz okno", "Ola"))
     }
     @Test fun `blank name never matches`() {
-        assertFalse(AgentNameMatcher.matches("лео стой", ""))
+        assertFalse(AgentNameMatcher.matches("łucja stój", ""))
     }
     @Test fun `strips leading name token with punctuation`() {
-        assertEquals("открой окно", AgentNameMatcher.stripLeadingName("Лео, открой окно", "Лео"))
-        assertEquals("открой окно", AgentNameMatcher.stripLeadingName("открой окно", "Лео"))
+        assertEquals("otwórz okno", AgentNameMatcher.stripLeadingName("Łucja, otwórz okno", "Łucja"))
+        assertEquals("otwórz okno", AgentNameMatcher.stripLeadingName("otwórz okno", "Łucja"))
     }
     @Test fun `name-only utterance is returned unchanged`() {
-        assertEquals("Лео", AgentNameMatcher.stripLeadingName("Лео", "Лео"))
+        assertEquals("Łucja", AgentNameMatcher.stripLeadingName("Łucja", "Łucja"))
     }
 }

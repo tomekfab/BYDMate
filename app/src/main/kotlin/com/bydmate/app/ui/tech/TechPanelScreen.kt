@@ -75,7 +75,7 @@ import kotlin.math.roundToInt
 private const val DASH = "—"
 
 /**
- * «Техника» — the full-screen live panel behind the battery card on the Dashboard.
+ * Technical panel — the full-screen live panel behind the battery card on the Dashboard.
  * Replaces the old battery-health dialog: same numbers plus the technical readings the
  * autoservice batch now carries. Cards without a single live value are not drawn.
  */
@@ -369,7 +369,7 @@ private fun BatteryNowCard(state: TechPanelUiState, onHint: (String) -> Unit, mo
 }
 
 /**
- * «Полных циклов» — how many full pack charges the car has taken, off the BMS lifetime counter
+ * «Pełnych cykli» — how many full pack charges the car has taken, off the BMS lifetime counter
  * right above it and off the app's own charging sum on a car that reports none, with the sum it
  * was divided by right under the value so the number is not a black box.
  */
@@ -527,7 +527,7 @@ private fun MotorCardRow(row: MotorRow, state: TechPanelUiState) {
     }
 }
 
-/** Engine rpm the way the Dashboard popup shows it: orange while it turns, «ДВС выключен» at 0. */
+/** Engine rpm the way the Dashboard popup shows it: orange while it turns, "engine off" at 0. */
 @Composable
 private fun EngineRpmRow(rpm: Int?, labelRes: Int) {
     when {
@@ -539,7 +539,7 @@ private fun EngineRpmRow(rpm: Int?, labelRes: Int) {
     }
 }
 
-/** DM-i only: the rows of the Dashboard «Топливо» popup without the price, all from the car. */
+/** DM-i only: the rows of the Dashboard fuel popup without the price, all from the car. */
 @Composable
 private fun FuelCard(state: TechPanelUiState, modifier: Modifier = Modifier) {
     val km = stringResource(R.string.dashboard_unit_km)
@@ -625,7 +625,7 @@ private fun HistoryCard(state: TechPanelUiState, onHint: (String) -> Unit, modif
 // Building blocks (visual style carried over from the battery-health dialog)
 // ============================================================================
 
-// internal: the «Расход и температура» screen is drawn out of the same card.
+// internal: the «Zużycie i temperatura» screen is drawn out of the same card.
 @Composable
 internal fun TechCard(
     header: String,

@@ -32,7 +32,7 @@ import javax.inject.Singleton
 
 /**
  * A report entry waiting for the network; [chatId] is the chat it was built for. [lateMark] = add
- * «(записано в HH:MM)» when it goes out late. The power-off report never comes here: the helper
+ * «(zapisano w HH:MM)» when it goes out late. The power-off report never comes here: the helper
  * daemon delivers it, pending ones included.
  */
 data class OutboxEntry(
@@ -45,7 +45,7 @@ data class OutboxEntry(
 
 /**
  * The ready power-off report phase B hands to the helper daemon: bot, chat and the text with
- * [TelegramReportBuilder.TIME_PLACEHOLDER] in its header, plus [lateMark], the «(записано в {{time}})»
+ * [TelegramReportBuilder.TIME_PLACEHOLDER] in its header, plus [lateMark], the «(zapisano w {{time}})»
  * line the daemon adds when it delivers the report later. toString never shows the secrets.
  */
 data class PowerOffReport(
@@ -80,7 +80,7 @@ class TelegramReporter @Inject constructor(
     companion object {
         private const val TAG = "TgReport"
         const val OUTBOX_MAX = 10
-        /** A report sent later than this after it was built gets «(записано в HH:MM)». */
+        /** A report sent later than this after it was built gets «(zapisano w HH:MM)». */
         const val LATE_MARK_AFTER_MS = 2 * 60_000L
         private const val PARSE_MODE = "HTML"
         private const val RECENT_TRIPS = 5
@@ -309,7 +309,7 @@ class TelegramReporter @Inject constructor(
         appStrings.get(R.string.tg_report_recorded_at, TelegramReportBuilder.TIME_PLACEHOLDER),
     )}</i>"
 
-    /** «(записано в 18:42)», with the date when the report is from another day. */
+    /** «(zapisano w 18:42)», with the date when the report is from another day. */
     private fun lateMark(createdMs: Long, nowMs: Long): String {
         val stamp = if (sameDay(createdMs, nowMs)) TelegramReportBuilder.formatTime(createdMs)
         else TelegramReportBuilder.formatDateTime(createdMs)

@@ -55,7 +55,7 @@ class ActionDispatcherToggleTest {
         .getString(R.string.toggle_state_unknown, app.appLocalizedContext().getString(targetRes))
 
     private fun toggle(target: String) =
-        ActionDef(command = "", displayName = "Переключить", kind = "toggle", payload = target)
+        ActionDef(command = "", displayName = "Przełącz", kind = "toggle", payload = target)
 
     private fun snapshot(
         trunk: Int? = null,
@@ -337,7 +337,7 @@ class ActionDispatcherToggleTest {
     // ── rules saved before the picker change ────────────────────────────────────
 
     @Test fun `a rule stored by v3_16 still dispatches to the same command`() = runTest {
-        // Verbatim row shape of the retired «Переключить» kind picker, as it sits in the DB.
+// Verbatim row shape of the retired Toggle kind picker, as it sits in the DB.
         val stored = """[{"command":"","displayName":"Переключить: Багажник","kind":"toggle","payload":"trunk"}]"""
         val action = ActionDef.listFromJson(stored).single()
         assertTrue(dispatcher.dispatch(action, snapshot(trunk = 2)).success)

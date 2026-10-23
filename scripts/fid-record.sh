@@ -2,7 +2,7 @@
 # Diagnostic fid recorder on the head unit: subscribes the helper daemon to every fid of whole
 # BYD devices and writes each changed value to /sdcard/Download/bydmate_fidrec_<stamp>.txt.
 # logcat gets the summary only. -test builds only (the receiver ignores a public APK).
-# The same recorder is switchable in the app: Настройки -> «Приложение и данные» -> «Регистратор датчиков».
+# The same recorder is available in the app: Settings -> Application and data -> Sensor recorder.
 #
 #   scripts/fid-record.sh start [devs]   # devs = "1001,1004"; omitted = every known device
 #   scripts/fid-record.sh stop

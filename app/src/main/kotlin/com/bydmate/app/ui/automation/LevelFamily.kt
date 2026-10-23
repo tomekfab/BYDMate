@@ -59,12 +59,12 @@ enum class LevelFamily @Suppress("LongParameterList") constructor( // one catalo
     fun command(value: Int): String =
         if (offAtZero && value == 0) prefix + SEAT_OFF else "$prefix$value$suffix"
 
-    /** «22 °C», «−3 °C», «30 %», «выкл». */
+    /** «22 °C», «−3 °C», «30 %», «wył.». */
     fun valueText(value: Int, lc: Context): String =
         if (offAtZero && value == 0) lc.getString(R.string.auto_level_off)
         else (if (value < 0) "−${-value}" else "$value") + unit
 
-    /** «Температура: 22 °C» — the action's saved name. */
+    /** «Temperatura: 22 °C» — the action's saved name. */
     fun displayName(value: Int, lc: Context): String = "${lc.getString(nameRes)}: ${valueText(value, lc)}"
 
     /** The action a picker tile adds: this family at its default. */
@@ -103,7 +103,7 @@ enum class LevelFamily @Suppress("LongParameterList") constructor( // one catalo
     }
 }
 
-/** The saved name of a level command («Температура: 22 °C»), or null for any other command. */
+/** The saved name of a level command («Temperatura: 22 °C»), or null for any other command. */
 internal fun levelActionName(command: String, lc: Context): String? =
     LevelFamily.of(command)?.let { it.family.displayName(it.value, lc) }
 

@@ -1,6 +1,7 @@
 package com.bydmate.app.media
 
 import android.util.Log
+import com.bydmate.app.navdata.NavAppId
 import com.bydmate.app.navdata.NavGuidanceHub
 import java.util.concurrent.Executors
 import java.util.concurrent.RejectedExecutionException
@@ -52,7 +53,7 @@ class NaviNotificationLane(
         }
     }
 
-    @Volatile private var removePostedMs = 0L
+    private val removePostedMs = mutableMapOf<NavAppId, Long>()
 
     /**
      * Post flow, binder thread. Rich task enters the lane FIRST (enqueue-first),
@@ -73,10 +74,18 @@ class NaviNotificationLane(
      *  synchronous legacy clear, then the field [trace] (if any) on the lane, so its line
      *  keeps callback order with the post lines. */
     fun onRemoved(legacyClear: Runnable, trace: Runnable? = null) {
+        onRemoved(NavAppId.YANDEX, legacyClear, trace)
+    }
+
+    /** Removal grace belongs to the app that posted the notification, never to the currently
+     * selected app by accident. */
+    @Synchronized
+    fun onRemoved(owner: NavAppId, legacyClear: Runnable, trace: Runnable? = null) {
         val now = nowMs()
-        if (now - removePostedMs >= REMOVE_DEBOUNCE_MS) {
-            removePostedMs = now
-            scheduleDeactivateCheck()
+        val removedAt = removePostedMs[owner] ?: 0L
+        if (now - removedAt >= REMOVE_DEBOUNCE_MS) {
+            removePostedMs[owner] = now
+            scheduleDeactivateCheck(owner)
         }
         runCatching { legacyClear.run() }
         if (trace == null) return
@@ -88,30 +97,30 @@ class NaviNotificationLane(
     }
 
     /** A guidance post reached the hub - cancel the pending removal grace (donor). */
-    fun markGuidancePosted() {
-        removePostedMs = 0L
+    fun markGuidancePosted(owner: NavAppId = NavAppId.YANDEX) {
+        synchronized(this) { removePostedMs.remove(owner) }
     }
 
     fun shutdown() {
         executor.shutdownNow()
     }
 
-    private fun scheduleDeactivateCheck() {
+    private fun scheduleDeactivateCheck(owner: NavAppId) {
         try {
             executor.schedule(
                 DEACTIVATE_CHECK_MS,
                 Runnable {
                     runCatching {
-                        if (removePostedMs == 0L) return@runCatching
+                        if (synchronized(this@NaviNotificationLane) { removePostedMs[owner] ?: 0L } == 0L) return@runCatching
                         val s = NavGuidanceHub.snapshot(nowMs())
                         // Donor detail: inactive hub stops the loop WITHOUT resetting
                         // removePostedMs - harmless, next post resets it anyway.
                         if (!s.active) return@runCatching
-                        if (nowMs() - s.lastUpdateMs >= NavGuidanceHub.ACTIVE_TIMEOUT_MS) {
-                            NavGuidanceHub.deactivateFromNotificationGrace(nowMs())
-                            removePostedMs = 0L
+                        if (nowMs() - s.lastUpdateMs >= if (s.owner == NavAppId.YANDEX) NavGuidanceHub.ACTIVE_TIMEOUT_MS else 30_000L) {
+                            NavGuidanceHub.deactivateFromNotificationGrace(owner, nowMs())
+                            synchronized(this@NaviNotificationLane) { removePostedMs.remove(owner) }
                         } else {
-                            scheduleDeactivateCheck()
+                            scheduleDeactivateCheck(owner)
                         }
                     }
                 },

@@ -5,7 +5,7 @@ import com.bydmate.app.data.vehicle.WriteAllowlist
 
 /**
  * READ-side HUD content gates for the diagnostic dump (#269), from the Setting device (dev=1023):
- * the car's own «Опц. содержимое → Навигация» switch and its status. Read only.
+ * the car's own "Optional content → Navigation" switch and its status. Read only.
  */
 internal object HudDiagnostics {
 

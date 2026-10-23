@@ -25,13 +25,13 @@ class OpenRouterClientChatRawTest {
 
     @After fun tearDown() { server.shutdown() }
 
-    private fun messages() = JSONArray().put(JSONObject().put("role", "user").put("content", "привет"))
+    private fun messages() = JSONArray().put(JSONObject().put("role", "user").put("content", "cześć"))
 
     @Test fun success_returns_choice_message() = runTest {
         server.enqueue(MockResponse().setBody(
-            """{"choices":[{"message":{"role":"assistant","content":"Привет!"}}]}"""))
+            """{"choices":[{"message":{"role":"assistant","content":"Cześć!"}}]}"""))
         val result = client.chatRaw("https://openrouter.ai/api/v1", "key", "test/model", messages(), null)
-        assertEquals("Привет!", result.getOrThrow().getString("content"))
+        assertEquals("Cześć!", result.getOrThrow().getString("content"))
         val req = server.takeRequest()
         val body = JSONObject(req.body.readUtf8())
         assertEquals("test/model", body.getString("model"))

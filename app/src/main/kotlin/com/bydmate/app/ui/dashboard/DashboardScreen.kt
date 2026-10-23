@@ -328,7 +328,7 @@ fun DashboardScreen(
                             borderColor = insightColor,
                             onClick = { viewModel.toggleInsightExpanded() }
                         )
-                        // Battery card — 3 значения: SoH | темп. батареи | бортовая сеть
+                        // Battery card — 3 values: SoH | battery temperature | 12V system
                         val sohStatus = when {
                             (state.currentSoh ?: 100f) < 80f -> "critical"
                             (state.currentSoh ?: 100f) < 90f -> "warning"
@@ -343,7 +343,7 @@ fun DashboardScreen(
                         val voltageColor = when (state.voltage12vStatus) {
                             "critical" -> SocRed; "warning" -> SocYellow; else -> AccentGreen
                         }
-                        // МОм: ≥1 healthy, 0.5-1 watch, <0.5 the pack is leaking to the body.
+                        // MΩ: ≥1 healthy, 0.5-1 watch, <0.5 the pack is leaking to the body.
                         val insulationMohm = state.insulationKohm?.let { it / 1000.0 }
                         val insulationStatus = when {
                             insulationMohm == null -> "ok"
@@ -563,7 +563,7 @@ fun DashboardScreen(
                 }
 
                 SectionHeader(text = stringResource(R.string.dashboard_recent_trips_title))
-                // DM-i adds the «л» column between kWh and /100; EV keeps today's six weights.
+                // DM-i adds the "l" column between kWh and /100; EV keeps today's six weights.
                 val showFuel = state.vehicleKind == VehicleKind.HYBRID
                 val weights = com.bydmate.app.ui.trips.columnWeights(state.vehicleKind)
                 Row(
@@ -615,7 +615,7 @@ private const val DASHBOARD_TRIP_ROWS = 6
 private val GaugeGlowRoom = 8.dp
 
 /**
- * Left column of Главная. [content] emits the gauge, the rows under it and the card stack, in
+ * Left column of Główna. [content] emits the gauge, the rows under it and the card stack, in
  * that order. Rows and cards keep their own height and the cards sit at the bottom; the gauge
  * takes what is left, between [gaugeMinSize] (its text still clear of the arc) and [GaugeMaxSize].
  * When even the smallest gauge does not fit the minimum height, the column grows taller than
@@ -955,7 +955,7 @@ private fun FuelCell(value: String, label: String, color: Color) {
     }
 }
 
-/** Popup of the «Топливо» card: the car's own readings only, nothing computed by the app. */
+/** Fuel-card popup: the car's own readings only, nothing computed by the app. */
 @Composable
 private fun FuelDetailDialog(state: DashboardUiState, onEditPrice: () -> Unit, onDismiss: () -> Unit) {
     val km = stringResource(R.string.dashboard_unit_km)

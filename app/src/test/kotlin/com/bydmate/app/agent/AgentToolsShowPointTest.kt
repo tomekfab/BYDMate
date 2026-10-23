@@ -63,15 +63,15 @@ class AgentToolsShowPointTest {
 
     @Test fun `show point by saved place`() = runTest {
         coEvery { places.getAllSnapshot() } returns listOf(
-            PlaceEntity(name = "Дача", lat = 56.1, lon = 38.2, radiusM = 100))
+            PlaceEntity(name = "Działka", lat = 56.1, lon = 38.2, radiusM = 100))
         coEvery { dispatcher.dispatch(any(), any()) } returns DispatchResult(true)
 
-        val out = JSONObject(tools.execute(call("show_point_on_map", """{"destination":"Дача"}""")))
+        val out = JSONObject(tools.execute(call("show_point_on_map", """{"destination":"Działka"}""")))
 
         assertEquals("show", out.getString("mode"))
         coVerify { dispatcher.dispatch(match {
             val p = JSONObject(it.payload!!)
-            p.getBoolean("show") && p.getDouble("lat") == 56.1 && p.getString("label") == "Дача"
+            p.getBoolean("show") && p.getDouble("lat") == 56.1 && p.getString("label") == "Działka"
         }, null) }
     }
 
@@ -79,7 +79,7 @@ class AgentToolsShowPointTest {
         coEvery { dispatcher.dispatch(any(), any()) } returns DispatchResult(true)
 
         val out = JSONObject(tools.execute(call("show_point_on_map",
-            """{"destination":"зарядка","lat":55.5,"lon":37.5}""")))
+            """{"destination":"ładowarka","lat":55.5,"lon":37.5}""")))
 
         assertTrue(out.getBoolean("ok"))
         coVerify { dispatcher.dispatch(match {
@@ -94,11 +94,11 @@ class AgentToolsShowPointTest {
         coEvery { dispatcher.dispatch(any(), any()) } returns DispatchResult(true)
 
         val out = JSONObject(tools.execute(call("show_point_on_map",
-            """{"destination":"улица Ленина 5"}""")))
+            """{"destination":"ulica Lipowa 5"}""")))
 
         assertEquals("search", out.getString("mode"))
         coVerify { dispatcher.dispatch(match {
-            JSONObject(it.payload!!).optString("query") == "улица Ленина 5"
+            JSONObject(it.payload!!).optString("query") == "ulica Lipowa 5"
         }, null) }
     }
 

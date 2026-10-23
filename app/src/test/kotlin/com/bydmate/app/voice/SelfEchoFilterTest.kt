@@ -1,48 +1,83 @@
 package com.bydmate.app.voice
 
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SelfEchoFilterTest {
 
+    @Suppress("UNCHECKED_CAST")
+    private fun normalizedWords(filter: SelfEchoFilter, text: String): List<String> {
+        val method = SelfEchoFilter::class.java.getDeclaredMethod("normalize", String::class.java)
+        method.isAccessible = true
+        return method.invoke(filter, text) as List<String>
+    }
+
     @Test
     fun `exact repeat of recent TTS phrase is echo`() {
         val filter = SelfEchoFilter(now = { 0L })
-        filter.noteSpoken("маршрут проложи")
-        assertTrue(filter.isEcho("маршрут проложи"))
+        filter.noteSpoken("trasa aktywna")
+        assertTrue(filter.isEcho("trasa aktywna"))
     }
 
     @Test
     fun `exact repeat case and punctuation insensitive`() {
         val filter = SelfEchoFilter(now = { 0L })
-        filter.noteSpoken("Маршрут проложи")
-        assertTrue(filter.isEcho("маршрут проложи!"))
+        filter.noteSpoken("Trasa aktywna")
+        assertTrue(filter.isEcho("trasa aktywna!"))
     }
 
     @Test
-    fun `exact repeat yo-insensitive`() {
+    fun `exact repeat uses the legacy yo fold`() {
         val filter = SelfEchoFilter(now = { 0L })
-        filter.noteSpoken("Готово, что-нибудь ещё?")
-        assertTrue(filter.isEcho("готово что нибудь еще"))
+        filter.noteSpoken("Ёжик")
+        assertEquals(
+            listOf("ежик"),
+            normalizedWords(filter, "Ёжик"),
+        )
+        assertEquals(
+            normalizedWords(filter, "Ёжик"),
+            normalizedWords(filter, "ежик"),
+        )
+        assertTrue(filter.isEcho("ежик"))
+    }
+
+    @Test
+    fun `Polish speech with diacritics normalizes to nonempty Polish words`() {
+        val filter = SelfEchoFilter(now = { 0L })
+        assertEquals(listOf("włącz", "światła"), normalizedWords(filter, "Włącz światła!"))
+        filter.noteSpoken("Włącz światła!")
+        assertFalse(filter.isEcho("otwórz okno"))
+    }
+
+    @Test
+    fun `Polish diacritic words stay distinct from their stripped forms`() {
+        val filter = SelfEchoFilter(now = { 0L })
+        assertFalse(normalizedWords(filter, "łódź") == normalizedWords(filter, "d"))
+    }
+
+    @Test
+    fun `matching echoed Polish phrase with diacritics is detected`() {
+        val filter = SelfEchoFilter(now = { 0L })
+        filter.noteSpoken("Włącz światła")
+        assertTrue(filter.isEcho("włącz światła"))
     }
 
     @Test
     fun `torn fragment with containment above threshold is echo`() {
         val filter = SelfEchoFilter(now = { 0L })
-        filter.noteSpoken("Давай без этой драмы, я просто ЖЭЗ с характером. Маршрут проложи.")
-        // spoken words: давай без этой драмы я просто жэз с характером маршрут проложи
-        // transcript words: маршрут проложи без этой драмы (5 words)
-        // intersection: маршрут проложи без этой драмы (5 words)
-        // containment = 5/5 = 1.0 >= 0.75 ✓
-        assertTrue(filter.isEcho("маршрут проложи без этой драмы"))
+        filter.noteSpoken("Bez tej dramy jestem asystentem z charakterem. Trasa aktywna.")
+        // The transcript contains five normalized words, all present in the spoken phrase.
+        // Its containment is 5/5 = 1.0, above the 0.75 threshold.
+        assertTrue(filter.isEcho("trasa aktywna bez tej dramy"))
     }
 
     @Test
     fun `real command not matching spoken text is not echo`() {
         val filter = SelfEchoFilter(now = { 0L })
-        filter.noteSpoken("Готово. Что-нибудь ещё?")
-        assertFalse(filter.isEcho("включи кондиционер"))
+        filter.noteSpoken("Gotowe. Co dalej?")
+        assertFalse(filter.isEcho("uruchom radio"))
     }
 
     @Test
@@ -50,12 +85,12 @@ class SelfEchoFilterTest {
         var time = 0L
         val filter = SelfEchoFilter(now = { time })
         time = 0L
-        filter.noteSpoken("да")
+        filter.noteSpoken("tak")
         time = 100L
         filter.onPlaybackEnd()
         // 5 seconds = 5100 ms total, SHORT_ECHO_WINDOW_MS = 1500 ms from playback end
         time = 5100L
-        assertFalse(filter.isEcho("да"))
+        assertFalse(filter.isEcho("tak"))
     }
 
     @Test
@@ -63,12 +98,12 @@ class SelfEchoFilterTest {
         var time = 0L
         val filter = SelfEchoFilter(now = { time })
         time = 0L
-        filter.noteSpoken("включи кондиционер")
+        filter.noteSpoken("uruchom radio")
         time = 100L
         filter.onPlaybackEnd()
-        // transcript word "включи" (length 6) is in phrase, 1000ms from playback end (less than 1500ms)
+        // The repeated token has seven letters and arrives 1000 ms after playback ends.
         time = 1100L
-        assertTrue(filter.isEcho("включи"))
+        assertTrue(filter.isEcho("uruchom"))
     }
 
     @Test
@@ -76,12 +111,12 @@ class SelfEchoFilterTest {
         var time = 0L
         val filter = SelfEchoFilter(now = { time })
         time = 0L
-        filter.noteSpoken("включи кондиционер")
+        filter.noteSpoken("uruchom radio")
         time = 100L
         filter.onPlaybackEnd()
         // 2000ms greater than 1500ms window
         time = 2100L
-        assertFalse(filter.isEcho("включи"))
+        assertFalse(filter.isEcho("uruchom"))
     }
 
     @Test
@@ -89,12 +124,12 @@ class SelfEchoFilterTest {
         var time = 0L
         val filter = SelfEchoFilter(now = { time })
         time = 0L
-        filter.noteSpoken("да, хорошо")
+        filter.noteSpoken("tak, dobrze")
         time = 100L
         filter.onPlaybackEnd()
-        // "да" is length 2 < 4
+        // The repeated token has two letters, below the minimum length of four.
         time = 500L
-        assertFalse(filter.isEcho("да"))
+        assertFalse(filter.isEcho("tak"))
     }
 
     @Test
@@ -102,10 +137,10 @@ class SelfEchoFilterTest {
         var time = 0L
         val filter = SelfEchoFilter(now = { time })
         time = 0L
-        filter.noteSpoken("маршрут проложи")
+        filter.noteSpoken("trasa aktywna")
         // PHRASE_TTL_MS = 20_000
         time = 20001L  // older than TTL
-        assertFalse(filter.isEcho("маршрут проложи"))
+        assertFalse(filter.isEcho("trasa aktywna"))
     }
 
     @Test
@@ -113,9 +148,9 @@ class SelfEchoFilterTest {
         var time = 0L
         val filter = SelfEchoFilter(now = { time })
         time = 0L
-        filter.noteSpoken("маршрут проложи")
+        filter.noteSpoken("trasa aktywna")
         time = 19999L  // still within 20_000 ms TTL
-        assertTrue(filter.isEcho("маршрут проложи"))
+        assertTrue(filter.isEcho("trasa aktywna"))
     }
 
     @Test
@@ -145,34 +180,33 @@ class SelfEchoFilterTest {
     @Test
     fun `containment calculation with multiset minimum`() {
         val filter = SelfEchoFilter(now = { 0L })
-        // words in spoken: открой окно открой (open, window, open)
-        filter.noteSpoken("открой окно открой")
-        // words in transcript: открой открой открой (open, open, open)
-        // intersection multiset: min(2,3) open + min(1,0) окно = 2 opens
+        // The spoken multiset has two "zamknij" tokens and one "okno" token.
+        filter.noteSpoken("zamknij okno zamknij")
+        // The transcript has three "zamknij" tokens, so the multiset intersection is two.
         // containment = 2 / 3 = 0.667 < 0.75, NOT echo
-        assertFalse(filter.isEcho("открой открой открой"))
+        assertFalse(filter.isEcho("zamknij zamknij zamknij"))
     }
 
     @Test
     fun `containment just meets threshold`() {
         val filter = SelfEchoFilter(now = { 0L })
-        // Create phrase where exactly 3 of 4 words match
-        // spoken: "раз два три четыре пять" (words: раз два три четыре пять)
-        filter.noteSpoken("раз два три четыре пять")
-        // transcript: "раз два три" (3 words, all in spoken)
+        // The transcript uses three of the spoken phrase's five distinct tokens.
+        // The spoken phrase has five distinct tokens.
+        filter.noteSpoken("rano potem teraz zaraz dzisiaj")
+        // The transcript has the first three, all present in the spoken phrase.
         // containment = 3/3 = 1.0 >= 0.75 ✓
-        assertTrue(filter.isEcho("раз два три"))
+        assertTrue(filter.isEcho("rano potem teraz"))
     }
 
     @Test
     fun `containment below threshold is not echo`() {
         val filter = SelfEchoFilter(now = { 0L })
-        // spoken: "раз два три четыре пять" (5 words)
-        filter.noteSpoken("раз два три четыре пять")
-        // transcript: "раз два" (2 words, both in spoken)
+        // The spoken phrase has five distinct tokens.
+        filter.noteSpoken("rano potem teraz zaraz dzisiaj")
+        // The transcript has the first two, both present in the spoken phrase.
         // containment = 2/2 = 1.0 >= 0.75, should be echo with 2+ words
-        // Let's try: "раз окно" (2 words, 1 in spoken)
+        // The final transcript has two tokens but only one occurs in spoken text.
         // containment = 1/2 = 0.5 < 0.75
-        assertFalse(filter.isEcho("раз окно"))
+        assertFalse(filter.isEcho("rano okno"))
     }
 }

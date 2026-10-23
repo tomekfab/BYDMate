@@ -47,15 +47,13 @@ class MainActivity : AppCompatActivity() {
         private const val TAG = "MainActivity"
         private const val PERMISSION_REQUEST_CODE = 1001
         private const val BACKGROUND_LOCATION_REQUEST_CODE = 1002
-        private const val DEFAULT_LANG = "ru"
     }
 
     override fun attachBaseContext(newBase: Context) {
         // Cold-start: read stored language and wrap baseContext with a Configuration
         // that already has the right locale. Without this, initial layouts paint in
         // the system locale for one frame before AppCompat catches up.
-        val lang = newBase.getSharedPreferences(LocalePreferences.FILE, Context.MODE_PRIVATE)
-            .getString(LocalePreferences.KEY_LANG, null) ?: DEFAULT_LANG
+        val lang = LocalePreferences(newBase).getLanguage()
         val locale = Locale.forLanguageTag(lang)
         Locale.setDefault(locale)
         val cfg = Configuration(newBase.resources.configuration).apply { setLocale(locale) }
@@ -85,7 +83,7 @@ class MainActivity : AppCompatActivity() {
                 )
             }
             var lang by remember {
-                mutableStateOf(prefs.getString(LocalePreferences.KEY_LANG, null) ?: DEFAULT_LANG)
+                mutableStateOf(LocalePreferences(applicationContext).getLanguage())
             }
             var fontScale by remember { mutableStateOf(LocalePreferences.readFontScale(prefs)) }
             DisposableEffect(prefs) {
@@ -94,7 +92,7 @@ class MainActivity : AppCompatActivity() {
                         fontScale = LocalePreferences.readFontScale(p)
                     }
                     if (key == LocalePreferences.KEY_LANG) {
-                        val newLang = p.getString(key, DEFAULT_LANG) ?: DEFAULT_LANG
+                        val newLang = LocalePreferences(applicationContext).getLanguage()
                         if (newLang != lang) {
                             val locale = Locale.forLanguageTag(newLang)
                             Locale.setDefault(locale)

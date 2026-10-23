@@ -30,13 +30,38 @@ class InsightsManagerTest {
     }
 
     @Test
-    fun cacheKey_ruLang() {
-        assertEquals("insight_2026-05-13_ru_7", cacheKey("2026-05-13", "ru", 7))
+    fun cacheKey_plLang() {
+        assertEquals("insight_2026-05-13_pl_7", cacheKey("2026-05-13", "pl", 7))
+    }
+
+    @Test
+    fun `legacy Russian locale uses Polish cache namespace`() {
+        val ctx: Context = ApplicationProvider.getApplicationContext()
+        com.bydmate.app.data.local.LocalePreferences(ctx).setLanguage("ru")
+        val today = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).format(java.util.Date())
+        ctx.getSharedPreferences("insights_cache", Context.MODE_PRIVATE).edit()
+            .clear()
+            .putString(
+                InsightsManager.cacheKey(today, "pl", 7),
+                """{"title":"t","summary":"s","tone":"good","dynamics":[],"insights":[]}""",
+            )
+            .commit()
+
+        val manager = InsightsManager(
+            context = ctx,
+            openRouterClient = OpenRouterClient(OkHttpClient()),
+            tripDao = mockk<TripDao>(),
+            idleDrainDao = mockk<IdleDrainDao>(),
+            chargeDao = mockk<ChargeDao>(),
+            settingsRepository = mockk<SettingsRepository>(),
+        )
+
+        assertEquals(false, manager.needsRefresh())
     }
 
     @Test
     fun cacheKey_differsByPeriod() {
-        assertNotEquals(cacheKey("2026-05-13", "ru", 7), cacheKey("2026-05-13", "ru", 30))
+        assertNotEquals(cacheKey("2026-05-13", "pl", 7), cacheKey("2026-05-13", "pl", 30))
     }
 
     // Finding 1: buildNightDrainMetric() hard-coded a 7/14-day window regardless of the
@@ -45,10 +70,8 @@ class InsightsManagerTest {
     @Test
     fun `getDisplayInsight for a 30-day period queries the night-idle window at 30-60 days, not 7-14`() = runTest {
         val ctx: Context = ApplicationProvider.getApplicationContext()
-        // BYDMateApp.onCreate() -> bootstrapLocale() auto-detects and persists a language on
-        // first run, so currentLanguage() would not fall back to its "ru" default here -- pin
-        // it explicitly so the cache key below is deterministic.
-        com.bydmate.app.data.local.LocalePreferences(ctx).setLanguage("ru")
+        // Pin the locale so the cache key below is deterministic.
+        com.bydmate.app.data.local.LocalePreferences(ctx).setLanguage("pl")
         val sinceCalls = mutableListOf<Long>()
 
         val idleDrainDao = mockk<IdleDrainDao>(relaxed = true)
@@ -71,7 +94,7 @@ class InsightsManagerTest {
         val today = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).format(java.util.Date())
         ctx.getSharedPreferences("insights_cache", Context.MODE_PRIVATE).edit()
             .putString(
-                InsightsManager.cacheKey(today, "ru", 30),
+                InsightsManager.cacheKey(today, "pl", 30),
                 """{"title":"t","summary":"s","tone":"good","dynamics":[],"insights":[]}""",
             )
             .apply()

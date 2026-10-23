@@ -22,7 +22,7 @@ class OverlayLabelsLocaleTest {
 
     @Test fun `confirm overlay buttons follow the app language, not the system one`() {
         locale.setLanguage("ru")
-        assertEquals("Отмена" to "Выполнить", ConfirmOverlayManager.buttonLabels(app))
+        assertEquals("Anuluj" to "Wykonaj", ConfirmOverlayManager.buttonLabels(app))
         locale.setLanguage("en")
         assertEquals("Cancel" to "Run", ConfirmOverlayManager.buttonLabels(app))
     }
@@ -30,7 +30,7 @@ class OverlayLabelsLocaleTest {
     @Test fun `voice orb captions follow the app language and a switch`() {
         locale.setLanguage("ru")
         ListeningOverlay.relocale(app)
-        assertEquals("Ты:" to "Агент:", ListeningOverlay.dialogLabels)
+        assertEquals("Ty:" to "Agent:", ListeningOverlay.dialogLabels)
         locale.setLanguage("en")
         ListeningOverlay.relocale(app)
         assertEquals("You:" to "Agent:", ListeningOverlay.dialogLabels)

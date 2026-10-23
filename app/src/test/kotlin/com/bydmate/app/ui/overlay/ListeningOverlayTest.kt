@@ -64,11 +64,11 @@ class ListeningOverlayTest {
         ListeningOverlay.attachWindow = { _, _ -> attachCount++; FakeHandle() }
         ListeningOverlay.poster = { it.run() }
 
-        ListeningOverlay.show(context, "Слушаю")
+        ListeningOverlay.show(context, "Słucham")
         assertEquals(1, attachCount)
 
         ListeningOverlay.hide()
-        ListeningOverlay.show(context, "Слушаю")
+        ListeningOverlay.show(context, "Słucham")
 
         assertEquals(2, attachCount) // second show() actually attached a new window
     }
@@ -83,11 +83,11 @@ class ListeningOverlayTest {
         var deferred: Runnable? = null
         ListeningOverlay.poster = { r -> deferred = r }
 
-        ListeningOverlay.show(context, "Слушаю")
+        ListeningOverlay.show(context, "Słucham")
         val oldHandle = handles[0]
 
         ListeningOverlay.hide() // captures oldHandle locally, clears `active`, defers destroy()
-        ListeningOverlay.show(context, "Слушаю") // must NOT no-op -- attaches a new handle
+        ListeningOverlay.show(context, "Słucham") // must NOT no-op -- attaches a new handle
         val newHandle = handles[1]
 
         deferred?.run() // now actually run the deferred cleanup
@@ -106,8 +106,8 @@ class ListeningOverlayTest {
         }
         ListeningOverlay.poster = { it.run() }
 
-        ListeningOverlay.show(context, "Слушаю") // attachWindow throws; must not commit `active`
-        ListeningOverlay.show(context, "Слушаю") // must attempt again, not silently no-op forever
+        ListeningOverlay.show(context, "Słucham") // attachWindow throws; must not commit `active`
+        ListeningOverlay.show(context, "Słucham") // must attempt again, not silently no-op forever
 
         assertEquals(2, attempt)
     }
@@ -165,17 +165,17 @@ class ListeningOverlayTest {
         assertEquals(null, ListeningOverlay.answerText)
     }
 
-    // (b) State transitions once shown: showHeard sets the "Ты:" row and clears any prior answer;
-    // showAnswer adds the "Агент:" row; clearDialog collapses the block but leaves the pill (text) up.
+// (b) State transitions once shown: showHeard sets the user row and clears any prior answer;
+// showAnswer adds the agent row; clearDialog collapses the block but leaves the pill (text) up.
     @Test fun `showHeard resets answer and showAnswer adds it`() {
         ListeningOverlay.showAnswer("stale") // a leftover answer from a previous turn
-        ListeningOverlay.showHeard("привет")
-        assertEquals("привет", ListeningOverlay.heardText)
+        ListeningOverlay.showHeard("cześć")
+        assertEquals("cześć", ListeningOverlay.heardText)
         assertEquals(null, ListeningOverlay.answerText) // showHeard cleared the stale answer
 
-        ListeningOverlay.showAnswer("здравствуй")
-        assertEquals("привет", ListeningOverlay.heardText) // heard untouched by showAnswer
-        assertEquals("здравствуй", ListeningOverlay.answerText)
+        ListeningOverlay.showAnswer("witaj")
+        assertEquals("cześć", ListeningOverlay.heardText) // heard untouched by showAnswer
+        assertEquals("witaj", ListeningOverlay.answerText)
 
         ListeningOverlay.clearDialog()
         assertEquals(null, ListeningOverlay.heardText)
@@ -192,7 +192,7 @@ class ListeningOverlayTest {
         }
         ListeningOverlay.poster = { it.run() }
 
-        ListeningOverlay.show(context, "Слушаю")
+        ListeningOverlay.show(context, "Słucham")
         ListeningOverlay.hide()
 
         assertTrue(pill.destroyed)
@@ -215,7 +215,7 @@ class ListeningOverlayTest {
         // Run cleanup inline (simulates traversal arriving before poster fires, i.e., the race).
         ListeningOverlay.poster = { it.run() }
 
-        ListeningOverlay.show(context, "Слушаю")
+        ListeningOverlay.show(context, "Słucham")
         // hide() immediately — before any real WindowManager traversal would have run.
         ListeningOverlay.hide()
 

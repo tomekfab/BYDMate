@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_capture_error_delete">Não foi possível eliminar a captura. Os dados podem permanecer no armazenamento da aplicação. Tente eliminá-la novamente.</string>
+    <string name="nav_capture_error_reset">Não foi possível limpar a captura anterior. A gravação não foi iniciada. Elimine a captura e tente novamente.</string>
+    <string name="nav_capture_error_export">Não foi possível guardar a captura. O ficheiro de destino pode estar incompleto. Escolha um ficheiro e tente novamente.</string>
+    <string name="nav_capture_error_write">Falha na escrita. A gravação foi interrompida. Elimine a captura incompleta e inicie uma nova.</string>
+</resources>

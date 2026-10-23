@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>BYDMate — Floating SOC Widget (B2, v2)</title>
@@ -36,7 +36,7 @@
     font-family: 'JetBrains Mono', monospace;
   }
 
-  /* === Widget base (B2) — без крестика === */
+  /* === Widget base (B2) — without a close button === */
   .widget {
     background: #16161a;
     border-radius: 12px;
@@ -309,19 +309,19 @@
 </head>
 <body>
 
-<h1>Плавающий виджет SOC — визуальный макет (B2, v2)</h1>
+<h1>Floating SOC widget — visual mockup (B2, v2)</h1>
 <div class="subtitle">
-  BYDMate v2.4.0 · 220×78 px · закрывается драгом в zone-trash (без крестика на виджете)
+  BYDMate v2.4.0 · 220×78 px · is dismissed by dragging to zone-trash (without a close button on the widget)
 </div>
 
-<div class="section-title">// 4 состояния виджета — чистая карточка без кнопок</div>
+<div class="section-title">// 4 widget states — a clean card without buttons</div>
 <div class="states">
 
   <div class="state">
     <div class="widget widget-green">
       <div class="row-top">
         <div class="soc soc-green">83%</div>
-        <div class="range">~274 км</div>
+        <div class="range">~274 km</div>
       </div>
       <div class="divider"></div>
       <div class="row-bottom">
@@ -329,15 +329,15 @@
         <div>13.8 V</div>
       </div>
     </div>
-    <div class="state-label">нормально</div>
-    <div class="state-desc">SOC&nbsp;≥&nbsp;30%, все метрики в норме</div>
+    <div class="state-label">normal</div>
+    <div class="state-desc">SOC&nbsp;≥&nbsp;30%, all metrics normal</div>
   </div>
 
   <div class="state">
     <div class="widget widget-yellow">
       <div class="row-top">
         <div class="soc soc-yellow">28%</div>
-        <div class="range">~92 км</div>
+        <div class="range">~92 km</div>
       </div>
       <div class="divider"></div>
       <div class="row-bottom">
@@ -345,15 +345,15 @@
         <div>12.3 V</div>
       </div>
     </div>
-    <div class="state-label">предупреждение</div>
-    <div class="state-desc">SOC&nbsp;15–30% или 12V 12.0–12.5</div>
+    <div class="state-label">warning</div>
+    <div class="state-desc">SOC&nbsp;15–30% or 12V 12.0–12.5</div>
   </div>
 
   <div class="state">
     <div class="widget widget-red">
       <div class="row-top">
         <div class="soc soc-red">9%</div>
-        <div class="range">~28 км</div>
+        <div class="range">~28 km</div>
       </div>
       <div class="divider"></div>
       <div class="row-bottom">
@@ -361,15 +361,15 @@
         <div>11.7 V</div>
       </div>
     </div>
-    <div class="state-label">критично</div>
-    <div class="state-desc">SOC&nbsp;&lt;&nbsp;15% или 12V&nbsp;&lt;&nbsp;12.0</div>
+    <div class="state-label">critical</div>
+    <div class="state-desc">SOC&nbsp;&lt;&nbsp;15% or 12V&nbsp;&lt;&nbsp;12.0</div>
   </div>
 
   <div class="state">
     <div class="widget widget-grey">
       <div class="row-top">
         <div class="soc soc-grey">—</div>
-        <div class="range range-muted">~— км</div>
+        <div class="range range-muted">~— km</div>
       </div>
       <div class="divider"></div>
       <div class="row-bottom">
@@ -377,18 +377,18 @@
         <div>—</div>
       </div>
     </div>
-    <div class="state-label">нет данных</div>
-    <div class="state-desc">DiPlus не отвечает</div>
+    <div class="state-label">no data</div>
+    <div class="state-desc">DiPlus does not respond</div>
   </div>
 
 </div>
 
-<div class="section-title">// 3 сцены взаимодействия — как работает скрытие драгом</div>
+<div class="section-title">// 3 interaction scenes — how drag-to-hide works</div>
 <div class="scenes">
 
   <!-- Scene 1: Widget at rest -->
   <div style="position: relative; padding-top: 36px;">
-    <div class="scene-label">1 · Виджет в покое</div>
+    <div class="scene-label">1 · Widget at rest</div>
     <div class="dilink">
       <div class="fake-ui">14:22 · VRadio</div>
       <div class="fake-ui-right">ETA 17:05</div>
@@ -399,7 +399,7 @@
         <div class="widget widget-green">
           <div class="row-top">
             <div class="soc soc-green">83%</div>
-            <div class="range">~274 км</div>
+            <div class="range">~274 km</div>
           </div>
           <div class="divider"></div>
           <div class="row-bottom">
@@ -413,7 +413,7 @@
 
   <!-- Scene 2: Dragging — trash zone appears -->
   <div style="position: relative; padding-top: 36px;">
-    <div class="scene-label">2 · Пользователь тянет виджет → появляется zone-trash внизу</div>
+    <div class="scene-label">2 · User drags the widget → zone-trash appears at the bottom</div>
     <div class="dilink">
       <div class="fake-ui">14:22 · VRadio</div>
       <div class="fake-ui-right">ETA 17:05</div>
@@ -424,7 +424,7 @@
         <div class="widget widget-green dragging">
           <div class="row-top">
             <div class="soc soc-green">83%</div>
-            <div class="range">~274 км</div>
+            <div class="range">~274 km</div>
           </div>
           <div class="divider"></div>
           <div class="row-bottom">
@@ -436,14 +436,14 @@
 
       <div class="trash-zone">
         <div class="trash-zone-inner">✕</div>
-        <div class="trash-hint">перетащить сюда, чтобы скрыть</div>
+        <div class="trash-hint">drag here to hide</div>
       </div>
     </div>
   </div>
 
   <!-- Scene 3: Hovering over trash -->
   <div style="position: relative; padding-top: 36px;">
-    <div class="scene-label">3 · Виджет наведён на zone-trash → зона увеличилась, виджет побледнел</div>
+    <div class="scene-label">3 · Widget over zone-trash → zone → enlarged zone, faded widget</div>
     <div class="dilink">
       <div class="fake-ui">14:22 · VRadio</div>
       <div class="fake-ui-right">ETA 17:05</div>
@@ -454,7 +454,7 @@
         <div class="widget widget-green over-trash">
           <div class="row-top">
             <div class="soc soc-green">83%</div>
-            <div class="range">~274 км</div>
+            <div class="range">~274 km</div>
           </div>
           <div class="divider"></div>
           <div class="row-bottom">
@@ -466,49 +466,49 @@
 
       <div class="trash-zone active">
         <div class="trash-zone-inner">✕</div>
-        <div class="trash-hint" style="color: #e5484d;">отпустить — виджет скрыт</div>
+        <div class="trash-hint" style="color: #e5484d;">release — widget hidden</div>
       </div>
     </div>
   </div>
 
 </div>
 
-<div class="section-title">// Взаимодействия</div>
+<div class="section-title">// Interactions</div>
 <div class="interactions">
   <div class="interaction">
     <div class="interaction-title">TAP</div>
     <div class="interaction-desc">
-      Открывает BYDMate (MainActivity). Виджет автоматически скрывается пока приложение на переднем плане, возвращается когда уходит в фон.
+      Opens BYDMate (MainActivity). The widget automatically hides while the app is in the foreground and returns in the background.
     </div>
   </div>
   <div class="interaction">
     <div class="interaction-title">DRAG</div>
     <div class="interaction-desc">
-      Свободное перетаскивание. Порог 8dp отличает тап от драга. Пока палец двигается, в нижней части экрана видна zone-trash.
+      Free dragging. An 8dp threshold distinguishes a tap from a drag. While the finger moves, the bottom of the screen shows zone-trash.
     </div>
   </div>
   <div class="interaction">
-    <div class="interaction-title">DROP в zone-trash</div>
+    <div class="interaction-title">DROP in zone-trash</div>
     <div class="interaction-desc">
-      Виджет скрывается и тумблер в Настройках выключается. Чтобы вернуть — включить в Настройках.
+      The widget hides and the Settings switch turns off. To restore it, turn it on in Settings.
     </div>
   </div>
 </div>
 
 <div class="legend">
-  <b>Zone-trash появляется только во время драга</b> — в покое экран чистый, никаких элементов поверх.<br>
-  <b>Положение zone-trash:</b> снизу по центру (бессознательный жест «смести вниз»), 72×72 px, красный ореол.<br>
-  <b>Магнитная зона:</b> когда виджет внутри круга, он подсвечивается как «будет удалён» (серый/уменьшенный), иконка trash увеличивается.<br><br>
+  <b>Zone-trash appears only during a drag</b> — at rest the screen is clean, with no overlays.<br>
+  <b>Position zone-trash:</b> bottom centre (an intuitive “sweep down” gesture), 72×72 px, red halo.<br>
+  <b>Magnetic zone:</b> when the widget is inside the circle, it is marked as “will be removed” (grey/smaller), trash icon enlarges.<br><br>
 
-  <b>Цветовая семантика рамки</b> (по худшему показателю из SOC и 12V):<br>
-  <code>зелёный</code> — SOC ≥ 30% и 12V ≥ 12.5<br>
-  <code>жёлтый</code> — SOC 15–30% или 12V 12.0–12.5<br>
-  <code>красный</code> — SOC &lt; 15% или 12V &lt; 12.0<br>
-  <code>серый</code> — DiPlus отвалился / данных нет<br><br>
+  <b>Border colour semantics</b> (by the worse value of SOC and 12V):<br>
+  <code>green</code> — SOC ≥ 30% and 12V ≥ 12.5<br>
+  <code>yellow</code> — SOC 15–30% or 12V 12.0–12.5<br>
+  <code>red</code> — SOC &lt; 15% or 12V &lt; 12.0<br>
+  <code>grey</code> — DiPlus unavailable / no data<br><br>
 
-  <b>Шрифты:</b> Manrope для подписей, JetBrains Mono для чисел.<br>
-  <b>Углы:</b> RoundedCornerShape(12dp) — идентично CompactCard на дашборде.<br>
-  <b>Фон:</b> #16161a (CardSurface), тень 0 6px 20px rgba(0,0,0,0.5).
+  <b>Fonts:</b> Manrope for labels, JetBrains Mono for numbers.<br>
+  <b>Corners:</b> RoundedCornerShape(12dp) — identical to CompactCard on the dashboard.<br>
+  <b>Background:</b> #16161a (CardSurface), 0 6px 20px rgba(0,0,0,0.5) shadow.
 </div>
 
 </body>

@@ -90,7 +90,7 @@ class AgentSchemaPrefixTest {
 
     @Test fun schemas_are_byte_stable_until_a_rule_changes() = runTest {
         val rules = MutableStateFlow(listOf(
-            RuleEntity(id = 1, name = "Ночной режим", triggers = "[]", actions = "[]"),
+            RuleEntity(id = 1, name = "Tryb nocny", triggers = "[]", actions = "[]"),
         ))
         coEvery { ruleDao.getEnabled() } returns rules.value
         every { ruleDao.getAll() } returns rules
@@ -102,16 +102,16 @@ class AgentSchemaPrefixTest {
         val second = t.schemas().toString()
         assertEquals("two turns without a rule edit must send the same prefix", first, second)
 
-        rules.value = rules.value + RuleEntity(id = 2, name = "Прогрев", triggers = "[]", actions = "[]")
+        rules.value = rules.value + RuleEntity(id = 2, name = "Rozgrzewanie", triggers = "[]", actions = "[]")
         yield()
         val third = t.schemas().toString()
-        assertTrue("a new rule must reach the enum", third.contains("Прогрев"))
+        assertTrue("a new rule must reach the enum", third.contains("Rozgrzewanie"))
     }
 
     @Test fun disabled_rules_stay_out_of_the_enum() = runTest {
         val rules = MutableStateFlow(listOf(
-            RuleEntity(id = 1, name = "Включено", triggers = "[]", actions = "[]", enabled = true),
-            RuleEntity(id = 2, name = "Выключено", triggers = "[]", actions = "[]", enabled = false),
+            RuleEntity(id = 1, name = "Włączone", triggers = "[]", actions = "[]", enabled = true),
+            RuleEntity(id = 2, name = "Wyłączone", triggers = "[]", actions = "[]", enabled = false),
         ))
         coEvery { ruleDao.getEnabled() } returns rules.value.filter { it.enabled }
         every { ruleDao.getAll() } returns rules
@@ -124,6 +124,6 @@ class AgentSchemaPrefixTest {
             .getJSONObject("parameters").getJSONObject("properties")
             .getJSONObject("name").getJSONArray("enum")
         assertEquals(1, enum.length())
-        assertEquals("Включено", enum.getString(0))
+        assertEquals("Włączone", enum.getString(0))
     }
 }

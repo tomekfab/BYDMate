@@ -30,7 +30,7 @@ object NaviRichPostProcessor {
         val etaSeconds = if (rich.remainingTimeSec > 0) rich.remainingTimeSec
             else parseEtaSeconds(extraSubText ?: "")
 
-        // Road from extras (android.text) preferred - the RV tree may carry "N мин"
+        // Road from extras (android.text) is preferred: the RV tree may carry a remaining-duration value.
         val extrasRoad = extraText?.trim() ?: ""
         val safeRoad = if (extrasRoad.isNotEmpty() && !isDurationText(extrasRoad) &&
             !NavManeuverCodes.isServicePhrase(extrasRoad) &&
@@ -68,7 +68,7 @@ object NaviRichPostProcessor {
 
     /**
      * EXTRAS_FALLBACK outcome: no RemoteViews. Returns null for idle stubs
-     * (app-logo icon, or zero distance with a "навигатор" road) and for service notices
+     * (app-logo icon, or zero distance with a Navigator road) and for service notices
      * (no distance in the text at all and no maneuver). Camera untouched
      * (applyCamera=false - extras carry no camera). Maps rule R2-1: while the hub
      * already holds a known maneuver, a Maps extras maneuver is dropped.
@@ -95,6 +95,7 @@ object NaviRichPostProcessor {
         if (isIdleOrNotice(smallIconName, distanceMeters, parsedDistance != null, maneuver, road)) return null
 
         val mergeManeuver = if (isMaps && hubHasKnownManeuver) 0 else maneuver
+        // Exact Yandex notification input; do not translate this external token.
         val mergeRoad = if (road.isNotEmpty() && road != "Навигатор запущен") road else ""
 
         return NavGuidanceHub.RichUpdate(
@@ -116,10 +117,10 @@ object NaviRichPostProcessor {
         else -> NavManeuverRaw.name("icon", smallIconName)
     }
 
-    /** An idle stub (app-logo icon, or a zero distance with a "навигатор" road) or a service
-     *  notice: no distance in the text at all ("0 м" is one) and no maneuver, whose title would
-     *  otherwise become the road and start guidance without a route (#198: "Установите сервисы
-     *  Google Play" without Google services). */
+    /** An idle stub (app-logo icon, or a zero distance with a Navigator road) or a service
+     *  notice: no distance in the text at all (zero is one) and no maneuver, whose title would
+     *  otherwise become the road and start guidance without a route (#198: the Google Play
+     *  services installation prompt without Google services). */
     private fun isIdleOrNotice(
         smallIconName: String,
         distanceMeters: Int,

@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>BYDMate — варианты Switch</title>
+<title>BYDMate — Switch variants</title>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -50,22 +50,22 @@
   .sw.off .thumb { left: 4px; }
   .sw.on  .thumb { left: 24px; }
 
-  /* ===== Вариант A — предложенный мной ===== */
+  /* ===== Option A — proposed ===== */
   .varA .sw.on  { background: #4ADE80; }
   .varA .sw.off { background: #64748B; }
   .varA .thumb  { background: #000000; }
 
-  /* ===== Вариант B — thumb тёмно-серый, чуть мягче ===== */
+  /* ===== Option B — dark-gray thumb, slightly softer ===== */
   .varB .sw.on  { background: #4ADE80; }
   .varB .sw.off { background: #64748B; }
   .varB .thumb  { background: #1B2838; }
 
-  /* ===== Вариант C — белый thumb, как сейчас в виджете (для сравнения) ===== */
+  /* ===== Option C — white thumb, as in the current widget (for comparison) ===== */
   .varC .sw.on  { background: #4ADE80; }
   .varC .sw.off { background: #2A3A52; }
   .varC .thumb  { background: #FFFFFF; }
 
-  /* ===== Вариант D — thumb чёрный с тонкой светлой обводкой ===== */
+  /* ===== Option D — black thumb with a thin light outline ===== */
   .varD .sw.on  { background: #4ADE80; }
   .varD .sw.off { background: #64748B; }
   .varD .thumb  { background: #000; box-shadow: inset 0 0 0 1.5px #334155; }
@@ -85,92 +85,92 @@
 </head>
 <body>
 <div class="wrap">
-<h1>BYDMate — единый стиль Switch</h1>
+<h1>BYDMate — shared Switch style</h1>
 
 <div class="note">
-  Все варианты показаны в двух состояниях (включен / выключен) на фоне настоящей карточки приложения
-  (<b>CardSurface #162032</b>) и тёмного фона (<b>NavyDark #0A1628</b>).
+  Each option is shown in two states (on / off), over the app’s real card background
+  (<b>CardSurface #162032</b>) and dark background (<b>NavyDark #0A1628</b>).
 </div>
 
-<!-- Вариант A -->
-<h2>Вариант A — предложенный: track зелёный / TextMuted, thumb Color.Black</h2>
+<!-- Option A -->
+<h2>Option A — proposed: green / TextMuted track, Color.Black thumb</h2>
 <div class="varA">
   <div class="card">
     <div>
-      <div class="label">Включить правило</div>
-      <div class="hint">состояние: включено</div>
+      <div class="label">Włącz regułę</div>
+      <div class="hint">state: on</div>
     </div>
     <div class="sw on"><div class="thumb"></div></div>
   </div>
   <div class="card">
     <div>
-      <div class="label">Только на парковке (P)</div>
-      <div class="hint">состояние: выключено</div>
+      <div class="label">Tylko na postoju (P)</div>
+      <div class="hint">state: off</div>
     </div>
     <div class="sw off"><div class="thumb"></div></div>
   </div>
 </div>
 
-<!-- Вариант B -->
-<h2>Вариант B — thumb тёмно-серый (NavyMid), track тот же</h2>
+<!-- Option B -->
+<h2>Option B — dark-gray thumb (NavyMid), same track</h2>
 <div class="varB">
   <div class="card">
     <div>
-      <div class="label">Включить правило</div>
-      <div class="hint">включено</div>
+      <div class="label">Włącz regułę</div>
+      <div class="hint">on</div>
     </div>
     <div class="sw on"><div class="thumb"></div></div>
   </div>
   <div class="card">
     <div>
-      <div class="label">Только на парковке (P)</div>
-      <div class="hint">выключено</div>
+      <div class="label">Tylko na postoju (P)</div>
+      <div class="hint">off</div>
     </div>
     <div class="sw off"><div class="thumb"></div></div>
   </div>
 </div>
 
-<!-- Вариант C -->
-<h2>Вариант C — как было: белый thumb + CardBorder track (для сравнения)</h2>
+<!-- Option C -->
+<h2>Option C — previous: white thumb + CardBorder track (for comparison)</h2>
 <div class="varC">
   <div class="card">
     <div>
-      <div class="label">Включить правило</div>
-      <div class="hint">включено</div>
+      <div class="label">Włącz regułę</div>
+      <div class="hint">on</div>
     </div>
     <div class="sw on"><div class="thumb"></div></div>
   </div>
   <div class="card">
     <div>
-      <div class="label">Только на парковке (P)</div>
-      <div class="hint">выключено — thumb плохо виден на тёмном track</div>
+      <div class="label">Tylko na postoju (P)</div>
+      <div class="hint">off — the thumb is hard to see on a dark track</div>
     </div>
     <div class="sw off"><div class="thumb"></div></div>
   </div>
 </div>
 
-<!-- Вариант D -->
-<h2>Вариант D — thumb чёрный с тонкой обводкой (#334155)</h2>
+<!-- Option D -->
+<h2>Option D — black thumb with a thin outline (#334155)</h2>
 <div class="varD">
   <div class="card">
     <div>
-      <div class="label">Включить правило</div>
-      <div class="hint">включено</div>
+      <div class="label">Włącz regułę</div>
+      <div class="hint">on</div>
     </div>
     <div class="sw on"><div class="thumb"></div></div>
   </div>
   <div class="card">
     <div>
-      <div class="label">Только на парковке (P)</div>
-      <div class="hint">выключено</div>
+      <div class="label">Tylko na postoju (P)</div>
+      <div class="hint">off</div>
     </div>
     <div class="sw off"><div class="thumb"></div></div>
   </div>
 </div>
 
 <div class="note" style="margin-top:28px">
-  Выбираете вариант — применяю его через helper <code>bydSwitchColors()</code> во всех
-  5 местах (Автоматизация — 3 Switch, Настройки — 2 Switch).
+  Choose an option and I will apply it with the <code>bydSwitchColors()</code> helper in all
+  five places (Automation — 3 Switches, Settings — 2 Switches).
 </div>
 
 </div>

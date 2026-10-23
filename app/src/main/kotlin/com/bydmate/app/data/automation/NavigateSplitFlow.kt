@@ -8,14 +8,14 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 
 /**
- * One `navigate` dispatch, split-aware and able to press «Поехали» for the driver.
+ * One `navigate` dispatch, split-aware and able to press the Navigator start button for the driver.
  *
  * Two facts from the car (2026-09-16) shape this:
  *  - the firmware answers ANY activity launch into a task that stands in the split root with
  *    startFullWindow, and the Navigator is recreated twice and loses the route. No intent flag
  *    avoids it. A route built BEFORE the split is switched on, on the other hand, survives.
  *    So the split is ended first, the route is built fullscreen, and the pair is put back.
- *  - «Поехали» is a plain text node in the Navigator's a11y tree, so the route-preview screen
+ *  - The start button is a plain text node in the Navigator's a11y tree, so the route-preview screen
  *    is both the readback that the route was built and the button to start guidance.
  *
  * Everything the flow touches is behind [Env]; the flow itself is pure control logic.
@@ -53,9 +53,9 @@ internal class NavigateSplitFlow(
     )
 
     /**
-     * @param go             the driver said «поехали», not «построй маршрут»: press the button.
+     * @param go             the driver said «jedźmy», not «wyznacz trasa»: press the button.
      * @param autoGoSupported this dispatch ends on a Yandex Navigator route screen (2GIS and the
-     *                        search/show modes have no «Поехали» node to wait for).
+     *                        search/show modes have no start-button node to wait for).
      */
     suspend fun run(go: Boolean, autoGoSupported: Boolean): DispatchResult {
         val pair = env.activeSplitPair()
@@ -97,7 +97,7 @@ internal class NavigateSplitFlow(
             }
             return sent
         }
-        if (go && !autoGoSupported) env.log("auto-go: 2gis не поддерживается")
+        if (go && !autoGoSupported) env.log("auto-go: 2GIS nie jest obsługiwany")
         val failure = if (autoGoSupported && (go || pair != null)) awaitRoute(go, stale) else null
         if (pair == null) return if (failure == null) sent else DispatchResult(false, failure)
         env.wait(cfg.restoreDelayMs)
@@ -122,11 +122,11 @@ internal class NavigateSplitFlow(
     /** Waits for the route screen and, when [go], presses it. Returns the reason it did not work. */
     private suspend fun awaitRoute(go: Boolean, stale: Boolean): String? {
         if (!env.a11yConnected()) {
-            env.log("auto-go: служба специальных возможностей выключена")
+            env.log("auto-go: usługa ułatwień dostępu jest wyłączona")
             return env.text(R.string.dispatch_navigate_a11y_off)
         }
         if (stale && !awaitStaleGone()) {
-            // The old preview never left: its «Поехали» cannot be told from the new route's.
+            // The old preview never left: its start button cannot be told from the new route's.
             return if (go) env.text(R.string.dispatch_navigate_stale_route) else null
         }
         var waited = 0L
@@ -157,7 +157,7 @@ internal class NavigateSplitFlow(
         return gone
     }
 
-    /** Presses «Поехали» and reads the press back: the button is gone on the guidance screen. */
+    /** Presses the Navigator start button and reads the press back: it is gone on the guidance screen. */
     private suspend fun pressGo(): String? {
         val clicked = env.clickGo()
         var waited = 0L

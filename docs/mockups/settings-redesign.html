@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>BYDMate — Настройки (редизайн)</title>
+<title>BYDMate — Ustawienia (przeprojektowanie)</title>
 <style>
   :root {
     --navy-dark:    #0b1324;
@@ -183,7 +183,7 @@
   }
   .toggle.on::after { transform: translateX(20px); }
 
-  /* link-row used for "Места" one-line section */
+  /* link-row used for "Miejsca" one-line section */
   .link-row {
     display: flex;
     align-items: center;
@@ -259,156 +259,156 @@
 
 <div class="frame">
   <div class="titlebar">
-    <h1>Настройки</h1>
-    <div style="font-size:12px;color:var(--text-muted)">BYDMate v2.3.3 · редизайн по best-practices</div>
+    <h1>Ustawienia</h1>
+    <div style="font-size:12px;color:var(--text-muted)">BYDMate v2.3.3 · przeprojektowanie zgodne z dobrymi praktykami</div>
   </div>
 
   <div class="screen">
 
-    <!-- LEFT COLUMN: "Моя машина" -->
+    <!-- LEFT COLUMN: "Mój samochód" -->
     <div class="col">
-      <div class="col-label">Моя машина</div>
+      <div class="col-label">Mój samochód</div>
 
-      <!-- Батарея и тарифы -->
-      <div class="section-header"><span class="dot"></span>Батарея и тарифы</div>
+      <!-- Bateria i taryfy -->
+      <div class="section-header"><span class="dot"></span>Bateria i taryfy</div>
       <div class="card">
         <div class="field">
-          <div class="field-label">Ёмкость батареи (кВт·ч)</div>
+          <div class="field-label">Pojemność baterii (kWh)</div>
           <div class="field-value">72.9</div>
         </div>
         <div class="row-between" style="gap:8px">
           <div class="field" style="flex:1">
-            <div class="field-label">Тариф дома (BYN/кВт·ч)</div>
+            <div class="field-label">Taryfa domowa (BYN/kWh)</div>
             <div class="field-value">0.14</div>
           </div>
           <div class="field" style="flex:1">
-            <div class="field-label">Тариф DC (BYN/кВт·ч)</div>
+            <div class="field-label">Taryfa DC (BYN/kWh)</div>
             <div class="field-value">0.79</div>
           </div>
         </div>
-        <div class="muted-label">Тариф поездок</div>
+        <div class="muted-label">Taryfa podróży</div>
         <div class="chip-row">
           <div class="chip active">AC</div>
           <div class="chip">DC</div>
-          <div class="chip">Свой</div>
+          <div class="chip">Własna</div>
         </div>
-        <button class="btn primary">Сохранить тарифы</button>
-        <div class="hint">Новый тариф применяется к будущим поездкам. Уже посчитанные поездки не изменятся.</div>
+        <button class="btn primary">Zapisz taryfy</button>
+        <div class="hint">Nowa taryfa dotyczy przyszłych podróży. Już obliczone podróże nie zmienią się.</div>
         <div class="divider-h"></div>
-        <button class="btn outline">Пересчитать все поездки</button>
-        <div class="hint">Пересчитает стоимость всех поездок по текущему тарифу.</div>
+        <button class="btn outline">Przelicz wszystkie podróże</button>
+        <div class="hint">Przeliczy koszt wszystkich podróży według bieżącej taryfy.</div>
       </div>
 
-      <!-- Пороги расхода -->
-      <div class="section-header blue"><span class="dot"></span>Пороги расхода</div>
+      <!-- Progi zużycia -->
+      <div class="section-header blue"><span class="dot"></span>Progi zużycia</div>
       <div class="card">
         <div class="row-between" style="gap:8px">
           <div class="field" style="flex:1">
-            <div class="field-label">Хороший &lt; (кВт·ч/100км)</div>
+            <div class="field-label">Dobry &lt; (kWh/100km)</div>
             <div class="field-value">20</div>
           </div>
           <div class="field" style="flex:1">
-            <div class="field-label">Плохой &gt; (кВт·ч/100км)</div>
+            <div class="field-label">Zły &gt; (kWh/100km)</div>
             <div class="field-value">30</div>
           </div>
         </div>
-        <div class="hint">Управляет цветом расхода в поездках и на дашборде.</div>
+        <div class="hint">Steruje kolorem zużycia w podróżach i na pulpicie.</div>
       </div>
 
-      <!-- Данные -->
-      <div class="section-header muted"><span class="dot"></span>Данные</div>
+      <!-- Dane -->
+      <div class="section-header muted"><span class="dot"></span>Dane</div>
       <div class="card">
-        <button class="btn blue">Экспорт CSV</button>
-        <button class="btn purple">Запись логов</button>
-        <div class="hint">Экспорт сохраняет все поездки в CSV-файл. Запись логов включает детальный лог для диагностики.</div>
+        <button class="btn blue">Eksport CSV</button>
+        <button class="btn purple">Rejestrowanie logów</button>
+        <div class="hint">Eksport zapisuje wszystkie podróże do pliku CSV. Rejestrowanie logów włącza szczegółowy log do diagnostyki.</div>
       </div>
 
       <div class="note">
-        <b>Изменение:</b> секция «Данные» сдвинута вниз левой колонки — это редкая функция, её место ниже основных настроек.
+        <b>Zmiana:</b> sekcja „Dane” została przeniesiona niżej w lewej kolumnie — to rzadka funkcja, więc jest poniżej głównych ustawień.
       </div>
     </div>
 
 
-    <!-- RIGHT COLUMN: "Приложение" -->
+    <!-- RIGHT COLUMN: "Aplikacja" -->
     <div class="col">
-      <div class="col-label">Приложение</div>
+      <div class="col-label">Aplikacja</div>
 
-      <!-- Единицы и валюта -->
-      <div class="section-header blue"><span class="dot"></span>Единицы и валюта</div>
+      <!-- Jednostki i waluta -->
+      <div class="section-header blue"><span class="dot"></span>Jednostki i waluta</div>
       <div class="card">
-        <div class="muted-label">Расстояние</div>
+        <div class="muted-label">Odległość</div>
         <div class="chip-row">
-          <div class="chip active">км</div>
-          <div class="chip">мили</div>
+          <div class="chip active">km</div>
+          <div class="chip">mile</div>
         </div>
-        <div class="muted-label" style="margin-top:2px">Валюта</div>
+        <div class="muted-label" style="margin-top:2px">Waluta</div>
         <div class="chip-row">
-          <div class="chip active">BYN Бел. руб.</div>
-          <div class="chip">₽ Рос. руб.</div>
-          <div class="chip">₴ Гривна</div>
-          <div class="chip">₸ Тенге</div>
-          <div class="chip">$ Доллар</div>
-          <div class="chip">€ Евро</div>
+          <div class="chip active">BYN rubel białoruski</div>
+          <div class="chip">₽ rubel rosyjski</div>
+          <div class="chip">₴ hrywna</div>
+          <div class="chip">₸ tenge</div>
+          <div class="chip">$ dolar</div>
+          <div class="chip">€ euro</div>
         </div>
       </div>
 
-      <!-- Плавающий виджет -->
-      <div class="section-header"><span class="dot"></span>Плавающий виджет</div>
+      <!-- Pływający widżet -->
+      <div class="section-header"><span class="dot"></span>Pływający widżet</div>
       <div class="card">
         <div class="row-between">
-          <div style="font-size:13px">Показывать виджет SOC</div>
+          <div style="font-size:13px">Pokazuj widżet SOC</div>
           <div class="toggle on"></div>
         </div>
-        <button class="btn ghost">Сбросить позицию</button>
-        <div class="hint">Виджет с SOC, запасом хода и температурой поверх других приложений. Тап — открыть BYDMate.</div>
+        <button class="btn ghost">Resetuj pozycję</button>
+        <div class="hint">Widżet z SOC, zasięgiem i temperaturą nad innymi aplikacjami. Dotknij, aby otworzyć BYDMate.</div>
       </div>
 
-      <!-- AI Инсайты -->
-      <div class="section-header purple"><span class="dot"></span>AI-инсайты</div>
+      <!-- Wskazówki AI -->
+      <div class="section-header purple"><span class="dot"></span>Wskazówki AI</div>
       <div class="card">
         <div class="field">
           <div class="field-label">OpenRouter API Key</div>
           <div class="field-value pwd">•••••••••••••••••••</div>
         </div>
-        <button class="btn blue">Модель: Anthropic Claude 3.7 Sonnet</button>
-        <button class="btn primary">Сохранить и получить инсайт</button>
-        <div class="hint">Инсайт обновляется раз в сутки и доступен на вкладке «Главная».</div>
+        <button class="btn blue">Model: Anthropic Claude 3.7 Sonnet</button>
+        <button class="btn primary">Zapisz i pobierz wskazówkę</button>
+        <div class="hint">Wskazówka jest aktualizowana raz dziennie i dostępna na karcie „Główna”.</div>
       </div>
 
-      <!-- Места (переимен. из "Автоматизация") -->
-      <div class="section-header orange"><span class="dot"></span>Места</div>
+      <!-- Miejsca (zmieniono nazwę z „Automatyzacja”) -->
+      <div class="section-header orange"><span class="dot"></span>Miejsca</div>
       <div class="card" style="padding:12px 14px">
         <div class="link-row">
           <div class="icon">📍</div>
           <div style="flex:1">
-            <div class="title">Точки для автоматизации</div>
-            <div class="sub">Дом, работа, любимые места — триггеры «Въезд» / «Выезд»</div>
+            <div class="title">Punkty automatyzacji</div>
+            <div class="sub">Dom, praca, ulubione miejsca — wyzwalacze „Wjazd” / „Wyjazd”.</div>
           </div>
           <div class="chev">›</div>
         </div>
       </div>
 
-      <!-- О приложении (внизу) -->
-      <div class="section-header muted"><span class="dot"></span>О приложении</div>
+      <!-- O aplikacji (na dole) -->
+      <div class="section-header muted"><span class="dot"></span>O aplikacji</div>
       <div class="card">
         <div class="about-version">BYDMate v2.3.3</div>
         <div class="about-meta">© 2026 AndyShaman</div>
-        <div class="about-meta">Автозапуск: <span class="status-ok">зафиксирован 22.04 14:23</span></div>
+        <div class="about-meta">Autostart: <span class="status-ok">zarejestrowano 22.04 14:23</span></div>
         <a class="link" href="#">github.com/AndyShaman/BYDMate</a>
-        <button class="btn blue">Проверить обновления</button>
-        <div class="hint">Долгое нажатие на номер версии — разблокировка сервисных функций.</div>
+        <button class="btn blue">Sprawdź aktualizacje</button>
+        <div class="hint">Długie naciśnięcie numeru wersji odblokowuje funkcje serwisowe.</div>
       </div>
 
       <div class="note warn">
-        <b>Изменение:</b> «О приложении» спущено в самый низ (по соглашению — это место «О приложении» в большинстве приложений). «Автоматизация» переименована в прямолинейную секцию «Места» (одна ссылка).
+        <b>Zmiana:</b> „O aplikacji” przeniesiono na sam dół (zgodnie z konwencją — to miejsce „O aplikacji” w większości aplikacji). Nazwę „Automatyzacja” zmieniono na prostą sekcję „Miejsca” (jeden link).
       </div>
     </div>
 
   </div>
 
   <div class="footer-note">
-    <div>Скрытая секция «Умный дом» (VPS + Алиса) — разблокируется как раньше: 7 тапов по версии в «О приложении». В макете не показана.</div>
-    <div>Макет 1400px max-width; на 1920×1080 DiLink раскроется на всю ширину.</div>
+    <div>Ukryta sekcja „Inteligentny dom” (VPS + Alice) odblokowuje się jak wcześniej: 7 dotknięć wersji w „O aplikacji”. Nie pokazano jej w makiecie.</div>
+    <div>Makieta ma max-width 1400 px; na DiLink 1920×1080 rozwinie się na całą szerokość.</div>
   </div>
 </div>
 

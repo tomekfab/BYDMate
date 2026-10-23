@@ -117,7 +117,7 @@ internal object BetaMapParser {
     private const val HEX_DIGITS = 4
     private const val HEX_RADIX = 16
     private const val FORM_FEED = 0x0C
-    private const val DEFAULT_NAME = "Зарядная станция"
+    private const val DEFAULT_NAME = "Stacja ładowania"
     // Tariff units read as a price per kWh. BETA labels one operator's tariffs PER_KW with the
     // same amounts others label PER_KWH (0.55 AC, 0.73 DC): nobody sells charging per kW.
     private val PER_KWH_UNITS = setOf("PER_KWH", "PER_KW")

@@ -48,22 +48,26 @@ class NaviRouteHolderTest {
 
     @Test
     fun `update with parsed fields exposes maneuver data`() {
+        // POLISH-ONLY-EXCEPTION: yandex-input begin
+        // These values are unmodified external Yandex notification input.
         NaviRouteHolder.update(
             NaviRouteHolder.NAVI_PACKAGE, "5 км", null, null, 1L,
             NaviNotificationParser.Parsed(
-                maneuver = "направо", maneuverResource = "notification_right_sdl",
+                maneuver = "w prawo", maneuverResource = "notification_right_sdl",
                 distance = "350 м", street = "улица Ленина", bigTexts = listOf("18:40", "42 км"),
             ),
         )
         val snap = NaviRouteHolder.latest!!
-        assertEquals("направо", snap.maneuver)
+        assertEquals("w prawo", snap.maneuver)
         assertEquals("350 м", snap.maneuverDistance)
         assertEquals("улица Ленина", snap.street)
         assertEquals(listOf("18:40", "42 км"), snap.bigTexts)
+        // POLISH-ONLY-EXCEPTION: yandex-input end
     }
 
     @Test
     fun `maneuverIcon is set from parsed maneuverResource`() {
+        // POLISH-ONLY-EXCEPTION: yandex-input begin
         NaviRouteHolder.update(
             NaviRouteHolder.NAVI_PACKAGE, "5 км", null, null, 1L,
             NaviNotificationParser.Parsed(
@@ -72,17 +76,20 @@ class NaviRouteHolderTest {
             ),
         )
         assertEquals("notification_right_sdl", NaviRouteHolder.latest?.maneuverIcon)
+        // POLISH-ONLY-EXCEPTION: yandex-input end
     }
 
     @Test
     fun `parsed-only notification without extras is still stored`() {
+        // POLISH-ONLY-EXCEPTION: yandex-input begin
         NaviRouteHolder.update(
             NaviRouteHolder.NAVI_PACKAGE, null, null, null, 1L,
             NaviNotificationParser.Parsed(
-                maneuver = "направо", maneuverResource = null,
+                maneuver = "w prawo", maneuverResource = null,
                 distance = "350 м", street = null, bigTexts = emptyList(),
             ),
         )
         assertEquals("350 м", NaviRouteHolder.latest?.maneuverDistance)
+        // POLISH-ONLY-EXCEPTION: yandex-input end
     }
 }

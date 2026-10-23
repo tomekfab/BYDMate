@@ -43,9 +43,9 @@ class ActionDispatcherTelegramReportTest {
     )
 
     private val action = ActionDef(
-        command = TELEGRAM_REPORT_KIND, displayName = "Отчёт в Telegram", kind = TELEGRAM_REPORT_KIND,
-        payload = """{"fields":["soc","location"],"text":"ключ у Лены"}""",
-    ).withReportRuleName("Где машина")
+        command = TELEGRAM_REPORT_KIND, displayName = "Raport w Telegramie", kind = TELEGRAM_REPORT_KIND,
+        payload = """{"fields":["soc","location"],"text":"klucz Leny"}""",
+    ).withReportRuleName("Gdzie jest samochód")
 
     @Before fun setUp() { LocalePreferences(ctx).setLanguage("ru") }
 
@@ -58,14 +58,14 @@ class ActionDispatcherTelegramReportTest {
         val result = dispatcher.dispatch(action, null)
         assertTrue(result.success)
         assertNull(result.reason)
-        coVerify { reporter.sendRuleReport("Где машина", setOf(ReportField.SOC, ReportField.LOCATION), "ключ у Лены") }
+        coVerify { reporter.sendRuleReport("Gdzie jest samochód", setOf(ReportField.SOC, ReportField.LOCATION), "klucz Leny") }
     }
 
     @Test fun `no bot fails the step with a hint where to connect it`() = runBlocking {
         answer(TelegramReporter.SendResult.NotConnected)
         val result = dispatcher.dispatch(action, null)
         assertFalse(result.success)
-        assertEquals("Подключите бота в Настройках", result.reason)
+        assertEquals("Połącz bota w Ustawieniach", result.reason)
     }
 
     @Test fun `a report waiting for the network is a success with a note`() = runBlocking {

@@ -10,7 +10,7 @@ import org.junit.Test
 /**
  * Tests for the composite safety gate [ActionDispatcher.safetyBlockReason] which
  * combines blocked-pattern, frunk parked-only, door-unlock, and window/sunroof
- * speed checks into a single pure function used by the "Выполнить сейчас" button.
+* speed checks into a single pure function used by the “Run now” button.
  */
 class ActionDispatcherSafetyGateTest {
 

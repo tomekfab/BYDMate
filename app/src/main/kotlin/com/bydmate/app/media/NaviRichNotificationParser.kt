@@ -189,7 +189,7 @@ object NaviRichNotificationParser {
         return h * 3600 + min * 60
     }
 
-    /** True for duration-like strings ("1 ч 40 мин", "30 мин", "1:30"). */
+    /** True for duration-like notification strings, including hour/minute units or `1:30`. */
     internal fun isDurationText(s: String): Boolean {
         val trimmed = s.trim()
         if (trimmed.contains("ч") || trimmed.contains("мин")) return true
@@ -463,6 +463,7 @@ object NaviRichNotificationParser {
             }
         }
 
+        // Exact Yandex notification input; do not translate this external token.
         if (ACTION_BUTTON_TEXTS.any { it in road.lowercase() } || road == "Навигатор запущен") road = ""
 
         val byIconName = images.firstOrNull { it.name == "primaryicontinted" }

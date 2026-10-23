@@ -486,7 +486,7 @@ class LogRecorder internal constructor(
             "FidCatalog:*",
             // Agent wave: one line per model round, tool call and finished turn.
             "AgentLoop:*",
-            // Auto-«Поехали»: the click on the Navigator's route preview (ActionDispatcher
+            // Auto-go: the click on the Navigator route-preview start button (ActionDispatcher
             // carries the split exit/restore and the wait lines around it).
             "NaviGoButton:*",
             // Consumption-vs-temperature screen: one line per open with the sample counts.
@@ -502,7 +502,7 @@ class LogRecorder internal constructor(
             // Voice speed wave: which TTS source spoke and its per-sentence synth time, LLM
             // retries, the per-round token usage line (prompt cache hits via cached_tokens) and
             // the push-to-talk connection prewarm.
-            "TtsRouter:*", "LlmAgentBackend:*", "OpenRouterClient:*", "HttpPrewarm:*",
+            "LlmAgentBackend:*", "OpenRouterClient:*", "HttpPrewarm:*",
             // Drive mode switch: one line per attempt (flag, target before/after, speed, verdict).
             "DriveModeChannel:*",
             // Telegram reports: build (items taken / skipped, length), send, outbox add/drain/drop.

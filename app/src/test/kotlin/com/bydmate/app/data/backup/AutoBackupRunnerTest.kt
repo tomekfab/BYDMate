@@ -219,8 +219,8 @@ class AutoBackupRunnerTest {
 
         runner.run()
 
-        val date = SimpleDateFormat("d MMMM HH:mm", Locale("ru")).format(Date(exportedAt))
-        coVerify { sink.sendDocument(any(), any(), any(), match { it.startsWith("BYDMate: бэкап $date, ") }) }
+        val date = SimpleDateFormat("d MMMM HH:mm", Locale("pl")).format(Date(exportedAt))
+        coVerify { sink.sendDocument(any(), any(), any(), match { it.startsWith("BYDMate: kopia zapasowa $date, ") }) }
     }
 
     @Test fun `file over the telegram limit is a permanent error without an upload`() = runTest {
@@ -246,7 +246,7 @@ class AutoBackupRunnerTest {
 
         assertEquals(AutoBackupRunner.RESULT_SENT, settings.getAutoBackupLastResult())
         assertEquals("", settings.getAutoBackupPendingUpload())
-        coVerify { sink.sendDocument("123:abc", 42L, match { it.name.startsWith("bydmate_backup_auto_") }, match { it.startsWith("BYDMate: бэкап ") && it.endsWith(" МБ") }) }
+        coVerify { sink.sendDocument("123:abc", 42L, match { it.name.startsWith("bydmate_backup_auto_") }, match { it.startsWith("BYDMate: kopia zapasowa ") && it.endsWith(" MB") }) }
     }
 
     @Test fun `transient upload failure keeps the file pending and asks for a retry`() = runTest {
@@ -291,7 +291,7 @@ class AutoBackupRunnerTest {
 
     @Test fun `stale pending path is cleared even when the fresh export fails`() = runTest {
         settings.setAutoBackupPendingUpload(File(dir, "bydmate_backup_auto_gone.zip").absolutePath)
-        every { backupManager.export(any()) } throws IllegalStateException("База данных занята")
+        every { backupManager.export(any()) } throws IllegalStateException("Baza danych zajęta")
 
         assertEquals(RunOutcome.FAILURE, runner().run())
 
@@ -347,7 +347,7 @@ class AutoBackupRunnerTest {
 
     @Test fun `export failure keeps the last timestamp so the next ignition retries`() = runTest {
         settings.setAutoBackupLastTs(123L)
-        every { backupManager.export(any()) } throws IllegalStateException("База данных занята")
+        every { backupManager.export(any()) } throws IllegalStateException("Baza danych zajęta")
 
         assertEquals(RunOutcome.FAILURE, runner().run())
 
@@ -376,7 +376,7 @@ class AutoBackupRunnerTest {
 
         verify(exactly = 1) { backupManager.export(setOf(BackupPart.KEYS)) }
         coVerify(exactly = 1) {
-            sink.sendDocument("123:abc", 42L, match { it.name == "bydmate_backup_20260923_100001.zip" }, match { it.startsWith("BYDMate: бэкап ") })
+            sink.sendDocument("123:abc", 42L, match { it.name == "bydmate_backup_20260923_100001.zip" }, match { it.startsWith("BYDMate: kopia zapasowa ") })
         }
         assertTrue(result.sent)
         assertEquals(null, result.sendError)

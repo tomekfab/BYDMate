@@ -11,1095 +11,1074 @@
 [![Jetpack Compose](https://img.shields.io/badge/Jetpack_Compose-Material3-4285F4?style=flat-square&logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
 [![License](https://img.shields.io/badge/License-PolyForm_Noncommercial-blue?style=flat-square)](LICENSE)
 [![GitHub release](https://img.shields.io/github/v/release/AndyShaman/BYDMate?style=flat-square)](https://github.com/AndyShaman/BYDMate/releases)
-[![Sponsor](https://img.shields.io/badge/Поддержать-FF69B4?style=flat-square&logo=githubsponsors&logoColor=white)](SUPPORT.md)
+[![Sponsor](https://img.shields.io/badge/Sponsor-FF69B4?style=flat-square&logo=githubsponsors&logoColor=white)](SUPPORT.md)
 
-[English](README.en.md) | [中文](README.zh.md) | **Русский**
+**English** | [中文](README.zh.md)
 
-**Реальный расход, GPS-маршруты, автоматизация, локальная AI-аналитика.**
+**Real consumption, GPS routes, automation, local AI analytics.**
 
-Разделение экрана 1/3 и 2/3, навигация на приборной панели, подсказки Яндекс Навигатора на лобовом стекле, камеры слепых зон по поворотнику, голосовой помощник по-русски, телеметрия в ABRP.
+Split screen 1/3 and 2/3, navigation on the instrument cluster, Yandex Navigator guidance on the windshield, turn-signal blind-spot cameras, a Polish voice assistant, ABRP telemetry.
 
-Проверено на Leopard 3 (方程豹豹3), есть поддержка Sea Lion 07, Song, Atto 3, Seal, Han и гибридов DM-i и DM-o (Song Pro DM-i, Leopard 5, Leopard 8, Sealion 06). DiLink 3.0, 4.0, 5.0, 5.1 и прошивки с новым интерфейсом UI7 (OTA V1.6).
+Tested on Leopard 3 (Fangchengbao Tai 3), with support for Sea Lion 07, Song, Atto 3, Seal, Han and the DM-i and DM-o hybrids (Song Pro DM-i, Leopard 5, Leopard 8, Sealion 06). DiLink 3.0, 4.0, 5.0, 5.1, and firmware with the new UI7 interface (OTA V1.6).
 
-[Возможности](#возможности) | [Скриншоты](#скриншоты) | [Автоматизация](#автоматизация) | [Вывод на приборку](#вывод-на-приборку) | [HUD](#hud) | [Разделение экрана](#разделение-экрана) | [Голосовой агент](#голосовой-ai-агент) | [AI Инсайты](#ai-инсайты) | [ABRP](#abrp--live-телеметрия) | [Установка](#установка) | [Сборка](#сборка-из-исходников) | [Релизы](https://github.com/AndyShaman/BYDMate/releases) | [Поддержать](SUPPORT.md)
+[Features](#features) | [Screenshots](#screenshots) | [Automation](#automation) | [Projection to cluster](#projection-to-cluster) | [HUD](#hud) | [Split screen](#split-screen) | [Voice AI Agent](#voice-ai-agent) | [AI Insights](#ai-insights) | [ABRP](#abrp-live-telemetry) | [Install](#install) | [Build](#build-from-source) | [Releases](https://github.com/AndyShaman/BYDMate/releases) | [Sponsor](SUPPORT.md)
 
 </div>
 
 ---
 
-## Зачем это нужно
+## Why This Matters
 
-Штатный бортовой компьютер BYD **занижает расход на 10-30%**. BYDMate берёт данные напрямую из BMS (energydata) и показывает реальное потребление. Плюс данные, которых нет в штатной системе: расход на стоянке, баланс ячеек, стоимость поездок, AI-аналитика.
+The stock BYD onboard computer **underestimates consumption by 10-30%**. BYDMate reads data straight from the BMS (energydata) and shows the real consumption. Plus data the stock system does not have at all: idle drain, cell balance, trip cost, AI analytics.
 
-Все основные функции (поездки, зарядки, автоматизации, локальные инсайты, офлайн голосовой агент) работают локально на DiLink и не требуют интернета. Облачные функции выключены по умолчанию и включаются только вручную вводом ключа. Что именно и когда уходит в сеть, описано в разделе [«Данные и сеть»](#данные-и-сеть).
-
----
-
-## Что нового
-
-Главное в версии 4.0.0.
-
-**Гибриды DM-i и DM-o.** Приложение само понимает, что машина гибрид, по её же счётчикам: настроек и профилей для этого нет. На главной под шкалой заряда стоит запас хода на батарее от машины вместо нашего расчёта, рядом карточка «Топливо» с уровнем бака и запасом на топливе, по тапу обороты двигателя, пробег на ДВС и на батарее, литры за всё время. В виджете уровень бака и запас на топливе, в «Технике» обороты и карточка «Топливо». Расход за период считается как на приборке: л/100 и кВт·ч/100 на все километры. В поездках колонка «л»; литры берутся по счётчику машины на границах поездки, и если приложение не видело одну из границ, стоит прочерк: чужой бензин поездке не приписывается. Цена литра задаётся в тарифных периодах, как тариф на электричество: заправились дороже, добавьте период с даты заправки. Поддержка первая, собрана по дампам двух машин, часть величин может показывать прочерк. Если видите прочерк там, где машина цифру знает, пришлите дамп параметров и фото приборки с запасами хода. На электромобилях ничего не изменилось. Спасибо baileileicn и bolatbekb за дампы.
-
-**Подогрев батареи в автоматизации.** Появились действия «Подогрев батареи: включить» и «выключить», они есть и у голосового помощника. Это тот же подогрев, что в штатном меню «Энергия», «Заряд и разряд»: он нужен, чтобы батарея быстрее заряжалась в мороз. Работает на электромобилях, у которых этот пункт есть в штатном меню. Если батарея тёплая или подключён зарядный кабель, машина сама не даст его включить, и правило напишет причину. В мороз на машине ещё не проверено, ждём отзывов.
-
-**Экран: выключить и включить.** Два новых действия в автоматизации и у голосового помощника. Гаснет только центральный экран: музыка и приложение продолжают работать, а касание включает экран снова. Пригодится, чтобы правило гасило экран при закрытии машины. На машинах пока не проверено.
-
-**Координаты в ABRP.** Вернулась настройка «Отправлять координаты в ABRP», по умолчанию выключена. Она для одного случая: следить за машиной в ABRP с телефона, когда ABRP в самой машине не запущен, например, машину взял кто-то другой. Если ABRP открыт в машине, настройку лучше не включать: он берёт GPS сам, и метка на карте начинает прыгать между двумя источниками. Спасибо @ptuchik.
-
-**Облако BYD через Wi-Fi.** Если сервер BYD не пускает машину, строка под настройкой теперь так и пишет и подсказывает, что нужен китайский VPN. Раньше это было неотличимо от «облако не ответило». Приложение ждёт ответа облака до 30 секунд, а не 5. Подсказка исправлена: нужен Wi-Fi, а машинам на новых серверах BYD ещё и китайский VPN, лучше на роутере.
-
-**Подсказки навигатора на приборке с DiLink 3.0.** Вместо «-1» показываются расстояние до манёвра и остаток пути, а время в пути пишется как «3 min», без китайского знака «分».
-
-**Стрелка манёвра на HUD и приборке.** После пройденного поворота она больше не остаётся рядом с расстоянием до следующего манёвра, а на стоящей машине не пропадает, пока навигатор молчит.
-
-**Виджет на Leopard 8 и DiLink 5.1.** На этих машинах приборка и проекционные экраны живут своими приложениями, и их фоновые окна принимались за смену приложения на центральном экране. Из-за этого виджет в режиме «только на главном экране» пропадал сам по себе, а без этого режима мог всплыть поверх YouTube или приложения из списка «скрывать в этих приложениях». Теперь смена приложения засчитывается, только когда его окно видно на центральном экране. Камера работает как раньше.
+All core features (trips, charges, automations, local insights, offline voice agent) run locally on DiLink and need no internet. Cloud features require explicit setup. The online assistant is off by default and requires an OpenClaw endpoint, device pairing, and a separate opt-in. What exactly leaves the device and when is described in the [Data & Network](#data--network) section.
 
 ---
 
-## Возможности
+## What's New
 
-| | Функция | Описание |
-|---|---------|----------|
-| **BMS** | Реальный расход | Данные BMS (energydata), не бортовой компьютер. Тренд по скользящему окну 25 км |
-| **GPS** | Трекинг поездок | GPS-маршруты, дистанция, скорость |
-| **Charge** | Зарядки | Автоматическая запись AC/DC, статистика за период и за всё время, ручное добавление и редактирование |
-| **AI** | Инсайты | Анализ вождения: локальные правила на устройстве, без интернета |
-| **TRIP** | Счётчики TRIP 1/2 | Пробег, расход, время и стоимость с момента сброса (как в машине); сброс долгим нажатием, подробности по касанию |
-| **Bat** | Здоровье батареи и «Техника» | Карточка: SoH (Leopard 3, DiLink 3.0), температура, 12V, разброс ячеек, изоляция. Тап открывает экран «Техника» с живыми параметрами батареи, моторов, климата и шин, включая долю мощности перед/зад в процентах |
-| **DM-i** | Гибриды | Приложение само понимает, что машина гибрид, по её счётчикам. Запас хода на батарее и на топливе от машины, карточка «Топливо» (бак, запас, обороты, пробег на ДВС и на батарее), литры и бензиновые километры в поездках по счётчику машины, цена литра в тарифных периодах. На электромобилях ничего не меняется |
-| **Map** | Карта маршрута | osmdroid (OpenStreetMap) в деталях поездки |
-| **Rules** | Автоматизация | Правила WHEN→THEN: триггеры по параметрам → команды управления машиной |
-| **Cluster** | Вывод на приборку | Вывод выбранного приложения на приборную панель кнопкой руля (по умолчанию правая звезда) |
-| **HUD** | Проекция на лобовое | Манёвры, дистанция и знак ограничения скорости из Яндекс Навигатора на заводском проекционном дисплее |
-| **Split** | Разделение экрана | Два приложения сразу: окнами BYDMate в пропорции 1/3 и 2/3 либо штатным разделением прошивки |
-| **Cam** | Камеры слепых зон | Камера нужной стороны по включённому поворотнику: на приборке или в окошке на экране |
-| **Voice** | Голосовой агент | Русский офлайн-ассистент: распознавание речи на устройстве, AI-агент (32 инструмента), нейросетевая озвучка |
-| **Widget** | Плавающий виджет | 7 полей поверх других приложений: SOC, запас хода, расход + тренд, время, t° салона, t° батареи, 12V; на гибриде вместо расхода запас на топливе и уровень бака |
-| **Auto** | Автозапуск | WorkManager, запускается при включении |
-| **Backup** | Сохранение конфигурации | Поездки, зарядки, настройки и ключи в одном архиве в Download, восстановление по частям, автосохранение по расписанию с копией в ваш Telegram-бот |
-| **Share** | Обмен автоматизациями | Правило в файл без номеров, контактов и ваших мест; импорт чужого правила с предпросмотром |
-| **Aa** | Размер текста | Обычный, крупный или очень крупный текст на экранах приложения и в окнах голосового агента |
+The main changes in version 4.0.0.
+
+**DM-i and DM-o hybrids.** The app detects a hybrid by itself, from the car's own counters: there are no settings or profiles for it. On the home screen, under the charge ring, sits the car's own battery range instead of our calculation, next to it a “Fuel” card with the tank level and the fuel range; a tap shows engine rpm, engine and battery mileage, litres for all time. The widget shows the tank level and the fuel range, and the “Tech” screen shows rpm and the “Fuel” card. Consumption for a period is counted as on the instrument cluster: l/100 and kWh/100 over all kilometres. Trips get an “l” column; litres come from the car's counter at the trip boundaries, and if the app did not see one of the boundaries, a dash is shown: someone else's petrol is never put on a trip. The litre price is set in tariff periods, like the electricity tariff: if you refuelled at a higher price, add a period from the refuelling date. This is the first version of the support, built from the dumps of two cars, and some values may show a dash. If you see a dash where the car knows the number, send a parameter dump and a photo of the cluster with the ranges. Nothing changed on EVs. Thanks to baileileicn and bolatbekb for the dumps.
+
+**Battery preheating in automation.** New actions “Battery preheating: on” and “off”, also available to the voice assistant. It is the same preheating as in the car's own menu “Energy”, “Charge and discharge”: it helps the battery charge faster in the cold. It works on EVs that have this item in the car's menu. If the battery is warm or a charging cable is connected, the car itself will not let you turn it on, and the rule will say why. Not checked on a car in the cold yet, we are waiting for feedback.
+
+**Screen: off and on.** Two new actions in automation and for the voice assistant. Only the central screen goes dark: music and the app keep working, and a touch turns the screen on again. Handy for a rule that turns the screen off when you lock the car. Not checked on cars yet.
+
+**Coordinates in ABRP.** The setting “Send coordinates to ABRP” is back, off by default. It is for one case: watching the car in ABRP from a phone while ABRP is not running in the car itself, for example when someone else has taken the car. If ABRP is open in the car, better leave the setting off: it takes GPS by itself, and the marker on the map starts jumping between two sources. Thanks to @ptuchik.
+
+**BYD cloud over Wi-Fi.** If the BYD server does not let the car in, the line under the setting now says so and suggests that a Chinese VPN is needed. Before, that looked the same as “the cloud did not answer”. The app now waits for the cloud up to 30 seconds, not 5. The hint is fixed: you need Wi-Fi, and cars on the new BYD servers also need a Chinese VPN, better on the router.
+
+**Navigator hints on the cluster of DiLink 3.0 cars.** Instead of “-1” the cluster shows the distance to the maneuver and the rest of the route, and the travel time is written as “3 min”, without the Chinese character “分”.
+
+**Maneuver arrow on the HUD and the cluster.** After a turn is passed, it no longer stays next to the distance to the next maneuver, and on a standing car it does not disappear while the navigator is silent.
+
+**Widget on Leopard 8 and DiLink 5.1.** On these cars the cluster and the projection screens live in their own apps, and their background windows were taken for an app change on the central screen. Because of that the widget in the “main screen only” mode disappeared by itself, and without that mode it could pop up over YouTube or an app from the “hide in these apps” list. Now an app change counts only when its window is visible on the central screen. The camera works as before.
 
 ---
 
-## Скриншоты
+## Features
+
+| | Feature | Description |
+|---|---------|-------------|
+| **BMS** | Real consumption | BMS data (energydata), not the onboard computer. Trend over a 25 km rolling window |
+| **GPS** | Trip tracking | GPS routes, distance, speed |
+| **Charge** | Charges | Automatic AC/DC logging, period and lifetime stats, manual add and edit |
+| **AI** | Insights | Driving analysis: on-device rules, no internet |
+| **TRIP** | TRIP 1/2 counters | Distance, consumption, time, and cost since the last reset (like in the car); long-press to reset, tap for details |
+| **Bat** | Battery health and "Tech" | Card: SoH (Leopard 3, DiLink 3.0), temperature, 12V, cell balance, insulation. Tap opens the "Tech" screen with live battery, motor, climate, and tire parameters, including the front/rear power split in percent |
+| **DM-i** | Hybrids | The app detects a hybrid from the car's own counters. Battery and fuel range from the car, a «Fuel» card (tank, range, rpm, engine and battery mileage), litres and engine kilometres per trip from the car's counter, litre price per tariff period. Nothing changes on EVs |
+| **Map** | Route map | osmdroid (OpenStreetMap) in trip details |
+| **Rules** | Automation | WHEN→THEN rules: parameter triggers → vehicle control commands |
+| **Cluster** | Projection to cluster | Mirrors the chosen app onto the instrument cluster with a steering-wheel button (right star by default) |
+| **HUD** | Windshield projection | Maneuvers, distance, and the speed limit sign from Yandex Navigator on the factory head-up display |
+| **Split** | Split screen | Two apps at once: BYDMate windows in a 1/3 and 2/3 layout, or the firmware's own split |
+| **Cam** | Blind-spot cameras | The camera of the matching side while the turn signal is on: on the cluster or in a small window on the screen |
+| **Voice** | Voice agent | Polish offline assistant: on-device speech recognition, AI agent (32 tools), neural TTS |
+| **Widget** | Floating widget | 7 fields over other apps: SOC, range, consumption + trend, time, cabin t°, battery t°, 12V; on a hybrid the fuel range and tank level replace consumption |
+| **Auto** | Autostart | WorkManager, starts on boot |
+| **Backup** | Configuration backup | Trips, charges, settings, and keys in one archive in Download, restore by parts, scheduled auto-save with a copy in your Telegram bot |
+| **Share** | Automation sharing | A rule saved to a file without phone numbers, contacts, or your places; import someone else's rule with a preview |
+| **Aa** | Text size | Normal, large, or extra large text on the app screens and in the voice agent windows |
+
+---
+
+## Screenshots
 
 **Dashboard**
 
 <img src="docs/screenshots/dashboard.jpg" alt="Dashboard" width="800">
 
-Вокруг SOC-кольца расположены четыре значения в стиле плавающего виджета: сверху длительность поездки, одометр и температура - в салоне и за бортом в одном слоте (если машина не сообщает наружную температуру, слот показывает только температуру в салоне, как раньше); снизу пробег текущей поездки, расчётный запас хода и расход текущей поездки со стрелкой тренда. Цвета и логика тренда такие же, как в плавающем виджете, поэтому информация читается одинаково и на главном экране, и поверх других приложений. На гибриде под кольцом стоит запас хода на батарее от машины, своего расчёта там нет, а ниже карточка «Топливо»: уровень бака и запас на топливе, по тапу обороты двигателя, пробег на ДВС и на батарее, литры за всё время и цена литра действующего периода. Расход за период на гибриде показывается как л/100 и кВт·ч/100 на все километры, как на приборке.
+Around the SOC ring there are four fields laid out like the floating widget: at the top, trip duration, odometer, and temperature (cabin and outside temperature share one slot; if the car does not report outside temperature, the slot shows only cabin temperature, as before); at the bottom, the current trip's distance, the estimated range, and the current trip's consumption with a trend arrow. The colors and trend logic are the same as in the floating widget, so the information reads the same on the home screen and over other apps. On a hybrid, the car's own battery range sits under the ring, with no calculation of ours, and below it is a “Fuel” card: the tank level and the fuel range; a tap shows engine rpm, engine and battery mileage, litres for all time and the litre price of the current period. Consumption for a period on a hybrid is shown as l/100 and kWh/100 over all kilometres, as on the instrument cluster.
 
-Ниже кольца: AI-инсайт, малая карточка здоровья батареи (SoH на Leopard 3 и DiLink 3.0, температура, 12V), два счётчика TRIP 1 и TRIP 2, последние поездки, фильтр периода. Каждый счётчик показывает пробег, расход в кВт·ч (включая стоянку), время в пути и стоимость с момента сброса. Долгое нажатие сбрасывает счётчик, касание открывает детали. В окне счётчика можно включить сброс после зарядки: после любой, только AC, только DC или только после зарядки до 100%.
+Below the ring: an AI insight, a small battery health card (SoH on Leopard 3 and DiLink 3.0, temperature, 12V), the two TRIP 1 and TRIP 2 counters, recent trips, a period filter. Each counter shows distance, consumption in kWh (including parked drain), time on the road, and cost since the last reset. A long press resets the counter, a tap opens the details. In the counter's window you can turn on reset after charging: after any charge, AC only, DC only, or only after charging to 100%.
 
-**AI Инсайты**
+**AI Insights**
 
 <img src="docs/screenshots/dashboard-insight-expanded.jpg" alt="AI Insight expanded" width="800">
 
-*Анализ эффективности вождения — расход, тренды, батарея, рекомендации (считается на устройстве)*
+*Driving efficiency analysis: consumption, trends, battery, recommendations (computed on the device)*
 
-**Здоровье батареи**
+**Battery Health**
 
 <img src="docs/screenshots/dashboard-battery.jpg" alt="Battery health" width="800">
 
-*Температура, SoH (Leopard 3, DiLink 3.0), 12V аккумулятор, баланс ячеек, напряжение*
+*Temperature, SoH (Leopard 3, DiLink 3.0), 12V battery, cell balance, voltage*
 
-**Поездки**
+**Trips**
 
 <img src="docs/screenshots/trips.jpg" alt="Trips accordion" width="800">
 
-*Аккордеон Месяц > День > Поездка с фильтрами и цветовой индикацией расхода*
+*Month > Day > Trip accordion with filters and color-coded consumption*
 
-Чип **«Температура»** над списком открывает экран «Расход и температура»: точка на каждую поездку длиннее 5 км, линия медиан по 5-градусным полосам, медианы по холоду (ниже 0 °C), межсезонью (0…15 °C) и теплу (выше 15 °C) и вывод, на сколько процентов расход в холод выше. Поездки короче 5 км в график не попадают: там всё съедает прогрев. Нужно 8 поездок с температурой и разброс хотя бы в 15 °C, иначе экран честно скажет, чего не хватает.
+The **"Temperature"** chip above the list opens the "Consumption and Temperature" screen: a dot for every trip longer than 5 km, a median line over 5-degree bands, medians for cold (below 0 °C), mid-season (0 to 15 °C), and warm (above 15 °C), and a note on how many percent higher consumption is in the cold. Trips under 5 km never make it into the chart, warm-up eats up everything there. It takes 8 trips with temperature data and a spread of at least 15 °C, otherwise the screen honestly says what is missing.
 
-В окне поездки видно одометр на старте и на финише, время в движении, стоимость на 100 км, изменение заряда в процентах и температуру за бортом в начале и в конце. Одометр пишется только для поездок после обновления.
+The trip window shows the odometer at the start and finish, time in motion, cost per 100 km, the charge change in percent, and the outside temperature at the start and end. The odometer is recorded only for trips after the update.
 
-На гибриде в списке есть колонка «л». В колонке «/100» у поездки с бензином стоят литры на 100 км с пометкой «л» и без цвета, у электрической как раньше кВт·ч/100 с цветом. Литры берутся как разница показаний счётчика топлива машины на границах поездки, шаг 0,1 л; нет снимка на одной из границ, значит прочерк, чужой бензин поездке не приписывается. В окне поездки литры, километры на ДВС и на батарее и стоимость топлива идут отдельными строками.
+On a hybrid the list has an “l” column. In the “/100” column a trip with petrol shows litres per 100 km with an “l” mark and no color, an electric trip shows kWh/100 with color as before. Litres are the difference of the car's fuel counter at the trip boundaries, in 0.1 l steps; if one of the boundaries has no snapshot, a dash is shown, and someone else's petrol is never put on the trip. In the trip window litres, engine and battery kilometres and fuel cost are separate rows.
 
-**Автоматизация**
+**Automation**
 
-<img src="docs/screenshots/automation.jpg" alt="Automation" width="800">
+<img src="docs/screenshots/automation-en.jpg" alt="Automation" width="800">
 
-*Правила КОГДА→ТОГДА, редактор условий и действий, настройки срабатывания*
+*WHEN→THEN rules, condition and action editor, trigger settings*
 
-**Настройки**
+**Settings**
 
 <img src="docs/screenshots/settings.jpg" alt="Settings" width="800">
 
-*Разделы: Голос-агент, Виджет, Дисплей, Разделение экрана, Авто и батарея, Интеграции, Сервис и данные, Приложение*
+*Sections: Voice agent, Widget, Display, Split screen, Car and battery, Integrations, Service & Data, App*
 
-**Разделение экрана**
+**Split Screen**
 
-<img src="docs/screenshots/split-screen.jpg" alt="Разделение экрана: Яндекс Музыка слева, Яндекс Навигатор справа" width="800">
+<img src="docs/screenshots/split-screen.jpg" alt="Split screen: Yandex Music on the left, Yandex Navigator on the right" width="800">
 
-*Две панели 1/3 и 2/3, виджет BYDMate поверх*
-
-
----
-
-## Автоматизация
-
-Вкладка **Автоматизация** позволяет создавать правила для автоматического управления автомобилем напрямую через системный интерфейс машины.
-
-### Принцип работы
-
-**КОГДА** условие выполняется **→ ТОГДА** выполнить команду.
-
-Примеры:
-- SOC < 20% → включить внутреннюю циркуляцию
-- Скорость > 0 → закрыть шторку
-- Температура за бортом < 0 → включить подогрев зеркал
-
-### Возможности
-
-| | Описание |
-|---|----------|
-| **Триггеры** | SOC, скорость, температура, поворотник, передача, двери, окна, люк, багажники, давление шин, режим езды, точки-геозоны, время суток, точное время и промежуток с днями недели, клавиша руля, тап по виджету, голосовая фраза, запуск сервиса, появление интернета и др. Поворотники, передача, двери, окна, багажники и датчики слепых зон приходят в приложение в момент события, а не по опросу |
-| **Команды** | Окна (включая отдельные — водителя и пассажира), климат, свет, замки, люк, зеркала — напрямую через системный интерфейс машины. Подогрев руля на машинах, где он есть |
-| **17 видов действий** | Команда автомобилю, уведомление, запуск приложения, звонок, маршрут в Я.Навигаторе, открыть URL, Яндекс.Музыка, запуск ролика на YouTube, пауза, громкость медиа, охранный режим, точка доступа Wi-Fi, озвучить текст, запрос агенту, главный экран BYDMate, вывод на приборку, разделение экрана (запуск, закрытие, переключение). У команд машины, охранного режима и вывода на приборку есть вариант «Переключить» |
-| **Edge trigger** | Срабатывает только при переходе false→true (не повторяется каждые 3 сек) |
-| **Cooldown** | Настраиваемая пауза между срабатываниями |
-| **Overlay-подтверждение** | Всплывающее окно «Отмена / Выполнить» перед действием. Таймаут 15 с → автоотмена |
-| **Безопасность** | Окна не открываются на скорости > 120 км/ч, люк > 80 км/ч, двери не отпираются > 30 км/ч, CAN/SHELL команды заблокированы |
-| **Журнал** | Лог всех срабатываний с результатами |
-| **Шаблоны** | 6 готовых правил для быстрого старта |
-| **Выполнить сейчас** | Ручной запуск правила из редактора, мимо триггеров и cooldown |
-
-**«Переключить» — это третий вариант рядом с самим действием, а не отдельный пункт.** В списке команд под парой «открыть / закрыть» стоит строка вида «Багажник: переключить», а у охранного режима и вывода на приборку к кнопкам «Включить» и «Выключить» добавилась кнопка «Переключить».
-
-Переключать умеют: багажник, передний багажник, люк, замки, аварийку, климат, подогрев и обдув сидений водителя и пассажира, подогрев руля, вывод на приборку и режим охраны. Состояние берётся из машины: что открыто — закроется, что выключено — включится. Сиденье, которое сейчас работает, выключится, а выключенное вернётся на ту ступень, которую вы задавали последней (по умолчанию третью). Если машина не сообщает состояние, действие честно откажется и напишет об этом, а не будет угадывать.
-
-Правила, созданные в прошлых версиях, продолжают работать и открываются на редактирование как раньше — менять ничего не нужно.
-
-**Списки команд и параметров свёрнуты по разделам.** Открыт только раздел с текущим выбором, остальные разворачиваются тапом по заголовку.
-
-**Тестовый запуск.** В редакторе правила кнопка «Тестовый запуск» сразу выполняет все действия, как будто сработало условие. Срабатывание при этом не засчитывается. Открытие окон, люка и переднего багажника и отпирание дверей пропускаются, если нет свежих данных о скорости: не старше 10 секунд при работающем сервисе. Нераспознанная команда тоже пропускается, с пояснением. Закрыли редактор, и запуск останавливается.
-
-**Списком или карточками.** Переключатель в шапке вкладки показывает правила компактным списком или карточками в три колонки, выбор запоминается. У каждого правила видно, сколько раз и когда оно срабатывало.
-
-**Места.** Кнопка «Места» переехала из Настроек в шапку вкладки «Автоматизация», рядом с «Журналом». Добавлять и править точки можно прямо там.
-
-**Подогрев руля.** Действие «Подогрев руля» включает, выключает и переключает подогрев. Результат проверяется по состоянию машины, а на машине без подогрева руля действие честно сообщит, что его нет. На машине с подогревом руля команда пока не проверена, ждём отзывов.
-
-### Логика
-
-- **AND** — все условия должны выполняться
-- **OR** — достаточно одного условия
-- **Только на P** — правило срабатывает только когда авто на паркинге
-
-### Проверка условия при каждом включении
-
-Правило срабатывает в момент, когда значение переходит через порог, пока приложение работает. Если вы сели в машину, где в салоне уже 32 градуса, а порог 29, перехода не было, и правило не сработает. Чтобы условие проверялось при каждом включении, сделайте рядом с первым правилом второе:
-
-1. Первое условие: **«Запуск BYDMate»**.
-2. Второе условие: **«Темп. салона»** больше 29.
-3. Выберите **«Все условия»**.
-4. Действия те же, что в первом правиле.
-
-**«Любое условие»** не ставьте: правило будет срабатывать при каждом запуске, какая бы температура ни была.
-
-### Поделиться автоматизацией и импорт
-
-Готовое правило можно отдать другому владельцу, а чужое добавить себе.
-
-**Как поделиться**
-
-1. Нажмите **«Поделиться»** на карточке правила или в редакторе.
-2. Посмотрите, что попадёт в файл: окно показывает это до сохранения.
-3. Нажмите **«Продолжить»**. Правило сохранится в папку Download в файл `bydmate_rule_<имя>.json`, имя файла покажется во всплывающем сообщении, и откроется системное окно «Поделиться».
-
-Что приложение убирает из файла:
-
-- номера телефонов и имена контактов;
-- привязки к вашим местам;
-- логин и пароль из ссылок и параметры ссылок, похожие на ключи (token, api_key и подобные). Обычные параметры остаются.
-
-Что остаётся в файле: адрес ссылки, тексты уведомлений и фраз, запросы агенту и точки маршрутов. Проверьте их перед отправкой.
-
-**Как добавить чужое правило**
-
-1. Положите файл `bydmate_rule_*.json` в папку Download на DiLink.
-2. На вкладке «Автоматизация» нажмите **«Импорт»** в шапке и выберите файл из списка.
-3. Проверьте правило в окне предпросмотра. Там видны настоящие параметры: все условия или любое, номер и автодозвон у звонка, адрес ссылки, команда машине, текст запроса агенту, куда на самом деле поведёт маршрут и нажмёт ли приложение «Поехали» само.
-4. Если места или контакта из правила у вас нет, выберите свои кнопками **«Выбрать место»** и **«Выбрать контакт»**.
-5. Нажмите **«Добавить»**. По умолчанию правило добавится выключенным, отметка «Включить сразу» включит его сразу.
-
-Правило со ссылкой, адрес которой нужно ввести заново, добавляется только выключенным. Если из ссылки удалены параметры, похожие на ключи, окно попросит проверить адрес. Файлы с чрезмерной вложенностью или слишком длинными строками приложение не принимает.
+*Two panes, 1/3 and 2/3, with the BYDMate widget on top*
 
 ---
 
-## Вывод на приборку
+## Automation
 
-BYDMate умеет выводить выбранное приложение (по умолчанию навигацию) на приборную панель за рулём, чтобы карта и манёвры были перед глазами, а центральный экран оставался свободным.
+The **Automation** tab lets you create rules that control the car automatically, straight through the car's system interface.
 
-### Управление кнопкой руля
+### How It Works
 
-- **Короткое нажатие выбранной кнопки** переносит навигацию на приборку.
-- **Повторное короткое нажатие** возвращает её на центральный экран.
-- **Удержание правой звезды** работает штатно (меню машины), BYDMate его не перехватывает.
+**WHEN** the condition holds **→ THEN** run the command.
 
-По умолчанию проекцию включает правая звезда. Кнопку можно переназначить, см. «Выбор кнопки» ниже.
+Examples:
+- SOC < 20% → turn on recirculation
+- Speed > 0 → close the sunshade
+- Outside temperature < 0 → turn on mirror heating
 
-### Включение
+### Capabilities
 
-Откройте **Настройки → Дисплей** и включите тумблер «Проекция на приборку». Приложение само активирует нужный сервис (нужна выполненная активация ADB при установке, см. «Установка») и само переводит приборку в режим проекции: за это отвечает тумблер «Сразу показывать на приборке», он включён по умолчанию. На головном устройстве вручную ничего настраивать не нужно.
+| | Description |
+|---|-------------|
+| **Triggers** | SOC, speed, temperature, turn signal, gear, doors, windows, sunroof, trunks, tire pressure, drive mode, geofence places, time of day, exact time and a time range with weekdays, steering-wheel key, widget tap, voice phrase, service start, internet available, and more. Turn signals, gear, doors, windows, trunks, and blind-spot sensors reach the app the moment they happen, not by polling |
+| **Commands** | Windows (including individual driver and passenger), climate, lights, locks, sunroof, mirrors, all directly through the car's system interface. Steering wheel heating on cars that have it |
+| **17 action kinds** | Vehicle command, notification, app launch, phone call, route in Yandex Navigator, open URL, Yandex Music, play a YouTube video, pause, media volume, sentry mode, Wi-Fi hotspot, speak text, agent query, BYDMate home screen, projection to cluster, split screen (start, close, toggle). Vehicle commands, sentry mode, and projection to cluster also have a "Toggle" option |
+| **Edge trigger** | Fires only on a false→true transition (not every 3 seconds) |
+| **Cooldown** | Configurable delay between firings |
+| **Overlay confirmation** | A "Cancel / Run" popup before the action. 15-second timeout, then auto-cancel |
+| **Safety** | Windows do not open above 120 km/h, the sunroof above 80 km/h, doors do not unlock above 30 km/h, CAN/SHELL commands are blocked |
+| **Log** | Full trigger history with outcomes |
+| **Templates** | 6 ready-made rules for a quick start |
+| **Run now** | Run a rule manually from the editor, bypassing triggers and cooldown |
 
-После этого короткое нажатие выбранной кнопки руля (по умолчанию правая звезда) переносит выбранное приложение на приборку и обратно.
+**"Toggle" is a third option next to the action itself, not a separate item.** In the command list, under the "open / close" pair there is a line like "Trunk: toggle", and sentry mode and projection to cluster gained a "Toggle" button next to "Enable" and "Disable".
 
-Если «Сразу показывать на приборке» выключить, приборку придётся один раз перевести в режим проекции самому: иконка проекции на главном экране головного устройства, затем кнопка **IPC** на появившейся карте. Выключать стоит, если после вывода на приборку с неё пропадает ADAS или штатный виджет и не возвращается сам (на части прошивок DiLink 5.0 экран проекции живёт внутри штатной мини-карты): с выключенным тумблером приложение не трогает режим приборки, это касается и камер слепых зон, а картинка видна в мини-карте.
+Toggle works for: trunk, front trunk, sunroof, locks, hazard lights, climate, driver and passenger seat heating and ventilation, steering wheel heating, projection to cluster, and sentry mode. The state comes from the car: whatever is open closes, whatever is off turns on. A seat that is currently running turns off, and one that is off returns to the level you last set (level 3 by default). If the car does not report the state, the action honestly declines and says so instead of guessing.
 
-<img src="docs/screenshots/settings-display.jpg" alt="Настройки → Дисплей: проекция на приборку, что за что отвечает" width="800">
+Rules created in earlier versions keep working and open for editing as before, nothing needs to change.
 
-### Режимы проекции: «Заводской» и «Расширенный»
+**Command and parameter lists are collapsed by section.** Only the section with the current choice is open, the rest expand with a tap on the header.
 
-В **Настройки → Дисплей**, рядом с тумблером проекции, выбирается режим вывода на приборку. Их два, и отличаются они тем, трогает ли приложение системные настройки машины.
+**Test run.** In the rule editor, the "Test run" button runs all the actions right away, as if the condition had fired. This does not count as a real trigger. Opening windows, the sunroof, or the front trunk, and unlocking doors, are skipped if there is no fresh speed data: no older than 10 seconds while the service is running. An unrecognized command is skipped too, with an explanation. Closing the editor stops the run.
 
-**«Заводской» (по умолчанию).** Приложение не меняет ни одной системной настройки: проекция работает через виртуальный дисплей (картинка зеркалится на приборку), ползунки подстройки окна работают точнее. Ставится и удаляется бесследно. Ограничение: голосовой агент и HUD не видят экран навигатора во время проекции, подсказки о манёврах агент берёт только из уведомления Навигатора.
+**List or cards.** A toggle in the tab header shows rules as a compact list or as cards in three columns, the choice is remembered. Each rule shows how many times and when it last fired.
 
-**«Расширенный».** Навигатор запускается отдельным окном прямо на дисплее приборки, поэтому голосовой агент и HUD видят маршрут во время проекции. Для этого приложение включает системную настройку оконного режима (enable_freeform_support). Режим включается только через диалог с объяснением, после включения нужна однократная перезагрузка головного устройства (долгое зажатие колёсика громкости). Новый режим применяется при следующем выводе на приборку.
+**Places.** The "Places" button moved from Settings to the header of the "Automation" tab, next to "Journal". You can add and edit points right there.
 
-На части прошивок (DiLink 4.0, Song Plus 2021 и похожие) экран приборки скрыт от приложений, и «Заводской» режим там работать не может: приложение само находит приборку через служебный канал и выводит навигатор «Расширенным» режимом, независимо от выбранного. На DiLink 4.0 это проверено на машине. В этом режиме не работает ползунок «Масштаб» в настройке «Размер окна на приборке».
+**Steering wheel heating.** The "Steering wheel heating" action turns heating on, off, and toggles it. The result is checked against the car's state, and on a car without steering wheel heating the action honestly says it is not there. On a car that has it, the command is not yet field-confirmed, we are waiting for reports.
 
-**Как вернуть заводские настройки.** Переключите режим обратно на «Заводской»: приложение сразу вернёт системную настройку к заводскому значению, а перезагрузка ДиЛинка полностью завершит возврат. После этого система в том же состоянии, что и до установки BYDMate.
+### Logic
 
-Там же, под выбором режима, есть тумблер «Полный экран приборки». По умолчанию карта занимает верх приборки, а внизу остаётся штатная полоса со скоростью и основными показателями. Включите тумблер, если хотите карту на всю приборку без этой полосы. Работает только на прошивках с новым интерфейсом, на остальных ничего не меняет; применяется при следующем выводе на приборку.
+- **AND**: every condition must hold
+- **OR**: any one condition is enough
+- **Park only**: the rule fires only when the car is in Park
 
-Если вы пользовались проекцией в версиях до 3.7, при обновлении прежнее поведение сохранится автоматически: режим останется «Расширенный». У тех, кто проекцию не включал, приложение системные настройки не трогает вообще.
+### Checking a Condition Every Time the Car Is Turned On
 
-### Выбор кнопки
+A rule fires at the moment a value crosses its threshold while the app is running. If you get into a car where the cabin is already at 32 degrees and the threshold is 29, nothing crossed the threshold, so the rule does not fire. To have the condition checked every time the car is turned on, add a second rule next to the first one:
 
-По умолчанию проекцию включает правая звезда руля. Если этой кнопки нет или удобнее другая, под тумблером нажмите «Изменить» и нажмите нужную кнопку на руле, приложение её запомнит. Назначить можно любую кнопку руля, которую видит система. Системные кнопки (громкость, питание и т.п.), обзор 360 и карусель приборки назначить нельзя.
+1. First condition: **"BYDMate startup"**.
+2. Second condition: **"Cabin Temp"** above 29.
+3. Choose **"All conditions"**.
+4. Same actions as in the first rule.
 
-### Какое приложение проецировать
+Do not choose **"Any condition"**: the rule would then fire on every startup, whatever the temperature.
 
-По умолчанию на приборку выводится Яндекс.Навигатор. Под тумблером включения есть выбор приложения: можно указать любое установленное (другой навигатор, медиаплеер и т.д.). Новый выбор применяется при следующем нажатии кнопки.
+### Share and Import an Automation
 
-### Размер и положение окна
+A finished rule can be handed to another owner, and someone else's rule can be added to yours.
 
-В разделе **Настройки → Дисплей → «Размер окна на приборке»** пять ползунков. Если на вашей машине проекция и так занимает всю приборку (например, Leopard 3), настраивать ничего не нужно: значения по умолчанию дают прежний полноэкранный режим.
+**How to share**
 
-- **Ширина** и **Высота** (20-100%) - размер окна в процентах от приборки. Уменьшенное окно освобождает место, штатная приборка просвечивает вокруг.
-- **Сдвиг по горизонтали** (0-100%) - положение окна: 0 - левый край, 50 - центр, 100 - правый край. Действует, только когда ширина меньше 100%.
-- **Сдвиг по вертикали** (0-100%) - то же по вертикали: 0 - верх, 50 - центр, 100 - низ.
-- **Масштаб** (50-150%) - крупность интерфейса проецируемого приложения: чем меньше значение, тем мельче надписи и тем больше карты помещается в окне.
+1. Tap **"Share"** on the rule card or in the editor.
+2. Check what will go into the file: the window shows this before saving.
+3. Tap **"Continue"**. The rule is saved to the Download folder as `bydmate_rule_<name>.json`, the file name shows up in a popup message, and the system "Share" window opens.
 
-Изменения применяются сразу, прямо во время проекции - двигайте ползунок и смотрите на приборку.
+What the app strips from the file:
 
-### Машины с мини-окном на приборке (Sea Lion 07 и похожие)
+- phone numbers and contact names;
+- links to your places;
+- the login and password from URLs, and URL parameters that look like keys (token, api_key, and similar). Regular parameters stay.
 
-На части моделей штатная приборка показывает проекцию не на весь экран, а в фиксированной зоне (на Sea Lion 07 - правая треть). Полноэкранное окно там обрезается. Решение: уменьшить окно и сдвинуть его в видимую зону ползунками выше.
+What stays in the file: the URL itself, notification and phrase texts, agent query prompts, and route points. Check them before sending.
 
-Проверенные владельцем Sea Lion 07 значения: **ширина 32%, высота 92%, сдвиг по горизонтали 100%, сдвиг по вертикали 6%, масштаб 90%**.
+**How to add someone else's rule**
 
-<img src="docs/screenshots/cluster-mini-settings.jpg" alt="Настройки окна для Sea Lion 07" width="800">
+1. Put the `bydmate_rule_*.json` file into the Download folder on DiLink.
+2. On the "Automation" tab tap **"Import"** in the header and pick the file from the list.
+3. Check the rule in the preview window. The real parameters are visible there: all conditions or any, the phone number and auto-dial for a call, the URL, the vehicle command, the agent query text, where the route will actually go, and whether the app will tap "Go" by itself.
+4. If you do not have the place or contact used in the rule, pick your own with the **"Choose place"** and **"Choose contact"** buttons.
+5. Tap **"Add"**. The rule is added turned off by default; the "Turn on right away" checkbox turns it on immediately.
 
-<img src="docs/screenshots/cluster-mini-view.jpg" alt="Яндекс.Навигатор в мини-зоне приборки Sea Lion 07" width="800">
+A rule with a URL whose address needs to be re-entered is added turned off only. If key-like parameters were stripped from the URL, the window asks you to check the address. The app rejects files with excessive nesting or very long strings.
 
-Вывести окно на весь экран приборки на таких машинах не получится: зону показа задаёт прошивка панели, и она не управляется.
+---
 
-### Как это устроено
+## Projection to Cluster
 
-Проекция работает в одном из двух режимов, описанных выше. В «Заводском» BYDMate создаёт виртуальный дисплей и зеркалит в него выбранное приложение, не меняя настроек системы. В «Расширенном» приложение запускается отдельным окном прямо на дисплее приборной панели, поэтому голосовой агент и HUD видят маршрут во время проекции. Чтобы перехватывать кнопки руля, приложение включает собственный сервис специальных возможностей (accessibility). Он работает только при включённом тумблере и нужен исключительно для выбранной кнопки. Прошивку и саму машину это не меняет, всё обратимо.
+BYDMate can mirror the chosen app (navigation by default) onto the instrument cluster in front of the driver, so the map and maneuvers stay in view while the center screen remains free.
+
+### Steering-Wheel Button Control
+
+- **A short press of the chosen button** moves the app to the cluster.
+- **Another short press** brings it back to the center screen.
+- **Holding the right star** works as usual (the car's menu), BYDMate does not intercept it.
+
+The right star turns on the projection by default. You can reassign the button, see "Choosing the Button" below.
+
+### Enabling
+
+Open **Settings → Display** and turn on the "Cluster projection" toggle. The app enables the needed service itself (this requires the ADB activation done during install, see "Install") and switches the cluster into projection mode by itself: that is what the "Show on the cluster right away" toggle does, on by default. Nothing needs to be set up by hand on the head unit.
+
+After that, a short press of the chosen steering-wheel button (right star by default) moves the chosen app to the cluster and back.
+
+If you turn "Show on the cluster right away" off, you will need to put the cluster into projection mode once yourself: the projection icon on the head unit's home screen, then the **IPC** button on the map that appears. It is worth turning off if, after projecting, ADAS or the native widget disappears from the cluster and does not come back by itself (on some DiLink 5.0 firmware the projection screen lives inside the native mini-map): with the toggle off the app does not touch the cluster mode at all, including for blind-spot cameras, and the picture is visible in the mini-map.
+
+<img src="docs/screenshots/settings-display-en.jpg" alt="Settings → Display: cluster projection, what each option does" width="800">
+
+### Projection Modes: Factory and Extended
+
+In **Settings → Display**, next to the projection toggle, you choose the cluster output mode. There are two, and they differ in whether the app touches the car's system settings.
+
+**"Factory" (default).** The app does not change a single system setting: the projection works through a virtual display (the picture is mirrored onto the cluster), and the window adjustment sliders work more precisely. Installs and uninstalls without a trace. Limitation: the voice agent and the HUD cannot see the navigator screen during projection, the agent gets maneuver hints only from the Navigator notification.
+
+**"Extended".** The navigator launches as a separate window right on the cluster display, so the voice agent and the HUD see the route during projection. To do this, the app turns on a system window-mode setting (enable_freeform_support). The mode turns on only through a dialog that explains it, and after turning it on you need a one-time head-unit reboot (long-press the volume wheel). The new mode applies the next time you project.
+
+On some firmware (DiLink 4.0, Song Plus 2021, and similar) the cluster screen is hidden from apps, and "Factory" mode cannot work there: the app finds the cluster through a service channel by itself and projects the navigator in "Extended" mode regardless of what you picked. This is confirmed on a car with DiLink 4.0. In this mode, the "Scale" slider in the "Cluster window size" setting does not work.
+
+**How to restore factory settings.** Switch the mode back to "Factory": the app immediately restores the system setting to its factory value, and rebooting DiLink completes the rollback. After that the system is in the same state as before BYDMate was installed.
+
+In the same place, under the mode choice, there is a "Full cluster screen" toggle. By default the map takes up the top of the cluster, and the native strip with speed and key readings stays at the bottom. Turn the toggle on if you want the map to fill the whole cluster without that strip. It only works on firmware with the new interface, on the rest it changes nothing; it applies the next time you project.
+
+If you used the projection in versions before 3.7, updating keeps the old behavior automatically: the mode stays "Extended". For those who never turned the projection on, the app never touches system settings at all.
+
+### Choosing the Button
+
+The right star on the wheel turns on the projection by default. If your car does not have this button or another one is more convenient, tap "Change" under the toggle and press the button you want on the wheel, the app remembers it. You can assign any steering-wheel button the system can see. System buttons (volume, power, and so on), the 360 view, and the cluster carousel cannot be assigned.
+
+### Which App to Project
+
+Yandex Navigator projects to the cluster by default. Below the enable toggle there is an app picker: you can choose any installed app (another navigator, a media player, and so on). The new choice applies the next time you press the button.
+
+### Window Size and Position
+
+**Settings → Display → "Cluster window size"** has five sliders. If the projection already fills the whole cluster on your car (Leopard 3, for example), there is nothing to adjust: the defaults give the same full-screen behavior as before.
+
+- **Width** and **Height** (20-100%): the window size as a percentage of the cluster. A smaller window frees up space, and the native cluster shows through around it.
+- **Horizontal offset** (0-100%): window position: 0 = left edge, 50 = center, 100 = right edge. Only applies when width is below 100%.
+- **Vertical offset** (0-100%): the same for the vertical axis: 0 = top, 50 = center, 100 = bottom.
+- **Scale** (50-150%): the size of the projected app's interface, the lower the value, the smaller the text and the more of the map fits in the window.
+
+Changes apply right away, during the projection itself: move a slider and watch the cluster.
+
+### Cars With a Mini Cluster Window (Sea Lion 07 and Similar)
+
+On some models the stock cluster shows the projection not full screen but in a fixed zone (on Sea Lion 07, the right third). A full-screen window gets cropped there. Fix: shrink the window and move it into the visible zone with the sliders above.
+
+Values confirmed by a Sea Lion 07 owner: **width 32%, height 92%, horizontal offset 100%, vertical offset 6%, scale 90%**.
+
+<img src="docs/screenshots/cluster-mini-settings.jpg" alt="Window settings for Sea Lion 07" width="800">
+
+<img src="docs/screenshots/cluster-mini-view.jpg" alt="Yandex Navigator in the Sea Lion 07 mini cluster zone" width="800">
+
+You cannot make the window fill the whole cluster on these cars: the display zone is set by the cluster's own firmware and cannot be controlled.
+
+### Under the Hood
+
+The projection runs in one of the two modes described above. In "Factory" mode, BYDMate creates a virtual display and mirrors the chosen app into it, without changing any system settings. In "Extended" mode, the app launches as a separate window right on the instrument-cluster display, so the voice agent and the HUD see the route during projection. To catch steering-wheel button presses, the app turns on its own accessibility service. It runs only while the toggle is on, and it exists solely for the chosen button. It does not change the firmware or the car itself, and it is fully reversible.
 
 ---
 
 ## HUD
 
-Если в машине есть заводской проекционный дисплей, BYDMate выводит на лобовое стекло подсказки Яндекс Навигатора: значок манёвра, дистанцию до него, название улицы и время прибытия. Отдельным тумблером включается знак ограничения скорости, он передаётся числом. Пока Навигатор предупреждает о камере, вместо стрелки манёвра показывается значок камеры и расстояние до неё. Ведение продолжается, даже когда Навигатор свёрнут или выведен на приборку; Яндекс Карты работают источником подсказок наравне с Навигатором.
+If the car has a factory head-up display, BYDMate draws Yandex Navigator guidance on the windshield: the maneuver icon, the distance to it, the street name and the arrival time. A separate toggle adds the speed limit sign, sent as a number. While the Navigator warns about a speed camera, the camera icon and the distance to it replace the maneuver arrow. Guidance keeps running even when the Navigator is minimized or projected to the cluster; Yandex Maps works as a guidance source alongside the Navigator.
 
-Включается в **Настройки → Дисплей**, раздел «HUD (проекционный дисплей)»: тумблер «Навигация на HUD» и отдельно «Знак скорости под стрелкой». Там же выбирается способ вывода на стекло: способ 1 по умолчанию, способы 2 и 3 для машин, у которых в способе 1 стекло пустое. Подсказки идут по штатному каналу самого HUD, поэтому нужна комплектация с проекционным дисплеем. Если такого канала на машине нет, приложение честно пишет об этом в настройках и функцию не включает.
+Enable it in **Settings → Display**, section "HUD (head-up display)": the "Navigation on HUD" toggle and, separately, "Speed sign under the arrow". The way of drawing on the glass is chosen there too: Way 1 is the default, Ways 2 and 3 are for cars where the glass is empty in Way 1. Guidance travels over the HUD's own factory channel, so a car equipped with a head-up display is required. If the car has no such channel, the app says so in Settings and does not enable the feature.
 
-**Что приложение меняет в машине.** В способе 1 ничего: подсказки идут по каналу самого HUD. В способах 2 и 3, пока «Навигация на HUD» включена и навигатор ведёт по маршруту, BYDMate включает в машине режим навигации и пишет стрелку, метры и улицу в карточку навигации на приборке. В способе 3 туда же передаются оставшееся время и расстояние до конца маршрута и время прибытия. Когда маршрут закончен, способ сменён или тумблер выключен, всё возвращается в прежнее состояние. При выключенном тумблере приложение ничего в машине не трогает.
+**What the app changes in the car.** In Way 1, nothing: hints go over the HUD's own channel. In Ways 2 and 3, while "Navigation on HUD" is on and the navigator is guiding a route, BYDMate turns on the car's navigation mode and writes the arrow, the meters and the street to the navigation card on the cluster. In Way 3 the remaining time and distance to the end of the route and the arrival time go there too. Once the route ends, the way is changed or the toggle is off, everything returns to how it was. With the toggle off, the app does not touch anything in the car.
 
-**Если на стекле ничего не появляется.** Откройте **Настройки → Сервис и данные**, раздел «Данные», и нажмите **«Запустить»** рядом со строкой «Проверка HUD». Машина должна стоять, маршрут в навигаторе не запущен. Проверка идёт около двух минут и по очереди показывает на стекле числа 111, 222, 333 и 444, каждое своим способом. В конце она спросит, какое число вы увидели, и сама поставит нужный способ. Если стекло ничего не показало, запишите лог кнопкой записи логов и пришлите его в issue на GitHub вместе с моделью машины.
+**If nothing shows up on the glass.** Open **Settings → Service & Data**, "Data" section, and tap **"Start"** next to the "HUD check" line. The car needs to be parked, with no route running in the navigator. The check takes about two minutes and shows the numbers 111, 222, 333 and 444 on the glass one after another, each by its own way. At the end it asks which number you saw and sets the right way itself. If the glass showed nothing, record a log with the log recording button and send it in a GitHub issue along with your car model.
 
-**Какой навигатор нужен.** Стрелку манёвра отдаёт Яндекс Навигатор версии 31.0.2 и новее. На старых версиях (24.5.1) приходят только метры и улица, без стрелки. Яндекс Карты отдают стрелку с перебоями, поэтому для HUD и приборки лучше Навигатор.
-
----
-
-## Камеры слепых зон
-
-При включённом поворотнике BYDMate сам показывает картинку с боковой камеры: левый поворотник выводит левую камеру на приборку, правый показывает окошко на главном экране. Если датчик видит машину сзади-сбоку, окно подсвечивается оранжевой рамкой.
-
-<img src="docs/screenshots/settings-blindspot.jpg" alt="Настройки → Дисплей → Слепые зоны" width="800">
-
-Включается в **Настройки → Дисплей**, раздел «Слепые зоны» (по умолчанию выключено). Там же настраиваются порог скорости, ниже которого камера не показывается, ширина окошка и его положение: кнопка «Настроить положение» показывает пустое окошко, которое перетаскивается пальцем туда, где будет камера. Если левая камера на приборке мешает, включите там же «Обе камеры на главный экран»: обе картинки будут показываться на планшете, приборка не трогается. Левое окошко по умолчанию стоит зеркально правому, а кнопка «Положение левой камеры» под тумблером задаёт ему своё место. Тумблер «Окно камеры вертикально» ставит окошко вертикально и поворачивает картинку на 90 градусов, как в зеркале: если после включения картинка повёрнута не в ту сторону, напишите в issue. Нужна комплектация с круговым обзором. На некоторых машинах с DiLink 4.0 прошивка не даёт приложениям доступ к камерам, там функция не работает.
+**Which navigator.** The maneuver arrow comes from Yandex Navigator 31.0.2 or newer. Older versions (24.5.1) give only the distance and the street, without the arrow. Yandex Maps gives the arrow intermittently, so use Navigator for the HUD and the cluster.
 
 ---
 
-## Голосовой AI-агент
+## Blind-Spot Cameras
 
-Полноценный русский голосовой помощник внутри BYDMate. Речь распознаётся прямо на головном устройстве, без интернета: нейросеть GigaAM v3 слушает и понимает по-русски. Простые команды исполняются мгновенно локальным разбором, всё остальное решает AI-агент: языковая модель с 32 инструментами, которая сама читает данные машины, управляет функциями кузова, строит маршруты, запускает сценарии и отвечает голосом.
+With the turn signal on, BYDMate shows the side camera picture by itself: the left turn signal puts the left camera on the cluster, the right one shows a small window on the main screen. If the sensor sees a car behind and to the side, the window lights up with an orange frame.
 
-### Почему русский, и только русский
+<img src="docs/screenshots/settings-blindspot-en.jpg" alt="Settings → Display → Blind spots" width="800">
 
-Штатный голосовой помощник BYD уже нативно работает с английским и китайским. Делать ещё один английский помощник бессмысленно. BYDMate закрывает то, чего в машине нет вообще: русский язык. Поэтому распознавание речи, разбор команд и голоса озвучки заточены именно под русский, английская версия агента не планируется.
+Enable it in **Settings → Display**, "Blind spots" section (off by default). The same place has the speed threshold below which the camera does not show, the window width, and its position: the "Adjust position" button shows an empty window you drag with a finger to where the camera should be. If the left camera on the cluster gets in the way, turn on "Both cameras on the main screen" there too: both pictures show on the tablet, the cluster is left alone. The left window mirrors the right one by default, and the "Left camera position" button under the toggle gives it its own spot. The "Vertical camera window" toggle turns the window vertical and rotates the picture 90 degrees, like a mirror: if the picture ends up facing the wrong way after turning it on, open an issue. Requires a car equipped with a surround-view system. On some cars with DiLink 4.0 the firmware does not let apps access the cameras, the feature does not work there.
 
-### Как включить
+---
 
-1. **Настройки → Голос-агент**: включите тумблер **«Голосовой AI-агент»**. *Что должно произойти:* ниже появятся поля имени, характера и рода агента.
-2. Задайте ключ языковой модели: **Настройки → Интеграции → AI подключения**. Рекомендуем OpenRouter (регистрация на openrouter.ai, платно, доли цента за вопрос) и быструю модель, например Gemini Flash. Есть бесплатный вариант z.ai с моделью glm-4.7-flash, но он отвечает заметно медленнее. Третий вариант: свой OpenAI-совместимый сервер. *Что должно произойти:* у подключения появится отметка, что ключ задан. Можно указать и два подключения: при сбое основного агент сам переключится на второе.
-3. Вернитесь в **Голос-агент**, раздел «Агент», и нажмите **«Тест модели»**. *Что должно произойти:* под кнопкой появится название модели, время ответа и короткая фраза от агента. Если кнопка серая, ключ не сохранён: проверьте его в Интеграциях. Кнопка **«Чат с агентом (отладка)»** рядом позволяет проверить ответы текстом ещё до микрофона.
-4. В разделе **«Распознавание речи»** нажмите **«Скачать (226 МБ)»**, лучше по Wi-Fi. *Что должно произойти:* пойдут проценты загрузки, в конце строка сменится на **«Модель готова»**.
-5. В разделе **«Кнопка и микрофон»** включите тумблер **«Голосовые команды»** и разрешите микрофон. *Что должно произойти:* ниже покажется текущая кнопка руля. На Leopard 3 она уже назначена, на других машинах нажмите **«Назначить кнопку»** и один раз нажмите кнопку на руле.
-6. Нажмите кнопку руля и скажите «Сколько заряда?». *Что должно произойти:* появится пилюля «Слушаю», после фразы короткий сигнал, через секунду-две ответ.
-7. По желанию озвучка: раздел **«Ответы агента»**, включите тумблер и скачайте голос (обычный 18-21 МБ, либо улучшенный Марк или Софья 145 МБ на двоих). *Что должно произойти:* агент начнёт отвечать вслух, без озвучки ответ остаётся текстом на экране.
+## Voice AI Agent
 
-<img src="docs/screenshots/settings-voice.jpg" alt="Настройки → Голос-агент: агент, имя, характер, голос" width="800">
+BYDMate uses Parakeet for on-device speech recognition, a shared VAD model for speech detection, and Gosia for Polish speech output. Local Polish commands run without a network. Requests sent to the configured assistant require a connection.
 
-### Как разговаривать
+### Supported Voice Language
 
-- Нажмите голосовую кнопку на руле. На Leopard 3 она распознаётся из коробки, на других моделях любую кнопку можно обучить в настройках (перехват кнопки требует службы специальных возможностей, она включается автоматически).
-- На экране появляется пилюля-индикатор «Слушаю». Её можно перетащить в любое место экрана, позиция запоминается. В пилюле видны последние реплики: «Ты:» и «Агент:».
-- Говорите обычными фразами. Сессия непрерывная: после ответа агента можно сразу говорить дальше, кнопку повторно нажимать не нужно.
-- Сессия завершается сама после 30 секунд тишины, с отдельным звуковым сигналом. Ограничения на длительность разговора нет: пока идёт диалог, агент слушает. Короткие сигналы подтверждают приём команды и сообщают об ошибке.
-- **Перебивание по имени.** Если задать агенту имя (поле «Имя агента» в настройках), то во время его ответа достаточно произнести это имя: агент замолчит и снова слушает. Имя в начале фразы отбрасывается («Штурман, открой окна» понимается как «открой окна»). Важно: это не «горячее слово» как у Алисы, без нажатия кнопки агент микрофон не слушает. По умолчанию имя пустое и перебивание неактивно.
+Polish is the supported voice language. The app interface language is separate. Parakeet detects language automatically; the app does not force the recognition model to emit Polish. Russian recognition, commands and voices have been removed.
 
-### Что умеет агент
+### How to Enable It
 
-У агента 32 инструмента. Примеры фраз:
+1. Open the voice settings and the Polish offline setup.
+2. Download Parakeet recognition assets, the shared VAD and Gosia. Use the sizes shown in the app. Missing assets leave voice not ready. Downloads do not enable the microphone or an assistant.
+3. Activate Polish after the assets are ready.
+4. For online assistant requests, enter your OpenClaw endpoint, pair the app, and use the connection test. Keep the assistant disabled until you choose to enable it.
+5. Grant microphone permission and enable voice commands when you are ready to test. Assign a steering-wheel button if your car requires it.
+6. Press the voice button and try a Polish command such as "Ile mam energii?". The floating widget shows listening, recognition and command status.
+7. Spoken replies are optional and off by default. Enable the spoken-reply setting to use Gosia; otherwise replies stay as text.
 
-**Машина и климат**
-- «Сколько заряда?», «Какая температура за бортом?», «Какой запас хода?» (живое состояние машины)
-- «Открой окна», «Включи подогрев сиденья», «Поставь климат на 22» (полный каталог из 110 команд, см. ниже)
-- «Сделай музыку громче», «Потише» (громкость медиа)
+<img src="docs/screenshots/settings-voice.jpg" alt="Settings → Voice agent: agent, name, personality, voice" width="800">
 
-**Поездки, зарядки, статистика**
-- «Покажи поездки за неделю», «Сколько я проехал за месяц?»
-- «Когда я последний раз заряжался?»
-- «Запиши зарядку на 30 киловатт-часов за 200 рублей» (ручная запись в журнал зарядок)
-- «Какой у меня средний расход?»
+### How to Talk to It
 
-**Навигация и места**
-- «Поехали домой», «Поехали на работу», «Поехали на дачу» (сохранённые места). На «поехали» ассистент нажимает «Поехали» в Яндекс Навигаторе сам, на «построй маршрут домой» только строит маршрут
-- При включённом разделении экрана ассистент сначала свернёт его, построит маршрут и вернёт панели на место: иначе прошивка пересоздаёт Навигатор и маршрут теряется. Нужен включённый сервис специальных возможностей BYDMate
-- Скажите «в картах»: «поехали домой в картах», «найди заправку в яндекс картах» — маршрут, поиск и показ точки уйдут в Яндекс Карты, без этих слов маршрут идёт в навигатор, выбранный в настройке «Навигатор для маршрутов» (Настройки → Голос-агент → Агент), по умолчанию это Яндекс Навигатор, на выбор также 2ГИС, Яндекс Карты и Waze
-- «Найди зарядки рядом»
-- «Хватит ли заряда до Казани?», «Сколько ехать до аэропорта?»
-- «Запомни это место как дача», «Какие места сохранены?»
-- «Выведи навигацию на приборку», «Убери с приборки» (проекция Яндекс Навигатора)
+- Press the voice button on the wheel. On Leopard 3 it is recognized out of the box, on other models you can teach any button in Settings (catching the button press needs the accessibility service, which turns on automatically).
+- A "Listening" pill indicator appears on the screen. You can drag it anywhere, the position is remembered. The pill shows the last lines: "You:" and "Agent:".
+- Speak in normal phrases. The session stays open: after the agent answers, you can keep talking right away, no need to press the button again.
+- The session ends by itself after 30 seconds of silence, with its own sound cue. There is no limit on how long the conversation runs: while the dialog continues, the agent keeps listening. Short beeps confirm a command was received and signal an error.
+- **Interrupting by name.** If you give the agent a name (the "Agent name" field in Settings), saying that name while it is answering makes it stop and listen again. A name at the start of a phrase is dropped ("Nawigatorze, otwórz okna" is understood as "otwórz okna", open the windows). Important: this is not a wake word like Alice's, the agent does not listen to the microphone without a button press. The name is empty by default and interrupting is off.
 
-**Медиа и приложения**
-- «Включи мою волну», «Включи джаз» (Яндекс Музыка)
-- «Включи на ютубе лекции по истории»
-- «Открой навигатор», «Открой камеры», «Открой регистратор», «Открой браузер» и другие приложения по русским именам
+### What the Agent Can Do
 
-**Автоматизация**
-- «Запусти сценарий домой», «Какие у меня сценарии?»
-- «Выключи автоматизацию прогрева»
-- «Создай сценарий: когда приезжаю домой, открывай окна» (агент сам собирает правило из триггера и действий)
+The agent has 32 tools. Example phrases:
 
-**Интернет**
-- «Какая погода?», «Какая погода в Москве завтра?»
-- «Поищи в интернете, когда выйдет обновление DiLink»
+**Car and climate**
+- "Ile mam energii?" (How much charge is left?), "Jaka jest temperatura na zewnątrz?" (What's the temperature outside?), "Jaki mam zasięg?" (What's my range?) (live vehicle status)
+- "Otwórz okna" (Open the windows), "Włącz ogrzewanie siedzenia" (Turn on seat heating), "Ustaw klimatyzację na 22" (Set the climate to 22) (full catalog of 110 commands, see below)
+- "Zrób głośniej muzykę" (Turn the music up), "Ciszej" (Quieter) (media volume)
 
-### Управление машиной: каталог из 110 команд
+**Trips, charges, statistics**
+- "Pokaż podróże z tygodnia" (Show my trips for the week), "Ile przejechałem w tym miesiącu?" (How far did I drive this month?)
+- "Kiedy ostatnio ładowałem?" (When did I last charge?)
+- "Zapisz ładowanie 30 kilowatogodzin za 200 złotych" (Log a charge of 30 kWh for 200 złoty) (manual entry in the charging log)
+- "Jakie mam średnie zużycie?" (What's my average consumption?)
 
-| Группа | Что доступно |
+**Navigation and places**
+- "Jedź do domu" (Let's go home), "Jedź do pracy" (Let's go to work), "Jedź na działkę" (Let's go to the dacha) (saved places). On "jedź" (let's go) the assistant taps "Go" in Yandex Navigator by itself, on "wyznacz trasę do domu" (build a route home) it only builds the route
+- With split screen on, the assistant first collapses it, builds the route, and puts the panes back: otherwise the firmware recreates the Navigator and the route is lost. Requires the BYDMate accessibility service to be on
+- Say "w mapach" (in Maps): "jedź do domu w mapach" (let's go home in Maps), "znajdź stację paliw w mapach Yandex" (find a petrol station in Yandex Maps); the route, search, or point display go to Yandex Maps, without these words the route goes to the navigator chosen in the "Navigator for routes" setting (Settings → Voice agent → Agent), Yandex Navigator by default; 2GIS, Yandex Maps and Waze are the other choices
+- "Znajdź ładowarki w pobliżu" (Find charging stations nearby)
+- "Czy wystarczy energii do Kazania?" (Is there enough charge to reach Kazan?), "Ile jedzie się na lotnisko?" (How long to the airport?)
+- "Zapamiętaj to miejsce jako działkę" (Remember this place as dacha), "Jakie miejsca są zapisane?" (What places are saved?)
+- "Pokaż nawigację na zegarach" (Put navigation on the cluster), "Usuń z zegarów" (Take it off the cluster) (Yandex Navigator projection)
+
+**Media and apps**
+- "Włącz moją falę" (Turn on my wave), "Włącz jazz" (Play jazz) (Yandex Music)
+- "Włącz na YouTube wykład o historii" (Play history lectures on YouTube)
+- "Otwórz nawigację" (Open the navigator), "Otwórz kamery" (Open the cameras), "Otwórz rejestrator" (Open the dash cam app), "Otwórz przeglądarkę" (Open the browser), and other apps by their Polish names
+
+**Automation**
+- "Uruchom scenariusz dom" (Run the "home" automation), "Jakie mam scenariusze?" (What automations do I have?)
+- "Wyłącz automatyzację podgrzewania" (Turn off the warm-up automation)
+- "Utwórz scenariusz: gdy wracam do domu, otwórz okna" (Create an automation: when I get home, open the windows) (the agent assembles the rule from a trigger and actions itself)
+
+**Internet**
+- "Jaka jest pogoda?" (What's the weather?), "Jaka będzie jutro pogoda w Moskwie?" (What's the weather in Moscow tomorrow?)
+- "Wyszukaj w internecie, kiedy wyjdzie aktualizacja DiLink" (Search the web for when the DiLink update comes out)
+
+### Vehicle Control: A Catalog of 110 Commands
+
+| Group | What's available |
 |--------|--------------|
-| Окна | все, передние, задние, водителя, пассажира, задние левое и правое; открыть, закрыть, наполовину, проветривание, для группы и для каждого окна по отдельности |
-| Климат | включить, выключить, температура от 16 до 33 |
-| Подогрев сидений | водитель и пассажир, уровни 1-5 и выключение |
-| Вентиляция сидений | водитель и пассажир, уровни 1-5 и выключение |
-| Зеркала | обогрев вкл/выкл |
-| Руль | подогрев вкл/выкл, на машинах с подогревом руля |
-| Свет | салон, подсветка и другие режимы (6 команд) |
-| Замки | запереть, отпереть |
-| Люк и шторка | открыть, закрыть, промежуточные положения |
-| Багажник | открыть, закрыть |
-| Передний багажник | открыть, закрыть |
-| Холодильник | охлаждение от -6 до +6, нагрев от 35 до 50, выключение |
-| Аварийка | включить, выключить |
-| Режим движения | ЭКО, Норма, Спорт; Снег, Песок, Грязь, Горы, Камни и умный режим только до 15 км/ч |
-| HUD | вывод на стекло: включить, выключить |
-| Подогрев батареи | включить, выключить |
+| Windows | all, front, rear, driver, passenger, rear left and rear right; open, close, halfway, vent, per group and per individual window |
+| Climate | on, off, temperature from 16 to 33 |
+| Seat heating | driver and passenger, levels 1-5 and off |
+| Seat ventilation | driver and passenger, levels 1-5 and off |
+| Mirrors | heating on/off |
+| Steering wheel | heating on/off, on cars with steering wheel heating |
+| Lights | cabin, ambient, and other modes (6 commands) |
+| Locks | lock, unlock |
+| Sunroof and shade | open, close, intermediate positions |
+| Trunk | open, close |
+| Front trunk | open, close |
+| Fridge | cooling from -6 to +6, heating from 35 to 50, off |
+| Hazard lights | on, off |
+| Drive mode | ECO, Normal, Sport; Snow, Sand, Mud, Mountain, Rock and the smart mode only below 15 km/h |
+| HUD | windshield projection: on, off |
+| Battery preheating | on, off |
 
-Безопасность: открытие окон блокируется на скорости выше 120 км/ч, люка выше 80 км/ч, отпирание дверей выше 30 км/ч; передний багажник открывается только на стоящей машине.
+Safety: window opening is blocked above 120 km/h, the sunroof above 80 km/h, door unlocking above 30 km/h; the front trunk only opens while the car is parked.
 
-### Быстрые команды без агента и без интернета
+### Quick Commands Without the Agent and Without Internet
 
-Частые команды исполняются мгновенно, без языковой модели и без сети. Для этого в приложении есть закреплённый список русских фраз: окна и люк, подогрев и вентиляция сидений, подогрев руля, зеркала, климат, вентилятор, громкость, замки, багажник и свет.
+Frequent commands run instantly, without the language model and without the network. For this, the app has a fixed list of Polish phrases: windows and sunroof, seat heating and ventilation, steering wheel heating, mirrors, climate, fan, volume, locks, trunk, and lights.
 
-Как это работает:
+How it works:
 
-- Фраза выполняется офлайн, только если сказана целиком и так, как в списке. Другая формулировка того же уходит агенту.
-- Вежливые слова не мешают: «пожалуйста», «можешь», «слушай», «спасибо» просто отбрасываются.
-- «A и B» выполняет обе команды, если каждая из них есть в списке: «открой окно водителя и закрой люк».
-- Окна и люк открываются на долю: «наполовину», «на 50 процентов», «чуть-чуть», «полностью», «на треть». Процент приводится к ближайшему поддерживаемому положению вниз, окно никогда не откроется шире названного.
-- Всё остальное уходит облачному AI-агенту, если он включён. Без агента такая фраза получает ответ «не понял», а фразы из списка продолжают работать.
+- A phrase runs offline only if said in full and exactly as in the list. A different wording of the same thing goes to the agent.
+- Polite words do not get in the way: "proszę" (please), "możesz" (can you), "słuchaj" (listen), "dziękuję" (thanks) are simply dropped.
+- "A and B" runs both commands if each one is in the list: "otwórz okno kierowcy i zamknij szyberdach" (open the driver's window and close the sunroof).
+- Windows and the sunroof open by a fraction: "do połowy" (halfway), "na 50 procent" (at 50 percent), "trochę" (just a bit), "całkowicie" (all the way), "w jednej trzeciej" (a third). The percent is rounded down to the nearest supported position, the window never opens wider than asked.
+- Everything else goes to the cloud AI agent, if it is on. Without the agent, such a phrase gets "didn't understand" as the answer, while the phrases from the list keep working.
 
-Примеры фраз из списка. Полный список с вариантами формулировок: [docs/VOICE_COMMANDS.md](docs/VOICE_COMMANDS.md).
+Examples from the list. Full list with wording variants: [docs/VOICE_COMMANDS.md](docs/VOICE_COMMANDS.md).
 
-| Фраза | Что произойдёт |
+| Phrase | What happens |
 |-------|----------------|
-| «Открой окна» | все окна откроются полностью |
-| «Открой окно на 50 процентов» | окно водителя наполовину |
-| «Приоткрой окно водителя» | окно водителя на проветривание |
-| «Режим проветривания» | все окна на проветривание, люк приподнимется |
-| «Выключи режим проветривания» | окна и люк закроются |
-| «Открой люк наполовину» | люк откроется наполовину |
-| «Включи подогрев сиденья пассажира на второй уровень» | подогрев сиденья пассажира, уровень 2 |
-| «Включи подогрев руля» | подогрев руля |
-| «Поставь температуру 22» | климат на 22 градуса |
-| «Громкость 20» | громкость музыки 20 |
-| «Включи Яндекс Музыку», «Яндекс Музыка» | включает «Мою волну» в Яндекс Музыке |
-| «Запри машину» | двери заперты |
+| "Otwórz okna" (Open the windows) | all windows open all the way |
+| "Otwórz okno na 50 procent" (Open the window 50 percent) | the driver's window opens halfway |
+| "Uchyl okno kierowcy" (Crack the driver's window) | the driver's window opens to vent |
+| "Tryb wietrzenia" (Airing mode) | all windows go to vent, the sunroof lifts |
+| "Wyłącz tryb wietrzenia" (Turn off airing mode) | the windows and sunroof close |
+| "Otwórz szyberdach do połowy" (Open the sunroof halfway) | the sunroof opens halfway |
+| "Włącz ogrzewanie siedzenia pasażera na drugi poziom" (Turn on the passenger seat heater, level two) | passenger seat heating, level 2 |
+| "Włącz ogrzewanie kierownicy" (Turn on the steering wheel heater) | steering wheel heating |
+| "Ustaw temperaturę na 22" (Set the temperature to 22) | climate set to 22 degrees |
+| "Głośność 20" (Volume 20) | media volume set to 20 |
+| "Włącz Yandex Music", "Yandex Music" (Turn on Yandex Music, Yandex Music) | starts "My Wave" in Yandex Music |
+| "Zamknij samochód" (Lock the car) | doors lock |
 
-Английские офлайн-команды убраны, список только русский. Язык интерфейса на это не влияет: офлайн-команды и агент работают при любом языке приложения.
+The offline command list supports Polish. The app's interface language does not affect this: the offline commands and the agent work regardless of the app's language.
 
-### Ключи: что вводить, а что не обязательно
+### Online Assistant Setup (OpenClaw)
 
-| Ключ | Обязателен | Зачем |
-|------|------------|-------|
-| OpenRouter | Достаточно одного любого LLM-ключа; для скорости рекомендуется OpenRouter | Мозг агента. Быстрые модели (например, Gemini Flash) отвечают почти мгновенно, цена: доли цента за запрос |
-| z.ai | Бесплатная альтернатива | Мозг агента, модель glm-4.7-flash, бесплатно, но отвечает заметно медленнее |
-| Свой сервер | Альтернатива | Любой OpenAI-совместимый эндпоинт: URL, ключ, модель |
-| Exa | Нет | Улучшенный веб-поиск. Без него «поищи в интернете» работает через нативный поиск LLM-провайдера |
-| MiniMax | Нет | Только для онлайн-голоса MiniMax, на работу агента не влияет |
+Enter your OpenClaw Gateway `wss://` endpoint in Settings → Voice agent, pair this device, then test the connection. Enable the online assistant only when you want to send requests. Pairing credentials stay on this device and are not included in backups.
 
-Все ключи вводятся в приложении и хранятся локально, в коде и в репозитории секретов нет.
+Choose the model, provider, and any remote tools on your OpenClaw server. The Polish assistant has no direct OpenRouter, z.ai, or OpenAI-compatible provider setup or fallback in the app. See [OpenClaw setup](docs/voice/openclaw-setup.md) for the pairing flow.
 
-### Голоса
+### Voices
 
-Офлайн-голоса (работают без интернета, скачиваются по одному):
+Gosia is the supported Polish offline voice. Download it from Polish voice setup; the app shows the required size. Russian voices and the former online voice choices are removed. If Gosia is missing, speech output is not ready. Spoken replies require explicit opt-in.
 
-| Голос | Род | Размер | Качество |
-|-------|-----|--------|----------|
-| Дмитрий (по умолчанию) | мужской | 21 МБ | обычное |
-| Алёна | женский | 18 МБ | обычное |
-| Руслан | мужской | 21 МБ | обычное |
-| Ирина | женский | 21 МБ | обычное |
-| Марк | мужской | 145 МБ | улучшенное |
-| Софья | женский | 145 МБ | улучшенное |
+About volume: agent replies go through BYD's own voice channel (the same one native prompts use), its volume is set by the car's system voice setting. The "turn it up" command changes the music volume, not the agent's voice. If the agent sounds too quiet or too loud, adjust the system voice volume.
 
-Марк и Софья (движок Supertonic) звучат заметно естественнее обычных, но весят больше и делят один архив: скачав любого, второго уже не докачиваете. Скорость и живость интонации настраиваются слайдерами, рядом кнопка «Прослушать пример».
+### What Determines Response Speed
 
-Онлайн-голоса (опционально, звучат естественнее): Gemini и OpenAI через ключ OpenRouter, MiniMax через свой ключ (три способа подключения: официальный API, fal.run, replicate). Офлайн-подмены нет: если онлайн-голос не отвечает или падает, реплика остаётся текстом в пилюле-орбе, но не проговаривается.
+The agent works in three steps, and delay builds up at each one.
 
-Про громкость: ответы агента идут через голосовой канал BYD (тот же, что у штатных подсказок), его громкость регулируется системной настройкой голоса. Команда «сделай громче» меняет громкость музыки, а не голоса агента. Если агент кажется тихим или громким, крутите системную громкость голоса.
+1. **Speech to text.** Entirely on the device, no network. Speed depends on the head unit's processor.
+2. **Understanding the phrase.** Built-in commands run locally. Other requests go as text to your paired OpenClaw Gateway when the online assistant is enabled. Delay depends on the connection, the server's chosen model, and any remote tools it uses.
+3. **Speaking the answer.** Gosia generates speech on the device. This adds local processing time.
 
-### От чего зависит скорость ответа
+If you need maximum speed, turn off the "Agent replies" toggle. There will be no TTS, the reply stays as text on the screen, and only the first two steps run. Quick commands run without internet either way.
 
-Агент работает в три шага, и задержка копится на каждом.
+### Agent Personality
 
-1. **Речь в текст.** Целиком на устройстве, без сети. Скорость упирается в процессор головы.
-2. **Понимание фразы.** Фразы из встроенного списка исполняются почти мгновенно. Всё остальное уходит в языковую модель: сколько она думает плюс пинг до провайдера. Это и есть основная задержка. Gemini Flash через OpenRouter отвечает за доли секунды, бесплатная glm-4.7-flash заметно медленнее.
-3. **Озвучка ответа.** Офлайн-голоса лёгкие и быстрые, но время всё равно занимают. Онлайн-голоса медленнее: они тоже зависят от пинга.
+In Settings you pick one of three response personalities (Navigator by default) and the agent's gender (male or female), which shapes the wording and spoken lines. The interrupt name is also set there.
 
-Нужна максимальная скорость: выключите тумблер «Ответы агента». Озвучки не будет, реплика останется текстом на экране, а работать будут только первые два шага. Быстрые команды при этом исполняются вообще без интернета.
+### Privacy
 
-### Характер агента
+- Microphone audio never leaves the car: speech recognition is entirely offline.
+- When enabled, the online assistant sends recognized or typed text to your paired OpenClaw Gateway. BYDMate does not attach vehicle state or GPS coordinates to these requests or expose local car tools to OpenClaw. Text you include yourself is sent. The Gateway may forward text to its configured model providers and tools; check that server’s storage and privacy settings.
+- The voice journal (the last 50 recognitions with their outcomes, for self-diagnosis) is stored only on the head unit and survives restarts. It ends up in the log recording file: what the head unit heard, what command it became, and why it was declined. Journal screen: Settings → Voice agent → "Voice journal", it shows how a phrase was recognized, where it went, and how it ended.
+- To check the agent without a microphone there is a text chat (a debug screen in Settings).
 
-В настройках выбирается один из трёх характеров ответов (по умолчанию «Штурман») и род агента (мужской или женский), от этого зависят формулировки и устные реплики. Там же задаётся имя для перебивания.
+### Turning Off BYD's Built-In Assistant
 
-### Приватность
+At the bottom of the "Voice agent" section there is a toggle that disables BYD's built-in voice assistant, so it does not wake up alongside the agent. Fully reversible, applies after the car restarts (both turning it on and off). Off by default.
 
-- Звук с микрофона не покидает машину: распознавание речи полностью офлайн.
-- В облако (к LLM-провайдеру) уходит только текст: ваша фраза и данные, которые агент достал инструментами для ответа.
-- Голосовой журнал (последние 50 распознаваний с результатами, для самодиагностики) хранится только на головном устройстве и сохраняется между перезапусками. Он попадает в файл записи логов: что услышала магнитола, какой командой это стало и почему отказано. Экран журнала: Настройки → Голос-агент → «Журнал голоса», там видно, как фраза была распознана, куда ушла и чем закончилась.
-- Для проверки агента без микрофона есть текстовый чат (отладочный экран в настройках).
+The stock assistant is disabled in the car's system, so turn this toggle off before uninstalling BYDMate, otherwise the stock assistant stays disabled. How to bring the stock assistant back if BYDMate is already uninstalled: install BYDMate again, turn the toggle off, and restart the head unit.
 
-### Отключение штатного помощника BYD
+### Requirements
 
-Внизу раздела «Голос-агент» есть тумблер, который отключает штатный голосовой помощник BYD, чтобы он не просыпался параллельно с агентом. Полностью обратимо, применяется после перезагрузки машины (и включение, и выключение). По умолчанию выключено.
+- Disk space: Parakeet recognition assets, shared VAD and Gosia. Use the download sizes shown in the app.
+- Internet: needed only by the AI agent (language model), weather and search. Speech recognition, quick commands, and offline voices work without the network.
+- Permissions: the microphone (requested when you turn it on) and the accessibility service for the wheel button (turns on automatically).
+- Confirmed on Leopard 3 (DiLink 5.0). The voice wheel button is set up for Leopard 3 out of the box, on other models teach your own button in Settings.
 
-Штатный помощник отключается в системе машины, поэтому перед удалением BYDMate выключите этот тумблер, иначе штатный помощник останется отключённым. Как вернуть штатного помощника, если BYDMate уже удалён: установите BYDMate снова, выключите тумблер и перезагрузите мультимедиа.
+### Memory About the Driver
 
-### Требования
-
-- Место на диске: модель распознавания 226 МБ плюс голос озвучки (обычный 18-21 МБ, либо улучшенный Марк/Софья 145 МБ на двоих). Итого примерно от 245 до 370 МБ.
-- Интернет: нужен только AI-агенту (языковая модель), погоде, поиску и онлайн-голосам. Распознавание речи, быстрые команды и офлайн-голоса работают без сети.
-- Разрешения: микрофон (запрашивается при включении) и служба специальных возможностей для кнопки руля (включается автоматически).
-- Проверено на Leopard 3 (DiLink 5.0). Голосовая кнопка руля из коробки настроена под Leopard 3, на других моделях обучите свою кнопку в настройках.
-
-### Память о водителе
-
-Скажите агенту, как вас зовут или что вы обычно предпочитаете, и он будет помнить это между разговорами. «Забудь …» убирает один факт. Список фактов и кнопка «Забыть всё»: Настройки → Голос-агент → Агент. Факты хранятся только на головном устройстве и уходят лишь в запрос к выбранной вами языковой модели.
+Online conversation history and memory follow your OpenClaw server's configuration. Manage stored facts and retention on that server. BYDMate's local driver-memory tools are not exposed through the Polish OpenClaw assistant.
 
 ---
 
-## Плавающий виджет
+## Floating Widget
 
-Компактный overlay 260×108 dp поверх других приложений — видно на карте, в медиа, в BYD-приложениях.
+A compact 260×108 dp overlay over other apps, visible on the map, in media, and inside BYD apps.
 
-<img src="docs/screenshots/widget-infographic.jpg" alt="Расшифровка виджета: что где показано" width="900">
+<img src="docs/screenshots/widget-infographic.jpg" alt="Widget legend: what is shown where" width="900">
 
-### Что показано
+### What Is Shown
 
-Семь полей в 3 строки. Цвета: иконки серые, значения белые. Рамка и SOC% подсвечиваются цветом статуса (SOC или 12V — что хуже).
+Seven fields across 3 rows. Colors: icons gray, values white. The frame and SOC% glow with the status color (whichever of SOC or 12V is worse).
 
-**Верхняя строка** (мелким, 13sp):
-- ⏱ **Длительность текущей поездки** — `N мин` или `X ч Y мин` (напр. `47 мин`, `1 ч 12 мин`). Старт — момент включения зажигания, конец — выключение. Простои с включённой машиной (стоишь с кондиционером, пассажир вышел купить воды, светофор) входят в поездку — пока электрика жива, счётчик не сбрасывается
-- 🚗 **Температура в салоне** — °C
+**Top row** (small, 13sp):
+- ⏱ **Current trip duration**: `N min` or `X h Y min` (e.g. `47 min`, `1 h 12 min`). Start is ignition on, end is ignition off. Standstills with the car running (parked with the AC on, a passenger stepping out for water, a red light) belong to the trip: as long as the electrical system is alive, the counter does not reset
+- 🚗 **Cabin temperature**: °C
 
-**Центральная строка** (крупно, главные значения):
-- **SOC %** (18sp bold, цветной) — заряд тяговой батареи. Зелёный > 50%, жёлтый 20–50%, красный < 20%
-- **~N км** (28sp белым) — расчётный запас хода: `SOC × ёмкость батареи ÷ baseline-расход × 100`. Тильда подчёркивает что это оценка, не показания БК. Подробнее про то, как считается baseline-расход, ниже в разделе «Запас хода»
-- **На гибриде**: `~N км` это запас на батарее от машины, а не наш расчёт, вместо расхода стоит запас на топливе от машины, а уровень бака показан в верхней строке.
-- **X.X ↓** (18sp, цветной по тренду) — **расход текущей поездки**, кВт·ч/100км, со стрелкой тренда (см. ниже)
+**Center row** (large, key values):
+- **SOC %** (18sp bold, colored): traction battery charge. Green above 50%, yellow 20-50%, red below 20%
+- **~N km** (28sp white): estimated range, `SOC × battery capacity ÷ baseline consumption × 100`. The tilde marks it as an estimate, not the onboard computer's reading. More on how baseline consumption is figured is below, in "Range"
+- **On a hybrid**: `~N km` is the car's own battery range, not our calculation; the fuel range from the car stands instead of consumption, and the tank level is shown in the top row.
+- **X.X ↓** (18sp, colored by trend): **current trip consumption**, kWh/100km, with a trend arrow (see below)
 
-**Нижняя строка** (мелким, 13sp):
-- 🔋 **Температура батареи** — °C
-- ⚡ **12V** — напряжение бортовой сети, В. Норма 12.5–14.7 В, < 12.0 В = жёлтый, < 11.7 В = красный
+**Bottom row** (small, 13sp):
+- 🔋 **Battery temperature**: °C
+- ⚡ **12V**: onboard network voltage, V. Normal 12.5-14.7 V, below 12.0 V is yellow, below 11.7 V is red
 
-### Расход и стрелка тренда (правый блок)
+### Consumption and the Trend Arrow (Right Block)
 
-Цифра справа — расход текущей поездки в кВт·ч/100км. Считается как энергия, потраченная с момента включения зажигания, делённая на пройденные с того же момента километры. По мере движения цифра сходится к тому значению, которое в итоге запишется в историю поездок: что видно в виджете в момент остановки, то и попадёт в карточку поездки.
+The number on the right is the current trip's consumption in kWh/100km. It is the energy spent since ignition on, divided by the kilometers covered since the same moment. As you drive, the figure converges to what will end up recorded in the trip history: whatever the widget shows the moment you stop is what lands in the trip card.
 
-**Первые 2 километра** виджет плавно переходит со среднего расхода прошлой поездки на расход текущей: до 300 м показывает прошлое значение, с 300 м до 2 км линейно подмешивает текущее, после 2 км показывает только текущее. Так не пугают резкие 50–60 кВт·ч/100км из холодного старта и разгона: пока поездка короткая, за основу берётся уже устоявшийся средний расход прошлой поездки, и только когда дистанция становится представительной, цифра уходит на собственный расход.
+**For the first 2 kilometers** the widget blends smoothly from the previous trip's average consumption to the current one: up to 300 m it shows the previous value, from 300 m to 2 km it mixes in the current value linearly, after 2 km it shows only the current value. This avoids scary 50-60 kWh/100km numbers from a cold start and acceleration: while the trip is still short, the already-settled average from the previous trip is used as the base, and only once the distance becomes representative does the figure switch to the trip's own consumption.
 
-**На стоянке** (зажигание выключено) показывается средний расход прошлой завершённой поездки — то же значение, что было видно в её последний момент.
+**When parked** (ignition off) the widget shows the average consumption of the last completed trip, the same value it showed at its last moment.
 
-**Запас хода** `~N км` считается по смеси: 50% веса берётся от последней завершённой поездки, 30% от предпоследней и 20% от той, что была до неё (короткие поездки до 3 км в расчёт не идут — это не репрезентативный пробег). Когда едешь длинную дорогу, к этой смеси добавляется ещё расход за последние 10 км текущей поездки: его доля растёт от нуля на первых трёх километрах до половины к 25 километрам. Так прогноз быстро подхватывает смену стиля (городской хвост перед трассой, обратно с трассы в город), но не дёргается на коротких заездах и стоянках с климатом.
+**Range** `~N km` is figured from a blend: 50% weight from the last completed trip, 30% from the one before it, and 20% from the one before that (trips under 3 km do not count, they are not representative mileage). On a long drive, consumption over the last 10 km of the current trip is added to this blend: its share grows from zero in the first three kilometers to half by 25 kilometers. This way the forecast quickly picks up a change in driving style (a city tail before the highway, or back from the highway into the city), but does not jump around on short trips or on standstills with the climate running.
 
-Это автоматический расчёт. Если он вам не подходит, в **Настройки → Авто и батарея → «Способ расчёта запаса хода»** есть метод «Ручной»: своя таблица из 5 точек, температура батареи от +20 до -20 °C и расход при ней, опционально с запасом хода на 100% заряда.
+This is the automatic calculation. If it does not suit you, **Settings → Car and Battery → "Range calculation method"** has a "Manual" method: your own table of 5 points, battery temperature from +20 to -20 °C and the consumption at each, optionally with the range at 100% charge.
 
-**Стрелка тренда** появляется после 2 км пробега и сравнивает скользящее 25-километровое среднее с твоим обычным стилем (среднее по последним 10 поездкам):
+**The trend arrow** appears after 2 km of driving and compares a rolling 25-kilometer average against your usual style (the average of your last 10 trips):
 
-- **↓ зелёная** — едешь экономнее обычного
-- **→ белая** (стрелка прямая) — в пределах обычного
-- **↑ жёлтая** — расход выше обычного
+- **↓ green**: driving more efficiently than usual
+- **→ white** (straight): within your usual range
+- **↑ yellow**: consumption higher than usual
 
-Стрелка не дёргается от каждой остановки на светофоре — есть небольшая инерция: чтобы стрелка сменила цвет, расход должен заметно отличаться от обычного и держаться так минимум минуту.
+The arrow does not jump around at every red light, there is some inertia built in: for the arrow to change color, consumption has to clearly differ from your usual and hold that way for at least a minute.
 
-**Что такое «поездка»** для этой цифры. Один цикл зажигания: включил → выключил. Стоянка с включённым кондиционером внутри поездки учитывается естественно — лишние кВт·ч попадают в общий знаменатель. Короткие блипы (светофор, переподключение) не раскалывают поездку на две. Если DiLink прибьёт приложение посреди трассы — после рестарта счёт продолжается с реального момента включения зажигания, а не с нуля.
+**What counts as a "trip"** for this number: one ignition cycle, from on to off. A standstill with the AC running inside the trip is accounted for naturally, the extra kWh land in the shared denominator. Short blips (a red light, a reconnect) do not split a trip into two. If DiLink kills the app in the middle of a highway drive, after a restart the count continues from the real ignition-on moment, not from zero.
 
-### Управление
+### Controls
 
-- **Обычный тап** — открыть BYDMate
-- **Долгий тап (1.5 сек)** — скрыть до следующего открытия BYDMate
-- **Перетащить в корзину** — выключить совсем
-- Включение, прозрачность, сброс позиции — в **Настройки → Виджет**
-
----
-
-## Разделение экрана
-
-Два приложения на экране одновременно: одно занимает две трети, второе треть. Типичная пара - навигатор пошире, музыка или мессенджер поуже. Стороны меняются местами, приложения - на ходу, выбранная пара запоминается.
-
-<img src="docs/screenshots/split-screen.jpg" alt="Разделение экрана 1/3 + 2/3" width="800">
-
-### Включение
-
-1. Откройте **Настройки → Разделение экрана** и включите тумблер «Разделение экрана 1/3 + 2/3».
-2. Если под тумблером появилась надпись про перезагрузку - один раз перезагрузите головное устройство (долгое зажатие колёсика громкости). А если у вас уже включён режим проекции «Расширенный», перезагрузка не нужна: всё необходимое уже работает.
-
-Пока функция выключена, приложение системных настроек машины не трогает. Выключение тумблера возвращает настройку к заводскому значению - если только оконный режим не нужен ещё и проекции «Расширенный»: тогда настройка вернётся к заводской, когда выключите и её.
-
-<img src="docs/screenshots/settings-split.jpg" alt="Настройки → Разделение экрана" width="800">
-
-### Механизм разделения
-
-В настройках, под тумблером, выбирается, чем делить экран: «Окна BYDMate» (по умолчанию) или «Родное разделение».
-
-- **Окна BYDMate** - те самые 1/3 и 2/3 с пилюлей управления, описанные ниже.
-- **Родное разделение** - делит экран сама прошивка машины. Этот вариант работает и там, где окна BYDMate недоступны (DiLink 5.1). Вид зависит от прошивки: где поддерживаются трети, открываются панели 1/3 и 2/3, на остальных экран делится пополам, а второе приложение выбирается системным окном.
-
-На прошивках с новым интерфейсом UI7 выбор механизма не появляется: там разделение выполняет сама машина, панели 1/3 и 2/3 родные, перезагрузка головного устройства для включения не нужна.
-
-### Запуск
-
-Три способа. Значок «?» рядом с заголовком секции в настройках напоминает о них прямо в машине.
-
-- **С виджета** (самый удобный). В настройках, в разделе «Тап по виджету», включите «Зонирование тапов», а в пункте «Действие левого тапа» выберите «Запускать разделение экрана». Теперь тап по левой трети виджета открывает разделение, повторный тап закрывает.
-- **Из автоматизаций.** В правилах есть три действия: «Разделение экрана», «Закрыть разделение экрана» и «Переключить разделение экрана». Можно, например, включать разделение при старте навигации.
-- **Голосом.** Скажите агенту «включи разделение экрана».
-
-### Первый запуск и выбор приложений
-
-При первом запуске приложение спросит, что показывать: сначала выбирается приложение для широкой части (2/3), затем для узкой (1/3). Пара запоминается, следующий запуск открывает её сразу. Сменить приложения можно через пилюлю или в настройках; там же есть «Сбросить последнюю пару».
-
-### Пилюля управления
-
-Пока разделение активно, внизу экрана висит маленькая пилюля. Тап по ней открывает меню: поменять стороны, поменять приложения, выбрать другое приложение для левой или правой панели, выход в обычный полный экран. Когда разделение закрывается, пилюля исчезает сама.
-
-### Как это уживается с остальным
-
-- Если поверх разворачивается что-то полноэкранное (задний ход, камеры, видео), разделение закрывается само. Вернуть его можно любым обычным способом - тапом по виджету или голосом.
-- Кнопка «Назад» из BYDMate возвращает к разделению.
-- Если запустить штатное разделение экрана DiLink, наше корректно завершится - два разделения одновременно не работают.
+- **Regular tap**: open BYDMate
+- **Long tap (1.5 sec)**: hide until BYDMate opens next
+- **Drag to the trash**: turn off completely
+- Enable, transparency, and position reset: in **Settings → Widget**
 
 ---
 
-## Зарядки
+## Split Screen
 
-Вкладка **Зарядки** автоматически ведёт журнал реальных пополнений заряда: список зарядок по месяцам, статистика за период и за всё время, фильтры AC и DC. Не каждое подключение пистолета становится записью: запись создаётся только если SoC реально вырос. Если кто-то ткнул пистолет и вынул через минуту, в журнал ничего не попадёт.
+Two apps on screen at once: one takes two thirds, the other takes a third. A typical pair is a wider navigator and narrower music or a messenger. The sides can be swapped, the apps changed on the fly, and the chosen pair is remembered.
 
-### Что засчитывается как зарядка
+<img src="docs/screenshots/split-screen.jpg" alt="Split screen 1/3 + 2/3" width="800">
 
-Запись пишется, если за время сессии у машины выросла либо ёмкость батареи, либо SoC. BYDMate пробует три источника данных по очереди и берёт первое пригодное значение:
+### Enabling
 
-1. **Прирост ёмкости** в кВт·ч, если бортовая система сообщила обновлённое значение.
-2. **Прирост SoC** за активную сессию, переведённый в кВт·ч по текущей ёмкости батареи.
-3. **Грубая оценка** по дельте SoC от полной номинальной ёмкости, если первые два варианта пустые.
+1. Open **Settings → Split screen** and turn on the "Split screen 1/3 + 2/3" toggle.
+2. If a note about rebooting shows up under the toggle, reboot the head unit once (long-press the volume wheel). If you already use "Extended" projection mode, no reboot is needed: everything required is already running.
 
-Если BYDMate работает в момент зарядки, запись появляется сразу. Если подключение случилось до запуска приложения или машина уехала в глубокий сон, BYDMate догоняет запись на следующем старте, как только увидит, что SoC прыгнул вверх по сравнению с тем, что было до зарядки. Поэтому даже offline-зарядки в гараже попадают в журнал.
+While the feature is off, the app does not touch the car's system settings. Turning the toggle off restores the setting to its factory value, unless the window mode is also needed by "Extended" projection: then it returns to factory once you turn that off too.
 
-### Как определяется AC или DC
+<img src="docs/screenshots/settings-split-en.jpg" alt="Settings → Split screen" width="800">
 
-Тип зарядки определяется по двум сигналам, по приоритету:
+### Split Mechanism
 
-1. **Тип разъёма** от бортовой системы: gun-state 2 = AC, 3 или 4 = DC. На некоторых моделях BYD значение приходит не всегда, тогда работает следующий пункт.
-2. **Средняя мощность сессии**: больше 15 кВт = DC, иначе AC. AC-зарядка физически не выдаёт больше 11 кВт, DC-станции стартуют от 22 кВт (CCS slow), поэтому порог 15 кВт уверенно разделяет два режима.
+Under the toggle you choose what splits the screen: "BYDMate windows" (default) or "Native split".
 
-На вкладке Зарядки три фильтра: «Все», «AC», «DC».
+- **BYDMate windows**: the same 1/3 and 2/3 layout with the control pill described below.
+- **Native split**: the car's own firmware splits the screen. This works even where BYDMate windows are not available (DiLink 5.1). The look depends on the firmware: where thirds are supported it opens 1/3 and 2/3 panes, on the rest the screen splits in half and the second app is picked in a system window.
 
-### Ручное добавление и редактирование
+On firmware with the new UI7 interface the mechanism choice does not appear: the car does the split itself there, the 1/3 and 2/3 panes are native, and no head-unit reboot is needed to turn it on.
 
-Если запись не появилась автоматически или цифры выглядят странно:
+### Launching
 
-- **Кнопка `+ зарядка`** в шапке вкладки: добавить сессию вручную с указанием даты, длительности, кВт·ч, тарифа.
-- **Долгое нажатие на запись**: открывается меню «Изменить» / «Удалить». В режиме редактирования можно поправить любое поле уже сохранённой зарядки.
+Three ways. The "?" badge next to the section header in Settings reminds you of them right in the car.
 
-> Функция в активном тестировании. На Leopard 3 пишется стабильно. На других моделях BYD автоматика может сработать неточно: например, бортовая система не сообщит мощность или тип разъёма, тогда AC и DC может определиться неправильно. В таких случаях правьте записи вручную и при возможности присылайте логи в [Issues](https://github.com/AndyShaman/BYDMate/issues).
+- **From the widget** (the most convenient). In Settings, "Widget tap" section, turn on "Tap zoning", and set "Left tap action" to "Launch split screen". A tap on the left third of the widget now opens the split, tapping again closes it.
+- **From automations.** Rules have three actions: "Split Screen", "Close Split Screen", and "Toggle Split Screen". You can, for example, turn on the split whenever navigation starts.
+- **By voice.** Tell the agent "włącz podzielony ekran" (turn on split screen).
+
+### First Launch and Choosing Apps
+
+On the first launch the app asks what to show: first you pick the app for the wide part (2/3), then for the narrow one (1/3). The pair is remembered, and the next launch opens it right away. You can change the apps through the pill or in Settings; "Reset last pair" is there too.
+
+### The Control Pill
+
+While the split is active, a small pill sits at the bottom of the screen. Tapping it opens a menu: swap sides, swap apps, pick a different app for the left or right pane, or exit to a normal full screen. When the split closes, the pill disappears by itself.
+
+### How It Fits With the Rest
+
+- If something fullscreen opens on top (reverse gear, cameras, video), the split closes by itself. Bring it back the usual way: a widget tap or by voice.
+- The Back button from BYDMate returns you to the split.
+- If you start DiLink's own split screen, ours closes cleanly: two splits do not run at once.
 
 ---
 
-## Тарифы и стоимость
+## Charges
 
-Стоимость каждой зарядки и каждой поездки BYDMate считает сам. Чтобы цифры были честными, ему нужны две вещи: ваша цена киловатт-часа и дата, с которой эта цена действует. На гибриде ещё цена литра.
+The **Charges** tab automatically logs every real charge: a list of charges by month, stats for a period and for all time, AC and DC filters. Not every plug-in becomes a record: a record is created only if SoC actually went up. If someone just touches the plug and pulls it out a minute later, nothing gets logged.
 
-### Где задать тариф
+### What Counts as a Charge
 
-**Настройки → Авто и батарея → «Тарифы и периоды» → «Открыть»**. Откроется отдельное окно со списком периодов, настройки им не забиваются.
+A record is written if either the battery capacity or the SoC rose during the session. BYDMate tries three data sources in order and takes the first usable one:
 
-Период — это «с какой даты действует цена». У периода есть дата начала, цена дома (AC), цена на быстрых зарядках (DC), на гибриде цена литра, потери и правило расчёта поездок. Конца у периода нет: он действует до следующего периода или до сегодня, если следующего нет. Самый первый период покрывает всю историю до себя, поэтому старые поездки не остаются без цены.
+1. **Capacity gain** in kWh, if the onboard system reports an updated value.
+2. **SoC gain** over the active session, converted to kWh using the current battery capacity.
+3. **A rough estimate** from the SoC delta against the full rated capacity, if the first two are empty.
 
-Когда вы ставите тариф в первый раз (или обновляетесь со старой версии), BYDMate заводит один период «с начала истории» с вашими текущими цифрами. Пока вы не добавите второй период, всё работает как раньше.
+If BYDMate is running during the charge, the record shows up right away. If the plug-in happened before the app started, or the car went into deep sleep, BYDMate catches up on the record at the next start, as soon as it sees the SoC jumped up compared to before the charge. That is why even offline garage charges make it into the log.
 
-### Как поменять тариф задним числом
+### How AC or DC Is Determined
 
-Цена выросла с 1 сентября, а вспомнили вы об этом 16-го? Ничего страшного.
+The charge type is determined from two signals, in priority order:
 
-1. Откройте «Тарифы и периоды» и нажмите **«Добавить период»**.
-2. В поле **«Действует с»** выберите 1 сентября.
-3. Впишите новые цены и сохраните.
+1. **Connector type** from the onboard system: gun-state 2 is AC, 3 or 4 is DC. On some BYD models this value does not always arrive, in which case the next point applies.
+2. **Average session power**: above 15 kW is DC, otherwise AC. AC charging physically cannot exceed 11 kW, DC stations start at 22 kW (CCS slow), so the 15 kW threshold reliably splits the two modes.
 
-Всё, что произошло 1 сентября и позже, пересчитается автоматически: и зарядки, и поездки. Август останется по старой цене. Отдельной кнопки «пересчитать» нет и не нужно, пересчёт запускается сам при сохранении периода.
+The Charges tab has three filters: "All", "AC", "DC".
 
-С бензином так же. Заправились по новой цене: добавьте период с даты заправки и впишите цену литра. Поездки до этой даты останутся по прежней цене, поездки с неё посчитаются по новой. История не переписывается.
+### Manual Add and Edit
 
-Так же работает и правка: если поменять цену в уже существующем периоде, пересчитается всё от его даты и до конца истории.
+If a record did not appear automatically, or the numbers look off:
 
-### Потери на зарядке
+- **The `+ charge` button** in the tab header: add a session manually with the date, duration, kWh, and tariff.
+- **Long-press a record**: an "Edit" / "Delete" menu opens. In edit mode you can fix any field of an already saved charge.
 
-В машину влилось 50 кВт·ч, а счётчик дома намотал 55. Разница уходит в зарядное устройство и нагрев: часть энергии до батареи просто не доезжает. Платите вы за 55, а BYDMate видит только 50, поэтому без поправки стоимость получается заниженной.
+> The feature is under active testing. It logs reliably on Leopard 3. On other BYD models the automation may be off: for example, the onboard system may not report power or connector type, and AC/DC may then be detected wrong. In such cases edit records manually and, if you can, send logs to [Issues](https://github.com/AndyShaman/BYDMate/issues).
 
-В каждом периоде есть два поля: **потери AC** и **потери DC**. По умолчанию 10% для домашней (AC) и 5% для быстрой (DC) зарядки — это типичные значения из замеров ADAC и исследований DLR: на медленной зарядке через бортовое зарядное устройство теряется порядка 10%, на быстрой постоянным током меньше, порядка 5%. Ток в машину идёт напрямую, поэтому и потерь меньше.
+---
 
-Стоимость считается так: сколько влилось в батарею, делим на (1 − потери) и умножаем на цену киловатт-часа. 50 кВт·ч при потерях 10% — это 55,6 кВт·ч оплаченных.
+## Tariffs and Cost
 
-**Как уточнить под себя.** Запишите показания домашнего счётчика до и после зарядки, откройте карточку этой зарядки (долгое нажатие на запись → «Изменить») и впишите разницу в поле **«Счётчик»**. Для этой зарядки BYDMate возьмёт вашу цифру вместо оценки. Когда таких зарядок наберётся несколько, в окне тарифов появится строка «Ваши потери по счётчику: AC …% , DC …%» — это средний процент по вашим замерам. Впишите его в поля потерь, и дальше все зарядки будут считаться по вашей реальной цифре.
+BYDMate figures the cost of every charge and every trip itself. For the numbers to be honest, it needs two things: your price per kilowatt-hour, and the date that price started applying. On a hybrid, also the litre price.
 
-### Как считается стоимость поездки
+### Where to Set the Tariff
 
-В поездке нет чека, поэтому цену её киловатт-часов надо откуда-то взять. В периоде есть четыре правила на выбор:
+**Settings → Car and Battery → "Tariffs and periods" → "Open"**. A separate window opens with the list of periods, it does not clutter Settings.
 
-| Правило | Как считает | Кому подходит |
+A period is "the date a price starts applying". A period has a start date, a home (AC) price, a fast-charging (DC) price, on a hybrid the litre price, losses, and a trip cost rule. A period has no end: it applies until the next period, or until today if there is no next one. The very first period covers all the history before it, so old trips never end up without a price.
+
+When you set a tariff for the first time (or update from an older version), BYDMate creates one period "from the start of history" with your current numbers. Until you add a second period, everything works as before.
+
+### How to Change a Tariff Retroactively
+
+The price went up on September 1, but you only remembered on the 16th? No problem.
+
+1. Open "Tariffs and periods" and tap **"Add period"**.
+2. In the **"Applies from"** field pick September 1.
+3. Enter the new prices and save.
+
+Everything that happened on September 1 and later recalculates automatically: both charges and trips. August stays at the old price. There is no separate "recalculate" button, and none is needed, the recalculation runs by itself when you save the period.
+
+It works the same with petrol. You refuelled at a new price: add a period from the refuelling date and enter the litre price. Trips before that date stay at the old price, trips from it on are counted at the new one. History is not rewritten.
+
+Editing works the same way: changing the price in an existing period recalculates everything from its date to the end of history.
+
+### Charging Losses
+
+50 kWh went into the car, but the meter at home counted 55. The difference goes into the charger and heat: some of the energy simply never reaches the battery. You pay for 55, but BYDMate only sees 50, so without a correction the cost comes out too low.
+
+Every period has two fields: **AC losses** and **DC losses**. The defaults are 10% for home (AC) and 5% for fast (DC) charging, typical figures from ADAC measurements and DLR research: slow charging through the onboard charger loses around 10%, fast DC charging loses less, around 5%. The current goes into the car directly, so the losses are smaller.
+
+The cost is figured like this: how much went into the battery, divided by (1 minus the losses), times the price per kilowatt-hour. 50 kWh at 10% losses is 55.6 kWh paid for.
+
+**How to fine-tune it for your car.** Note your home meter's reading before and after charging, open that charge's card (long-press the record, then "Edit"), and enter the difference in the **"Meter"** field. For that charge, BYDMate uses your figure instead of an estimate. Once you have a few such charges, the tariffs window shows a line, "Your losses by meter: AC ...%, DC ...%", the average percent from your own measurements. Enter it into the loss fields, and from then on every charge is figured using your real number.
+
+### How Trip Cost Is Calculated
+
+A trip has no receipt, so its kilowatt-hour price has to come from somewhere. A period offers four rules to choose from:
+
+| Rule | How it's figured | Who it fits |
 |---------|-------------|---------------|
-| **Дом** | По домашней цене периода | Заряжаетесь в основном дома. Это значение по умолчанию |
-| **DC** | По цене быстрой зарядки периода | Дома не заряжаетесь вообще |
-| **Свой** | По числу, которое вы вписали | Знаете свою среднюю цену и хотите зафиксировать её |
-| **По зарядкам** | По фактической цене того, что залито в батарею | Заряжаетесь и дома, и на трассе, и хотите точности |
+| **Home** | By the period's home price | You mostly charge at home. This is the default |
+| **DC** | By the period's fast-charging price | You never charge at home at all |
+| **Custom** | By the number you enter | You know your own average price and want to fix it |
+| **By charges** | By the actual price of what went into the battery | You charge both at home and on the road and want accuracy |
 
-Правило «По зарядкам» ведёт цену энергии в батарее: после каждой зарядки новая энергия смешивается с остатком, и цена становится средневзвешенной. Дешёвая ночная зарядка удешевляет киловатт-час, дорогая быстрая делает его дороже. Если перед поездкой зарядок ещё не было или последняя была больше 60 дней назад, BYDMate берёт домашнюю цену периода, чтобы поездка не осталась без стоимости.
+The "By charges" rule tracks the price of the energy in the battery: after every charge the new energy mixes with what is left, and the price becomes a weighted average. A cheap night charge makes the kilowatt-hour cheaper, an expensive fast charge makes it more expensive. If there were no charges before a trip, or the last one was more than 60 days ago, BYDMate uses the period's home price so the trip is never left without a cost.
 
-На гибриде к электричеству прибавляется топливо: литры поездки умножаются на цену литра того периода, в который попала поездка. Если в периоде цены литра нет, топливная часть не считается и стоимость поездки только за электричество; если у поездки нет литров, она считается как на электромобиле.
+On a hybrid, fuel is added to electricity: the trip's litres are multiplied by the litre price of the period the trip falls into. If the period has no litre price, the fuel part is not counted and the trip cost is for electricity only; if the trip has no litres, it is counted as on an EV.
 
-### Что не пересчитывается
+### What Never Gets Recalculated
 
-Пересчёт никогда не трогает зарядки, где цену вы задали руками:
+A recalculation never touches charges where you set the price by hand:
 
-- зарядка, добавленная кнопкой **«+ зарядка»** с указанием тарифа;
-- зарядка, у которой вы в карточке поправили тариф вручную;
-- зарядка, где вы вписали показание счётчика.
+- a charge added with the **"+ charge"** button with a tariff entered;
+- a charge where you edited the tariff by hand in its card;
+- a charge where you entered a meter reading.
 
-Это сделано специально: вы видели чек и счётчик, приложение нет. Такие записи остаются как есть при любой смене тарифов.
+This is deliberate: you saw the receipt and the meter, the app did not. Such records stay as they are through any tariff change.
 
-**Как вернуть запись в общий расчёт.** Откройте её карточку и нажмите **«Считать по периоду»**. Показание счётчика и ручная пометка снимутся, стоимость пересчитается по тарифу и потерям периода, и дальше запись будет меняться вместе с остальными.
-
-## Сохранение конфигурации и Telegram-бот
-
-Всё, что вы настроили и накопили, сохраняется одним архивом. Им можно вернуть данные после переустановки, перенести BYDMate на другую магнитолу или просто держать копию в Telegram.
-
-Всё находится в **Настройки → Сервис и данные → Данные → «Конфигурация»**.
-
-### Сохранить конфигурацию
-
-1. В строке «Сохранить конфигурацию» нажмите **«Сохранить»**.
-2. В окне «Что сохранить» отметьте части:
-   - **Таблицы**: поездки, зарядки, статистика.
-   - **Настройки машины и приложения**: настройки, тарифы, автоматизации, места, виджет, голос.
-   - **Ключи и токены**: OpenRouter, ABRP, Telegram-бот и другие. По умолчанию не отмечены. Не отмечайте их, если отдаёте файл другому человеку.
-3. Нажмите **«Сохранить»**. Архив `bydmate_backup_<дата>.zip` появится в папке Download. Если подключён Telegram-бот, копия уйдёт и туда.
-4. В окне «Сохранено» можно сразу нажать **«Поделиться»**. В архиве история поездок, поэтому делитесь только с тем, кому доверяете.
-
-### Восстановить конфигурацию
-
-1. В строке «Восстановить конфигурацию» нажмите **«Выбрать файл»**. Откроется список архивов `bydmate_backup_*.zip` из папки Download, автоматические копии тоже там. Это свой список приложения, а не системный выбор файла, поэтому он работает и на прошивках, где системный выбор не даёт доступа к файлу.
-2. Выберите архив.
-3. В окне «Что восстановить» отметьте нужные части. Части, которых в архиве нет, выбрать нельзя. Неотмеченные части останутся как есть.
-4. Нажмите **«Восстановить»**. Выбранные данные заменятся содержимым архива, приложение перезапустится.
-
-**На чистой установке** всё так же: поставьте BYDMate, положите архив в Download и восстановите его. Право показывать виджет поверх других приложений приложение вернёт само, если работает ADB. Что осталось сделать вручную, оно покажет в одном окне «После восстановления»: микрофон, контакты, модель распознавания речи, голос озвучки, перезагрузка магнитолы. Рядом с пунктами есть кнопки «Разрешить» и «Скачать».
-
-### Автосохранение
-
-1. В строке **«Автосохранение»** выберите частоту: «Ежедневно», «Еженедельно» или «Ежемесячно». «Выкл» отключает автосохранение.
-2. Чипами «Таблицы», «Настройки» и «Ключи» выберите, что попадёт в копию. По умолчанию таблицы и настройки, без ключей.
-
-Копия делается при запуске машины, если с прошлой прошло больше выбранного срока. «Ежедневно» значит: при первом запуске машины, когда с прошлой копии прошли сутки. В Download хранятся 5 последних автоматических копий, более старые удаляются. Архивы, сохранённые кнопкой вручную, не трогаются.
-
-Если подключён Telegram-бот, каждая копия приходит в ваш чат с ботом. Не получилось отправить из-за сети, приложение повторит отправку позже. Под строкой видно время последней копии и результат: отправлено в Telegram, сохранено локально или ошибка.
-
-### Как подключить Telegram-бот
-
-Бот нужен свой: копии приходят только в ваш чат с ботом или в вашу группу, куда вы его добавили.
-
-1. В Telegram откройте **@BotFather**, отправьте ему `/newbot`, придумайте имя и адрес бота. BotFather пришлёт токен: длинную строку вида `123456789:AA…`.
-2. В BYDMate откройте **Настройки → Сервис и данные → Данные**, блок **«Telegram-бот»**. Вставьте токен в поле «Токен бота» и нажмите **«Проверить»**.
-3. Приложение покажет короткий код из цифр. Откройте в Telegram чат со своим ботом и отправьте ему этот код. Код можно скопировать кнопкой «Скопировать код». Чтобы отчёты и копии приходили в общий чат, например всем, кто ездит на машине, добавьте бота в свою закрытую группу и отправьте там `/start@имя_бота КОД`.
-4. Вернитесь в BYDMate и снова нажмите **«Проверить»**. Бот пришлёт в чат сообщение «BYDMate подключён. Сюда будут приходить бэкапы.», а в блоке появится отметка «Подключён» с именем бота и чата.
-
-Ошибки видны сразу под кнопкой: неверный токен, нет сети, код ещё не пришёл, файл больше 50 МБ и другие. Кнопка «Назад» на шаге с кодом возвращает к токену, «Отключить» забывает бота, и копии остаются только в Download.
-
-Архив не зашифрован. Бот и чат должны быть только вашими. Если бот уже подключён к вебхуку или другой программе, Telegram не отдаст приложению сообщения с кодом: отключите вебхук.
-
-### Отчёт в Telegram при выключении машины
-
-Тот же бот может присылать короткий отчёт каждый раз, когда вы выключаете машину. Удобно, чтобы видеть, где она стоит, сколько заряда осталось и всё ли закрыто.
-
-Включается там же, в блоке **«Telegram-бот»**: переключатель **«Отчёт при выключении машины»**. Ниже галочками выбираете, что попадёт в отчёт:
-
-- **Место на карте**: ссылка «Открыть на карте» в конце сообщения;
-- **Заряд** и **Запас хода**, как на Главной;
-- **Пробег**: общий пробег машины;
-- **Поездка**: километры, расход и время в пути последней поездки;
-- **TRIP 1** и **TRIP 2**: счётчики с Главной, каждый отдельной галочкой. Счётчик, который ни разу не сбрасывали, идёт с пометкой «за всё время»;
-- **Температура**: снаружи и в салоне;
-- **Что открыто**: двери, окна, люк, багажник, капот. Если всё закрыто, так и написано;
-- **Давление в шинах**: все четыре колеса.
-
-Отчёт уходит в первые секунды после выключения через мобильный интернет машины. Если связи нет, он придёт при следующем включении, с пометкой, когда данные записаны.
-
-Тот же отчёт можно отправлять из автоматизации: действие **«Отчёт в Telegram»**. В нём свой набор пунктов и, по желанию, свой текст под заголовком. Например, правило «въезд в зону Дом» может присылать заряд и что открыто.
+**How to put a record back into the shared calculation.** Open its card and tap **"Use period rate"**. The meter reading and the manual mark are cleared, the cost is recalculated using the period's tariff and losses, and from then on the record changes along with the rest.
 
 ---
 
-## Здоровье батареи (SoH)
+## Configuration Backup and Telegram Bot
 
-SoH (State of Health) — это процент «здоровья» тяговой батареи, который рассчитывает сама бортовая система автомобиля по своим внутренним алгоритмам.
+Everything you set up and collected is saved as one archive. It can bring your data back after a reinstall, move BYDMate to another head unit, or just keep a copy in Telegram.
 
-На **BYD Leopard 3 (Fangchengbao Bao 3)** BYDMate берёт это значение напрямую из бортовой системы и показывает в карточке батареи на Главной. Это **реальный SoH от машины**, а не оценка по разнице SoC: BYDMate просто читает то, что пишет себе сама машина.
+Everything is in **Settings → Service & Data → Data → "Configuration"**.
 
-На других моделях BYD доступ к этому значению пока не подтверждён, поэтому SoH там не отображается. Остальные ячейки карточки (температура батареи, 12V, разброс ячеек, сопротивление изоляции) работают на всех поддерживаемых моделях.
+### Save Configuration
 
-Тап по карточке открывает экран **«Техника»**: напряжение и ток тяговой батареи, остаток энергии батареи в кВт·ч по данным BMS, доступная мощность батареи, лимиты BMS на заряд и разряд, разброс ячеек, температуры моторов и инверторов, доля мощности перед/зад в процентах, климат, давление и температура шин, история SoH и пробега, число полных циклов заряда батареи с подписью, из какой суммы кВт·ч оно посчитано. У каждого параметра есть значок «?» с подсказкой простым языком. Если машина не отдаёт параметр, строка показывает «-», пустые карточки скрываются.
+1. In the "Save configuration" line, tap **"Save"**.
+2. In the "What to save" window, check the parts you want:
+   - **Tables**: trips, charges, statistics.
+   - **Car and app settings**: settings, tariffs, automations, places, widget, voice.
+   - **Keys and tokens**: legacy provider keys, ABRP, Telegram bot, and others. OpenClaw device pairing is not included. Unchecked by default. Leave them unchecked if you are giving the file to someone else.
+3. Tap **"Save"**. The archive `bydmate_backup_<date>.zip` appears in the Download folder. If a Telegram bot is connected, a copy goes there too.
+4. In the "Saved" window you can tap **"Share"** right away. The archive holds your trip history, so only share it with someone you trust.
 
-Если в вашей машине SoH доступен и вы хотите помочь добавить поддержку, заведите [Issue](https://github.com/AndyShaman/BYDMate/issues) с указанием модели и года выпуска.
+### Restore Configuration
+
+1. In the "Restore config" line, tap **"Choose file"**. A list of `bydmate_backup_*.zip` archives from the Download folder opens, automatic copies are there too. This is the app's own list, not the system file picker, so it works even on firmware where the system picker cannot reach the file.
+2. Pick an archive.
+3. In the "What to restore" window, check the parts you need. Parts that are not in the archive cannot be picked. Unchecked parts stay as they are.
+4. Tap **"Restore"**. The chosen data is replaced with the archive's contents, and the app restarts.
+
+**On a clean install** it works the same way: install BYDMate, put the archive in Download, and restore it. The app restores the permission to draw over other apps by itself, if ADB works. What is left to do by hand is shown in one "After restore" window: microphone, contacts, the speech recognition model, the TTS voice, a head-unit reboot. There are "Allow" and "Download" buttons next to the items.
+
+### Auto-Save
+
+1. In the **"Auto-save"** line, pick a frequency: "Daily", "Weekly", or "Monthly". "Off" turns auto-save off.
+2. Use the "Tables", "Settings", and "Keys" chips to choose what goes into the copy. Tables and settings by default, without keys.
+
+A copy is made when the car starts, if more than the chosen interval has passed since the last one. "Daily" means: at the first start of the day, once 24 hours have passed since the last copy. Download keeps the 5 most recent automatic copies, older ones are deleted. Archives saved with the manual button are left alone.
+
+If a Telegram bot is connected, every copy is sent to your chat with the bot. If sending fails because of the network, the app retries later. Under the line you can see the time of the last copy and the outcome: sent to Telegram, saved locally, or an error.
+
+### How to Connect a Telegram Bot
+
+You need your own bot: copies arrive only in your chat with the bot or in your group where you added it.
+
+1. In Telegram, open **@BotFather**, send it `/newbot`, and pick a name and address for the bot. BotFather sends back a token, a long string like `123456789:AA...`.
+2. In BYDMate open **Settings → Service & Data → Data**, the **"Telegram bot"** block. Paste the token into the "Bot token" field and tap **"Check"**.
+3. The app shows a short code made of digits. Open the chat with your bot in Telegram and send it this code. You can copy the code with the "Copy code" button. To get reports and copies in a shared chat, for example for everyone who drives the car, add the bot to your private group and send `/start@your_bot CODE` there.
+4. Go back to BYDMate and tap **"Check"** again. The bot sends a message to the chat, "BYDMate connected. Backups will arrive here.", and the block shows a "Connected" mark with the bot's and chat's name.
+
+Errors show up right under the button: a wrong token, no network, the code has not arrived yet, a file over 50 MB, and others. The "Back" button on the code step returns you to the token, "Disconnect" forgets the bot, and copies stay in Download only.
+
+The archive is not encrypted. The bot and the chat should be yours alone. If the bot is already connected to a webhook or another program, Telegram will not deliver the code message to the app: turn off the webhook.
 
 ---
 
-## SoH и автоматическая запись зарядок (Leopard 3)
+### Telegram report when the car turns off
 
-SoH и автоматическая запись зарядок на Leopard 3 работают автоматически, отдельно ничего включать не нужно. BYDMate читает значения напрямую от бортовой системы автомобиля, как только активна беспроводная ADB-отладка.
+The same bot can send a short report each time you turn the car off. It is useful for checking where the car is parked, the remaining charge, and whether everything is closed.
 
-1. Убедитесь, что ADB-отладка активна (см. раздел «Установка»).
-2. SoH появится в карточке батареи на Главной, а зарядки начнут записываться автоматически с реальными значениями кВт·ч.
+Enable it in **Telegram bot** with **Report when car turns off**. Select the report items below:
 
-> На Leopard 3 эти функции протестированы. На других моделях BYD доступ к этим данным не подтверждён, тогда SoH и точная мощность зарядок могут не появиться, но остальные функции BYDMate работают как обычно.
+- **Location on the map:** an "Open on map" link at the end of the message;
+- **Charge** and **Range**, as on the Home screen;
+- **Mileage:** the vehicle's total mileage;
+- **Trip:** distance, consumption and duration of the last trip;
+- **TRIP 1** and **TRIP 2:** Home-screen counters, selected separately. A counter that has never been reset is marked "all time";
+- **Temperature:** outside and cabin;
+- **What is open:** doors, windows, sunroof, trunk and hood. The report says when everything is closed;
+- **Tyre pressure:** all four wheels.
+
+The report is sent in the first seconds after turn-off through the car's mobile connection. If there is no connection, it arrives after the next turn-on and states when the data was recorded.
+
+You can also send the same report from automation with the **Telegram report** action. It has its own item selection and optional text below the heading. For example, a "home-area entry" rule can send the charge and open-item status.
+
+## Battery Health (SoH)
+
+SoH (State of Health) is the percentage "health" of the traction battery, calculated by the car's own onboard system with its own internal algorithms.
+
+On **BYD Leopard 3 (Fangchengbao Tai 3)** BYDMate reads this value directly from the onboard system and shows it in the battery card on Home. This is the **real SoH from the car**, not an estimate from the SoC difference: BYDMate simply reads what the car writes about itself.
+
+On other BYD models, access to this value is not yet confirmed, so SoH does not show there. The rest of the card (battery temperature, 12V, cell balance, insulation resistance) works on every supported model.
+
+Tapping the card opens the **"Tech"** screen: traction battery voltage and current, remaining battery energy in kWh per BMS data, available battery power, BMS charge and discharge limits, cell balance, motor and inverter temperatures, front/rear power split in percent, climate, tire pressure and temperature, SoH and mileage history, the number of full battery charge cycles with a note on which kWh sum it is figured from. Every parameter has a "?" badge with a plain-language tip. If the car does not report a parameter, the line shows "-", and empty cards are hidden.
+
+If SoH is available on your car and you want to help add support, open an [Issue](https://github.com/AndyShaman/BYDMate/issues) with your model and year.
 
 ---
 
-## Если у вас не Leopard 3
+## SoH and Automatic Charge Logging (Leopard 3)
 
-BYDMate разрабатывается и тестируется на BYD Leopard 3 (Fangchengbao Bao 3). На других моделях BYD большинство функций тоже работает, но есть отличия. Перед первым запуском проверьте:
+SoH and automatic charge logging on Leopard 3 work automatically, there is nothing separate to turn on. BYDMate reads the values directly from the car's onboard system as soon as wireless ADB debugging is active.
 
-- **История поездок**: на Leopard 3 (Fangchengbao Bao 3) BYDMate читает поездки из встроенной BMS-базы `energydata`. На моделях без этой базы (Song, Yuan и аналоги) поездки теперь записываются нативно, фоновым опросом параметров машины (источник NATIVE_POLLING), так что список больше не пустой. Расход в таких поездках считается по дельте SoC, поэтому он чуть грубее, чем на Leopard 3, где данные берутся из BMS.
-- **Гибриды DM-i и DM-o**: приложение определяет их само по пробегу на ДВС и уровню бака, настроек нет, пока тип не подтверждён, экран как на электромобиле. Поддержка первая, собрана по дампам двух машин: часть величин может показывать прочерк. Если видите прочерк там, где машина цифру знает, приложите к Issue каталог параметров (ниже) и фото приборки с запасами хода на батарее и на топливе.
-- **Ёмкость батареи**: по умолчанию 72.9 кВт·ч под Leopard 3. Зайдите в **Настройки → Авто и батарея** и поставьте свою ёмкость. Например, Atto 3 = 60.5 кВт·ч, Seal AWD = 82.5 кВт·ч, Han EV = 85.4 кВт·ч. Без этого расчёт запаса хода и стоимости поездок будет неточным.
-- **SoH**: подтверждён на Leopard 3 и на DiLink 3.0 (Yuan UP). На остальных моделях карточка «Здоровье батареи» работает без поля SoH.
-- **Зарядки**: алгоритм AC и DC проектировался под Leopard 3. На других моделях запись может появиться с задержкой или с неточной мощностью, особенно для DC. Используйте ручное добавление и редактирование, если автоматика промахнулась.
-- **Автоматизация и плавающий виджет**: работают одинаково на любой модели, потому что используют системный интерфейс машины.
+1. Make sure ADB debugging is active (see the "Install" section).
+2. SoH shows up in the battery card on Home, and charges start logging automatically with real kWh values.
 
-Если что-то не работает или показывает странное, заведите [Issue](https://github.com/AndyShaman/BYDMate/issues) с указанием модели машины и версии прошивки DiLink - и приложите каталог параметров вашей машины: **Настройки → Сервис и данные → «Сохранить каталог fid'ов»**. Файл `fid-dump-….txt` появится в папке Download. Внутри только технические идентификаторы параметров - без VIN, без геолокации, без личных данных.
-
-Зачем это нужно. У разных моделей BYD наборы параметров различаются: команда, которая на Leopard 3 включает обдув сиденья, на Song может иметь другой номер или отсутствовать. Именно поэтому часть функций на других машинах не срабатывает. Каталог с вашей машины показывает, как параметры называются и нумеруются именно на вашей прошивке - и мы чиним по этим данным, а не вслепую.
+> These features are confirmed on Leopard 3. On other BYD models access to this data is not confirmed, so SoH and precise charge power may not show up, but the rest of BYDMate works as usual.
 
 ---
 
-## Целевое устройство
+## If You Don't Have a Leopard 3
 
-| Параметр | Значение |
+BYDMate is developed and tested on BYD Leopard 3 (Fangchengbao Tai 3). On other BYD models most features work too, but there are differences. Before the first launch, check:
+
+- **Trip history**: on Leopard 3 (Fangchengbao Tai 3) BYDMate reads trips from the built-in BMS database `energydata`. On models without this database (Song, Yuan, and similar) trips are now recorded natively, by polling the car's parameters in the background (source NATIVE_POLLING), so the list is no longer empty. Consumption in such trips is figured from the SoC delta, so it is a bit coarser than on Leopard 3, where the data comes from the BMS.
+- **DM-i and DM-o hybrids**: the app detects them by itself from the engine mileage and the tank level, there are no settings; until the type is confirmed, the screen is the same as on an EV. This is the first version of the support, built from the dumps of two cars: some values may show a dash. If you see a dash where the car knows the number, attach the parameter catalog (below) to the Issue, and a photo of the cluster with the battery and fuel ranges.
+- **Battery capacity**: defaults to 72.9 kWh for Leopard 3. Go to **Settings → Car and Battery** and set your own capacity. For example, Atto 3 is 60.5 kWh, Seal AWD is 82.5 kWh, Han EV is 85.4 kWh. Without this, range and trip cost calculations will be off.
+- **SoH**: confirmed on Leopard 3 and on DiLink 3.0 (Yuan UP). On other models the "Battery health" card works without the SoH field.
+- **Charges**: the AC and DC algorithm was designed around Leopard 3. On other models a record may appear late or with imprecise power, especially for DC. Use manual add and edit when the automation misses.
+- **Automation and the floating widget**: work the same on any model, because they use the car's system interface.
+
+If something does not work or shows something odd, open an [Issue](https://github.com/AndyShaman/BYDMate/issues) with your car model and DiLink firmware version, and attach your car's parameter catalog: **Settings → Service & Data → "Save fid catalog"**. A `fid-dump-….txt` file appears in the Download folder. It only holds technical parameter identifiers, no VIN, no location, no personal data.
+
+Why this matters. Different BYD models have different parameter sets: a command that turns on seat ventilation on a Leopard 3 may have a different number on a Song, or may not exist at all. That is exactly why some features fail on other cars. The catalog from your car shows how the parameters are named and numbered on your exact firmware, and we fix things using that data instead of guessing.
+
+---
+
+## Target Device
+
+| Parameter | Value |
 |----------|----------|
-| Платформа | DiLink 5.0 (Android 12, API 32) |
-| Процессор | Snapdragon 780G |
-| Экран | 15.6" landscape, 1920x1200 |
-| GMS | Нет (AOSP без Google Play Services) |
-| Протестировано | BYD Leopard 3 (Fangchengbao Bao 3) |
+| Platform | DiLink 5.0 (Android 12, API 32) |
+| Processor | Snapdragon 780G |
+| Screen | 15.6" landscape, 1920x1200 |
+| GMS | None (AOSP without Google Play Services) |
+| Tested on | BYD Leopard 3 (Fangchengbao Tai 3) |
 
 ---
 
-## Как работает
+## How It Works
 
 ```
 BYD energydata (BMS SQLite)  →  HistoryImporter    →  Room DB  →  Compose UI
-autoservice (системный Binder) →  TrackingService   ↗     ↓
-Android LocationManager     →  TripTracker (GPS)    ↗   LocalInsightEngine
-autoservice (запись команд)  ←  AutomationEngine   ←  Rules (Room DB)
+autoservice (system Binder)  →  TrackingService     ↗     ↓
+Android LocationManager      →  TripTracker (GPS)   ↗   LocalInsightEngine
+autoservice (command writes) ←  AutomationEngine   ←  Rules (Room DB)
 ```
 
-| Данные | Источник |
-|--------|----------|
-| Расход, пробег, длительность | BYD energydata (BMS) |
-| SOC, скорость, температуры | Системный сервис машины (autoservice Binder) |
-| Напряжение ячеек, 12V, SoH | Системный сервис машины (autoservice Binder) |
-| GPS координаты | Android LocationManager |
-| AI-аналитика | Локальные правила на устройстве, без интернета |
-| Управление авто | Системный сервис машины (запись команд) |
+| Data | Source |
+|------|--------|
+| Consumption, mileage, duration | BYD energydata (BMS) |
+| SOC, speed, temperatures | Car system service (autoservice Binder) |
+| Cell voltage, 12V, SoH | Car system service (autoservice Binder) |
+| GPS coordinates | Android LocationManager |
+| AI analytics | On-device rules, no internet |
+| Vehicle control | Car system service (command writes) |
 
-**Без OBD-адаптера** и **без стороннего D+**. BYDMate читает данные и управляет машиной напрямую через системный сервис autoservice (тот же, что использует штатная система BYD) под shell-доступом по беспроводной ADB.
+**No OBD adapter** and **no third-party D+**. BYDMate reads data and controls the car directly through the `autoservice` system service (the same one BYD's own system uses), under shell access over wireless ADB.
 
 ---
 
-## Данные и сеть
+## Data & Network
 
-| Функция | Куда уходит | Что уходит | Когда активно |
+| Feature | Destination | What is sent | When active |
 |---|---|---|---|
-| Голосовой агент (LLM) | OpenRouter / z.ai / свой сервер | текст команды, состояние автомобиля (SOC, климат и т.п.), при навигационных запросах GPS-координаты | только после настройки провайдера |
-| Веб-поиск агента | Exa / z.ai / OpenRouter | текст поискового запроса | ключ введён и агент вызвал инструмент |
-| Погода (агент) | Open-Meteo | GPS-координаты или название места (геокодинг) | агент вызвал инструмент |
-| Зарядные станции (агент) | Overpass (overpass-api.de / maps.mail.ru) | GPS-координаты | агент вызвал инструмент |
-| Онлайн-голоса озвучки | MiniMax / fal.ai / Replicate / OpenRouter | текст озвучиваемого ответа | только если выбран онлайн-голос |
-| Карта в деталях поездки | тайл-серверы OpenStreetMap (или Amap, если выбран в настройках) | координаты видимой области карты | при открытии карты поездки или редактора мест |
-| Проверка обновлений | GitHub API | ничего (запрос списка релизов, сравнение версий локально) | автоматически |
-| ABRP live-телеметрия | abetterrouteplanner.com | SOC, мощность, скорость, температуры, одометр, давление шин, статус зарядки, ёмкость батареи, SoH, кВт·ч текущей сессии зарядки, модель автомобиля (координаты только по отдельному тумблеру, для слежения за машиной с телефона) | только после ввода токена |
-| Копии конфигурации в Telegram | api.telegram.org, ваш бот | архив конфигурации выбранного состава и сообщение при подключении бота | только после подключения бота |
-| Вебхук телеметрии | Настройки → Интеграции → Вебхук | тот же JSON, что в ABRP, POST на ваш URL раз в 1/8/30 с (движение/зарядка/стоянка); координаты только по отдельному тумблеру | выключен по умолчанию |
+| Online assistant (OpenClaw) | Your paired OpenClaw Gateway; downstream providers and tools configured there | Recognized or typed request text; no automatic vehicle state or GPS attachment | Only with online opt-in enabled and a paired connection |
+| Assistant remote tools/search | Destinations configured on your OpenClaw server | Data selected by that server and its tools | When the Gateway uses them for your request |
+| Map in trip details | OpenStreetMap tile servers (or Amap, if chosen in Settings) | coordinates of the visible map area | when the trip map or the places editor is opened |
+| Update check | GitHub API | nothing (fetches the release list, version comparison is local) | automatically |
+| ABRP live telemetry | abetterrouteplanner.com | SOC, power, speed, temperatures, odometer, tire pressure, charging status, battery capacity, SoH, kWh of the current charging session, car model (coordinates only with a separate toggle, for following the car from a phone) | only after entering a token |
+| Configuration copies to Telegram | api.telegram.org, your bot | the configuration archive with the chosen parts, and a message when the bot connects | only after connecting a bot |
+| Telemetry webhook | Settings → Integrations → Webhook | the same JSON as ABRP, POST to your URL every 1/8/30 s (driving/charging/parked); coordinates only with a separate toggle | off by default |
 
-Без введённых ключей наружу уходят только проверка обновлений (GitHub) и тайлы карты при просмотре маршрута поездки, а также скачивание голосовых моделей по явному запросу пользователя (github.com). API-ключи хранятся локально в базе приложения и никуда не передаются, кроме самого провайдера.
+With optional network integrations disabled, network requests include update checks (GitHub), map tiles when viewing a trip route, and voice model downloads on your explicit request (github.com). OpenClaw pairing and requests also use the network after explicit setup; entering a provider API key in BYDMate is not required for OpenClaw. API keys are stored locally in the app's database and are never sent anywhere except the provider itself.
 
 ---
 
-## Установка
+## Install
 
-### 1. Активация ADB
+### 1. Enable ADB
 
-Без ADB BYDMate работает как офлайн-журнал поездок: история из штатной базы, карта маршрута, сохранение конфигурации, AI-инсайты по уже накопленным данным.
+Without ADB, BYDMate works as an offline trip logger: history from the stock database, the route map, configuration backup, AI insights on data already collected.
 
-Включённая ADB-отладка нужна для всего, что читает или пишет параметры машины: живые показатели в виджете и на дашборде (SOC, запас хода, температуры, 12V), SoH, автоматический журнал зарядок, автоматизация, вывод на приборку, разделение экрана, подсказки на HUD, камеры слепых зон, управление машиной голосом и запись логов.
+Enabled ADB debugging is needed for everything that reads or writes vehicle parameters: live figures in the widget and on the dashboard (SOC, range, temperatures, 12V), SoH, automatic charge logging, automation, projection to cluster, split screen, HUD guidance, blind-spot cameras, voice control of the car, and log recording.
 
-**Строка состояния ADB.** На Главной и в Настройках строка состояния показывает, почему не работает управление машиной: ADB не включён, ADB выключился после перезагрузки, нет доступа к ADB или не запустился помощник. По нажатию открывается подсказка с действием. В мастере первого запуска есть шаг «ADB» с кнопкой «Проверить».
+**ADB status line.** On Home and in Settings, a status line shows why vehicle control does not work: ADB is not enabled, ADB turned off after a reboot, there is no access to ADB, or the helper did not start. Tapping it opens a tip with an action. The first-run wizard has an "ADB" step with a "Check" button.
 
-Эти фичи включаются автоматически, отдельный переключатель не нужен. При первом запуске BYDMate DiLink один раз покажет диалог «Allow ADB debugging» — нажмите **Allow** и поставьте галочку **«Always allow from this computer»**, чтобы он не спрашивал заново.
+These features turn on automatically, no separate switch is needed. The first time BYDMate starts, DiLink shows the "Allow ADB debugging" dialog once, tap **Allow** and check **"Always allow from this computer"** so it does not ask again.
 
-- **DiLink 3 / 4** — ADB можно активировать самостоятельно: установите [BydDevelopmentTools](https://disk.yandex.by/d/e3gEnY9P2Y9_fQ), зайдите в *Настройки → Version Management*, 10 раз тапните по тексту *Reset to factory default*, активируйте *Debug Mode when USB is Connected* и *Wireless adb debug switch*. На обновлённых прошивках DiLink 3/4 ADB может быть так же закрыт, как на DiLink 5 — тогда придётся идти по пути ниже.
-- **DiLink 5.0** — ADB-отладка **заблокирована** и открывается только удалённо из Китая. Сделать это можно через продавцов на **TaoBao** (поиск по `DiLink 5.0`, ~40 ¥ внутри Китая / ~80 ¥ извне, оплата через AliPay). Продавец удалённо открывает инженерное меню по присланному QR-коду, после чего ADB включается штатно.
+- **DiLink 3 / 4**: you can enable ADB yourself: install [BydDevelopmentTools](https://disk.yandex.by/d/e3gEnY9P2Y9_fQ), go to *Settings → Version Management*, tap *Reset to factory default* 10 times, then turn on *Debug Mode when USB is Connected* and *Wireless adb debug switch*. On updated DiLink 3/4 firmware ADB may be locked the same way as on DiLink 5, then follow the path below.
+- **DiLink 5.0**: ADB debugging is **locked** and can only be unlocked remotely, from China. This can be done through sellers on **TaoBao** (search for `DiLink 5.0`, about 40 CNY inside China or about 80 CNY from outside, paid via AliPay). The seller remotely opens the engineering menu using a QR code you send them, after which ADB turns on as usual.
 
-  Пошаговая инструкция: [PDF-гайд (русский)](docs/guides/dilink5-adb-activation-ru.pdf) — приложен в репозитории.
+  Step-by-step guide: [PDF guide (Russian)](docs/guides/dilink5-adb-activation-ru.pdf), included in the repository.
 
-#### ADB отключается после каждой перезагрузки
+#### ADB Turns Off After Every Reboot
 
-На прошивках DiLink с лета 2026 (сборки «2606») порт ADB закрывается при каждой перезагрузке головного устройства, и все функции управления машиной перестают работать до ручного включения ADB. Для таких машин в **Настройках → Система машины** есть тумблер **«Восстанавливать ADB после перезагрузки»** (по умолчанию выключен): приложение поднимает ADB заново через встроенную в Android беспроводную отладку. Рядом с тумблером есть значок «?» с подробным объяснением, а под ним строка состояния.
+On DiLink firmware from summer 2026 ("2606" builds), the ADB port closes at every head-unit reboot, and every vehicle control feature stops working until ADB is turned on by hand. For these cars, **Settings → Car System** has a **"Restore ADB after a reboot"** toggle (off by default): the app brings ADB back up through Android's own built-in wireless debugging. A "?" badge next to the toggle has a detailed explanation, and there is a status line under it.
 
-Что нужно знать:
+Things to know:
 
-- **Wi-Fi в машине должен быть включён и подключён к сети** (домашней, к раздаче с телефона, любой). Без Wi-Fi Android не даёт включить беспроводную отладку, обойти это нельзя.
-- При первом включении **на каждой новой сети** на экране появится системный диалог «Allow wireless debugging on this network?». Когда тумблер восстановления включён, приложение подтверждает его само через свою службу специальных возможностей: на раздаче с телефона сеть меняется при каждом включении, и «Always allow on this network» там не помогает. Если служба специальных возможностей BYDMate выключена, отметьте «Always allow on this network» и нажмите ALLOW.
-- Один раз, пока ADB ещё работает, приложение выдаёт себе системное разрешение `WRITE_SECURE_SETTINGS` (одной командой через ADB). Без него включить беспроводную отладку нельзя: строка состояния покажет «Нужна активация».
-- После загрузки приложение само повторяет попытки, пока Wi-Fi подключён, и реагирует на разблокировку экрана. Обычно ADB возвращается через 10–30 секунд после того, как машина подключилась к Wi-Fi. Удобнее всего, если раздача с телефона уже включена к моменту запуска машины.
-- Если на вашей прошивке ADB и так переживает перезагрузку, включать тумблер не нужно: строка состояния покажет «Не требуется».
-- Проверено на DiLink 5.0 (Song L) с прошивкой августа 2026.
+- **Wi-Fi in the car must be on and connected to a network** (home, a phone's hotspot, any). Without Wi-Fi, Android does not let you turn on wireless debugging, and there is no way around this.
+- The first time you connect **on each new network**, a system dialog appears, "Allow wireless debugging on this network?". When the restore toggle is on, the app confirms it by itself through its accessibility service: on a phone's hotspot the network changes every time it is turned on, and "Always allow on this network" does not help there. If BYDMate's accessibility service is off, check "Always allow on this network" and tap ALLOW.
+- Once, while ADB still works, the app grants itself the `WRITE_SECURE_SETTINGS` system permission (a single command over ADB). Without it, wireless debugging cannot be turned on: the status line shows "Activation needed".
+- After booting, the app keeps retrying by itself as long as Wi-Fi is connected, and reacts to the screen unlocking. ADB usually comes back 10 to 30 seconds after the car connects to Wi-Fi. It works best if the phone's hotspot is already on by the time the car starts.
+- If ADB on your firmware survives a reboot anyway, there is no need to turn the toggle on: the status line shows "Not needed".
+- Confirmed on DiLink 5.0 (Song L) with August 2026 firmware.
 
-### 2. DiPlus (D+) больше не нужен
+### 2. DiPlus (D+) Is No Longer Needed
 
-Начиная с версии 3.0.0 BYDMate работает напрямую с системой машины и **не требует** стороннего приложения D+ (迪加). Все данные читаются и команды отправляются через системный сервис автомобиля.
+Starting with version 3.0.0, BYDMate works directly with the car's system and **does not require** the third-party D+ (迪加) app. All data is read and every command is sent through the car's system service.
 
-Если вы пользовались прежними версиями и устанавливали D+, после проверки работы BYDMate его можно удалить с DiLink.
+If you used earlier versions and installed D+, you can remove it from DiLink once you have checked that BYDMate works.
 
-### 3. Установка BYDMate
+### 3. Install BYDMate
 
-1. Скачайте BYDMate APK из [**Releases**](https://github.com/AndyShaman/BYDMate/releases)
-2. Перенесите на DiLink: через USB-флешку, по сети, или через ADB (`adb install BYDMate.apk`)
-3. Разрешите установку из неизвестных источников, если потребуется
+1. Download the BYDMate APK from [**Releases**](https://github.com/AndyShaman/BYDMate/releases)
+2. Move it onto DiLink: over USB flash drive, over the network, or with ADB (`adb install BYDMate.apk`)
+3. Allow installing from unknown sources if asked
 
-### 4. Первый запуск
+### 4. First Launch
 
-1. Откройте BYDMate — появится мастер настройки
-2. Выдайте разрешения на **локацию** и **хранилище**. По мере включения функций приложение попросит ещё: микрофон для голосового агента, камеру для камер слепых зон, контакты для звонков по имени, показ поверх других приложений для виджета и уведомлений, доступ к статистике использования для определения активного приложения Постоянное уведомление BYDMate в шторке убрать нельзя (Android требует его для работы в фоне), но его можно сделать тихим: Настройки → Сервис и данные → «Тихое уведомление в шторке».
-3. Укажите **тарифы** на электроэнергию (для расчёта стоимости поездок). Позже их можно поменять задним числом, см. раздел [«Тарифы и стоимость»](#тарифы-и-стоимость)
-4. В Автоматизации доступен вид действия "Охранный режим": включает или отключает охранный режим BYD (Centuri/Sentry) напрямую через системную настройку, минуя диалог подтверждения штатного приложения
+1. Open BYDMate, the setup wizard appears
+2. Grant **location** and **storage** permissions. As you turn features on, the app asks for more: microphone for the voice agent, camera for blind-spot cameras, contacts for calling by name, drawing over other apps for the widget and notifications, and usage access to detect the active app. BYDMate's persistent notification in the shade cannot be removed (Android requires it to run in the background), but it can be made silent: Settings → Service & Data → "Silent tracking notification".
+3. Set your **electricity tariffs** (for figuring trip cost). You can change them retroactively later, see [Tariffs and Cost](#tariffs-and-cost)
+4. In Automation, the "Sentry mode" action type is available: it turns BYD's sentry mode (Centuri/Sentry) on or off directly through the system setting, skipping the stock app's confirmation dialog
 
-### 5. Фоновая работа
+### 5. Background Work
 
-**Важно:** отключите "Disable background Apps" для BYDMate, иначе DiLink будет убивать приложение:
+**Important:** turn off "Disable background Apps" for BYDMate, otherwise DiLink kills the app:
 
-<img src="docs/screenshots/dilink-whitelist.jpg" alt="Disable background apps — toggle OFF for BYDMate" width="600">
+<img src="docs/screenshots/dilink-whitelist.jpg" alt="Disable background apps: toggle OFF for BYDMate" width="600">
 
 *DiLink > Settings > General > Disable background Apps > BYDMate = **OFF***
 
-### 6. Настройка (опционально)
+### 6. Configuration (Optional)
 
-В **Настройках** можно изменить:
-- **Ёмкость батареи** — по умолчанию 72.9 кВт·ч (Leopard 3)
-- **Тарифы и периоды** — цена дома (AC) и на быстрых зарядках (DC), потери, правило расчёта поездок и валюта. Подробно в разделе [«Тарифы и стоимость»](#тарифы-и-стоимость)
-- **Пороги расхода** — границы для цветовой индикации (зелёный/жёлтый/красный)
-
----
-
-## Система машины
-
-В **Настройки → Сервис и данные → Система машины** пункты, которые меняют поведение самой машины, а не приложения.
-
-**Колёсико громкости на руле.** Тумблер, при котором нажатие ставит воспроизведение на паузу и продолжает его, а не переключает источник звука. Нужен после обновления прошивки, где нажатие стало менять источник. По умолчанию выключено.
-
-**Облако BYD через Wi-Fi.** Подключает машину к облаку BYD через Wi-Fi, чтобы приложение BYD на телефоне видело машину, приходили обновления по воздуху и работал NFC-ключ. Машинам на новых серверах BYD нужен китайский VPN: сервер пускает только с китайского адреса. Лучше всего VPN на роутере, к которому подключена машина, он не зависит от магнитолы. Второй вариант: VPN-приложение на самой магнитоле, например [SpeedCN](https://speedcn.in/download), оно работает, только пока магнитола включена. Нужен ADB. Если у машины своя мобильная связь, настройка ничего не меняет, при выключении возвращает прежние настройки связи.
-
-**Язык интерфейса машины.** Только на прошивках UI7. Кнопка открывает скрытый штатный диалог BYD с полным списком языков, включая русский, украинский и польский. Язык меняет сама прошивка, приложение ничего не записывает. У части владельцев на русском перестаёт работать автопарковка, тогда верните English той же кнопкой.
+In **Settings** you can change:
+- **Battery capacity**: 72.9 kWh by default (Leopard 3)
+- **Tariffs and periods**: home (AC) and fast-charging (DC) prices, losses, the trip cost rule, and currency. Details in [Tariffs and Cost](#tariffs-and-cost)
+- **Consumption thresholds**: the bounds for color coding (green/yellow/red)
 
 ---
 
-## AI Инсайты
+## Vehicle System
 
-Карточка на дашборде анализирует вашу статистику за последние 7 дней (сравнение с предыдущими 7) и показывает заголовок, краткий вывод, таблицу метрик и до **5 рекомендаций**. Работает **без интернета**.
+**Settings → Service & Data → Car System** has items that change the car's own behavior, not the app's.
 
-Всё считается прямо на устройстве по данным поездок и батареи. Обновляется сама раз в день, результат кэшируется. В развёрнутом окне карточки период переключается между неделей и месяцем.
+**Steering wheel volume knob.** A toggle that makes a press pause and resume playback instead of switching the audio source. Needed after a firmware update that made the press switch the source. Off by default.
 
-### Откуда берутся данные
+**BYD cloud over Wi-Fi.** Connects the car to the BYD cloud over Wi-Fi, so the BYD phone app sees the car, over-the-air updates arrive and the NFC key works. Cars on the new BYD servers need a Chinese VPN: the server only lets in connections from a Chinese address. A VPN on the router the car connects to is best, because it does not depend on the head unit. The other option is a VPN app on the head unit itself, for example [SpeedCN](https://speedcn.in/download); it works only while the head unit is on. Needs ADB. If the car has its own mobile data, the setting changes nothing; switching it off returns the previous connection settings.
 
-Всё считается из локальной базы Room — **без GPS, маршрутов и персональных идентификаторов**:
+**Car interface language.** UI7 firmware only. The button opens BYD's hidden stock dialog with the full list of languages, including Russian, Ukrainian, and Polish. The firmware itself changes the language, the app writes nothing. For some owners, auto-parking stops working in Russian, then switch back to English with the same button.
 
-- **Поездки** — км, кВт·ч, средний расход, скорость, короткие поездки (&lt; 5 км), лучшая/худшая по расходу, стоимость
-- **Простой с мотором** — кВт·ч и часы (`idle_drains`)
-- **Ночной простой** — сессии, начавшиеся в **22:00–06:00**
-- **Зарядки** — AC/DC кВт·ч, число сессий, цена за кВт·ч, общая стоимость за неделю
-- **12V** — текущее напряжение и тренд за неделю (история до 7 дней)
-- **Ячейки** — разброс max−min в мВ из live-данных машины
-- **Температура** — средняя наружная по поездкам
+---
 
-**Минимум для анализа:** не менее **5 поездок** за последние 7 дней. Иначе карточка покажет «Мало данных для анализа».
+## AI Insights
 
-### Как устроена карточка
+The dashboard card analyzes your stats for the last 7 days (compared with the previous 7) and shows a title, a short summary, a metrics table, and up to **5 recommendations**. It works **without internet**.
 
-1. **Заголовок и summary** — одно главное сообщение недели. Выбирается правилом с наивысшим приоритетом (см. ниже).
-2. **Dynamics** — таблица «неделя к неделе»: расход, поездки, % коротких поездок, средняя дистанция, простой с мотором, ночной простой.
-3. **Рекомендации** — до 5 bullets из подходящих правил, отсортированных по важности.
+Everything is figured right on the device from trip and battery data. It refreshes itself once a day, and the result is cached. In the card's expanded window, the period switches between week and month.
 
-Логика движка — `LocalInsightEngine.kt`: детерминированные пороги + шаблоны строк (`local_insight_*` в `strings.xml`). Тексты локализованы на 6 языков (ru / en / zh / pt / pl / be).
+### Where the Data Comes From
 
-### Приоритет заголовка
+Everything is figured from the local Room database, **with no GPS, routes, or personal identifiers**:
 
-Что важнее — то и в заголовке. Первое сработавшее правило с большим priority:
+- **Trips**: km, kWh, average consumption, speed, short trips (under 5 km), best/worst by consumption, cost
+- **Idle drain with the motor running**: kWh and hours (`idle_drains`)
+- **Night idle**: sessions that started between **10pm and 6am**
+- **Charges**: AC/DC kWh, session count, price per kWh, total cost for the week
+- **12V**: current voltage and the weekly trend (up to 7 days of history)
+- **Cells**: max-min spread in mV from the car's live data
+- **Temperature**: average outside temperature across trips
 
-| Приоритет | Условие | Пример заголовка |
+**Minimum for analysis:** at least **5 trips** in the last 7 days. Otherwise the card shows "Not enough data to analyze".
+
+### How the Card Is Built
+
+1. **Title and summary**: one main message for the week, chosen by the highest-priority rule (see below).
+2. **Dynamics**: a week-over-week table: consumption, trips, % of short trips, average distance, idle drain with the motor running, night idle.
+3. **Recommendations**: up to 5 bullets from matching rules, sorted by importance.
+
+The local engine's logic lives in `LocalInsightEngine.kt`: deterministic thresholds plus string templates (`local_insight_*` in `strings.xml`). The text is localized into 6 languages (ru / en / zh / pt / pl / be).
+
+### Title Priority
+
+Whatever matters most goes in the title. The first rule to fire with the highest priority wins:
+
+| Priority | Condition | Example title |
 |-----------|---------|------------------|
-| 90 | 12V &lt; 11.8 В | «12V критично низкий» |
-| 85 | Разброс ячеек &gt; 50 мВ | «Большой разброс банок» |
-| 80 | Расход ↑ &gt; 15% к прошлой неделе | «Расход ▲15% за неделю» |
-| 78 | Ночной drain ≥ 4 кВт·ч и ≥ 35% простоя | «Ночной расход на стоянке» |
-| 70 | Расход ↑ &gt; 5% | «Расход ▲8% за неделю» |
-| 60 | Расход ↓ &gt; 5% | «Расход ▼10%» |
-| 10 | Иначе | «Расход стабилен» |
+| 90 | 12V under 11.8 V | "12V critically low" |
+| 85 | Cell spread over 50 mV | "Large cell spread" |
+| 80 | Consumption up over 15% vs. last week | "Consumption up 15% this week" |
+| 78 | Night drain of 4+ kWh and 35%+ of idle | "Night idle drain" |
+| 70 | Consumption up over 5% | "Consumption up 8% this week" |
+| 60 | Consumption down over 5% | "Consumption down 10%" |
+| 10 | Otherwise | "Consumption is stable" |
 
-### Рекомендации (bullets)
+### Recommendations (Bullets)
 
-Параллельно проверяется набор правил; в карточку попадают **до 5** самых приоритетных. Примеры тем:
+A set of rules is checked in parallel, and the **top 5** by priority land in the card. Example topics:
 
-| Тема | Когда срабатывает |
+| Topic | When it fires |
 |------|-------------------|
-| Ночной простой | Ночью ушло ≥ 0.3 кВт·ч с мотором |
-| DC дороже AC | Оба типа зарядки ≥ 3 кВт·ч, DC на 15%+ дороже |
-| Много DC | ≥ 2 DC-сессий, DC &gt; AC×1.5 |
-| Короткие поездки | ≥ 40% поездок короче 5 км |
-| Простой с мотором | ≥ 2 кВт·ч на стоянке |
-| 12V низкий / падает | 11.8–12.4 В или тренд вниз за неделю |
-| Разброс ячеек | 31–50 мВ |
-| Зима + рост расхода | ≤ 5°C и расход вырос |
-| Лучшая / худшая поездка | Разброс ≥ 5 кВт·ч/100 |
-| Снижение расхода | ↓ &gt; 5% к прошлой неделе |
-| Трасса | Средняя скорость ≥ 75 км/ч |
-| Высокий / низкий расход | ≥ 28 или ≤ 16 кВт·ч/100 |
-| Рост пробега / поездок | +20% к прошлой неделе |
-| Жара + кондиционер | ≥ 25°C, расход ≥ 22 |
-| Смешанная зарядка | AC и DC в одну неделю |
-| Стоимость | Руб/100 км или зарядки за неделю |
-| Хорошие привычки | Мало ночного или дневного простоя, 12V/баланс в норме |
+| Night idle | 0.3+ kWh spent overnight with the motor running |
+| DC costs more than AC | Both types are 3+ kWh, DC is 15%+ pricier |
+| Heavy DC use | 2+ DC sessions, DC over AC × 1.5 |
+| Short trips | 40%+ of trips are under 5 km |
+| Idle with the motor running | 2+ kWh while parked |
+| 12V low / falling | 11.8-12.4 V, or a downward weekly trend |
+| Cell spread | 31-50 mV |
+| Winter plus higher consumption | 5 °C or below and consumption rose |
+| Best vs. worst trip | Spread of 5+ kWh/100 |
+| Consumption improved | Down over 5% vs. last week |
+| Highway driving | Average speed of 75+ km/h |
+| High / low consumption | 28+ or 16 or under kWh/100 |
+| More mileage / trips | +20% vs. last week |
+| Heat plus AC | 25 °C or above, consumption of 22+ |
+| Mixed charging | Both AC and DC in the same week |
+| Cost | Currency per 100 km, or the week's charging cost |
+| Good habits | Low night/day idle share, healthy 12V/cell balance |
 
-Полный список правил и порогов — в `LocalInsightEngine.kt` и тестах `LocalInsightEngineTest.kt`.
+Full rules and thresholds are in `LocalInsightEngine.kt` and the `LocalInsightEngineTest.kt` tests.
 
 ---
 
-## ABRP — Live телеметрия
+## ABRP: Live Telemetry
 
-BYDMate может отправлять живые показатели машины в [A Better Route Planner](https://abetterrouteplanner.com/) (ABRP) через официальный Iternio Telemetry API. ABRP использует эти данные, чтобы план маршрута и оценка остатка хода обновлялись по реальному состоянию батареи, а не по средним табличным значениям.
+BYDMate can send live vehicle data to [A Better Route Planner](https://abetterrouteplanner.com/) (ABRP) through the official Iternio Telemetry API. ABRP uses this data so the route plan and the remaining-range estimate update from your battery's real state, instead of average book values.
 
-<img src="docs/screenshots/settings-integrations.jpg" alt="Настройки → Интеграции: ABRP" width="800">
+<img src="docs/screenshots/settings-integrations-en.jpg" alt="Settings → Integrations: ABRP" width="800">
 
-Функция **опциональная**, выключена по умолчанию и включается вручную в Настройках.
+The feature is **optional**, off by default, and turned on by hand in Settings.
 
-Версия ABRP на магнитоле: ставьте 7.1.2 или ниже, например с [APKMirror](https://www.apkmirror.com/apk/iternio-planning-ab/a-better-routeplanner-abrp/a-better-routeplanner-abrp-7-1-2-release/). В 7.1.4 и новее метка машины на карте обновляется рывками или замирает, это ошибка самого ABRP, BYDMate на неё не влияет.
+ABRP version on the head unit: install 7.1.2 or older, for example from [APKMirror](https://www.apkmirror.com/apk/iternio-planning-ab/a-better-routeplanner-abrp/a-better-routeplanner-abrp-7-1-2-release/). In 7.1.4 and newer the car marker on the map moves in jumps or freezes. This is a bug in ABRP itself, BYDMate does not affect it.
 
-### Как получить токен
+### How to Get the Token
 
-ABRP использует «Generic Live Data Token» — отдельный токен на каждую машину в гараже:
+ABRP uses a "Generic Live Data Token", a separate token for each car in the garage:
 
-1. Откройте [abetterrouteplanner.com](https://abetterrouteplanner.com/) и войдите в аккаунт.
-2. Перейдите в гараж и откройте машину, на которой хотите видеть live-данные. Машина должна быть **сохранена в гараж**, иначе токен не появится.
-3. Шестерёнка **«Настройки автомобиля»** → раздел **«Данные»** → кнопка **«Подключить актуальные данные»**.
-4. В списке провайдеров выберите **«Generic»** и нажмите **«Привязать»**. Появится длинная строка-токен — это и есть `User Token`.
+1. Open [abetterrouteplanner.com](https://abetterrouteplanner.com/) and sign in.
+2. Go to your garage and open the car you want live data for. The car must be **saved in the garage**, otherwise the token does not appear.
+3. The gear icon, **"Car settings"** → **"Data"** → **"Connect live data"**.
+4. Pick **"Generic"** from the provider list and tap **"Link"**. A long token string appears, this is the `User Token`.
 
-**Если в списке нет «Generic»**: смените код модели машины в гараже ABRP на любую популярную модель BYD (например, BYD Atto 3 или BYD Seal), сохраните, и Generic появится. После привязки токена код модели можно вернуть обратно.
+**If "Generic" is not in the list**: switch the car model code in the ABRP garage to any popular BYD model (BYD Atto 3 or BYD Seal, for example), save, and Generic appears. After linking the token, you can switch the model code back.
 
-### Настройка в BYDMate
+### Setup in BYDMate
 
-1. **Настройки → Интеграции** → раздел **«ABRP — телеметрия»**.
-2. Вставьте полученный токен в поле **«Токен живых данных из ABRP»**.
-3. Больше ничего настраивать не нужно: интервал отправки подбирается сам, секунда в движении, 8 секунд на зарядке, 30 секунд на стоянке. Полей «интервал» и «код модели» из старых версий больше нет.
-4. Нажмите **«Сохранить ABRP»**, затем включите переключатель **«Живые данные → A Better Route Planner»**. Без сохранённого токена переключатель остаётся неактивным.
-5. ABRP-приложение на DiLink (или браузер на телефоне) теперь будет видеть актуальный SOC, мощность, температуры, заряд.
+1. **Settings → Integrations** → the **"ABRP: telemetry"** block.
+2. Paste the token you got into the **"Live data token from ABRP"** field.
+3. There is nothing else to set up: the send interval picks itself, once a second while driving, every 8 seconds while charging, every 30 seconds while parked. The old "interval" and "model code" fields from earlier versions are gone.
+4. Tap **"Save ABRP"**, then turn on the **"Live data → A Better Route Planner"** toggle. Without a saved token the toggle stays off and unusable.
+5. The ABRP app on DiLink (or a browser on your phone) will now see live SOC, power, temperatures, and charge.
 
-### Что отправляется
+### What Is Sent
 
-Только агрегированные показатели машины, без идентификаторов:
+Only aggregated vehicle figures, no identifiers:
 
-- **SOC** — текущий процент заряда тяговой батареи
-- **Speed** — скорость, км/ч
-- **Power** — текущая мощность тяги; на зарядке — мощность зарядки по напряжению и току со знаком минус, как требует Iternio. На гибриде мощность берётся только по напряжению и току батареи или от зарядки; если машина их не отдаёт, поле не отправляется.
-- **Voltage / current** — напряжение и ток тяговой батареи
-- **HVAC setpoint** — заданная температура климата
-- **Battery / cabin / exterior temp** — температуры батареи, салона и за бортом
-- **Capacity** — номинальная ёмкость батареи
-- **Odometer** — пробег, км
-- **Tire pressures** — давление в шинах (4 колеса)
-- **is_charging / is_parked** — флаги состояния
-- **is_dcfc / kwh_charged** — тип зарядной станции (DC vs AC) и количество кВт·ч в текущей сессии
-- **soh** — реальный SoH батареи (Leopard 3)
+- **SOC**: current traction battery percent
+- **Speed**: km/h
+- **Power**: current traction power (negative while charging, as Iternio requires). On a hybrid the power is taken only from the battery voltage and current or from charging; if the car does not give them, the field is not sent.
+- **Voltage / current**: traction battery voltage and current
+- **HVAC setpoint**: the set climate temperature
+- **Battery / cabin / exterior temp**: battery, cabin, and outside temperatures
+- **Capacity**: rated battery capacity
+- **Odometer**: mileage, km
+- **Tire pressures**: pressure in all 4 tires
+- **is_charging / is_parked**: state flags
+- **is_dcfc / kwh_charged**: charging station type (DC vs. AC) and the kWh in the current session
+- **soh**: real battery SoH (Leopard 3)
 
-### Что НЕ отправляется
+### What Is NOT Sent
 
-- **GPS-координаты по умолчанию не передаются.** ABRP запускается как отдельное приложение Android прямо на DiLink и читает геопозицию из ОС сам. Когда координаты приходят ещё и от BYDMate, машина на карте ABRP прыгает между двумя источниками. Настройка «Отправлять координаты в ABRP» нужна для одного случая: следить за машиной в ABRP с телефона, когда ABRP в самой машине не запущен. Если ABRP открыт в машине, не включайте её.
-- Не отправляются: VIN, идентификатор устройства, история поездок, маршруты, пользовательские настройки.
+- **No GPS coordinates by default.** ABRP runs as a separate Android app right on DiLink and reads its own location from the OS. When coordinates also come from BYDMate, the car on ABRP's map jumps between the two sources. The "Send coordinates to ABRP" setting is for one case: following the car in ABRP on a phone while ABRP in the car itself is not running. If ABRP is open in the car, leave it off.
+- Also not sent: VIN, device ID, trip history, routes, user settings.
 
-### Как ABRP считает остаток хода
+### How ABRP Figures the Remaining Range
 
-ABRP подбирает прогноз на основе модели машины из своей библиотеки + телеметрии: текущий SOC, температура батареи, скорость движения, ветер, профиль дороги, перепады высот. Свой собственный «расчётный остаток хода» BYDMate в ABRP не передаёт — у ABRP есть собственный, более точный расчёт под конкретный маршрут, в котором учитывается погода и рельеф.
+ABRP picks a forecast from its own model library plus telemetry: current SOC, battery temperature, driving speed, wind, road profile, elevation changes. BYDMate does not send its own "estimated range" to ABRP, ABRP has its own, more accurate estimate for the specific route, which also factors in weather and terrain.
 
-### Вебхук: те же данные на свой сервер
+### Webhook: The Same Data to Your Own Server
 
-Тот же JSON, что уходит в ABRP, можно отправлять POST-запросом на свой адрес: Home Assistant, Node-RED, свой скрипт на VPS. Ничего не хранится в очереди: если сервер недоступен, точка теряется, следующая попытка через минуту.
+The same JSON that goes to ABRP can be POSTed to your own address: Home Assistant, Node-RED, your own script on a VPS. Nothing is queued: if the server is unreachable, that sample is lost, and the next attempt comes a minute later.
 
-**Настройка**
+**Setup**
 
-1. **Настройки → Интеграции** → раздел **«Вебхук — телеметрия»**.
-2. **URL**: только `https://`. Обычный `http://` не пройдёт (Android блокирует незашифрованный трафик, разрешён он только для `localhost`). Если сервер без сертификата, поставьте перед ним Caddy или nginx с Let's Encrypt, либо туннель вроде Cloudflare Tunnel.
-3. **Секрет** (необязательно): строка, которая уйдёт в заголовке `Authorization: Bearer <секрет>`. По нему сервер отличает вашу машину от чужих запросов.
-4. **«Отправлять координаты на вебхук»**: по умолчанию выключено. Включайте только если сервер ваш: в JSON добавятся `lat`, `lon`, `heading`.
-5. Нажмите **«Сохранить вебхук»**, затем включите переключатель **«Живые данные → свой сервер»**.
+1. **Settings → Integrations** → the **"Webhook: telemetry"** block.
+2. **URL**: `https://` only. Plain `http://` will not work (Android blocks unencrypted traffic, it is allowed only for `localhost`). If your server has no certificate, put Caddy or nginx with Let's Encrypt in front of it, or use a tunnel like Cloudflare Tunnel.
+3. **Secret** (optional): a string sent in the `Authorization: Bearer <secret>` header. It lets your server tell your car apart from someone else's requests.
+4. **"Send coordinates to the webhook"**: off by default. Turn it on only if the server is yours: `lat`, `lon`, `heading` are added to the JSON.
+5. Tap **"Save webhook"**, then turn on the **"Live data → your own server"** toggle.
 
-**Что приходит**
+**What Arrives**
 
-`POST <ваш URL>`, `Content-Type: application/json`, одна точка в теле:
+`POST <your URL>`, `Content-Type: application/json`, one sample in the body:
 
 ```json
 {"utc":1756040000,"soc":67,"speed":52.0,"power":18.4,"batt_temp":29.0,"ext_temp":24.5,
@@ -1108,16 +1087,16 @@ ABRP подбирает прогноз на основе модели машин
  "is_charging":0,"is_parked":0,"soh":98.5,"car_model":"byd:leopard3"}
 ```
 
-Поля и единицы те же, что в Iternio Telemetry API: `utc` в секундах, `power` в кВт (как отдаёт машина), температуры в °C, давление шин в бар, `odometer` в км. Поля без данных (например, `speed` на стоянке или `kwh_charged` вне зарядки) просто отсутствуют. Ритм: раз в секунду в движении, раз в 8 секунд на зарядке, раз в 30 секунд на стоянке. Ответ сервера не разбирается, важен только статус 2xx; после ошибки следующая попытка через 60 секунд.
+Fields and units follow the Iternio Telemetry API: `utc` in seconds, `power` in kW (as the car reports it), temperatures in °C, tire pressure in bar, `odometer` in km. Fields with no data (`speed` while parked, or `kwh_charged` outside a charging session, for example) are simply missing. Cadence: once a second while driving, every 8 seconds while charging, every 30 seconds while parked. The server's response is not read, only a 2xx status matters; after a failure the next attempt is 60 seconds later.
 
-Вебхук работает независимо от ABRP: можно включить только его, только ABRP или оба.
+The webhook works independently of ABRP: you can turn on just the webhook, just ABRP, or both.
 
 ---
 
-## Сборка из исходников
+## Build From Source
 
 ```bash
-# Требуется: JDK 17, Android SDK 34
+# Requires: JDK 17, Android SDK 34
 git clone https://github.com/AndyShaman/BYDMate.git
 cd BYDMate
 ./gradlew assembleDebug
@@ -1125,7 +1104,7 @@ cd BYDMate
 
 ---
 
-## Стек технологий
+## Tech Stack
 
 - **Kotlin** 2.1 + **Jetpack Compose** + Material 3
 - **Room** (SQLite) + **Hilt** (DI) + **OkHttp**
@@ -1134,56 +1113,52 @@ cd BYDMate
 
 ---
 
-## Что делать при ошибках
+## Troubleshooting
 
-Если что-то не работает, действуйте по шагам — в большинстве случаев проблема решается первым же пунктом, а если нет, вы поможете нам быстро её найти.
+If something does not work, go through these steps, most of the time the first one solves it, and if not, you will help us find the cause fast.
 
-**1. Перезагрузите головное устройство.** Зажмите колёсико громкости и держите, пока экран не уйдёт в перезагрузку. Часть функций (например, разделение экрана) включает системный флаг, который применяется только при загрузке — без перезагрузки функция выглядит «сломанной», хотя всё в порядке.
+**1. Reboot the head unit.** Press and hold the volume wheel until the screen reboots. Some features (split screen, for example) flip a system flag that only applies at boot, without a reboot the feature looks "broken" while everything is actually fine.
 
-**2. Запишите логи.** Настройки → раздел «Сервис и данные» → кнопка **«Запись логов»**. Воспроизведите проблему (нажмите то, что не работает), затем нажмите **«Остановить запись»**. Файл `bydmate_logs_<дата>.txt` появится в папке `Download` (запись останавливается сама через 2 часа, если забыли).
+**2. Record logs.** Settings, "Service & Data" section, the **"Record logs"** button. Reproduce the problem (tap whatever does not work), then tap **"Stop recording"**. A `bydmate_logs_<date>.txt` file appears in `Download` (recording stops on its own after 2 hours if you forget).
 
-**3. Сохраните каталог fid'ов.** Настройки → раздел «Сервис и данные» → кнопка **«Сохранить каталог fid'ов»**. Файл `fid-dump-<дата>.txt` появится в `Download`. У разных моделей BYD разные каталоги команд — по этому файлу мы адаптируем приложение под вашу машину.
+**3. Save the fid catalog.** Settings, "Service & Data" section, the **"Save fid catalog"** button. A `fid-dump-<date>.txt` file appears in `Download`. Different BYD models have different command catalogs, this file is how we adapt the app to your car.
 
-**4. Отправьте нам.** Создайте задачу в [GitHub Issues](https://github.com/AndyShaman/BYDMate/issues) и приложите: модель машины и поколение DiLink, версию BYDMate, что нажимали и что ожидали увидеть, файлы из шагов 2–3.
+**4. Send it to us.** Open a ticket in [GitHub Issues](https://github.com/AndyShaman/BYDMate/issues) and attach: your car model and DiLink generation, the BYDMate version, what you tapped and what you expected to see, and the files from steps 2-3.
 
-Типовые случаи:
+Common cases:
 
-- **Не работает разделение экрана или проекция на приборку** — перезагрузите головное устройство (шаг 1).
-- **Команда выполняется, но машина не реагирует** (окна, люк, климат) — скорее всего, у вашей модели другой каталог команд: пришлите логи и каталог fid'ов (шаги 2–4).
-- **После обновления что-то сломалось** — перезагрузите головное устройство; если не помогло, пришлите логи.
-- **Кнопка «Тест модели» серая или в ответе ошибка** — ключ языковой модели не сохранён или сервер не отвечает: проверьте его в Настройки → Интеграции → AI подключения.
-- **Кнопка руля не реагирует** — назначьте её заново (Настройки → Голос-агент → «Назначить кнопку») и проверьте, что службе специальных возможностей BYDMate выдано разрешение.
-- **Агент отвечает текстом, а не голосом** — включите тумблер «Озвучивать ответы агента» и скачайте голос (раздел «Ответы агента»).
-- **Голос агента еле слышно** — он идёт по системному каналу Voice, его громкость крутится отдельно от музыки: кнопками громкости во время ответа или в настройках звука машины.
-- **«Тест модели» проходит, а в разговоре агент отказывает** — пришлите логи в Issue и укажите, какое подключение и какая модель выбраны.
+- **Split screen or projection to cluster does not work**: reboot the head unit (step 1).
+- **A command runs but the car does not react** (windows, sunroof, climate): your model most likely has a different command catalog, send logs and the fid catalog (steps 2-4).
+- **Something broke after an update**: reboot the head unit; if that does not help, send logs.
+- **The OpenClaw connection test fails**: check the Gateway endpoint, network access, device approval, and the online assistant toggle in Settings → Voice agent. Model and provider configuration belongs on the OpenClaw server.
+- **The wheel button does not react**: assign it again (Settings → Voice agent → "Assign button") and check that BYDMate's accessibility service has permission.
+- **The agent replies with text, not voice**: turn on the "Speak agent replies" toggle and download Gosia in Polish voice setup.
+- **The agent's voice is barely audible**: it goes through the system Voice channel, its volume is set separately from the music, use the volume buttons during the reply or the car's sound settings.
+- **Pairing succeeds, but an OpenClaw request fails**: check the server status and configured model. Include the app version and the displayed failure in an Issue; remove request text and pairing credentials from shared logs.
 
 ---
 
-## Благодарности
+## Credits
 
-- **[BYD Trip Info](https://www.byd-seal-forum.de/forum/thread/1811-byd-trip-info-app/)** (`org.jayb.bydapp`) by jayb — оригинальное приложение для DiLink, вдохновение для BYDMate
-- **[DiPlus](https://www.dilink.cn/)** (迪加) by Van Design — приложение-мост к данным автомобиля, использовалось в ранних версиях BYDMate (с 3.0.0 больше не требуется)
+- **[BYD Trip Info](https://www.byd-seal-forum.de/forum/thread/1811-byd-trip-info-app/)** (`org.jayb.bydapp`) by jayb: the original DiLink trip app, an inspiration for BYDMate
+- **[DiPlus](https://www.dilink.cn/)** (迪加) by Van Design: the bridge app to vehicle data, used in early BYDMate versions (no longer needed since 3.0.0)
 - Weather data by [Open-Meteo.com](https://open-meteo.com/)
-- **[@klimuts](https://github.com/klimuts)** - подсказал механизм auto_container для вывода навигатора на приборку
-- **@RBGboost** - реверс протокола SOME/IP заводского HUD и исходная реализация YandexHUD. Вывод подсказок Яндекс Навигатора на проекционный дисплей в BYDMate - его код и его заслуга. Поблагодарить можно в Telegram: [@RBGboost](https://t.me/RBGboost)
-- **[byd-turnsignal-cameraview](https://github.com/sunlixWhyNotAvailable/byd-turnsignal-cameraview)** by sunlixWhyNotAvailable — открытое исследование интерфейсов камер и окон DiLink, на котором основана функция камер слепых зон при поворотнике. Реализация в BYDMate написана с нуля, но его разбор сэкономил недели реверс-инжиниринга — спасибо!
-- **[danijar2000](https://github.com/danijar2000)** — фикс проекции 2GIS на приборку (2GIS завершался при переносе на дисплей приборки)
+- **[@klimuts](https://github.com/klimuts)**: pointed out the auto_container mechanism for projecting the navigator to the cluster
+- **@RBGboost**: reverse-engineered the factory HUD's SOME/IP protocol and built the original YandexHUD implementation. Yandex Navigator guidance on the head-up display in BYDMate is his code and his achievement. You can thank him on Telegram: [@RBGboost](https://t.me/RBGboost)
+- **[byd-turnsignal-cameraview](https://github.com/sunlixWhyNotAvailable/byd-turnsignal-cameraview)** by sunlixWhyNotAvailable: open research into the DiLink camera and window interfaces that the turn-signal blind-spot camera feature is built on. The BYDMate implementation is written from scratch, but this research saved weeks of reverse engineering, thank you!
+- **[danijar2000](https://github.com/danijar2000)**: fix for 2GIS's projection to the cluster (2GIS used to quit when its task moved to the cluster display)
 
 ---
 
-## Поддержать проект
+## Sponsor the Project
 
-Проект некоммерческий, делаю как хобби. Если захочется поблагодарить, реквизиты в [SUPPORT.md](SUPPORT.md). Если нет, всё равно спасибо за доверие.
+The project is non-commercial, built as a hobby. If you want to say thanks, the details are in [SUPPORT.md](SUPPORT.md). If not, thanks anyway for your trust.
 
 ---
 
-## Лицензия
+## License
 
-**PolyForm Noncommercial 1.0.0** — исходный код открыт, только некоммерческое использование.
-См. [LICENSE](LICENSE) для деталей.
+**PolyForm Noncommercial 1.0.0**: source-available, noncommercial use only.
+See [LICENSE](LICENSE) for details.
 
 Copyright (C) 2026 [AndyShaman](https://github.com/AndyShaman)
-
----
-
-English version: [README.en.md](README.en.md)

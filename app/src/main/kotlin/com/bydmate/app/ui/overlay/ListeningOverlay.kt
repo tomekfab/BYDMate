@@ -56,12 +56,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
 
 /**
- * Persistent "Слушаю"/"Думаю" pill shown for the whole lifetime of a continuous voice session
+ * Persistent "Listening"/"Thinking" pill shown for the whole lifetime of a continuous voice session
  * (Wave B). Unlike [OverlayNotificationManager] this has no auto-dismiss and no ringtone; its text
  * updates in place via [textState] instead of tearing the window down and rebuilding it.
  *
  * v2 (Wave D2): the pill sits below the DiLink status bar and is draggable; a second window below
- * it shows the running dialog ("Ты: …" / "Агент: …"). Both windows share one x/y position, which is
+ * it shows the running dialog ("You: …" / "Agent: …"). Both windows share one x/y position, which is
  * persisted across sessions.
  *
  * v3 (Wave F): both windows are anchored at TOP|START instead of TOP|CENTER_HORIZONTAL, so x is an
@@ -88,9 +88,9 @@ object ListeningOverlay {
     private const val ORB_X_UNSET = Int.MIN_VALUE
 
     private val textState = MutableStateFlow("")
-    private val heardState = MutableStateFlow<String?>(null)   // "Ты: …" row text (no label)
-    private val answerState = MutableStateFlow<String?>(null)  // "Агент: …" row text (no label)
-    // The "Ты:" / "Агент:" captions in the app language; set at attach and by [relocale].
+    private val heardState = MutableStateFlow<String?>(null)   // "You: …" row text (no label)
+    private val answerState = MutableStateFlow<String?>(null)  // "Agent: …" row text (no label)
+    // The "You:" / "Agent:" captions in the app language; set at attach and by [relocale].
     private val labelsState = MutableStateFlow("" to "")
 
     // Test-visible reads of the dialog state; the flows themselves stay private so only the three
@@ -305,7 +305,7 @@ object ListeningOverlay {
 
         // Gravity is TOP|START, so x is an absolute offset from the left edge. With the old
         // TOP|CENTER_HORIZONTAL anchor a WRAP_CONTENT window re-centered itself whenever its
-        // content width changed, so the pill/dialog visibly jumped when the "Ты:/Агент:" text
+        // content width changed, so the pill/dialog visibly jumped when the "You:/Agent:" text
         // appeared (field defect APK 336). A start anchor keeps the left edge fixed instead.
         val onDrag: (Int, Int) -> Unit = { dx, dy ->
             pillParams.x += dx

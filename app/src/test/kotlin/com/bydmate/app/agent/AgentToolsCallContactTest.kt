@@ -63,40 +63,40 @@ class AgentToolsCallContactTest {
 
     @Test fun missing_name_reports_error_before_any_lookup() = runTest {
         val out = JSONObject(tools().execute(call("call_contact", "{}")))
-        assertEquals("не указано имя", out.getString("error"))
+        assertEquals("nie podano nazwy", out.getString("error"))
         coVerify(exactly = 0) { contactLookup.hasPermission() }
     }
 
     @Test fun permission_denied_reports_error() = runTest {
         every { contactLookup.hasPermission() } returns false
-        val out = JSONObject(tools().execute(call("call_contact", """{"name":"Мама"}""")))
-        assertEquals("нет доступа к контактам, включите в Настройках", out.getString("error"))
+        val out = JSONObject(tools().execute(call("call_contact", """{"name":"Mama"}""")))
+        assertEquals("brak dostępu do kontaktów, włącz go w ustawieniach", out.getString("error"))
         coVerify(exactly = 0) { contactLookup.findByName(any()) }
     }
 
     @Test fun no_matches_reports_error() = runTest {
         every { contactLookup.hasPermission() } returns true
-        coEvery { contactLookup.findByName("Никто") } returns emptyList()
-        val out = JSONObject(tools().execute(call("call_contact", """{"name":"Никто"}""")))
-        assertEquals("контакт не найден", out.getString("error"))
+        coEvery { contactLookup.findByName("Nikt") } returns emptyList()
+        val out = JSONObject(tools().execute(call("call_contact", """{"name":"Nikt"}""")))
+        assertEquals("nie znaleziono kontaktu", out.getString("error"))
     }
 
-    // П7 origin-based defense: kind="call" is always dangerous, so the single match now
+// P7 origin-based defense: kind="call" is always dangerous, so the single match now
     // goes through confirmDangerous (overlay confirm) instead of dispatching immediately.
     // The phone number must never surface in the tool's own response.
     @Test fun single_match_confirms_before_dispatching_and_hides_phone_number() = runTest {
         every { contactLookup.hasPermission() } returns true
-        coEvery { contactLookup.findByName("Мама") } returns listOf(ContactLookup.Match("Мама", phone))
+        coEvery { contactLookup.findByName("Mama") } returns listOf(ContactLookup.Match("Mama", phone))
         every { gate.vehicleSnapshot() } returns null
         coEvery { dispatcher.dispatch(any(), any()) } returns DispatchResult(true)
         val t = tools()
         t.confirmScope = CoroutineScope(Dispatchers.Unconfined)
         var gateInvoked = false
         t.confirmGate = { _, _, _, onConfirm, _ -> gateInvoked = true; onConfirm(); true }
-        val raw = t.execute(call("call_contact", """{"name":"Мама"}"""))
+        val raw = t.execute(call("call_contact", """{"name":"Mama"}"""))
         val out = JSONObject(raw)
         assertTrue(gateInvoked)
-        assertEquals("ожидает подтверждения на экране", out.getString("status"))
+        assertEquals("oczekuje potwierdzenia na ekranie", out.getString("status"))
         assertFalse(raw.contains(phone))
         coVerify {
             dispatcher.dispatch(match {
@@ -111,39 +111,39 @@ class AgentToolsCallContactTest {
     // is refused, never dialed silently, and the phone number still never leaks.
     @Test fun single_match_fail_closed_when_overlay_cannot_show() = runTest {
         every { contactLookup.hasPermission() } returns true
-        coEvery { contactLookup.findByName("Мама") } returns listOf(ContactLookup.Match("Мама", phone))
+        coEvery { contactLookup.findByName("Mama") } returns listOf(ContactLookup.Match("Mama", phone))
         every { gate.vehicleSnapshot() } returns null
         val t = tools()
         t.confirmGate = { _, _, _, _, _ -> false }
-        val raw = t.execute(call("call_contact", """{"name":"Мама"}"""))
+        val raw = t.execute(call("call_contact", """{"name":"Mama"}"""))
         assertFalse(JSONObject(raw).getBoolean("ok"))
         assertFalse(raw.contains(phone))
         coVerify(exactly = 0) { dispatcher.dispatch(any(), any()) }
     }
 
-    // Ambiguous match: only names go back to the LLM, никогда номера.
+// Ambiguous match: only names, never numbers, go back to the LLM.
     @Test fun multiple_matches_returns_names_only_no_numbers() = runTest {
         every { contactLookup.hasPermission() } returns true
-        coEvery { contactLookup.findByName("Андрей") } returns listOf(
-            ContactLookup.Match("Андрей Иванов", "+70001112233"),
-            ContactLookup.Match("Андрей Петров", "+70004445566"),
+        coEvery { contactLookup.findByName("Andrzej") } returns listOf(
+            ContactLookup.Match("Andrzej Kowalski", "+70001112233"),
+            ContactLookup.Match("Andrzej Nowak", "+70004445566"),
         )
-        val raw = tools().execute(call("call_contact", """{"name":"Андрей"}"""))
+        val raw = tools().execute(call("call_contact", """{"name":"Andrzej"}"""))
         val out = JSONObject(raw)
         val matches = out.getJSONArray("matches")
         assertEquals(2, matches.length())
         assertTrue((0 until matches.length()).map { matches.getString(it) }
-            .containsAll(listOf("Андрей Иванов", "Андрей Петров")))
+            .containsAll(listOf("Andrzej Kowalski", "Andrzej Nowak")))
         assertFalse(raw.contains("+70001112233"))
         assertFalse(raw.contains("+70004445566"))
         coVerify(exactly = 0) { dispatcher.dispatch(any(), any()) }
     }
 
-    @Test fun resolver_throwing_reports_russian_error_not_exception() = runTest {
+    @Test fun resolver_throwing_reports_polish_error_not_exception() = runTest {
         every { contactLookup.hasPermission() } returns true
-        coEvery { contactLookup.findByName("Мама") } throws RuntimeException("provider gone")
-        val out = JSONObject(tools().execute(call("call_contact", """{"name":"Мама"}""")))
-        assertEquals("не удалось прочитать контакты", out.getString("error"))
+        coEvery { contactLookup.findByName("Mama") } throws RuntimeException("provider gone")
+        val out = JSONObject(tools().execute(call("call_contact", """{"name":"Mama"}""")))
+        assertEquals("nie udało się odczytać kontaktów", out.getString("error"))
     }
 
     @Test fun schemas_lists_call_contact() = runTest {

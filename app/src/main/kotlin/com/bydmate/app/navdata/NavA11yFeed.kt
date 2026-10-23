@@ -123,7 +123,7 @@ object NavA11yFeed {
      *  unreachable window says nothing here either, and there is no event source to fall
      *  back to. */
     internal fun onTimer(service: SteeringWheelKeyService?, nowMs: Long) {
-        if (!shouldTimerRead(enabled, NavGuidanceHub.snapshot(nowMs).active, nowMs, lastProcessMs)) return
+        if (!shouldTimerRead(enabled, NavGuidanceHub.isOwnedBy(NavAppId.YANDEX), nowMs, lastProcessMs)) return
         service ?: return
         lastProcessMs = nowMs
         val root = runCatching { service.findNavigatorRoot() }.getOrNull() ?: run {
@@ -158,6 +158,9 @@ object NavA11yFeed {
                     true
                 }
                 is NavA11yExtractor.ReadResult.NoGuidance -> {
+                    // A Yandex window that currently has no positive guidance must not refresh,
+                    // count, or diagnose a live Google Maps/Waze route.
+                    if (NavGuidanceHub.isActiveNow() && !NavGuidanceHub.isOwnedBy(NavAppId.YANDEX)) return false
                     val kept = NavA11yExtractor.hasGuidanceNodes(root)
                     NavGuidanceHub.countA11yNoGuidance()
                     if (kept) NavGuidanceHub.keepAlive(nowMs)
@@ -202,7 +205,9 @@ object NavA11yFeed {
             // embeds the Navigator, and a foreign root reads as NotNavigator.
             val result = NavA11yExtractor.read(root)
             if (result is NavA11yExtractor.ReadResult.NoGuidance && NavA11yExtractor.hasGuidanceNodes(root)) {
-                NavGuidanceHub.keepAlive(nowMs)
+                if (!NavGuidanceHub.isActiveNow() || NavGuidanceHub.isOwnedBy(NavAppId.YANDEX)) {
+                    NavGuidanceHub.keepAlive(nowMs)
+                }
             }
             if (result !is NavA11yExtractor.ReadResult.Guidance) return false
             NavGuidanceHub.update(result.data, NavGuidanceHub.Source.A11Y, nowMs)

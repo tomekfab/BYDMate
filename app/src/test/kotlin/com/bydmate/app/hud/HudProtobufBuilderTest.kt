@@ -192,7 +192,7 @@ class HudProtobufBuilderTest {
 
     @Test fun `oversized road text cannot overflow the payload limit`() {
         val frame = HudProtobufBuilder.buildFrameSafe(
-            maneuverGaode = 2, distanceMeters = 500, road = "х".repeat(100_000),
+            maneuverGaode = 2, distanceMeters = 500, road = "ż".repeat(100_000),
             etaString = "12:34", totalDistMeters = 10_000, speedLimit = 60,
             maneuverIconPng = null, speedSignPng = null)
         assertTrue(frame.size <= HudProtobufBuilder.MAX_PAYLOAD_BYTES)

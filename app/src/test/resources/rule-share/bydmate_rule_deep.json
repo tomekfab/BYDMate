@@ -18,7 +18,7 @@
     "actions": [
       {
         "command": "车窗关闭",
-        "displayName": "Закрыть все окна",
+        "displayName": "Zamknij wszystkie okna",
         "kind": "param"
       }
     ],

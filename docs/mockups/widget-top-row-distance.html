@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<title>BYDMate Widget — пробег в верхней строке (v2.4.7)</title>
+<title>BYDMate Widget — dystans w górnym wierszu (v2.4.7)</title>
 <style>
   :root {
     --navy-deep: #0F1929;
@@ -141,59 +141,59 @@
   </defs>
 </svg>
 
-<h1>Widget v3.1 — пробег за поездку в верхней строке</h1>
+<h1>Widget v3.1 — dystans podróży w górnym wierszu</h1>
 <div class="note">
-  Верхняя строка становится <b style="color:#fff">трёхслотовой</b>: слева — время, в центре — пробег за поездку (новое), справа — T° салона.<br>
-  Слоты равной ширины (CSS <code style="color:#fff">grid 1fr 1fr 1fr</code>), внутри слотов выравнивание соответственно <b style="color:#fff">start / center / end</b>.<br>
-  Время переключается на компактный формат в часах: <code style="color:#fff">25 мин</code> / <code style="color:#fff">1ч 25м</code> — чтобы длинная поездка не налезала на центральный слот.
+  The top row becomes <b style="color:#fff">three-slot</b>: time is on the left, trip distance (new) in the centre, and cabin T° on the right.<br>
+  Slots have equal width (CSS <code style="color:#fff">grid 1fr 1fr 1fr</code>) with <b style="color:#fff">start / center / end</b> alignment respectively.<br>
+  Time switches to a compact hour format: <code style="color:#fff">25 min</code> / <code style="color:#fff">1 h 25 min</code>, so a long trip does not overlap the centre slot.
 </div>
 
 <!-- ============================================ -->
-<h2>До / после (OK · 68%)</h2>
+<h2>Przed / po (OK · 68%)</h2>
 
 <div class="before-after">
   <div class="ba-col">
-    <div class="ba-title old">старый — v2.4.6 (2 слота)</div>
+    <div class="ba-title old">stary — v2.4.6 (2 sloty)</div>
     <div class="bg-sim">
       <div class="w">
         <div class="r r2">
-          <span class="chip"><svg class="icon"><use href="#ic-schedule"/></svg> 25 мин</span>
+          <span class="chip"><svg class="icon"><use href="#ic-schedule"/></svg> 25 min</span>
           <span class="chip"><svg class="icon"><use href="#ic-car"/></svg> 22°</span>
         </div>
         <div class="hr"></div>
         <div class="r r-mid">
           <span class="soc">68%</span>
-          <span><span class="km">~175</span><span class="km-suffix">км</span></span>
+          <span><span class="km">~175</span><span class="km-suffix">km</span></span>
           <span class="cns"><svg class="icon icon-trend"><use href="#ic-trend-down"/></svg> 18.2</span>
         </div>
         <div class="hr"></div>
         <div class="r r2">
           <span class="chip"><svg class="icon"><use href="#ic-battery"/></svg> 10°</span>
-          <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 13.6 В</span>
+          <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 13.6 V</span>
         </div>
       </div>
     </div>
   </div>
 
   <div class="ba-col">
-    <div class="ba-title new">новый — v2.4.7 (3 слота)</div>
+    <div class="ba-title new">nowy — v2.4.7 (3 sloty)</div>
     <div class="bg-sim">
       <div class="w">
         <div class="r3">
-          <span class="chip slot-l"><svg class="icon"><use href="#ic-schedule"/></svg> 25 мин</span>
-          <span class="chip slot-c"><svg class="icon"><use href="#ic-route"/></svg> 15.2 км</span>
+          <span class="chip slot-l"><svg class="icon"><use href="#ic-schedule"/></svg> 25 min</span>
+          <span class="chip slot-c"><svg class="icon"><use href="#ic-route"/></svg> 15.2 km</span>
           <span class="chip slot-r"><svg class="icon"><use href="#ic-car"/></svg> 22°</span>
         </div>
         <div class="hr"></div>
         <div class="r r-mid">
           <span class="soc">68%</span>
-          <span><span class="km">~175</span><span class="km-suffix">км</span></span>
+          <span><span class="km">~175</span><span class="km-suffix">km</span></span>
           <span class="cns"><svg class="icon icon-trend"><use href="#ic-trend-down"/></svg> 18.2</span>
         </div>
         <div class="hr"></div>
         <div class="r r2">
           <span class="chip"><svg class="icon"><use href="#ic-battery"/></svg> 10°</span>
-          <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 13.6 В</span>
+          <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 13.6 V</span>
         </div>
       </div>
     </div>
@@ -201,185 +201,185 @@
 </div>
 
 <!-- ============================================ -->
-<h2>Четыре стадии поездки</h2>
-<div class="note">Как верхняя строка меняется по ходу поездки. Символы виджета не ёрзают — каждый слот имеет фиксированную 1/3 ширины.</div>
+<h2>Cztery etapy podróży</h2>
+<div class="note">Górny wiersz zmienia się w czasie podróży. Symbole widżetu nie przesuwają się — każdy slot ma stałą szerokość 1/3.</div>
 
 <div class="row">
-  <div class="variant"><div class="label">1. старт (0 мин)</div><div class="bg-sim">
+  <div class="variant"><div class="label">1. start (0 min)</div><div class="bg-sim">
     <div class="w">
       <div class="r3">
-        <span class="chip slot-l"><svg class="icon"><use href="#ic-schedule"/></svg> 0 мин</span>
-        <span class="chip slot-c"><svg class="icon"><use href="#ic-route"/></svg> 0.0 км</span>
+        <span class="chip slot-l"><svg class="icon"><use href="#ic-schedule"/></svg> 0 min</span>
+        <span class="chip slot-c"><svg class="icon"><use href="#ic-route"/></svg> 0.0 km</span>
         <span class="chip slot-r"><svg class="icon"><use href="#ic-car"/></svg> 19°</span>
       </div>
       <div class="hr"></div>
       <div class="r r-mid">
         <span class="soc">85%</span>
-        <span><span class="km">~218</span><span class="km-suffix">км</span></span>
+        <span><span class="km">~218</span><span class="km-suffix">km</span></span>
         <span class="cns flat"><svg class="icon icon-trend"><use href="#ic-trend-flat"/></svg> —</span>
       </div>
       <div class="hr"></div>
       <div class="r r2">
         <span class="chip"><svg class="icon"><use href="#ic-battery"/></svg> 10°</span>
-        <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 13.8 В</span>
+        <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 13.8 V</span>
       </div>
     </div>
   </div></div>
 
-  <div class="variant"><div class="label">2. среднее (25 мин)</div><div class="bg-sim">
+  <div class="variant"><div class="label">2. średnia (25 min)</div><div class="bg-sim">
     <div class="w">
       <div class="r3">
-        <span class="chip slot-l"><svg class="icon"><use href="#ic-schedule"/></svg> 25 мин</span>
-        <span class="chip slot-c"><svg class="icon"><use href="#ic-route"/></svg> 15.2 км</span>
+        <span class="chip slot-l"><svg class="icon"><use href="#ic-schedule"/></svg> 25 min</span>
+        <span class="chip slot-c"><svg class="icon"><use href="#ic-route"/></svg> 15.2 km</span>
         <span class="chip slot-r"><svg class="icon"><use href="#ic-car"/></svg> 22°</span>
       </div>
       <div class="hr"></div>
       <div class="r r-mid">
         <span class="soc">78%</span>
-        <span><span class="km">~198</span><span class="km-suffix">км</span></span>
+        <span><span class="km">~198</span><span class="km-suffix">km</span></span>
         <span class="cns"><svg class="icon icon-trend"><use href="#ic-trend-down"/></svg> 17.4</span>
       </div>
       <div class="hr"></div>
       <div class="r r2">
         <span class="chip"><svg class="icon"><use href="#ic-battery"/></svg> 12°</span>
-        <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 13.6 В</span>
+        <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 13.6 V</span>
       </div>
     </div>
   </div></div>
 
-  <div class="variant"><div class="label">3. часы (1ч 25м)</div><div class="bg-sim">
+  <div class="variant"><div class="label">3. clock (1 h 25 min)</div><div class="bg-sim">
     <div class="w">
       <div class="r3">
-        <span class="chip slot-l"><svg class="icon"><use href="#ic-schedule"/></svg> 1ч 25м</span>
-        <span class="chip slot-c"><svg class="icon"><use href="#ic-route"/></svg> 85 км</span>
+        <span class="chip slot-l"><svg class="icon"><use href="#ic-schedule"/></svg> 1 h 25 min</span>
+        <span class="chip slot-c"><svg class="icon"><use href="#ic-route"/></svg> 85 km</span>
         <span class="chip slot-r"><svg class="icon"><use href="#ic-car"/></svg> 23°</span>
       </div>
       <div class="hr"></div>
       <div class="r r-mid">
         <span class="soc">52%</span>
-        <span><span class="km">~132</span><span class="km-suffix">км</span></span>
+        <span><span class="km">~132</span><span class="km-suffix">km</span></span>
         <span class="cns"><svg class="icon icon-trend"><use href="#ic-trend-down"/></svg> 16.1</span>
       </div>
       <div class="hr"></div>
       <div class="r r2">
         <span class="chip"><svg class="icon"><use href="#ic-battery"/></svg> 15°</span>
-        <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 13.4 В</span>
+        <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 13.4 V</span>
       </div>
     </div>
   </div></div>
 
-  <div class="variant"><div class="label">4. длинная (4ч 37м)</div><div class="bg-sim">
+  <div class="variant"><div class="label">4. długa (4 h 37 min)</div><div class="bg-sim">
     <div class="w warn">
       <div class="r3">
-        <span class="chip slot-l"><svg class="icon"><use href="#ic-schedule"/></svg> 4ч 37м</span>
-        <span class="chip slot-c"><svg class="icon"><use href="#ic-route"/></svg> 287 км</span>
+        <span class="chip slot-l"><svg class="icon"><use href="#ic-schedule"/></svg> 4 h 37 min</span>
+        <span class="chip slot-c"><svg class="icon"><use href="#ic-route"/></svg> 287 km</span>
         <span class="chip slot-r"><svg class="icon"><use href="#ic-car"/></svg> 24°</span>
       </div>
       <div class="hr"></div>
       <div class="r r-mid">
         <span class="soc warn">23%</span>
-        <span><span class="km">~58</span><span class="km-suffix">км</span></span>
+        <span><span class="km">~58</span><span class="km-suffix">km</span></span>
         <span class="cns up"><svg class="icon icon-trend"><use href="#ic-trend-up"/></svg> 19.3</span>
       </div>
       <div class="hr"></div>
       <div class="r r2">
         <span class="chip"><svg class="icon"><use href="#ic-battery"/></svg> 22°</span>
-        <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 13.2 В</span>
+        <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 13.2 V</span>
       </div>
     </div>
   </div></div>
 </div>
 
 <!-- ============================================ -->
-<h2>Визуализация сетки 1/3 · 1/3 · 1/3</h2>
-<div class="note">Подсветка показывает границы слотов. Каждый из трёх элементов — в своей колонке, не вылазит за пределы.</div>
+<h2>Wizualizacja siatki 1/3 · 1/3 · 1/3</h2>
+<div class="note">Podświetlenie pokazuje granice slotów. Każdy z trzech elementów jest w swojej kolumnie i nie wychodzi poza jej granice.</div>
 
 <div class="row">
-  <div class="variant"><div class="label">минуты + десятые</div><div class="bg-sim">
+  <div class="variant"><div class="label">minuty + części dziesiętne</div><div class="bg-sim">
     <div class="w grid-overlay">
       <div class="r3">
-        <span class="chip slot-l"><svg class="icon"><use href="#ic-schedule"/></svg> 25 мин</span>
-        <span class="chip slot-c"><svg class="icon"><use href="#ic-route"/></svg> 8.4 км</span>
+        <span class="chip slot-l"><svg class="icon"><use href="#ic-schedule"/></svg> 25 min</span>
+        <span class="chip slot-c"><svg class="icon"><use href="#ic-route"/></svg> 8.4 km</span>
         <span class="chip slot-r"><svg class="icon"><use href="#ic-car"/></svg> 22°</span>
       </div>
       <div class="hr"></div>
       <div class="r r-mid">
         <span class="soc">78%</span>
-        <span><span class="km">~198</span><span class="km-suffix">км</span></span>
+        <span><span class="km">~198</span><span class="km-suffix">km</span></span>
         <span class="cns"><svg class="icon icon-trend"><use href="#ic-trend-down"/></svg> 17.4</span>
       </div>
       <div class="hr"></div>
       <div class="r r2">
         <span class="chip"><svg class="icon"><use href="#ic-battery"/></svg> 12°</span>
-        <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 13.6 В</span>
+        <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 13.6 V</span>
       </div>
     </div>
   </div></div>
 
-  <div class="variant"><div class="label">часы + сотни км</div><div class="bg-sim">
+  <div class="variant"><div class="label">godziny + setki km</div><div class="bg-sim">
     <div class="w grid-overlay">
       <div class="r3">
-        <span class="chip slot-l"><svg class="icon"><use href="#ic-schedule"/></svg> 4ч 37м</span>
-        <span class="chip slot-c"><svg class="icon"><use href="#ic-route"/></svg> 287 км</span>
+        <span class="chip slot-l"><svg class="icon"><use href="#ic-schedule"/></svg> 4 h 37 min</span>
+        <span class="chip slot-c"><svg class="icon"><use href="#ic-route"/></svg> 287 km</span>
         <span class="chip slot-r"><svg class="icon"><use href="#ic-car"/></svg> 24°</span>
       </div>
       <div class="hr"></div>
       <div class="r r-mid">
         <span class="soc warn">23%</span>
-        <span><span class="km">~58</span><span class="km-suffix">км</span></span>
+        <span><span class="km">~58</span><span class="km-suffix">km</span></span>
         <span class="cns up"><svg class="icon icon-trend"><use href="#ic-trend-up"/></svg> 19.3</span>
       </div>
       <div class="hr"></div>
       <div class="r r2">
         <span class="chip"><svg class="icon"><use href="#ic-battery"/></svg> 22°</span>
-        <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 13.2 В</span>
+        <span class="chip"><svg class="icon"><use href="#ic-bolt"/></svg> 13.2 V</span>
       </div>
     </div>
   </div></div>
 </div>
 
 <!-- ============================================ -->
-<h2>Стресс-тест ширины</h2>
+<h2>Test obciążeniowy szerokości</h2>
 
 <table class="stress-table">
   <thead>
     <tr>
-      <th>Сценарий</th>
-      <th>Время</th>
-      <th>Пробег</th>
-      <th>Салон</th>
-      <th>Влезает в слот 77dp?</th>
+      <th>Scenariusz</th>
+      <th>Czas</th>
+      <th>Dystans</th>
+      <th>Kabina</th>
+      <th>Mieści się w slocie 77dp?</th>
     </tr>
   </thead>
   <tbody>
-    <tr><td>старт</td><td>0 мин</td><td>0.0 км</td><td>19°</td><td class="ok">да</td></tr>
-    <tr><td>среднее</td><td>25 мин</td><td>15.2 км</td><td>22°</td><td class="ok">да</td></tr>
-    <tr><td>59 мин</td><td>59 мин</td><td>45 км</td><td>22°</td><td class="ok">да</td></tr>
-    <tr><td>1 час</td><td>1ч 05м</td><td>62 км</td><td>23°</td><td class="ok">да</td></tr>
-    <tr><td>4 часа</td><td>4ч 37м</td><td>287 км</td><td>24°</td><td class="ok">да</td></tr>
-    <tr><td>предел</td><td>23ч 59м</td><td>1450 км</td><td>35°</td><td class="ok">да (7 симв. × 8dp ≈ 56dp)</td></tr>
+    <tr><td>start</td><td>0 min</td><td>0.0 km</td><td>19°</td><td class="ok">tak</td></tr>
+    <tr><td>średnia</td><td>25 min</td><td>15.2 km</td><td>22°</td><td class="ok">tak</td></tr>
+    <tr><td>59 min</td><td>59 min</td><td>45 km</td><td>22°</td><td class="ok">tak</td></tr>
+    <tr><td>1 hour</td><td>1 h 05 min</td><td>62 km</td><td>23°</td><td class="ok">tak</td></tr>
+    <tr><td>4 hours</td><td>4 h 37 min</td><td>287 km</td><td>24°</td><td class="ok">tak</td></tr>
+    <tr><td>limit</td><td>23 h 59 min</td><td>1450 km</td><td>35°</td><td class="ok">tak (7 znaków × 8dp ≈ 56dp)</td></tr>
   </tbody>
 </table>
 
 <!-- ============================================ -->
 <div class="spec">
-  <b>Изменения в FloatingWidgetView.kt:</b><br>
-  1. <code>RowTrip(sessionStartedAt, tripDistanceKm, insideTemp)</code> — добавить новый параметр <code>tripDistanceKm: Double?</code>.<br>
-  2. Внутри <code>RowTrip</code>: заменить <code>Row(SpaceBetween)</code> на <code>Row</code> с тремя <code>Modifier.weight(1f)</code>-колонками, каждая — <code>Box(contentAlignment = Start / Center / End)</code>.<br>
-  3. Центр: <code>IconText(icon = Icons.Outlined.Route, text = formatTripKm(tripDistanceKm))</code>.<br>
-  4. <code>formatTripKm</code>: <code>null → "—"</code>; <code>x &lt; 10 → "%.1f км".format(x)</code>; <code>x ≥ 10 → "%.0f км".format(x)</code>.<br>
-  5. <code>formatDurationShort</code>: минуты — <code>"$minutes мин"</code>; часы — <code>"${hours}ч ${minutes}м"</code> (сокращённый формат).<br>
+  <b>Changes in FloatingWidgetView.kt:</b><br>
+  1. <code>RowTrip(sessionStartedAt, tripDistanceKm, insideTemp)</code> — add the new parameter <code>tripDistanceKm: Double?</code>.<br>
+  2. Inside <code>RowTrip</code>: replace <code>Row(SpaceBetween)</code> to <code>Row</code> with three <code>Modifier.weight(1f)</code>-columns, each — <code>Box(contentAlignment = Start / Center / End)</code>.<br>
+  3. Centre: <code>IconText(icon = Icons.Outlined.Route, text = formatTripKm(tripDistanceKm))</code>.<br>
+  4. <code>formatTripKm</code>: <code>null → "—"</code>; <code>x &lt; 10 → "%.1f km".format(x)</code>; <code>x ≥ 10 → "%.0f km".format(x)</code>.<br>
+  5. <code>formatDurationShort</code>: minutes — <code>"$minutes min"</code>; hours — <code>"${hours}h ${minutes}min"</code> (short format).<br>
   <br>
-  <b>Источник данных:</b><br>
-  В <code>TrackingService</code> добавить <code>val _tripDistanceKm = MutableStateFlow&lt;Double?&gt;(null)</code> → <code>public val tripDistanceKm: StateFlow&lt;Double?&gt;</code>. Обновляется в polling loop из <code>tripTracker.distanceKm</code> (уже считается для BD). В <code>WidgetController.attach()</code> собирать этот Flow и передавать в <code>FloatingWidgetView</code>.<br>
-  Если сессия закрыта (ignition-off): пробег <code>null</code> → виджет показывает <code>—</code>.<br>
+  <b>Data source:</b><br>
+  In <code>TrackingService</code> add <code>val _tripDistanceKm = MutableStateFlow&lt;Double?&gt;(null)</code> → <code>public val tripDistanceKm: StateFlow&lt;Double?&gt;</code>. It updates in the polling loop from <code>tripTracker.distanceKm</code> (already calculated for BD). In <code>WidgetController.attach()</code> collect this Flow and pass it to <code>FloatingWidgetView</code>.<br>
+  If the session is closed (ignition-off): distance <code>null</code> → the widget shows <code>—</code>.<br>
   <br>
-  <b>Иконка для пробега:</b> <code>Icons.Outlined.Route</code> (Material Outlined) — две точки соединённые извилистой линией. Визуально не путается с <code>Schedule</code> (часы) и <code>DirectionsCar</code> (авто).<br>
+  <b>Distance icon:</b> <code>Icons.Outlined.Route</code> (Material Outlined) — two points joined by a winding line. It is visually distinct from <code>Schedule</code> (clock) and <code>DirectionsCar</code> (car).<br>
   <br>
-  <b>Формат времени — обоснование компактности:</b><br>
-  Текущий <code>"1 ч 25 мин"</code> = 10 символов monospace 13sp ≈ 80dp. В трёхслотовой сетке слот 77dp — не влезет.<br>
-  Компактный <code>"1ч 25м"</code> = 6 символов ≈ 48dp → запас 29dp на иконку и spacer.<br>
-  В <code>TrackingService</code> уведомлении формат не трогаю — там места много.
+  <b>Time format — compactness rationale:</b><br>
+  Current <code>"1 h 25 min"</code> = 10 monospace characters 13sp ≈ 80dp. In the three-slot grid, a 77dp slot is too small.<br>
+  Compact <code>"1 h 25 min"</code> = 6 characters ≈ 48dp → remaining space 29dp for the icon and spacer.<br>
+  I do not change the format in the <code>TrackingService</code> notification because there is ample space.
 </div>
 
 </body>

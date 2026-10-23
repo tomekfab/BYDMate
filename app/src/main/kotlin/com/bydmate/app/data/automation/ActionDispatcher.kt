@@ -63,7 +63,13 @@ import javax.inject.Singleton
 import kotlin.math.ceil
 
 /** [daemonRestarting]: the cluster projection failed because its daemon is restarting (retriable, not broken). */
-data class DispatchResult(val success: Boolean, val reason: String? = null, val daemonRestarting: Boolean = false)
+data class DispatchResult(
+    val success: Boolean,
+    val reason: String? = null,
+    val daemonRestarting: Boolean = false,
+    /** Localized reason that is safe to return through the assistant. */
+    val trustedLocalizedReason: Boolean = false,
+)
 
 @Singleton
 @Suppress("LargeClass") // the one entry point for every automation action kind
@@ -96,8 +102,8 @@ class ActionDispatcher @Inject @Suppress("LongParameterList") constructor( // Hi
         private val BLOCKED_PATTERNS = listOf("发送CAN", "执行SHELL", "下电")
 
         /**
-         * Did the driver ask to START moving («поехали туда»), not just to build the route?
-         * Show-only ("где находится X") drops a pin and has nothing to start, so it ignores
+         * Did the driver ask to START moving («jedźmy tam»), not just to build the route?
+         * Show-only ("gdzie znajduje się X") drops a pin and has nothing to start, so it ignores
          * the flag. Pure -- unit-testable without Android.
          */
         internal fun autoGoRequested(payload: JSONObject): Boolean =
@@ -240,7 +246,7 @@ class ActionDispatcher @Inject @Suppress("LongParameterList") constructor( // Hi
             command.contains("开后备箱")
 
         /**
-         * П7 origin-based defense: true if this agent-initiated [action] is in
+         * P7 origin-based defense: true if this agent-initiated [action] is in
          * the dangerous tier and must be confirmed on-screen before it fires.
          * Dangerous = door unlock, rear-trunk open, disabling sentry, or placing
          * a call. NOT windows/climate/sunroof/door-lock/front-trunk (low harm or
@@ -305,14 +311,14 @@ class ActionDispatcher @Inject @Suppress("LongParameterList") constructor( // Hi
         /** Localized name of a toggle target; null when the id is not a known target. */
         internal fun toggleTargetNameRes(target: String): Int? = TOGGLE_TARGET_NAMES[target]
 
-        /** «Медиа: играть / пауза»: the explicit key, never PLAY_PAUSE, so a step cannot flip the wrong way. */
+        /** «Media: odtwarzaj / pauza»: the explicit key, never PLAY_PAUSE, so a step cannot flip the wrong way. */
         internal fun mediaKeyCode(payload: String?): Int? = when (payload) {
             "play" -> KeyEvent.KEYCODE_MEDIA_PLAY
             "pause" -> KeyEvent.KEYCODE_MEDIA_PAUSE
             else -> null
         }
 
-        /** «Экран: выключить / включить» (#275): payload "0" / "1". */
+        /** "Screen: off / on" (#275): payload "0" / "1". */
         internal fun screenNameRes(payload: String?): Int? = when (payload) {
             "0" -> R.string.automation_action_screen_off
             "1" -> R.string.automation_action_screen_on
@@ -457,7 +463,7 @@ class ActionDispatcher @Inject @Suppress("LongParameterList") constructor( // Hi
             else -> strings.get(writeErrorText(err))
         }
 
-        /** «окно водителя не сдвинулось…» for one pane, «не сдвинулись с места: …» for several. */
+        /** «okno kierowcy nie przesunęło się…» for one pane, «nie przesunęły się z miejsca: …» for several. */
         private fun stuckWindowsReason(panes: List<WindowPane>, strings: AppStrings): String {
             val names = panes.map { strings.get(windowPaneName(it)) }
             return if (names.size == 1) strings.get(R.string.window_stuck_one, names[0])
@@ -1090,7 +1096,7 @@ class ActionDispatcher @Inject @Suppress("LongParameterList") constructor( // Hi
         }
         if (blockReason != null) {
             Log.w(TAG, "Blocked '${action.command}': $blockReason")
-            return DispatchResult(false, blockReason.toText(context))
+            return DispatchResult(false, blockReason.toText(context), trustedLocalizedReason = true)
         }
         val result = vehicleApi.dispatch(action.command)
         val success = result.isSuccess
@@ -1251,7 +1257,7 @@ class ActionDispatcher @Inject @Suppress("LongParameterList") constructor( // Hi
      * - with a split session standing, the firmware would answer the launch with startFullWindow
      *   and the Navigator would lose the route — so the split is ended, the route is built, and
      *   the pair is restarted. See [NavigateSplitFlow].
-     * - `go` = the driver said «поехали», not «построй маршрут»: then «Поехали» on the route
+     * - `go` = the driver said «jedźmy», not «wyznacz trasa»: then the Navigator start button on the route
      *   preview is pressed for him.
      */
     private suspend fun navigate(action: ActionDef): DispatchResult {
@@ -1300,18 +1306,19 @@ class ActionDispatcher @Inject @Suppress("LongParameterList") constructor( // Hi
     }
 
     /**
-     * Whether [navigate] can find and press «Поехали» for [payload] on this head unit.
-     * Only a Yandex ROUTE ends on a «Поехали» screen: show-only drops a pin, search opens a
+     * Whether [navigate] can find and press the Navigator start button for [payload] on this head unit.
+     * Only a Yandex ROUTE ends on its start-guidance screen: show-only drops a pin, search opens a
      * result list, and 2GIS has no such node at all. Maps is excluded too, whether by
      * app="maps" or as the settings default (#200, willOpenMaps): the a11y read that finds
-     * and presses «Поехали» looks at the Navigator's window, not Maps' - including for the
+     * and presses that button looks at the Navigator's window, not Maps' - including for the
      * Home/Work shortcut, which now can land on Maps as well.
      */
     fun autoGoSupported(payload: JSONObject): Boolean =
         !payload.optBoolean("show", false) && payload.optString("query").isBlank() && !willOpenMaps(payload) &&
-            (payload.optString("shortcut").isNotBlank() || resolveNavigator().first == RouteNavigatorUris.YANDEX)
+            (resolveNavigator().first != RouteNavigatorUris.WAZE &&
+                (payload.optString("shortcut").isNotBlank() || resolveNavigator().first == RouteNavigatorUris.YANDEX))
 
-    /** Whether [navigate] will press «Поехали» itself for [payload]: asked for, and possible here. */
+    /** Whether [navigate] will press the Navigator start button for [payload]: requested and possible here. */
     fun autoGoWillRun(payload: JSONObject): Boolean = autoGoRequested(payload) && autoGoSupported(payload)
 
     /**
@@ -1365,7 +1372,7 @@ class ActionDispatcher @Inject @Suppress("LongParameterList") constructor( // Hi
         // is not installed falls back to Yandex Navigator for this action, and says so in the
         // result reason.
         val (navigator, fallbackReason) = resolveNavigator()
-        // app="maps" (voice: «…в Яндекс Картах») or Maps as the settings default mirror the
+        // app="maps" (a spoken request for Yandex Maps) or Maps as the settings default mirror the
         // whole command set, Home/Work shortcut included, into Yandex Maps.
         if (isMapsRequest(payload) || navigator == RouteNavigatorUris.MAPS) {
             return navigateMaps(payload, shortcut)
@@ -1379,6 +1386,10 @@ class ActionDispatcher @Inject @Suppress("LongParameterList") constructor( // Hi
                 "home" -> "ru.yandex.yandexmaps.action.ROUTE_TO_HOME_SHORTCUT"
                 "work" -> "ru.yandex.yandexmaps.action.ROUTE_TO_WORK_SHORTCUT"
                 else -> return DispatchResult(false, appStrings.get(R.string.dispatch_shortcut_unknown, shortcut))
+            }
+            if (navigator == RouteNavigatorUris.WAZE) {
+                return startNavigate(navigator, RouteNavigatorUris.MODE_ROUTE,
+                    RouteNavigatorUris.wazeFavorite(shortcut), "navigate_shortcut:$shortcut", fallbackReason)
             }
             val intent = Intent(intentAction)
                 .setPackage(NAVI_PACKAGE)
@@ -1398,7 +1409,7 @@ class ActionDispatcher @Inject @Suppress("LongParameterList") constructor( // Hi
         val lat = payload.optDouble("lat", Double.NaN)
         val lon = payload.optDouble("lon", Double.NaN)
         if (lat.isNaN() || lon.isNaN()) return DispatchResult(false, appStrings.get(R.string.dispatch_coords_missing))
-        // Show-only mode: drop a pin instead of building a route ("где находится X").
+        // Show-only mode: drop a pin instead of building a route ("gdzie znajduje się X").
         if (payload.optBoolean("show", false)) {
             val desc = payload.optString("label").takeIf(String::isNotBlank)
             return startNavigate(
@@ -1430,12 +1441,12 @@ class ActionDispatcher @Inject @Suppress("LongParameterList") constructor( // Hi
     /**
      * The package [startNavigate] will pin the intent to for this payload (#305): 2GIS or Waze
      * chosen and installed. Null when the route goes to Maps, to Yandex Navigator (chosen or as
-     * the fallback), or to the Home/Work shortcut, which always opens Yandex Navigator's own
-     * action. Mirrors [sendNavigateIntent]'s routing exactly, like [willOpenMaps].
+     * the fallback), or to a non-Waze Home/Work shortcut. Waze resolves its own saved favorites. Mirrors [sendNavigateIntent]'s routing exactly, like [willOpenMaps].
      */
     fun willOpenPinned(payload: JSONObject): String? {
-        if (isMapsRequest(payload) || payload.optString("shortcut").isNotBlank()) return null
+        if (isMapsRequest(payload)) return null
         val navigator = resolveNavigator().first
+        if (payload.optString("shortcut").isNotBlank() && navigator != RouteNavigatorUris.WAZE) return null
         return if (navigator == RouteNavigatorUris.DGIS || navigator == RouteNavigatorUris.WAZE) {
             RouteNavigatorUris.packageOf(navigator)
         } else null

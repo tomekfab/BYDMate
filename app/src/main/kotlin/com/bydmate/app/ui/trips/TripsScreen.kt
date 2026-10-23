@@ -93,7 +93,7 @@ fun TripsScreen(
             TripsChip(stringResource(R.string.trips_filter_trips_only), state.filter == TripFilter.TRIPS_ONLY) { viewModel.setFilter(TripFilter.TRIPS_ONLY) }
             TripsChip(stringResource(R.string.trips_filter_stops_only), state.filter == TripFilter.STOPS_ONLY) { viewModel.setFilter(TripFilter.STOPS_ONLY) }
             Spacer(modifier = Modifier.weight(1f))
-            // Opens the «Расход и температура» screen; it is not a period, so it never latches.
+            // Opens the «Zużycie i temperatura» screen; it is not a period, so it never latches.
             TemperatureChip(onOpenTemperature)
         }
 
@@ -314,7 +314,7 @@ private fun DayHeader(day: DayGroup, expanded: Boolean, currencySymbol: String, 
 
 /**
  * «/100» of a day or month header. On a hybrid the trip-row rule runs on the sums: with litres
- * it reads «1.8 л/100» uncoloured over [litersKm], the km of the trips that know their litres,
+ * it reads "1.8 l/100" uncoloured over [litersKm], the km of the trips that know their litres,
  * without them today's coloured kWh/100.
  */
 @Composable
@@ -458,7 +458,7 @@ private fun TripRow(
                     modifier = Modifier.width(w[4].dp)
                 )
             }
-            // Cost (без кода валюты — он в заголовке дня/месяца)
+            // Cost (without currency code — it is in the day/month heading)
             Text(
                 cost,
                 color = if (isStop) TextMuted else TextSecondary,
@@ -472,7 +472,7 @@ private fun TripRow(
     }
 }
 
-/** DM-i: the «л» cell and the «/100» cell with the litre rule ([per100Cell]). */
+/** DM-i: the "l" cell and the "/100" cell with the litre rule ([per100Cell]). */
 @Composable
 private fun HybridTripCells(trip: TripEntity, isStop: Boolean, litersWidth: Dp, per100Width: Dp) {
     val liters = trip.fuelLiters
@@ -539,8 +539,8 @@ private fun TripActionSheet(
 }
 
 // Trip-list duration as compact H:MM (e.g. 1:40, 0:34). Language-neutral and
-// narrow enough to fit the "длит." column without wrapping; the trip detail
-// dialog keeps the full localized "1 ч 40 мин" form via components.formatDuration.
+// narrow enough to fit the "duration" column without wrapping; the trip detail
+// dialog keeps the full localized "1 h 40 min" form via components.formatDuration.
 private fun formatDurationHm(startTs: Long, endTs: Long): String {
     val totalMin = ((endTs - startTs) / 60_000L).coerceAtLeast(0L)
     val hours = totalMin / 60

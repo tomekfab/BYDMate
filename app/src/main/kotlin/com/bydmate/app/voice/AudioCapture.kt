@@ -1,5 +1,7 @@
 package com.bydmate.app.voice
 
+import com.bydmate.app.diagnostics.DiagnosticEmitters
+
 import android.content.SharedPreferences
 import android.media.AudioFormat
 import android.media.AudioManager
@@ -56,7 +58,7 @@ class AudioCapture(private val audioManager: AudioManager, private val prefs: Sh
     // silently revert the user's choice.
     private val duckLock = Any()
 
-    // No caller-side endpointing: end-of-speech is decided by the recognizer's VAD (GigaAmAsrEngine), not
+    // No caller-side endpointing: end-of-speech is decided by the recognizer's VAD, not
     // an energy/silence heuristic here. The old RMS gate closed the window ~800 ms in if the user
     // hadn't started talking loudly yet, cutting them off mid-phrase. [maxMs] is only a safety
     // backstop so the mic can't stay open forever (e.g. continuous noise with no VAD endpoint).
@@ -79,6 +81,7 @@ class AudioCapture(private val audioManager: AudioManager, private val prefs: Sh
         // If the mic cannot open, restore the volume we just ducked before bailing — otherwise
         // media would stay stuck at the duck level with no listen window to justify it.
         val record = openRecord(minBuf) ?: run {
+            DiagnosticEmitters.voiceFailure("listening", reason = "unavailable")
             restoreMusic(duckedFrom)
             close(IllegalStateException("mic unavailable"))
             return@callbackFlow
@@ -90,7 +93,9 @@ class AudioCapture(private val audioManager: AudioManager, private val prefs: Sh
         try {
             audioManager.requestAudioFocus(null, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
             record.startRecording()
+            DiagnosticEmitters.lifecycle("listening")
         } catch (t: Throwable) {
+            DiagnosticEmitters.voiceFailure("listening", t)
             runCatching { record.release() }
             runCatching { audioManager.abandonAudioFocus(null) }
             restoreMusic(duckedFrom)
@@ -113,6 +118,7 @@ class AudioCapture(private val audioManager: AudioManager, private val prefs: Sh
         }
 
         awaitClose {
+            DiagnosticEmitters.lifecycle("stopped")
             runCatching { record.stop() }
             runCatching { record.release() }
             // Each cleanup step is independent: a throw in one must not skip the

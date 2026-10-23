@@ -138,7 +138,7 @@ class NativeParsReader @Inject constructor(
      * One throttled line with the RAW (pre-sentinel) words of every tech-panel fid, so a
      * single test drive settles the unproven ones (motor currents, battery temp extremes)
      * without another build. Values the batch failed to read print as "?". The motor split is
-     * the only decoded value here: it must read exactly as the «Техника» card renders it.
+     * the only decoded value here: it must read exactly as the technical panel card renders it.
      */
     private fun logTechRaw(pairs: List<Pair<Int, Int>>, decoded: Map<String, Any?>, hybrid: Boolean) {
         if (!techLogThrottle.shouldLog("tech")) return
@@ -480,7 +480,7 @@ class NativeParsReader @Inject constructor(
 private fun motorAmps(decoded: Map<String, Any?>, field: String): Float? =
     (decoded[field] as? Double)?.let { FieldGuards.double(field, it) }?.toFloat()
 
-/** The split as the «Техника» card computes it, from the very values the card is given. */
+/** The split as the technical panel card computes it, from the values the card receives. */
 private fun splitText(decoded: Map<String, Any?>): String =
     when (
         val split = motorSplitPercent(

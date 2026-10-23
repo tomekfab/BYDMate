@@ -23,14 +23,14 @@ class AppStringsTest {
     private val strings = AppStrings(app)
 
     @Test fun `answers in the app language, not the system one`() {
-        locale.setLanguage("ru")
-        assertEquals("Сохранено", strings.get(R.string.settings_saved))
+        locale.setLanguage("pl")
+        assertEquals("Zapisano", strings.get(R.string.settings_saved))
         assertEquals("Saved", app.getString(R.string.settings_saved))
     }
 
     @Test fun `a language switch applies on the next call`() {
-        locale.setLanguage("ru")
-        assertEquals("Сохранено", strings.get(R.string.settings_saved))
+        locale.setLanguage("pl")
+        assertEquals("Zapisano", strings.get(R.string.settings_saved))
         locale.setLanguage("be")
         assertEquals("Захавана", strings.get(R.string.settings_saved))
         assertEquals("Захавана", strings.context.getString(R.string.settings_saved))
@@ -47,7 +47,7 @@ class AppStringsTest {
     }
 
     @Test fun `a lookup without args keeps a literal percent sign`() {
-        locale.setLanguage("ru")
-        assertTrue(strings.get(R.string.tech_hint_remain_kwh).contains("100 %"))
+        locale.setLanguage("pl")
+        assertTrue(strings.get(R.string.tech_hint_remain_kwh).contains("100%"))
     }
 }

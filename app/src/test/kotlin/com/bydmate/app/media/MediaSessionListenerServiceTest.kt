@@ -3,6 +3,10 @@ package com.bydmate.app.media
 import android.app.Notification
 import android.os.Process
 import android.service.notification.StatusBarNotification
+import com.bydmate.app.navdata.NavCaptureLifecycleBackend
+import com.bydmate.app.navdata.NavCaptureBridge
+import com.bydmate.app.navdata.NavCaptureRecord
+import com.bydmate.app.navdata.NavCaptureSnapshot
 import com.bydmate.app.navdata.NavGuidance
 import com.bydmate.app.navdata.NavGuidanceHub
 import org.junit.Assert.assertEquals
@@ -72,6 +76,46 @@ class MediaSessionListenerServiceTest {
     fun `maps package accepted`() {
         service.onNotificationPosted(sbn("ru.yandex.yandexmaps", Notification()))
         assertEquals(1, exec.executed.size)
+    }
+
+    @Test
+    fun `Google and Waze callbacks reach capture before the Yandex package filter`() {
+        val records = mutableListOf<NavCaptureRecord>()
+        var selected = "com.google.android.apps.maps"
+        NavCaptureBridge.replaceForTest(object : NavCaptureLifecycleBackend {
+            override fun snapshot() = NavCaptureSnapshot(recording = true, packageName = selected)
+            override fun notification(record: NavCaptureRecord) { records += record }
+            override fun accessibility(record: NavCaptureRecord) = Unit
+            override fun captureActivityIntent(context: android.content.Context) = null
+        })
+        try {
+            service.onNotificationPosted(sbn("com.google.android.apps.maps", Notification()))
+            selected = "com.waze"
+            service.onNotificationPosted(sbn("com.waze", Notification()))
+            service.onNotificationPosted(sbn("com.spotify.music", Notification()))
+
+            assertEquals(listOf("com.google.android.apps.maps", "com.waze"), records.map { it.packageName })
+            // Capture must never send a new source through the Yandex hub/lane.
+            assertEquals(0, exec.executed.size)
+        } finally {
+            NavCaptureBridge.resetForTest()
+        }
+    }
+
+    @Test
+    fun `capture exception is contained and Yandex processing still proceeds`() {
+        NavCaptureBridge.replaceForTest(object : NavCaptureLifecycleBackend {
+            override fun snapshot(): NavCaptureSnapshot = error("capture broken")
+            override fun notification(record: NavCaptureRecord): Unit = error("capture broken")
+            override fun accessibility(record: NavCaptureRecord) = Unit
+            override fun captureActivityIntent(context: android.content.Context) = null
+        })
+        try {
+            service.onNotificationPosted(sbn("ru.yandex.yandexnavi", Notification()))
+            assertEquals(1, exec.executed.size)
+        } finally {
+            NavCaptureBridge.resetForTest()
+        }
     }
 
     @Test

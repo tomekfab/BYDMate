@@ -16,11 +16,11 @@ class FuelPriceSuffixTest {
     @After fun teardown() = Locale.setDefault(saved)
 
     @Test fun `a hybrid with a price gets the litre suffix`() =
-        assertEquals(" · 2.50 /л", fuelPriceSuffix(2.5, hybrid = true, litreUnit = "л"))
+        assertEquals(" · 2.50 /l", fuelPriceSuffix(2.5, hybrid = true, litreUnit = "l"))
 
     @Test fun `a hybrid without a price gets nothing`() =
-        assertEquals("", fuelPriceSuffix(null, hybrid = true, litreUnit = "л"))
+        assertEquals("", fuelPriceSuffix(null, hybrid = true, litreUnit = "l"))
 
     @Test fun `an EV gets nothing even with a price`() =
-        assertEquals("", fuelPriceSuffix(2.5, hybrid = false, litreUnit = "л"))
+        assertEquals("", fuelPriceSuffix(2.5, hybrid = false, litreUnit = "l"))
 }

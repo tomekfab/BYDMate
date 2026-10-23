@@ -329,7 +329,7 @@ class HudWayChannelsTest {
         assertEquals("M1 Minsk-Brest 42", HudWayChannels.roadName("M1 Minsk-Brest 42"))
         // 100 letters grow to 200 (ß is ss): the cap applies to what goes out.
         assertEquals("ss".repeat(100).take(127), HudWayChannels.roadName("ß".repeat(100)))
-        // Cyrillic reads as a driver would spell it: Щ is Shch, not ICU's per-letter S.
+// The fixture needs the driver's multi-letter spelling, not ICU's per-letter spelling.
         assertEquals("Shchukina", HudWayChannels.roadName("Щукина"))
         assertEquals("shch".repeat(100).take(127), HudWayChannels.roadName("щ".repeat(100)))
     }

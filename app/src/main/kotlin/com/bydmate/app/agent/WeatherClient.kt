@@ -18,9 +18,9 @@ import javax.inject.Singleton
 @Singleton
 class WeatherClient @Inject constructor(private val http: OkHttpClient) {
 
-    /** Failure whose message is user-facing Russian text, safe to surface in tool error JSON.
+    /** Failure whose message is user-facing Polish text, safe to surface in tool error JSON.
      *  Any other Throwable (HTTP codes, parse errors, timeouts) carries an English message and
-     *  must be collapsed to a generic Russian error by the caller. */
+     *  must be collapsed to a generic Polish error by the caller. */
     class UserError(message: String) : IOException(message)
 
     /** A non-2xx answer; [code] is safe to log, unlike the URL with the coordinates. */
@@ -54,7 +54,7 @@ class WeatherClient @Inject constructor(private val http: OkHttpClient) {
                 val now = JSONObject().apply {
                     put("temp_c", current.getDouble("temperature_2m"))
                     put("feels_c", current.getDouble("apparent_temperature"))
-                    put("text", wmoToRussian(current.getInt("weather_code")))
+                    put("text", wmoToPolish(current.getInt("weather_code")))
                     put("wind_ms", current.getDouble("wind_speed_10m"))
                     put("humidity", current.getInt("relative_humidity_2m"))
                 }
@@ -70,7 +70,7 @@ class WeatherClient @Inject constructor(private val http: OkHttpClient) {
                             put("date", dates.getString(i))
                             put("min_c", minT.getDouble(i))
                             put("max_c", maxT.getDouble(i))
-                            put("text", wmoToRussian(codes.getInt(i)))
+                            put("text", wmoToPolish(codes.getInt(i)))
                             put("precip_prob", precip.getInt(i))
                         })
                     }
@@ -87,14 +87,14 @@ class WeatherClient @Inject constructor(private val http: OkHttpClient) {
             val url = GEOCODE_URL.toHttpUrl().newBuilder()
                 .addQueryParameter("name", city)
                 .addQueryParameter("count", "1")
-                .addQueryParameter("language", "ru")
+                .addQueryParameter("language", "pl")
                 .build()
             http.newCall(Request.Builder().url(url).build()).execute().use { resp ->
                 if (!resp.isSuccessful) throw HttpError(resp.code)
                 val body = resp.body?.string().takeUnless { it.isNullOrBlank() }
                     ?: throw IOException("empty body")
                 val results = JSONObject(body).optJSONArray("results")
-                if (results == null || results.length() == 0) throw UserError("город не найден")
+                if (results == null || results.length() == 0) throw UserError("nie znaleziono miasta")
                 val r = results.getJSONObject(0)
                 // admin1 is intentionally dropped: the short name reads best over TTS.
                 GeoPoint(r.getDouble("latitude"), r.getDouble("longitude"), r.optString("name"))
@@ -102,7 +102,7 @@ class WeatherClient @Inject constructor(private val http: OkHttpClient) {
         }.also { traced(GEOCODE_URL, startMs, it) }
     }
 
-    /** The trace event of one call; "город не найден" is an answer, not a server failure. */
+    /** The trace event of one call; "nie znaleziono miasta" is an answer, not a server failure. */
     private suspend fun traced(url: String, startMs: Long, result: Result<*>) {
         val error = result.exceptionOrNull()?.takeUnless { it is UserError }
         Trace.call("weather", url.toHttpUrl().host, System.nanoTime() / NANOS_PER_MS - startMs, error)
@@ -113,38 +113,38 @@ class WeatherClient @Inject constructor(private val http: OkHttpClient) {
         private const val FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
         private const val GEOCODE_URL = "https://geocoding-api.open-meteo.com/v1/search"
 
-        private val WMO_RU = mapOf(
-            0 to "ясно",
-            1 to "малооблачно",
-            2 to "переменная облачность",
-            3 to "пасмурно",
-            45 to "туман",
-            48 to "изморозь в тумане",
-            51 to "лёгкая морось",
-            53 to "умеренная морось",
-            55 to "сильная морось",
-            56 to "лёгкая ледяная морось",
-            57 to "сильная ледяная морось",
-            61 to "небольшой дождь",
-            63 to "умеренный дождь",
-            65 to "сильный дождь",
-            66 to "лёгкий ледяной дождь",
-            67 to "сильный ледяной дождь",
-            71 to "небольшой снег",
-            73 to "умеренный снег",
-            75 to "сильный снег",
-            77 to "снежная крупа",
-            80 to "небольшие ливни",
-            81 to "умеренные ливни",
-            82 to "сильные ливни",
-            85 to "небольшой снегопад",
-            86 to "сильный снегопад",
-            95 to "гроза",
-            96 to "гроза с небольшим градом",
-            99 to "гроза с сильным градом",
+        private val WMO_PL = mapOf(
+            0 to "bezchmurnie",
+            1 to "lekko zachmurzone",
+            2 to "częściowe zachmurzenie",
+            3 to "pochmurno",
+            45 to "mgła",
+            48 to "mgła osadzająca szadź",
+            51 to "lekka mżawka",
+            53 to "umiarkowana mżawka",
+            55 to "silna mżawka",
+            56 to "lekka marznąca mżawka",
+            57 to "silna marznąca mżawka",
+            61 to "nieduży deszcz",
+            63 to "umiarkowany deszcz",
+            65 to "silny deszcz",
+            66 to "lekki marznący deszcz",
+            67 to "silny marznący deszcz",
+            71 to "nieduży śnieg",
+            73 to "umiarkowany śnieg",
+            75 to "silny śnieg",
+            77 to "ziarna śnieżne",
+            80 to "lekkie ulewy",
+            81 to "umiarkowane ulewy",
+            82 to "silne ulewy",
+            85 to "nieduży śnieżyca",
+            86 to "silny śnieżyca",
+            95 to "burza",
+            96 to "burza z lekkim gradem",
+            99 to "burza z silnym gradem",
         )
 
         /** [code] is the Open-Meteo WMO weather_code. Unknown codes fall back to a generic label. */
-        fun wmoToRussian(code: Int): String = WMO_RU[code] ?: "неизвестная погода"
+        fun wmoToPolish(code: Int): String = WMO_PL[code] ?: "nieznana pogoda"
     }
 }

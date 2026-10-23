@@ -15,7 +15,7 @@ class PendingReportsTest {
 
     @get:Rule val tmp = TemporaryFolder()
 
-    private fun report(id: String, offMs: Long, text: String = "<b>$id</b>\nЗаряд 64%") = PendingReport(id, 42L, offMs, text)
+    private fun report(id: String, offMs: Long, text: String = "<b>$id</b>\nNaładowanie 64%") = PendingReport(id, 42L, offMs, text)
 
     @Test fun `a saved report reads back whole, owner-only, with no temp file left`() {
         val dir = File(tmp.root, "offreport")
@@ -25,7 +25,7 @@ class PendingReportsTest {
         assertEquals("a1", back.id)
         assertEquals(42L, back.chatId)
         assertEquals(1_000L, back.powerOffMs)
-        assertEquals("<b>a1</b>\nЗаряд 64%", back.text)
+        assertEquals("<b>a1</b>\nNaładowanie 64%", back.text)
         val file = dir.listFiles()!!.single()
         assertTrue(file.name.endsWith(".rep"))
         assertEquals("rw-------", PosixFilePermissions.toString(Files.getPosixFilePermissions(file.toPath())))
@@ -123,7 +123,7 @@ class PendingReportsTest {
 
         val back = store.list()
         assertEquals(listOf("a1"), back.map { it.id })
-        assertEquals("<b>a1</b>\nЗаряд 64%", back.single().text)
+        assertEquals("<b>a1</b>\nNaładowanie 64%", back.single().text)
         assertEquals(listOf("1000-a1.rep"), dir.list()!!.sorted())
     }
 

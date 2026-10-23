@@ -58,18 +58,18 @@ class ActionDispatcherYoutubeTest {
     @Test fun youtube_play_sends_media_play_from_search_to_installed_package() = runTest {
         installPackage("anddea.youtube")
         val res = dispatcher.dispatch(actionDef(kind = "youtube",
-            payload = """{"mode":"play","query":"обзор leopard 3"}"""), null)
+            payload = """{"mode":"play","query":"recenzja leopard 3"}"""), null)
         assertTrue(res.success)
         val intent = shadowOf(app).nextStartedActivity
         assertEquals(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH, intent.action)
         assertEquals("anddea.youtube", intent.`package`)
-        assertEquals("обзор leopard 3", intent.getStringExtra(SearchManager.QUERY))
+        assertEquals("recenzja leopard 3", intent.getStringExtra(SearchManager.QUERY))
     }
 
     @Test fun youtube_search_opens_results_url_in_youtube_app() = runTest {
-        installPackage("com.google.android.youtube")   // anddea отсутствует -> fallback
+installPackage("com.google.android.youtube")   // anddea is absent -> fallback
         val res = dispatcher.dispatch(actionDef(kind = "youtube",
-            payload = """{"mode":"search","query":"тест драйв"}"""), null)
+            payload = """{"mode":"search","query":"jazda próbna"}"""), null)
         assertTrue(res.success)
         val intent = shadowOf(app).nextStartedActivity
         assertEquals(Intent.ACTION_VIEW, intent.action)
@@ -83,14 +83,14 @@ class ActionDispatcherYoutubeTest {
         installPackage("com.google.android.youtube")
         installPackage("anddea.youtube")
         val res = dispatcher.dispatch(actionDef(kind = "youtube",
-            payload = """{"mode":"play","query":"тест"}"""), null)
+            payload = """{"mode":"play","query":"test"}"""), null)
         assertTrue(res.success)
         assertEquals("anddea.youtube", shadowOf(app).nextStartedActivity.`package`)
     }
 
     @Test fun youtube_without_app_fails_with_russian_reason() = runTest {
         val res = dispatcher.dispatch(actionDef(kind = "youtube",
-            payload = """{"mode":"play","query":"тест"}"""), null)
+            payload = """{"mode":"play","query":"test"}"""), null)
         assertFalse(res.success)
         assertTrue(res.reason!!.contains("YouTube"))
     }

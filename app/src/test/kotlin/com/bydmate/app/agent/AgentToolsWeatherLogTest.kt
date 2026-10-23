@@ -75,13 +75,13 @@ class AgentToolsWeatherLogTest {
 
     @Test fun a_timeout_logs_its_class_without_the_message() = runTest {
         val t = tools()
-        coEvery { weather.geocode("Сочи") } returns Result.failure(
-            SocketTimeoutException("timeout https://geocoding-api.open-meteo.com/v1/search?name=Сочи"))
+        coEvery { weather.geocode("Soczi") } returns Result.failure(
+            SocketTimeoutException("timeout https://geocoding-api.open-meteo.com/v1/search?name=Soczi"))
 
-        t.execute(AgentToolCall("1", "get_weather", """{"city":"Сочи"}"""))
+        t.execute(AgentToolCall("1", "get_weather", """{"city":"Soczi"}"""))
 
         val line = weatherLog().single()
         assertTrue(line, line.contains("geocode") && line.contains("SocketTimeoutException") && line.contains("http=-"))
-        assertFalse(line, line.contains("open-meteo") || line.contains("Сочи"))
+        assertFalse(line, line.contains("open-meteo") || line.contains("Soczi"))
     }
 }

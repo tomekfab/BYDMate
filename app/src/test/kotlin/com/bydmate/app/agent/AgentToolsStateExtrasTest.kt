@@ -25,7 +25,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Wave 4: readings the «Техника» screen already shows but the agent could not see — the motor
+* Wave 4: readings the Technical data screen already shows but the agent could not see — the motor
  * split, the BMS limits, tyre temperatures, the blow direction it can already set, and the
  * blind-spot camera setting the driver asks about by voice.
  */
@@ -66,7 +66,7 @@ class AgentToolsStateExtrasTest {
     @Test fun a_standing_car_gets_no_made_up_split() = runTest {
         val out = state(snapshot().copy(motorCurrentFront = 0.1f, motorCurrentRear = 0.1f))
         assertFalse(out.has("motor_share_front_pct"))
-        assertTrue(out.getString("motor_share").contains("не тянут"))
+        assertEquals("silniki obecnie nie napędzają samochodu", out.getString("motor_share"))
     }
 
     @Test fun a_single_motor_car_reports_no_split_at_all() = runTest {
@@ -89,9 +89,9 @@ class AgentToolsStateExtrasTest {
     }
 
     // The agent can set the blow direction since 5e96ad5d; reading it back uses the same enum.
-    @Test fun blow_direction_comes_back_as_a_russian_label() = runTest {
-        assertEquals("в ноги", state(snapshot().copy(acWindMode = 3)).getString("ac_wind_mode"))
-        assertEquals("на стекло", state(snapshot().copy(acWindMode = 5)).getString("ac_wind_mode"))
+    @Test fun blow_direction_comes_back_as_a_polish_label() = runTest {
+        assertEquals("na nogi", state(snapshot().copy(acWindMode = 3)).getString("ac_wind_mode"))
+        assertEquals("na szybę", state(snapshot().copy(acWindMode = 5)).getString("ac_wind_mode"))
     }
 
     @Test fun an_unknown_blow_direction_is_omitted() = runTest {

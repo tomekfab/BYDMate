@@ -37,14 +37,24 @@ import javax.inject.Singleton
  * [_lastAvailableAt] for the AutomationEngine.
  */
 @Singleton
-class NetworkAvailableMonitor @Inject constructor(
-    @ApplicationContext private val context: Context
+class NetworkAvailableMonitor internal constructor(
+    private val context: Context,
+    // Test seams: the probe and the scope it runs on, and the clock of a published edge.
+    reachabilityProbe: (suspend (Network) -> Boolean)?,
+    private val scope: CoroutineScope,
+    private val clock: () -> Long,
 ) {
+    @Inject constructor(@ApplicationContext context: Context) : this(
+        context,
+        reachabilityProbe = null,
+        scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+        clock = System::currentTimeMillis,
+    )
+
+    private val probe: suspend (Network) -> Boolean =
+        reachabilityProbe ?: { network -> withContext(Dispatchers.IO) { tryProbe(network) } }
+
     @Volatile private var _lastAvailableAt: Long = 0L
-    // Tracks which network is currently validated. Prevents repeated capabilities
-    // callbacks for the SAME network from re-running the probe — without this,
-    // every signal-strength tick on a stable WiFi would re-arm the trigger.
-    @Volatile private var validatedNetworkId: Long = -1L
     // True while an async TCP probe is in flight. AutomationEngine consults this
     // before seeding the per-rule watermark on first observation: seeding 0
     // mid-probe and then handing the about-to-publish edge as "new" would
@@ -62,62 +72,105 @@ class NetworkAvailableMonitor @Inject constructor(
     private val cm: ConnectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
-    private var registered = false
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    // Guards the registration, its tracked network and the probe that owns it. Callbacks, probe
+    // results, start and stop all decide under it, so a late event from a stopped registration
+    // or a cancelled probe cannot change a newer one.
+    private val lock = Any()
+    private var registration: Registration? = null
     // Single in-flight probe — newer VALIDATED edges cancel any earlier
     // probe still running, avoiding stacked socket attempts when the
     // system spams capability changes during a network transition.
-    @Volatile private var probeJob: Job? = null
+    // [probeOwner] identifies it: a cancelled probe can still return late.
+    private var probeJob: Job? = null
+    private var probeOwner: Any? = null
 
-    private val callback = object : ConnectivityManager.NetworkCallback() {
-        override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) {
-            val hasInternet = caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            val validated = caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-            val nid = network.networkHandle
-            if (hasInternet && validated) {
-                if (validatedNetworkId != nid) {
-                    validatedNetworkId = nid
-                    Log.i(TAG, "candidate validated network (nid=$nid), probing reachability")
-                    probeReachability(network, nid)
-                }
-            } else if (validatedNetworkId == nid) {
-                validatedNetworkId = -1L
-                Log.i(TAG, "validation lost on tracked network (nid=$nid)")
+    /** The callback of one [start]; a stopped registration's late callbacks change nothing. */
+    private inner class Registration {
+        // Tracks which network is currently validated. Prevents repeated capabilities
+        // callbacks for the SAME network from re-running the probe — without this,
+        // every signal-strength tick on a stable WiFi would re-arm the trigger.
+        // A failed probe releases it, so a later callback can probe the same network again.
+        var trackedNetworkId: Long = NO_NETWORK
+
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) {
+                val hasInternet = caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                val validated = caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+                onCapabilities(this@Registration, network, hasInternet && validated)
             }
-        }
 
-        override fun onLost(network: Network) {
-            if (validatedNetworkId == network.networkHandle) {
-                validatedNetworkId = -1L
-                Log.i(TAG, "tracked network lost (nid=${network.networkHandle})")
+            override fun onLost(network: Network) {
+                onNetworkGone(this@Registration, network.networkHandle, "tracked network lost")
             }
         }
     }
 
-    private fun probeReachability(network: Network, nid: Long) {
+    private fun onCapabilities(owner: Registration, network: Network, validated: Boolean) {
+        val nid = network.networkHandle
+        if (!validated) {
+            onNetworkGone(owner, nid, "validation lost on tracked network")
+            return
+        }
+        synchronized(lock) {
+            if (registration !== owner || owner.trackedNetworkId == nid) return
+            owner.trackedNetworkId = nid
+            Log.i(TAG, "candidate validated network (nid=$nid), probing reachability")
+            probeReachabilityLocked(owner, network, nid)
+        }
+    }
+
+    private fun onNetworkGone(owner: Registration, nid: Long, what: String) {
+        synchronized(lock) {
+            if (registration !== owner || owner.trackedNetworkId != nid) return
+            owner.trackedNetworkId = NO_NETWORK
+            // A probe still running for this network has nothing left to confirm.
+            cancelProbeLocked()
+            Log.i(TAG, "$what (nid=$nid)")
+        }
+    }
+
+    private fun probeReachabilityLocked(owner: Registration, network: Network, nid: Long) {
         probeJob?.cancel()
+        val probeId = Any()
+        probeOwner = probeId
         _probePending = true
         probeJob = scope.launch {
-            try {
-                val reached = withContext(Dispatchers.IO) { tryProbe(network) }
-                // Race guard: by the time the probe returns, the user may have
-                // already switched to yet another network. Only publish the edge
-                // if the network we just confirmed is still the tracked one.
-                if (!reached) {
-                    Log.i(TAG, "probe failed for nid=$nid — not publishing edge")
-                    return@launch
-                }
-                if (validatedNetworkId != nid) {
-                    Log.i(TAG, "probe ok for nid=$nid but tracked network changed — dropped")
-                    return@launch
-                }
-                _lastAvailableAt = System.currentTimeMillis()
-                _edges.value = _lastAvailableAt
-                Log.i(TAG, "validated+reachable network edge at $_lastAvailableAt (nid=$nid)")
-            } finally {
-                _probePending = false
-            }
+            // A probe that ignores its cancellation still returns here; settleProbe drops it then.
+            val reached = runCatching { probe(network) }.getOrDefault(false)
+            settleProbe(owner, probeId, nid, reached)
         }
+    }
+
+    private fun settleProbe(owner: Registration, probeId: Any, nid: Long, reached: Boolean) {
+        synchronized(lock) {
+            // Race guard: by the time the probe returns, the user may have already switched to
+            // yet another network, or the monitor stopped. Each of those replaced this probe's
+            // ownership, and only the owner may publish or release its candidate.
+            if (probeOwner !== probeId) {
+                Log.i(TAG, "probe result for nid=$nid is no longer current — dropped")
+                return
+            }
+            probeOwner = null
+            probeJob = null
+            _probePending = false
+            if (!reached) {
+                // The car's internet often arrives minutes after its Wi-Fi: a later VALIDATED
+                // callback for this same network must be able to probe again.
+                owner.trackedNetworkId = NO_NETWORK
+                Log.i(TAG, "probe failed for nid=$nid — not publishing edge")
+                return
+            }
+            _lastAvailableAt = clock()
+            _edges.value = _lastAvailableAt
+            Log.i(TAG, "validated+reachable network edge at $_lastAvailableAt (nid=$nid)")
+        }
+    }
+
+    private fun cancelProbeLocked() {
+        probeJob?.cancel()
+        probeJob = null
+        probeOwner = null
+        _probePending = false
     }
 
     private fun tryProbe(network: Network): Boolean {
@@ -138,31 +191,42 @@ class NetworkAvailableMonitor @Inject constructor(
     }
 
     fun start() {
-        if (registered) return
-        runCatching {
-            // No initial-state guard. ConnectivityManager replays the current
-            // VALIDATED network state to a freshly-registered callback — that
-            // replay IS the "internet is available now" edge we want users to
-            // be able to react to on app launch. Repeat-fires from service
-            // restarts are best handled by the rule's cooldown setting.
-            cm.registerDefaultNetworkCallback(callback)
-            registered = true
-            Log.i(TAG, "started")
-        }.onFailure { Log.w(TAG, "start failed: ${it.message}") }
+        synchronized(lock) {
+            if (registration != null) return
+            // A fresh callback per start: the stopped one's late events are told apart by identity.
+            val next = Registration()
+            registration = next
+            runCatching {
+                // No initial-state guard. ConnectivityManager replays the current
+                // VALIDATED network state to a freshly-registered callback — that
+                // replay IS the "internet is available now" edge we want users to
+                // be able to react to on app launch. Repeat-fires from service
+                // restarts are best handled by the rule's cooldown setting.
+                cm.registerDefaultNetworkCallback(next.callback)
+                Log.i(TAG, "started")
+            }.onFailure {
+                registration = null
+                Log.w(TAG, "start failed: ${it.message}")
+            }
+        }
     }
 
     fun stop() {
-        if (!registered) return
-        runCatching { cm.unregisterNetworkCallback(callback) }
-        registered = false
-        probeJob?.cancel()
-        probeJob = null
+        synchronized(lock) {
+            val current = registration ?: return
+            registration = null
+            runCatching { cm.unregisterNetworkCallback(current.callback) }
+            current.trackedNetworkId = NO_NETWORK
+            // The running probe belongs to the stopped registration: its result must change nothing.
+            cancelProbeLocked()
+        }
         Log.i(TAG, "stopped")
     }
 
     private companion object {
         const val TAG = "NetworkAvailMon"
         const val PROBE_TIMEOUT_MS = 2000
+        const val NO_NETWORK = -1L
         // Yandex DNS primary/secondary + Quad9 as a neutral fallback. We
         // explicitly avoid 1.1.1.1 / 8.8.8.8: BYD ships a kernel routing
         // allow-list on the system APN (rmnet_data1, table 20) that keeps

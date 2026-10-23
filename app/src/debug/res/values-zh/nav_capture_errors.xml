@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_capture_error_delete">无法删除采集记录。数据可能仍保留在应用存储中。请重试删除。</string>
+    <string name="nav_capture_error_reset">无法清除上一次采集记录。录制未开始。请删除采集记录后重试。</string>
+    <string name="nav_capture_error_export">无法保存采集记录。目标文件可能不完整。请选择文件后重试。</string>
+    <string name="nav_capture_error_write">写入失败，录制已停止。请删除不完整的采集记录并开始新的录制。</string>
+</resources>

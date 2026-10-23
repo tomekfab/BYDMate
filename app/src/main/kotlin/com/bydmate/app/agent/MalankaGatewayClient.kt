@@ -86,7 +86,7 @@ class MalankaGatewayClient(private val http: OkHttpClient) {
 
     private companion object {
         const val TAG = "MalankaGateway"
-        const val DEFAULT_NAME = "Зарядная станция"
+        const val DEFAULT_NAME = "Stacja ładowania"
         val NETWORKS = listOf(Network("", "Malanka"), Network("evika/", "Evika"), Network("battery-fly/", "Battery Fly"))
         val STATUSES = mapOf(
             "AVAILABLE" to StationStatus.FREE,

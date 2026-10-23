@@ -7,11 +7,19 @@ class LocalePreferences(context: Context) {
 
     private val prefs = context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
 
-    fun getLanguage(): String? = prefs.getString(KEY_LANG, null)
+    fun getLanguage(): String = AppLocaleResolver.resolve(
+        try {
+            prefs.getString(KEY_LANG, null)
+        } catch (_: ClassCastException) {
+            null
+        },
+    )
+
+    fun hasStoredLanguage(): Boolean = prefs.contains(KEY_LANG)
 
     fun setLanguage(lang: String) {
         // commit = true: synchronous write so bootstrap never races with a read.
-        prefs.edit().putString(KEY_LANG, lang).commit()
+        prefs.edit().putString(KEY_LANG, AppLocaleResolver.resolve(lang)).commit()
     }
 
     fun getFontScale(): Float = readFontScale(prefs)

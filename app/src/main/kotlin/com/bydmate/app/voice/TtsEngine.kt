@@ -7,6 +7,13 @@ import java.util.concurrent.BlockingQueue
  *  thread; speak() is fire-and-forget and must never throw. */
 @Suppress("TooManyFunctions") // one engine contract: speech, PCM playback, lifecycle hooks
 interface TtsEngine {
+    /** Optional routing contract for engines that choose a backend by language. Plain local
+     *  engines keep the original speech methods through the language-explicit extensions below. */
+    interface LanguageRouting {
+        fun speak(text: String, language: VoiceLanguage): Boolean
+        fun startQueue(language: VoiceLanguage): SpeechQueue?
+    }
+
     /** True when a voice model is downloaded and usable. */
     fun isReady(): Boolean
 
@@ -77,3 +84,11 @@ interface TtsEngine {
      *  ready (model missing) or the implementation does not support queued speech. */
     fun startQueue(): SpeechQueue? = null
 }
+
+/** Speak in the captured session language. Engines without online routing keep their usual path. */
+fun TtsEngine.speak(text: String, language: VoiceLanguage): Boolean =
+    if (this is TtsEngine.LanguageRouting) speak(text, language) else speak(text)
+
+/** Bind the whole reply queue to the captured session language, including later sentences. */
+fun TtsEngine.startQueue(language: VoiceLanguage): TtsEngine.SpeechQueue? =
+    if (this is TtsEngine.LanguageRouting) startQueue(language) else startQueue()

@@ -30,7 +30,7 @@ class ContactLookup @Inject constructor(@ApplicationContext private val context:
      *  runs synchronously, so this hops off the caller's thread (same pattern as WeatherClient). */
     suspend fun findByName(query: String): List<Match> = withContext(Dispatchers.IO) { resolver(query) }
 
-    // internal query seam for JVM tests (ContentResolver не мокается напрямую):
+    // Internal query seam for JVM tests (ContentResolver is not directly mockable):
     internal var resolver: (String) -> List<Match> = { q -> queryContacts(q) }
 
     // No SQL selection: SQLite's LIKE is case-sensitive for non-ASCII (Cyrillic), so a

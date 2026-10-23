@@ -83,6 +83,6 @@ class LlmConnectionResolver @Inject constructor(
         const val ZAI_BASE_URL = "https://api.z.ai/api/paas/v4"
         const val ZAI_MODEL = "glm-4.7-flash"
         // Selector label when the user left the custom connection unnamed (agent UI is Russian-first).
-        internal const val DEFAULT_CUSTOM_LABEL = "Своё"
+        internal const val DEFAULT_CUSTOM_LABEL = "Własne"
     }
 }

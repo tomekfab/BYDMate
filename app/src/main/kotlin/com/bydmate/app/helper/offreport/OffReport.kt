@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit
  * into the pending set ([events]; there even when the disk write failed) and sent within the 8 s
  * before the networks go ([OffReportRetry]). Sent or refused for good, that event goes; otherwise
  * it waits, and every later [arm] (the app's next start on the next drive, with a token again)
- * delivers what waits, oldest first, with the «(записано в HH:MM)» line, backing off after a failed
+ * delivers what waits, oldest first, with the «(zapisano w HH:MM)» line, backing off after a failed
  * pass. [disarm] deletes the pending files before it answers. A report Telegram took, with a map
  * link in it, is followed by the native location of that link ([sendPoint]): once its event is
  * gone, one attempt, never retried.
@@ -536,7 +536,7 @@ internal object OffReport {
     }
 
     /**
-     * «(записано в 18:42)» from the app's template (Telegram HTML, italic), with the date when the
+     * «(zapisano w 18:42)» from the app's template (Telegram HTML, italic), with the date when the
      * power-off was another day; its own block above the map link.
      */
     private fun withLateMark(report: PendingReport, template: String): String {

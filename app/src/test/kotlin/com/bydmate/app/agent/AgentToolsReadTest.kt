@@ -130,12 +130,12 @@ class AgentToolsReadTest {
         coEvery { battery.refresh() } throws RuntimeException("n/a")
         coEvery { range.estimate(any(), any()) } returns null
         coEvery { places.getAllSnapshot() } returns listOf(
-            PlaceEntity(name = "Дом", lat = 55.751244, lon = 37.618423, radiusM = 100),
+            PlaceEntity(name = "Dom", lat = 55.751244, lon = 37.618423, radiusM = 100),
         )
         val out = JSONObject(t.execute(AgentToolCall("1", "get_vehicle_state", "{}")))
         assertEquals(55.751244, out.getDouble("gps_lat"), 0.0001)
         assertEquals(37.618423, out.getDouble("gps_lon"), 0.0001)
-        assertEquals("Дом", out.getString("place"))
+        assertEquals("Dom", out.getString("place"))
     }
 
     @Test fun vehicle_state_gps_without_places_omits_place() = runTest {
@@ -170,7 +170,7 @@ class AgentToolsReadTest {
         coEvery { battery.refresh() } throws RuntimeException("n/a")
         coEvery { range.estimate(any(), any()) } returns null
         coEvery { places.getAllSnapshot() } returns listOf(
-            PlaceEntity(name = "Далеко", lat = 56.0, lon = 38.0, radiusM = 50),
+            PlaceEntity(name = "Daleko", lat = 56.0, lon = 38.0, radiusM = 50),
         )
         val out = JSONObject(t.execute(AgentToolCall("1", "get_vehicle_state", "{}")))
         assertTrue(out.has("gps_lat"))
@@ -214,7 +214,7 @@ class AgentToolsReadTest {
     }
 
     // Deterministic low-pressure flag: any wheel below TIRE_WARN_MIN_KPA (210) must
-    // surface a Russian warning the model reliably voices.
+    // surface a warning the model reliably voices.
     @Test fun vehicle_state_flags_low_tire_pressure() = runTest {
         every { gate.vehicleSnapshot() } returns snapshot(
             soc = 80, tirePressFL = 250, tirePressFR = 190, tirePressRL = 255, tirePressRR = 252)
@@ -259,12 +259,12 @@ class AgentToolsReadTest {
         assertTrue(out.getBoolean("charging_gun_connected"))
     }
 
-    // (д) get_weather without GPS and without city -> error-JSON, no HTTP call.
+// (d) get_weather without GPS and without city -> error-JSON, no HTTP call.
     @Test fun get_weather_without_gps_and_city_reports_error() = runTest {
         val t = tools()
         t.locationProvider = { null }
         val out = JSONObject(t.execute(AgentToolCall("1", "get_weather", "{}")))
-        assertEquals("нет GPS и не указан город", out.getString("error"))
+        assertEquals("brak GPS i nie podano miasto", out.getString("error"))
         coVerify(exactly = 0) { weather.forecast(any(), any()) }
         coVerify(exactly = 0) { weather.geocode(any()) }
     }
@@ -280,9 +280,9 @@ class AgentToolsReadTest {
     @Test fun get_weather_geocodes_explicit_city() = runTest {
         val t = tools()
         t.locationProvider = { 55.0 to 37.0 }
-        coEvery { weather.geocode("Сочи") } returns Result.success(WeatherClient.GeoPoint(43.6, 39.7, "Сочи"))
+        coEvery { weather.geocode("Soczi") } returns Result.success(WeatherClient.GeoPoint(43.6, 39.7, "Soczi"))
         coEvery { weather.forecast(43.6, 39.7) } returns Result.success("""{"now":{}}""")
-        val out = JSONObject(t.execute(AgentToolCall("1", "get_weather", """{"city":"Сочи"}""")))
+        val out = JSONObject(t.execute(AgentToolCall("1", "get_weather", """{"city":"Soczi"}""")))
         assertTrue(out.has("now"))
     }
 
@@ -290,11 +290,11 @@ class AgentToolsReadTest {
     @Test fun get_weather_city_path_reports_geocoded_name() = runTest {
         val t = tools()
         t.locationProvider = { 55.0 to 37.0 }
-        coEvery { weather.geocode("Краснодар") } returns
-            Result.success(WeatherClient.GeoPoint(45.035, 38.975, "Краснодар"))
+        coEvery { weather.geocode("Krasnodar") } returns
+            Result.success(WeatherClient.GeoPoint(45.035, 38.975, "Krasnodar"))
         coEvery { weather.forecast(45.035, 38.975) } returns Result.success("""{"now":{}}""")
-        val out = JSONObject(t.execute(AgentToolCall("1", "get_weather", """{"city":"Краснодар"}""")))
-        assertEquals("Краснодар", out.getString("location"))
+        val out = JSONObject(t.execute(AgentToolCall("1", "get_weather", """{"city":"Krasnodar"}""")))
+        assertEquals("Krasnodar", out.getString("location"))
     }
 
     // (b) GPS path inside a saved place names that place.
@@ -303,10 +303,10 @@ class AgentToolsReadTest {
         t.locationProvider = { 55.751244 to 37.618423 }
         coEvery { weather.forecast(55.751244, 37.618423) } returns Result.success("""{"now":{}}""")
         coEvery { places.getAllSnapshot() } returns listOf(
-            PlaceEntity(name = "Дом", lat = 55.751244, lon = 37.618423, radiusM = 100),
+            PlaceEntity(name = "Dom", lat = 55.751244, lon = 37.618423, radiusM = 100),
         )
         val out = JSONObject(t.execute(AgentToolCall("1", "get_weather", "{}")))
-        assertEquals("Дом", out.getString("location"))
+        assertEquals("Dom", out.getString("location"))
     }
 
     // (c) GPS path outside any saved place omits the location key entirely.
@@ -320,22 +320,22 @@ class AgentToolsReadTest {
     }
 
     // Pin: raw English exception messages ("timeout") must never leak into the error JSON.
-    @Test fun get_weather_forecast_failure_reports_russian_error() = runTest {
+    @Test fun get_weather_forecast_failure_reports_polish_error() = runTest {
         val t = tools()
         t.locationProvider = { 55.0 to 37.0 }
         coEvery { weather.forecast(55.0, 37.0) } returns Result.failure(RuntimeException("timeout"))
         val out = JSONObject(t.execute(AgentToolCall("1", "get_weather", "{}")))
-        assertEquals("погода недоступна", out.getString("error"))
+        assertEquals("pogoda jest niedostępna", out.getString("error"))
     }
 
-    // Pin: WeatherClient.UserError is the one failure whose Russian message passes through.
-    @Test fun get_weather_city_not_found_passes_russian_message_through() = runTest {
+    // Pin: WeatherClient.UserError is the one failure whose message passes through.
+    @Test fun get_weather_city_not_found_passes_message_through() = runTest {
         val t = tools()
         t.locationProvider = { 55.0 to 37.0 }
-        coEvery { weather.geocode("Хзгородск") } returns
-            Result.failure(WeatherClient.UserError("город не найден"))
-        val out = JSONObject(t.execute(AgentToolCall("1", "get_weather", """{"city":"Хзгородск"}""")))
-        assertEquals("город не найден", out.getString("error"))
+        coEvery { weather.geocode("Nieznanowo") } returns
+            Result.failure(WeatherClient.UserError("nie znaleziono miasta"))
+        val out = JSONObject(t.execute(AgentToolCall("1", "get_weather", """{"city":"Nieznanowo"}""")))
+        assertEquals("nie znaleziono miasta", out.getString("error"))
     }
 
     @Test fun query_trips_computes_avg_consumption() = runTest {
@@ -350,7 +350,7 @@ class AgentToolsReadTest {
     @Test fun query_trips_bad_period_reports_error() = runTest {
         val out = JSONObject(tools().execute(
             AgentToolCall("1", "query_trips", """{"period":"year"}""")))
-        assertEquals("укажи period (day/week/month) или даты from и to в формате ГГГГ-ММ-ДД", out.getString("error"))
+        assertEquals("podaj period (day/week/month) lub daty from i to w formacie RRRR-MM-DD", out.getString("error"))
     }
 
     @Test fun query_charges_includes_ac_dc_split() = runTest {
@@ -365,14 +365,14 @@ class AgentToolsReadTest {
 
     @Test fun unknown_tool_reports_error() = runTest {
         val out = JSONObject(tools().execute(AgentToolCall("1", "nope", "{}")))
-        assertEquals("неизвестный инструмент nope", out.getString("error"))
+        assertEquals("nieznane narzędzie nope", out.getString("error"))
     }
 
-    // Pin: malformed tool-call JSON must report a fixed Russian error, never leak the
+    // Pin: malformed tool-call JSON must report a fixed Polish error, never leak the
     // raw parser exception (which would be English).
-    @Test fun malformed_arguments_json_reports_russian_error() = runTest {
+    @Test fun malformed_arguments_json_reports_polish_error() = runTest {
         val out = JSONObject(tools().execute(AgentToolCall("1", "get_vehicle_state", "{not json")))
-        assertEquals("некорректные аргументы", out.getString("error"))
+        assertEquals("nieprawidłowe argumenty", out.getString("error"))
     }
 
     @Test fun vehicle_state_maps_cabin_sensors() = runTest {

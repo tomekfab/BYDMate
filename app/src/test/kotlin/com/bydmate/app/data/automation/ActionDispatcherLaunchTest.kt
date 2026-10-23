@@ -41,7 +41,7 @@ class ActionDispatcherLaunchTest {
     private val dispatcher: ActionDispatcher
 
     init {
-        // Reasons come from the real resources, asserted in Russian.
+        // Reasons come from real resources; the Russian locale must use Polish fallback.
         LocalePreferences(ApplicationProvider.getApplicationContext()).setLanguage("ru")
         every { context.packageManager } returns packageManager
         every { context.getSystemService(Context.NOTIFICATION_SERVICE) } returns notificationManager
@@ -96,7 +96,7 @@ class ActionDispatcherLaunchTest {
     // --- navigate ---
 
     @Test fun `navigate by free-text query opens Navigator map search`() {
-        val query = "аэропорт Сочи"
+        val query = "lotnisko Gdańsk"
         val action = ActionDef(command = "", displayName = "nav", kind = "navigate",
             payload = """{"query":"$query"}""")
         val (result, intent) = dispatchAndCapture(action)
@@ -117,12 +117,12 @@ class ActionDispatcherLaunchTest {
 
     @Test fun `yandex_music search launches MEDIA_PLAY_FROM_SEARCH`() {
         val action = ActionDef(command = "", displayName = "music", kind = "yandex_music",
-            payload = """{"mode":"search","query":"Кино"}""")
+            payload = """{"mode":"search","query":"Kult"}""")
         val (result, intent) = dispatchAndCapture(action)
         assertTrue(result.success)
         assertEquals(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH, intent.action)
         assertEquals("ru.yandex.music", intent.`package`)
-        assertEquals("Кино", intent.getStringExtra(SearchManager.QUERY))
+        assertEquals("Kult", intent.getStringExtra(SearchManager.QUERY))
         assertEquals("vnd.android.cursor.item/*", intent.getStringExtra(MediaStore.EXTRA_MEDIA_FOCUS))
     }
 
@@ -139,7 +139,7 @@ class ActionDispatcherLaunchTest {
             payload = """{"mode":"search"}""")
         val result = runBlocking { dispatcher.dispatch(action, null) }
         assertFalse(result.success)
-        assertEquals("query не задан", result.reason)
+        assertEquals("nie podano query", result.reason)
     }
 
     // Media-session-available success path is covered in ActionDispatcherMusicPlayTest
@@ -147,12 +147,12 @@ class ActionDispatcherLaunchTest {
     @Test fun `yandex_music play without live session falls back to search intent`() {
         dispatcher.activeMediaControllers = { emptyList() }
         val action = ActionDef(command = "", displayName = "music", kind = "yandex_music",
-            payload = """{"mode":"play","query":"группа кино"}""")
+            payload = """{"mode":"play","query":"zespół Kult"}""")
         val (result, intent) = dispatchAndCapture(action)
         assertTrue(result.success)
         assertEquals(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH, intent.action)
         assertEquals("ru.yandex.music", intent.`package`)
-        assertEquals("группа кино", intent.getStringExtra(SearchManager.QUERY))
+        assertEquals("zespół Kult", intent.getStringExtra(SearchManager.QUERY))
     }
 
     @Test fun `yandex_music play without query is rejected`() {
@@ -160,7 +160,7 @@ class ActionDispatcherLaunchTest {
             payload = """{"mode":"play"}""")
         val result = runBlocking { dispatcher.dispatch(action, null) }
         assertFalse(result.success)
-        assertEquals("query не задан", result.reason)
+        assertEquals("nie podano query", result.reason)
     }
 
     // --- go_home ---

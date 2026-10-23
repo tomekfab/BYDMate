@@ -14,13 +14,12 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Отправляет ту же телеметрию, что уходит в ABRP (см.
- * [IternioTelemetryClient.buildTelemetry]), POST-запросом на произвольный URL
- * пользователя.
+ * Posts the same telemetry used by ABRP (see
+ * [IternioTelemetryClient.buildTelemetry]) to any user URL.
  *
- * Никаких очередей и ретраев: телеметрия живая, пропущенный сэмпл
- * бессмысленно досылать через минуту — следующий тик всё равно свежее.
- * Пауза после ошибки — забота вызывающего ([com.bydmate.app.service.TrackingService]).
+ * There is no queue or retry: telemetry is live, and sending a missed sample later is pointless
+ * because the next sample is newer. The caller owns the pause after an error
+ * ([com.bydmate.app.service.TrackingService]).
  */
 @Singleton
 class WebhookTelemetryClient @Inject constructor(
@@ -37,18 +36,17 @@ class WebhookTelemetryClient @Inject constructor(
     }
 
     /**
-     * @param url Адрес вебхука. Принимаем https, а http — только на localhost/127.0.0.1:
-     *            network_security_config.xml разрешает cleartext лишь для loopback,
-     *            любой другой http-хост платформа молча заблокирует.
-     * @param secret Необязательный секрет; уходит как `Authorization: Bearer`.
-     *               Никогда не попадает в лог.
-     * @param telemetry Готовый JSON — тот же объект, что уходит в Iternio.
+     * @param url Webhook address. HTTPS is accepted, while HTTP is accepted only for
+     * localhost/127.0.0.1: network_security_config.xml permits cleartext only for loopback,
+     * and the platform silently blocks other HTTP hosts.
+     * @param secret Optional secret, used as `Authorization: Bearer`. It is never logged.
+     * @param telemetry Ready JSON, using the same object as Iternio.
      */
     suspend fun send(url: String, secret: String?, telemetry: JSONObject): Result<Unit> =
         withContext(Dispatchers.IO) {
             val httpUrl = url.trim().toHttpUrlOrNull()
             if (httpUrl == null || !isAllowedWebhookUrl(httpUrl)) {
-                return@withContext Result.failure(IllegalArgumentException("неверный URL вебхука"))
+                return@withContext Result.failure(IllegalArgumentException("nieprawidłowy URL webhooka"))
             }
             try {
                 val request = Request.Builder()
@@ -70,7 +68,7 @@ class WebhookTelemetryClient @Inject constructor(
                 }
                 Result.success(Unit)
             } catch (e: Exception) {
-                Log.w(TAG, "отправка не удалась: ${e.message}")
+                Log.w(TAG, "wysyłanie nie powiodło się: ${e.message}")
                 Result.failure(e)
             }
         }

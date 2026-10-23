@@ -197,7 +197,7 @@ class AutomationEngineAuditTest {
         assertEquals(1, engine.onButtonPress(1))
 
         coVerify(exactly = 0) { dispatcher.dispatch(any(), any()) }
-        assertEquals("Не выполнено: правило только на парковке, а передача не P", reasonOf(entry.captured))
+        assertEquals("Nie wykonano: reguła tylko na postoju, a bieg to nie P", reasonOf(entry.captured))
         assertTrue(engineLines().any { it.contains("rule 1 'r1' skipped: park only, gear=null") })
     }
 
@@ -226,7 +226,7 @@ class AutomationEngineAuditTest {
         coVerify(timeout = 2_000, exactly = 2) { ruleLogDao.insert(any()) }
 
         assertEquals(
-            setOf("Отменено в окне подтверждения", "Нет ответа в окне подтверждения, не выполнено"),
+            setOf("Anulowano w oknie potwierdzenia", "Brak odpowiedzi w oknie potwierdzenia, nie wykonano"),
             entries.map { reasonOf(it) }.toSet(),
         )
         coVerify(exactly = 0) { dispatcher.dispatch(any(), any()) }
@@ -321,7 +321,7 @@ class AutomationEngineAuditTest {
 
         coVerify(exactly = 0) { ruleDao.updateLastTriggered(any(), any()) }
         coVerify(exactly = 1) { ruleDao.setEnabled(1, false) }
-        assertEquals("Разовое правило не сработало за сутки и выключено", reasonOf(entry.captured))
+        assertEquals("Jednorazowa reguła nie zadziałała w ciągu doby i została wyłączona", reasonOf(entry.captured))
     }
 
     // --- Item 8: dump ---
@@ -340,7 +340,7 @@ class AutomationEngineAuditTest {
 
     @Test fun `the confirm notification never logs a call step's number or its name`() = runBlocking {
         rules = listOf(rule(1, listOf(button(1)), actions = listOf(
-            ActionDef(command = "123456", displayName = "Позвонить: 123456", kind = "call"),
+            ActionDef(command = "123456", displayName = "Zadzwoń: 123456", kind = "call"),
         )).copy(confirmBeforeExecute = true))
 
         engine.onButtonPress(1)
@@ -348,13 +348,13 @@ class AutomationEngineAuditTest {
         val line = engineLines().first { it.startsWith("Confirm requested") }
         assertEquals("Confirm requested: 'r1' → call", line)
         assertTrue(line, "123456" !in line)
-        assertTrue(line, "Позвонить" !in line)
+        assertTrue(line, "Zadzwoń" !in line)
     }
 
     @Test fun `the confirm notification names a param step by its fixed vehicle code`() = runBlocking {
         rules = listOf(rule(1, listOf(button(1)), actions = listOf(
-            ActionDef(command = "主驾通风1档", displayName = "Вентиляция сиденья водителя", kind = "param"),
-            ActionDef(command = "", displayName = "Домой", kind = "navigate"),
+            ActionDef(command = "主驾通风1档", displayName = "Wentylacja fotela kierowcy", kind = "param"),
+            ActionDef(command = "", displayName = "Do domu", kind = "navigate"),
         )).copy(confirmBeforeExecute = true))
 
         engine.onButtonPress(1)

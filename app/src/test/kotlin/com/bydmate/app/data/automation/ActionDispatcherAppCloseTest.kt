@@ -23,7 +23,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-/** «Закрыть приложение» (#280): a force-stop through the daemon, and every case it refuses. */
+/** “Close application” (#280): a force-stop through the daemon, and every case it refuses. */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29])
 class ActionDispatcherAppCloseTest {
@@ -49,8 +49,8 @@ class ActionDispatcherAppCloseTest {
     }
 
     private fun close(pkg: String) = ActionDef(
-        command = "", displayName = "Закрыть приложение", kind = "app_close",
-        payload = """{"packageName":"$pkg","appLabel":"Радио"}""",
+        command = "", displayName = "Zamknij aplikację", kind = "app_close",
+        payload = """{"packageName":"$pkg","appLabel":"Radio"}""",
     )
 
     @Test fun `a launchable app is force-stopped through the daemon`() = runBlocking {
@@ -62,7 +62,7 @@ class ActionDispatcherAppCloseTest {
     @Test fun `BYDMate itself is never closed`() = runBlocking {
         val r = dispatcher.dispatch(close(SELF), null)
         assertFalse(r.success)
-        assertEquals("BYDMate не закрывает сам себя", r.reason)
+        assertEquals("BYDMate nie zamyka samego siebie", r.reason)
         coVerify(exactly = 0) { helper.forceStop(any()) }
     }
 
@@ -70,7 +70,7 @@ class ActionDispatcherAppCloseTest {
         every { packageManager.getLaunchIntentForPackage("com.android.systemui") } returns null
         val r = dispatcher.dispatch(close("com.android.systemui"), null)
         assertFalse(r.success)
-        assertEquals("Приложение не установлено: com.android.systemui", r.reason)
+        assertEquals("Aplikacja nie jest zainstalowana: com.android.systemui", r.reason)
         coVerify(exactly = 0) { helper.forceStop(any()) }
     }
 
@@ -78,7 +78,7 @@ class ActionDispatcherAppCloseTest {
         coEvery { helper.isAlive() } returns false
         val r = dispatcher.dispatch(close("com.example.radio"), null)
         assertFalse(r.success)
-        assertEquals("служебный процесс перезапускается", r.reason)
+        assertEquals("proces usługi uruchamia się ponownie", r.reason)
         coVerify(exactly = 0) { helper.forceStop(any()) }
     }
 
@@ -86,11 +86,11 @@ class ActionDispatcherAppCloseTest {
         coEvery { helper.forceStop(any()) } returns false
         val r = dispatcher.dispatch(close("com.example.radio"), null)
         assertFalse(r.success)
-        assertEquals("Не удалось закрыть приложение: com.example.radio", r.reason)
+        assertEquals("Nie udało się zamknąć aplikacji: com.example.radio", r.reason)
     }
 
     @Test fun `no app picked is refused`() = runBlocking {
-        val r = dispatcher.dispatch(ActionDef("", "Закрыть приложение", "app_close", """{"packageName":""}"""), null)
+        val r = dispatcher.dispatch(ActionDef("", "Zamknij aplikację", "app_close", """{"packageName":""}"""), null)
         assertFalse(r.success)
         coVerify(exactly = 0) { helper.forceStop(any()) }
     }

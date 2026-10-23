@@ -3,7 +3,7 @@ package com.bydmate.app.agent
 import org.json.JSONObject
 
 /**
- * Fixed code of a tool's error for the trace. The error texts are Russian, written for the model
+ * Fixed code of a tool's error for the trace. The error texts are Polish, written for the model
  * and the driver, and some quote a name the driver said, so the text itself never goes into the
  * trace: the first rule whose fragment it contains names it, [OTHER] when none does.
  */
@@ -11,42 +11,42 @@ internal object AgentToolErrorCode {
 
     const val OTHER = "other"
 
-    // Most specific first: "сервис поиска зарядок недоступен" must not read as "поиск недоступен".
+    // Most specific first: "usługa wyszukiwania ładowarek jest niedostępna" must not read as "wyszukiwanie jest niedostępne".
     private val RULES = listOf(
-        "нет данных с машины" to "no_vehicle_data",
-        "неизвестный инструмент" to "unknown_tool",
-        "запущенной автоматизацией" to "not_in_automation",
-        "внутренняя ошибка" to "internal",
-        "сервис карт недоступен" to "maps_unavailable",
-        "поиск населённых пунктов недоступен" to "settlements_unavailable",
-        "сервис поиска зарядок недоступен" to "chargers_unavailable",
-        "поиск недоступен" to "search_unavailable",
-        "погода недоступна" to "weather_unavailable",
-        "город не найден" to "city_not_found",
-        "нет GPS" to "no_gps",
-        "не нашёл такую точку" to "place_not_found",
-        "скорость неизвестна" to "speed_unknown",
-        "только на паркинге" to "park_required",
-        "часть действий не выполнилась" to "partial",
-        "автоматизация не найдена" to "automation_not_found",
-        "контакт не найден" to "contact_not_found",
-        "подтверждение на экране" to "needs_confirmation",
-        "нет доступа" to "no_permission",
-        "Навигатор" to "navigator",
-        "сплит не запущен" to "split_not_running",
-        "разделение экрана" to "split_unavailable",
-        "данных" to "not_enough_data",
-        "уже существует" to "exists",
-        "достигнут предел" to "limit",
-        "некорректн" to "bad_args",
-        "не указан" to "missing_args",
-        "укажи" to "missing_args",
-        "нужны обе" to "missing_args",
-        "нужен либо" to "missing_args",
-        "неизвестн" to "unknown_value",
-        "не удалось" to "failed",
-        "не получилось" to "failed",
-        "не выполнено" to "failed",
+        "brak danych z samochodu" to "no_vehicle_data",
+        "nieznane narzędzie" to "unknown_tool",
+        "uruchomionej przez automatyzację" to "not_in_automation",
+        "błąd wewnętrzny" to "internal",
+        "usługa map jest niedostępna" to "maps_unavailable",
+        "wyszukiwanie miejscowości jest niedostępne" to "settlements_unavailable",
+        "usługa wyszukiwania ładowarek jest niedostępna" to "chargers_unavailable",
+        "wyszukiwanie jest niedostępne" to "search_unavailable",
+        "pogoda jest niedostępna" to "weather_unavailable",
+        "nie znaleziono miasta" to "city_not_found",
+        "brak GPS" to "no_gps",
+        "nie znaleziono takiego miejsca" to "place_not_found",
+        "prędkość jest nieznana" to "speed_unknown",
+        "tylko na postoju" to "park_required",
+        "nie wykonano części działań" to "partial",
+        "nie znaleziono automatyzacji" to "automation_not_found",
+        "nie znaleziono kontaktu" to "contact_not_found",
+        "potwierdzenie na ekranie" to "needs_confirmation",
+        "brak dostępu" to "no_permission",
+        "Nawigator" to "navigator",
+        "podział ekranu nie jest uruchomiony" to "split_not_running",
+        "podział ekranu" to "split_unavailable",
+        "danych" to "not_enough_data",
+        "już istnieje" to "exists",
+        "osiągnięto limit" to "limit",
+        "nieprawidłow" to "bad_args",
+        "nie podano" to "missing_args",
+        "podaj" to "missing_args",
+        "wymagane są oba" to "missing_args",
+        "wymagane jest albo" to "missing_args",
+        "nieznan" to "unknown_value",
+        "nie udało się" to "failed",
+        "nie udało się" to "failed",
+        "nie wykonano" to "failed",
     )
 
     /** The code of [result]'s `error`, null when the tool did not fail. */

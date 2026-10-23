@@ -8,7 +8,7 @@ import com.bydmate.app.ui.theme.TextPrimary
 
 /**
  * Colour cues for the technical readings, moved here 1:1 from the battery-health dialog
- * the «Техника» screen replaced.
+ * the technical panel replaced.
  *
  * Cell imbalance is gated to the LFP plateau (SOC 20-80%) where the delta is actually
  * diagnostic — BYD's own HV battery check runs in this band with a 90 mV threshold. Near
@@ -50,7 +50,7 @@ internal fun avgSocColor(v: Int?): Color = when {
     else -> SocRed
 }
 
-/** Insulation resistance in МОм: ≥1 healthy, 0.5-1 watch, below that the pack leaks to the body. */
+/** Insulation resistance in MΩ: ≥1 healthy, 0.5-1 watch, below that the pack leaks to the body. */
 internal fun insulationColor(mohm: Double?): Color = when {
     mohm == null -> TextPrimary
     mohm >= 1.0 -> AccentGreen

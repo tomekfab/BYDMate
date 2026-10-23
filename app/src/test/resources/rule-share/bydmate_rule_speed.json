@@ -6,10 +6,10 @@
     "name": "Navi",
     "trigger_logic": "OR",
     "triggers": [
-      {"param":"Speed","chineseName":"车速","operator":">","value":"7","displayName":"Скорость","kind":"param"}
+      {"param":"Speed","chineseName":"车速","operator":">","value":"7","displayName":"Prędkość","kind":"param"}
     ],
     "actions": [
-      {"command":"车窗关闭","displayName":"Закрыть все окна","kind":"param"}
+      {"command":"车窗关闭","displayName":"Zamknij wszystkie okna","kind":"param"}
     ],
     "cooldown_seconds": 3,
     "require_park": false,

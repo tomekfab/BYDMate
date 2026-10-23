@@ -35,7 +35,7 @@ class WeatherClientTest {
     private val geocodeFixture = """
         {
           "results": [
-            {"name": "Москва", "latitude": 55.75222, "longitude": 37.61556},
+            {"name": "Warszawa", "latitude": 55.75222, "longitude": 37.61556},
             {"name": "Moscow", "latitude": 46.6, "longitude": -117.0}
           ]
         }
@@ -69,7 +69,7 @@ class WeatherClientTest {
         val now = json.getJSONObject("now")
         assertEquals(21.4, now.getDouble("temp_c"), 0.01)
         assertEquals(19.8, now.getDouble("feels_c"), 0.01)
-        assertEquals("пасмурно", now.getString("text"))
+        assertEquals("pochmurno", now.getString("text"))
         assertEquals(4.2, now.getDouble("wind_ms"), 0.01)
         assertEquals(55, now.getInt("humidity"))
 
@@ -79,38 +79,46 @@ class WeatherClientTest {
         assertEquals("2026-07-04", day0.getString("date"))
         assertEquals(15.0, day0.getDouble("min_c"), 0.01)
         assertEquals(24.0, day0.getDouble("max_c"), 0.01)
-        assertEquals("малооблачно", day0.getString("text"))
+        assertEquals("lekko zachmurzone", day0.getString("text"))
         assertEquals(10, day0.getInt("precip_prob"))
-        assertEquals("гроза", days.getJSONObject(2).getString("text"))
+        assertEquals("burza", days.getJSONObject(2).getString("text"))
     }
 
-    // (b) wmoToRussian: known and unknown codes.
-    @Test fun wmoToRussian_maps_known_codes_and_falls_back_for_unknown() {
-        assertEquals("ясно", WeatherClient.wmoToRussian(0))
-        assertEquals("сильный дождь", WeatherClient.wmoToRussian(65))
-        assertEquals("гроза с сильным градом", WeatherClient.wmoToRussian(99))
-        assertEquals("неизвестная погода", WeatherClient.wmoToRussian(12345))
+    // (b) wmoToPolish: known and unknown codes.
+    @Test fun wmoToPolish_maps_known_codes_and_falls_back_for_unknown() {
+        assertEquals("bezchmurnie", WeatherClient.wmoToPolish(0))
+        assertEquals("silny deszcz", WeatherClient.wmoToPolish(65))
+        assertEquals("burza z silnym gradem", WeatherClient.wmoToPolish(99))
+        assertEquals("nieznana pogoda", WeatherClient.wmoToPolish(12345))
     }
 
     // (c) geocode returns the first result, carrying its name for the tool to voice back.
     @Test fun geocode_returns_first_match() = runTest {
         val client = WeatherClient(clientFor(geocodeBody = geocodeFixture))
-        val result = client.geocode("Москва")
+        val result = client.geocode("Warszawa")
         assertTrue(result.isSuccess)
         val geo = result.getOrThrow()
         assertEquals(55.75222, geo.lat, 0.0001)
         assertEquals(37.61556, geo.lon, 0.0001)
-        assertEquals("Москва", geo.name)
+        assertEquals("Warszawa", geo.name)
+    }
+
+    @Test fun geocode_requests_polish_result_names() = runTest {
+        val client = WeatherClient(clientFor(geocodeBody = geocodeFixture))
+        client.geocode("Warszawa")
+
+        assertTrue("geocoding URL must request Polish names, was: $lastUrl",
+            lastUrl!!.contains("language=pl"))
     }
 
     @Test fun geocode_no_results_is_failure() = runTest {
         val client = WeatherClient(clientFor(geocodeBody = """{"results": []}"""))
-        val result = client.geocode("Несуществующий Город")
+        val result = client.geocode("Nieistniejące miasto")
         assertTrue(result.isFailure)
-        // City-not-found is the one failure whose message is user-facing Russian text.
+        // City-not-found is the one failure whose message is user-facing Polish text.
         val e = result.exceptionOrNull()
         assertTrue(e is WeatherClient.UserError)
-        assertEquals("город не найден", e?.message)
+        assertEquals("nie znaleziono miasta", e?.message)
     }
 
     // Pin: Open-Meteo defaults to km/h; the wind_ms field requires an explicit unit override.
@@ -130,7 +138,7 @@ class WeatherClientTest {
 
     @Test fun geocode_http_error_is_failure() = runTest {
         val client = WeatherClient(clientFor(status = 500, geocodeBody = "boom"))
-        val result = client.geocode("Москва")
+        val result = client.geocode("Warszawa")
         assertFalse(result.isSuccess)
     }
 }

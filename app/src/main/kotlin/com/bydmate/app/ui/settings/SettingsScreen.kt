@@ -81,7 +81,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -142,6 +141,7 @@ import androidx.annotation.StringRes
 import androidx.compose.ui.res.stringResource
 import com.bydmate.app.cluster.DEFAULT_TRIGGER_KEYCODE
 import com.bydmate.app.cluster.SteeringWheelKeyService
+import com.bydmate.app.navdata.NavCaptureBridge
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filterNotNull
 import com.bydmate.app.R
@@ -162,9 +162,6 @@ import androidx.core.content.ContextCompat
 import androidx.compose.material.icons.outlined.Mic
 import com.bydmate.app.cluster.DEFAULT_VOICE_KEYCODE
 import com.bydmate.app.voice.AgentPersona
-import com.bydmate.app.voice.TtsGender
-import com.bydmate.app.voice.TtsVoiceCatalog
-import com.bydmate.app.voice.online.TtsRouter
 import com.bydmate.app.hud.HudCheck
 import com.bydmate.app.hud.HudController
 import com.bydmate.app.split.Split37Engine
@@ -190,8 +187,8 @@ internal enum class SettingsSection(@StringRes val labelRes: Int, val icon: Imag
 
 private val PrimaryColor = AccentGreen
 
-/** Own phrases for built-in commands are hidden while the built-in phrase list settles. */
-private const val SHOW_VOICE_USER_PHRASES = false
+/** Own typed voice aliases (vehicle, ranged, destination) run through the shared executor. */
+private const val SHOW_VOICE_USER_PHRASES = true
 
 @Composable
 fun SettingsScreen(
@@ -408,7 +405,7 @@ private fun RailItem(
 }
 
 /**
- * One-line description of the period in force today, shown under the «Тарифы и периоды»
+ * One-line description of the period in force today, shown under the "Tariffs and periods"
  * button so the section stays compact but still tells the driver what is being charged.
  */
 @Composable
@@ -1355,7 +1352,7 @@ private fun DisplaySection() {
                     },
                 )
                 SettingDivider()
-                // «Способ вывода на стекло» (#266): way 1 (default) never raises the car's navigation
+                // «Sposób wyświetlania na szybę» (#266): way 1 (default) never raises the car's navigation
                 // status, ways 2 and 3 do and add their channels (HudWayChannels).
                 val hudWays = listOf(HudController.MODE_GLASS_ONLY, HudController.MODE_NAVI_STATUS, HudController.MODE_LMCN)
                 SettingChipRow(
@@ -1458,7 +1455,7 @@ private fun DisplaySection() {
 }
 
 /**
- * «Слепые зоны»: turn signal → blind-spot camera. Reads and writes the feature's own
+ * "Blind spots": turn signal → blind-spot camera. Reads and writes the feature's own
  * SharedPreferences file directly, like the projection cards above; BlindSpotController
  * re-reads it on every tick, so a change lands without a restart. Turning the switch on asks
  * for CAMERA — the AVM stack refuses to open the preview without it (as on the probe screen).
@@ -1536,7 +1533,7 @@ private fun BlindSpotCard() {
             ) {
                 cameraPermLauncher.launch(Manifest.permission.CAMERA)
             }
-            // Switching off disables the "Готово" row too, so the overlay has to be taken
+            // Switching off disables the "Gotowe" row too, so the overlay has to be taken
             // down here or nothing on screen can dismiss it.
             if (!it) positionOverlay.hide()
         },
@@ -1691,7 +1688,7 @@ private fun resolveAppLabel(context: Context, pkg: String): String =
         pkg
     }
 
-/** Human label for a steering-wheel keycode: known name, else "Кнопка (код N)". */
+/** Human label for a steering-wheel keycode: known name, else "Przycisk (kod N)". */
 @Composable
 private fun steeringButtonLabel(keyCode: Int): String {
     val res = com.bydmate.app.cluster.knownButtonNameRes(keyCode)
@@ -1700,7 +1697,7 @@ private fun steeringButtonLabel(keyCode: Int): String {
 }
 
 /**
- * «Разделение экрана» settings section.
+ * Split-screen settings section.
  *
  * Controls the split-screen 1/3+2/3 feature:
  *   1. Master toggle — writes to SplitPreferences and realigns enable_freeform_support via
@@ -2150,7 +2147,7 @@ private fun ServiceSection(
         )
     }
 
-    // «Что восстановить»: only the parts the archive carries can be checked (#238).
+    // «Co przywrócić»: only the parts the archive carries can be checked (#238).
     state.restoreChoice?.let { choice ->
         BackupPartsDialog(
             title = stringResource(R.string.settings_config_restore_dialog_title),
@@ -2520,6 +2517,7 @@ private fun ServiceSection(
 /** Log recording, the fid recorder (test builds) and the fid catalog dump, each with a [?] (#238). */
 @Composable
 private fun DiagnosticsRows(state: SettingsUiState, viewModel: SettingsViewModel) {
+    val context = LocalContext.current
     // Title and body of the open [?] dialog; null = closed.
     var help by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     help?.let { (title, body) ->
@@ -2542,6 +2540,16 @@ private fun DiagnosticsRows(state: SettingsUiState, viewModel: SettingsViewModel
         )
     }
     SettingSubhead(stringResource(R.string.settings_diagnostics_header))
+    // The bridge returns null in release; this source never names the debug-only Activity.
+    NavCaptureBridge.captureActivityIntent(context)?.let { captureIntent ->
+        SettingActionRow(
+            title = stringResource(R.string.settings_nav_capture_title),
+            description = stringResource(R.string.settings_nav_capture_desc),
+            buttonLabel = stringResource(R.string.settings_nav_capture_open),
+            onClick = { context.startActivity(captureIntent) },
+        )
+    }
+    RemoteDiagnosticsSection(state, viewModel)
     SettingActionRow(
         title = stringResource(R.string.settings_log_recording_start_button),
         description = stringResource(R.string.settings_log_recording_desc),
@@ -2603,7 +2611,7 @@ private fun DiagnosticsRows(state: SettingsUiState, viewModel: SettingsViewModel
     }
 }
 
-/** «Проверка HUD»: about 90 s of test hints on the glass; the recorded log and a video of the
+/** «Sprawdzenie HUD»: about 90 s of test hints on the glass; the recorded log and a video of the
  *  glass tell which channel draws on this car. The row only starts the check and shows where it is. */
 @Composable
 private fun HudCheckRow(onWayChosen: (Int) -> Unit) {
@@ -2657,7 +2665,7 @@ private fun HudCheckRow(onWayChosen: (Int) -> Unit) {
     hint?.let { SettingHint(text = it) }
 }
 
-/** A hint line with a small orange tag after it (way 3 «пробный»). */
+/** A hint line with a small orange tag after it (way 3 "trial"). */
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun HudTrialHint(text: String, tag: String) {
@@ -2876,7 +2884,7 @@ private fun AutoBackupRows(state: SettingsUiState, viewModel: SettingsViewModel)
 }
 
 /**
- * «Отчёт при выключении машины»: needs the bot above, so without it the switch is grey and a link
+ * "Report when the car turns off": needs the bot above, so without it the switch is grey and a link
  * takes the driver to the token field. The items show only while the report is on.
  */
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
@@ -3069,7 +3077,7 @@ private fun TelegramCheckButton(state: SettingsUiState, viewModel: SettingsViewM
     ) { Text(stringResource(R.string.settings_tg_backup_check), fontSize = 13.sp, fontWeight = FontWeight.Medium) }
 }
 
-/** «1 Токен — 2 Код — 3 Готово»; steps before [current] show a check mark. */
+/** "1 Token — 2 Code — 3 Done"; steps before [current] show a check mark. */
 @Composable
 private fun TelegramStepper(current: Int) {
     val labels = listOf(
@@ -3115,7 +3123,7 @@ private fun TelegramStepper(current: Int) {
 }
 
 /**
- * «Что сохранить» / «Что восстановить» (#238): a checkbox per part, [available] parts only; at least
+ * «Co zapisz» / «Co przywrócić» (#238): a checkbox per part, [available] parts only; at least
  * one must stay checked. Scrolls, so the buttons stay reachable at the largest text size.
  * [busy] = a restore runs, the confirm button stays disabled.
  */
@@ -3206,7 +3214,7 @@ private fun BackupPartsDialog(
     )
 }
 
-/** «Сохранено»: file name and size, the Telegram outcome, «Поделиться» and «Закрыть». */
+/** "Saved": file name and size, the Telegram outcome, "Share" and "Close". */
 @Composable
 private fun SavedBackupDialog(saved: SavedBackup, withKeys: Boolean, onShare: () -> Unit, onDismiss: () -> Unit) {
     val locale = LocalConfiguration.current.locales[0]
@@ -3408,7 +3416,7 @@ private fun VoiceSettingsContent(
         ActivityResultContracts.RequestPermission()
     ) { granted -> contactsPermGranted = granted }
 
-    // --- Section 1: Агент (enable toggle, name, persona, gender, debug tools) ---
+    // --- Section 1: Agent (enable toggle, name, persona, gender, debug tools) ---
     SectionHeader(text = stringResource(R.string.settings_agent_section_header))
 
     // Agent enable toggle
@@ -3559,196 +3567,10 @@ private fun VoiceSettingsContent(
         }
     }
 
-    // --- Section 2: Ответы агента (TTS toggle + per-voice list, filtered by agent gender) ---
-    SectionHeader(text = stringResource(R.string.settings_tts_header))
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = CardSurfaceElevated),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(modifier = Modifier.padding(horizontal = 12.dp)) {
-            SettingToggleRow(
-                title = stringResource(R.string.settings_tts_toggle),
-                traceId = "tts_toggle",
-                description = stringResource(R.string.settings_tts_subtitle),
-                checked = state.ttsEnabled,
-                onCheckedChange = { viewModel.setTtsEnabled(it) },
-            )
-        }
-    }
+    // --- Voice language (Polish) and the optional text-only assistant: Polish labels, own file ---
+    PolishVoiceSettingsSection(viewModel)
 
-    // Voice list: local voices matching the current agent gender, then the online voices
-    // (Gemini via OpenRouter, MiniMax). Selecting any row sets tts_source.
-    val currentGender = if (state.agentGender == "f") TtsGender.FEMALE else TtsGender.MALE
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = CardSurfaceElevated),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            TtsVoiceCatalog.byGender(currentGender).forEach { voice ->
-                TtsVoiceRow(voice = voice, state = state, viewModel = viewModel)
-            }
-            OnlineTtsVoiceRow(
-                id = "gemini",
-                label = "Gemini",
-                description = stringResource(R.string.settings_tts_voice_online_gemini_desc),
-                badge = stringResource(R.string.settings_tts_voice_online_gemini_badge),
-                enabled = true,
-                state = state, viewModel = viewModel,
-            )
-            OnlineTtsVoiceRow(
-                id = "minimax",
-                label = "MiniMax",
-                description = stringResource(R.string.settings_tts_voice_online_minimax_desc),
-                badge = stringResource(R.string.settings_tts_voice_online_minimax_badge),
-                enabled = state.minimaxKeySet,
-                state = state, viewModel = viewModel,
-            )
-        }
-    }
-    SettingHint(stringResource(R.string.settings_tts_online_fallback_hint))
-
-    // --- Ключи для онлайн-голосов: OpenRouter hint (key lives in AI connections) + MiniMax
-    // provider/price/key ---
-    SectionHeader(text = stringResource(R.string.settings_tts_keys_header))
-    SettingHint(stringResource(R.string.settings_tts_keys_openrouter_hint))
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = CardSurfaceElevated),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("MiniMax", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-            val providerIds = listOf("official", "fal", "replicate")
-            SettingChipRow(
-                title = stringResource(R.string.settings_minimax_provider_label),
-                options = listOf(
-                    stringResource(R.string.settings_minimax_provider_official),
-                    stringResource(R.string.settings_minimax_provider_fal),
-                    stringResource(R.string.settings_minimax_provider_replicate),
-                ),
-                selectedIndex = providerIds.indexOf(state.minimaxProvider).coerceAtLeast(0),
-                onSelect = { viewModel.setMinimaxProvider(providerIds[it]) },
-            )
-            SettingHint(stringResource(R.string.settings_minimax_price_hint))
-            MiniMaxKeyField(keySet = state.minimaxKeySet, onSave = { viewModel.setMinimaxKey(it) })
-        }
-    }
-
-    // --- Section 3: Настройки локального голоса (speed/liveliness sliders + preview) ---
-    SectionHeader(text = stringResource(R.string.settings_tts_tuning_header))
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = CardSurfaceElevated),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(modifier = Modifier.padding(horizontal = 12.dp)) {
-            var ratePct by remember(state.ttsRate) { mutableStateOf((state.ttsRate * 100).roundToInt()) }
-            SettingSliderRow(
-                title = stringResource(R.string.settings_tts_rate_label),
-                description = stringResource(R.string.settings_tts_rate_hint),
-                value = ratePct.toFloat(),
-                onValueChange = { ratePct = it.roundToInt() },
-                valueRange = 70f..140f,
-                valueLabel = String.format(Locale.US, "%.2f", ratePct / 100f),
-                steps = 13,
-                onValueChangeFinished = { viewModel.setTtsRate(ratePct / 100f) },
-            )
-            SettingDivider()
-            var liveliness by remember(state.ttsLiveliness) { mutableStateOf(state.ttsLiveliness) }
-            SettingSliderRow(
-                title = stringResource(R.string.settings_tts_liveliness_label),
-                description = stringResource(R.string.settings_tts_liveliness_hint),
-                value = liveliness.toFloat(),
-                onValueChange = { liveliness = it.roundToInt() },
-                valueRange = 0f..100f,
-                valueLabel = "$liveliness%",
-                steps = 49,
-                onValueChangeFinished = { viewModel.setTtsLiveliness(liveliness) },
-            )
-            SettingDivider()
-            SettingActionRow(
-                title = stringResource(R.string.settings_tts_preview_button),
-                buttonLabel = stringResource(R.string.settings_tts_preview_button),
-                onClick = { viewModel.previewVoice() },
-                style = SettingButtonStyle.Secondary,
-            )
-        }
-    }
-    SettingHint(stringResource(R.string.settings_voice_volume_hint))
-
-    // --- Section 4: Распознавание речи (GigaAM) ---
-    SectionHeader(text = stringResource(R.string.settings_asr_gigaam_title))
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = CardSurfaceElevated),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(modifier = Modifier.padding(horizontal = 12.dp)) {
-            val gigaAmDownloading = state.gigaAmDownloadProgress >= 0
-            if (gigaAmDownloading) {
-                // The unpack pulls nothing over the network and runs for minutes on a
-                // DiLink 3; labelling it "Downloading" is what made it read as a hang.
-                val phaseLabel = when (state.gigaAmDownloadPhase) {
-                    com.bydmate.app.voice.GigaAmModelManager.Phase.UNPACK ->
-                        R.string.settings_voice_model_unpacking
-                    else -> R.string.settings_voice_model_downloading
-                }
-                Text(
-                    stringResource(phaseLabel, state.gigaAmDownloadProgress),
-                    color = TextSecondary, fontSize = 12.sp,
-                    modifier = Modifier.padding(vertical = 8.dp),
-                )
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    color = AccentGreen,
-                )
-            } else {
-                SettingStatusRow(
-                    title = "GigaAM",
-                    ok = state.gigaAmModelReady,
-                )
-                SettingDivider()
-                if (state.gigaAmModelReady) {
-                    SettingActionRow(
-                        title = stringResource(R.string.settings_asr_gigaam_ready),
-                        buttonLabel = stringResource(R.string.settings_asr_gigaam_delete),
-                        onClick = { viewModel.deleteGigaAmModel() },
-                        style = SettingButtonStyle.Warning,
-                    )
-                } else {
-                    if (state.gigaAmDownloadFailed) {
-                        val shortfall = state.gigaAmSpaceShortfall
-                        Text(
-                            if (shortfall != null) {
-                                stringResource(
-                                    R.string.settings_asr_gigaam_no_space,
-                                    shortfall.requiredMb,
-                                    shortfall.availableMb,
-                                )
-                            } else {
-                                stringResource(R.string.settings_asr_gigaam_download_failed)
-                            },
-                            color = SocRed, fontSize = 12.sp,
-                            modifier = Modifier.padding(vertical = 4.dp),
-                        )
-                    }
-                    SettingActionRow(
-                        title = "GigaAM",
-                        buttonLabel = stringResource(
-                            R.string.settings_asr_gigaam_download,
-                            com.bydmate.app.voice.GigaAmModelManager.MODEL_SIZE_LABEL,
-                        ),
-                        onClick = { viewModel.downloadGigaAmModel() },
-                        style = SettingButtonStyle.Primary,
-                    )
-                }
-            }
-        }
-    }
-
-    // --- Section 5: Кнопка и микрофон ---
+    // --- Section 5: Button and microphone ---
     SectionHeader(text = stringResource(R.string.settings_voice_button_mic_header))
 
     // Voice commands toggle
@@ -3858,7 +3680,7 @@ private fun VoiceSettingsContent(
         }
     }
 
-    // --- Section 6: Штатный помощник BYD (moved verbatim from AppSection) ---
+    // --- Section 6: Built-in BYD assistant (moved verbatim from AppSection) ---
     SectionHeader(text = stringResource(R.string.settings_voice_native_assistant_header))
     Card(
         shape = RoundedCornerShape(12.dp),
@@ -3904,149 +3726,9 @@ private fun VoiceSettingsContent(
     }
 }
 
-/** One row in the "Ответы агента" voice list: radio button, name + description + "Локально"
- *  badge, and per-voice download/ready/delete controls. A voice with no model on disk cannot
- *  be selected. */
-@Composable
-private fun TtsVoiceRow(
-    voice: com.bydmate.app.voice.TtsVoice,
-    state: SettingsUiState,
-    viewModel: SettingsViewModel,
-) {
-    val ready = voice.id in state.ttsReadyVoices
-    val downloadProgress = state.ttsDownloadProgress[voice.id]
-    val failed = voice.id in state.ttsDownloadFailed
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(
-            selected = state.ttsSource == TtsRouter.OFFLINE && state.ttsVoice == voice.id,
-            enabled = ready,
-            onClick = {
-                viewModel.setTtsVoice(voice.id)
-                viewModel.setTtsSource(TtsRouter.OFFLINE)
-            },
-            colors = RadioButtonDefaults.colors(
-                selectedColor = AccentGreen,
-                unselectedColor = TextMuted,
-            ),
-        )
-        Column(modifier = Modifier.weight(1f).padding(start = 4.dp, end = 8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(
-                    stringResource(voice.labelRes),
-                    color = if (ready) TextPrimary else TextMuted,
-                    fontSize = 14.sp, fontWeight = FontWeight.Medium,
-                )
-                Text(
-                    stringResource(R.string.settings_tts_voice_local_badge),
-                    color = TextSecondary, fontSize = 10.sp,
-                    modifier = Modifier
-                        .background(CardSurface, RoundedCornerShape(4.dp))
-                        .padding(horizontal = 6.dp, vertical = 2.dp),
-                )
-            }
-            Text(
-                stringResource(
-                    when (voice.engine) {
-                        com.bydmate.app.voice.TtsVoiceEngine.PIPER -> R.string.settings_tts_voice_desc_piper
-                        com.bydmate.app.voice.TtsVoiceEngine.VITS_MULTI -> R.string.settings_tts_voice_desc_vits
-                        com.bydmate.app.voice.TtsVoiceEngine.SUPERTONIC -> R.string.settings_tts_voice_desc_supertonic
-                    }
-                ),
-                color = TextSecondary, fontSize = 12.sp,
-            )
-            if (!ready) {
-                Text(
-                    stringResource(R.string.settings_tts_voice_locked_hint),
-                    color = TextMuted, fontSize = 11.sp,
-                )
-            }
-        }
-        when {
-            downloadProgress != null -> Text(
-                stringResource(R.string.settings_voice_model_downloading, downloadProgress),
-                color = TextSecondary, fontSize = 12.sp,
-            )
-            ready -> Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.settings_tts_voice_ready), color = AccentGreen, fontSize = 12.sp)
-                Text(" · ", color = TextMuted, fontSize = 12.sp)
-                Text(
-                    stringResource(R.string.settings_tts_model_delete),
-                    color = SocRed, fontSize = 12.sp,
-                    modifier = Modifier.clickable { viewModel.deleteTtsVoice(voice.id) },
-                )
-            }
-            else -> Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    stringResource(R.string.settings_tts_voice_download_label, voice.sizeMb),
-                    color = AccentGreen, fontSize = 12.sp,
-                    modifier = Modifier.clickable { viewModel.downloadTtsVoice(voice.id) },
-                )
-                if (failed) {
-                    Text(
-                        stringResource(R.string.settings_tts_download_failed),
-                        color = SocRed, fontSize = 11.sp,
-                    )
-                }
-            }
-        }
-    }
-}
-
-/** One row in the voice list for an online TTS backend (Gemini/MiniMax): radio button,
- *  name + description + an optional badge. Unlike [TtsVoiceRow] there is no download/ready
- *  state -- [enabled] gates selection instead (MiniMax until its key is saved). */
-@Composable
-private fun OnlineTtsVoiceRow(
-    id: String,
-    label: String,
-    description: String,
-    badge: String?,
-    enabled: Boolean,
-    state: SettingsUiState,
-    viewModel: SettingsViewModel,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(
-            selected = state.ttsSource == id,
-            enabled = enabled,
-            onClick = { viewModel.setTtsSource(id) },
-            colors = RadioButtonDefaults.colors(
-                selectedColor = AccentGreen,
-                unselectedColor = TextMuted,
-            ),
-        )
-        Column(modifier = Modifier.weight(1f).padding(start = 4.dp, end = 8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(
-                    label,
-                    color = if (enabled) TextPrimary else TextMuted,
-                    fontSize = 14.sp, fontWeight = FontWeight.Medium,
-                )
-                if (badge != null) {
-                    Text(
-                        badge,
-                        color = TextSecondary, fontSize = 10.sp,
-                        modifier = Modifier
-                            .background(CardSurface, RoundedCornerShape(4.dp))
-                            .padding(horizontal = 6.dp, vertical = 2.dp),
-                    )
-                }
-            }
-            Text(description, color = TextSecondary, fontSize = 12.sp)
-        }
-    }
-}
-
-
 @Composable
 private fun SmartHomeSection(state: SettingsUiState, viewModel: SettingsViewModel) {
-    SectionHeader(text = "Умный дом")
+    SectionHeader(text = "Inteligentny dom")
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = CardSurfaceElevated),
@@ -4076,8 +3758,8 @@ private fun SmartHomeSection(state: SettingsUiState, viewModel: SettingsViewMode
                 secret = true
             )
             SettingActionRow(
-                title = "Сохранить",
-                buttonLabel = "Сохранить",
+                title = "Zapisz",
+                buttonLabel = "Zapisz",
                 onClick = { viewModel.saveAliceSettings() },
                 style = SettingButtonStyle.Primary,
                 enabled = state.aliceEndpoint.isNotBlank() && state.aliceApiKey.isNotBlank(),
@@ -4085,7 +3767,7 @@ private fun SmartHomeSection(state: SettingsUiState, viewModel: SettingsViewMode
             state.aliceSaveStatus?.let {
                 Text(it, color = AccentGreen, fontSize = 12.sp)
             }
-            SettingHint("Polling опрашивает Worker каждую секунду\nи выполняет команды через D+ API")
+            SettingHint("Polling sprawdza Worker co sekundę\ni wykonuje polecenia przez D+ API")
         }
     }
 }
@@ -4385,36 +4067,6 @@ private fun SettingsTextField(
     )
 }
 
-/** MiniMax API key field. The real key lives only in SettingsRepository -- [keySet] (never
- *  the key itself) comes back from the ViewModel, so a saved key shows as a placeholder
- *  instead of being echoed into the field. */
-@Composable
-private fun MiniMaxKeyField(keySet: Boolean, onSave: (String) -> Unit) {
-    var input by remember { mutableStateOf("") }
-    OutlinedTextField(
-        value = input,
-        onValueChange = { input = it; onSave(it) },
-        label = { Text(stringResource(R.string.settings_conn_api_key_label)) },
-        placeholder = if (keySet) {
-            { Text(stringResource(R.string.settings_minimax_key_saved_placeholder), color = TextMuted) }
-        } else null,
-        singleLine = true,
-        visualTransformation = PasswordVisualTransformation(),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
-            focusedBorderColor = AccentGreen,
-            unfocusedBorderColor = CardBorder,
-            focusedLabelColor = PrimaryColor,
-            unfocusedLabelColor = TextSecondary,
-            cursorColor = PrimaryColor,
-        ),
-    )
-}
-
 @Composable
 private fun CustomModelPickerDialog(
     models: List<String>,
@@ -4606,3 +4258,186 @@ private fun cloudOverWifiStatusText(state: CloudOverWifiState): String? = when (
     CloudOverWifiState.Connected -> stringResource(R.string.settings_cloud_wifi_status_connected)
     CloudOverWifiState.ReturnPending -> stringResource(R.string.settings_cloud_wifi_status_return_pending)
 }
+
+
+@Composable
+private fun RemoteDiagnosticsSection(state: SettingsUiState, viewModel: SettingsViewModel) {
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) viewModel.importRemoteDiagnostics(uri)
+    }
+    LaunchedEffect(viewModel) {
+        while (true) {
+            viewModel.refreshRemoteDiagnostics()
+            kotlinx.coroutines.delay(2000)
+        }
+    }
+    var showLogs by rememberSaveable { mutableStateOf(false) }
+    RemoteDiagnosticsSection(
+        state = state,
+        onAutomaticChange = viewModel::setRemoteDiagnosticsAutomatic,
+        onImport = { picker.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) },
+        onSend = viewModel::sendRemoteDiagnosticsNow,
+        onShowLogs = { showLogs = true },
+    )
+    if (showLogs) {
+        RemoteDiagnosticLogsDialog(
+            diagnostics = state.remoteDiagnostics,
+            onDismiss = { showLogs = false },
+        )
+    }
+}
+
+@Composable
+internal fun RemoteDiagnosticsSection(
+    state: SettingsUiState,
+    onAutomaticChange: (Boolean) -> Unit,
+    onImport: () -> Unit,
+    onSend: () -> Unit,
+    onShowLogs: () -> Unit = {},
+) {
+    val diagnostics = state.remoteDiagnostics
+    SettingSubhead(stringResource(R.string.settings_remote_diagnostics_title))
+    SettingHint(text = stringResource(R.string.settings_remote_diagnostics_disclosure))
+    SettingToggleRow(
+        title = stringResource(R.string.settings_remote_diagnostics_auto),
+        traceId = "remote_diagnostics_automatic",
+        checked = diagnostics.automatic,
+        onCheckedChange = onAutomaticChange,
+    )
+    SettingHint(text = stringResource(if (diagnostics.configured) R.string.settings_remote_diagnostics_configured
+        else R.string.settings_remote_diagnostics_unconfigured))
+    state.remoteDiagnosticsImportStatus?.let { SettingHint(text = stringResource(it)) }
+    SettingHint(text = stringResource(R.string.settings_remote_diagnostics_queue, diagnostics.count, diagnostics.bytes))
+    diagnostics.statuses.sorted().forEach { status ->
+        val resource = when (status) {
+            "queued" -> R.string.settings_remote_diagnostics_queued
+            "sending" -> R.string.settings_remote_diagnostics_sending
+            "retrying" -> R.string.settings_remote_diagnostics_retrying
+            "blocked" -> R.string.settings_remote_diagnostics_blocked
+            "terminal" -> R.string.settings_remote_diagnostics_terminal
+            else -> null
+        }
+        resource?.let { SettingHint(text = stringResource(it)) }
+    }
+    val successAt = diagnostics.lastSuccessAtMs
+    SettingHint(text = if (successAt == null) stringResource(R.string.settings_remote_diagnostics_never)
+        else stringResource(R.string.settings_remote_diagnostics_success,
+            java.text.DateFormat.getDateTimeInstance().format(java.util.Date(successAt))))
+    SettingHint(text = stringResource(R.string.settings_remote_diagnostics_expiry))
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        listOf(
+            R.string.settings_remote_diagnostics_import to onImport,
+            R.string.settings_remote_diagnostics_send to onSend,
+            R.string.settings_remote_diagnostics_logs_show to onShowLogs,
+        ).forEach { (label, action) ->
+            Button(
+                onClick = action,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = CardSurfaceElevated, contentColor = TextPrimary),
+                border = BorderStroke(1.dp, CardBorder),
+            ) {
+                Text(stringResource(label), fontSize = 13.sp, fontWeight = FontWeight.Medium)
+            }
+        }
+    }
+}
+
+@Composable
+internal fun RemoteDiagnosticLogsDialog(diagnostics: RemoteDiagnosticsState, onDismiss: () -> Unit) {
+    var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
+    val selected = resolveRemoteDiagnosticLog(diagnostics.logs, selectedId)
+    val dateFormat = remember { java.text.DateFormat.getDateTimeInstance() }
+    AppAlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings_remote_diagnostics_logs_title)) },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.settings_remote_diagnostics_logs_close)) }
+        },
+        dismissButton = if (selectedId != null) {
+            { TextButton(onClick = { selectedId = null }) { Text(stringResource(R.string.settings_remote_diagnostics_logs_batch)) } }
+        } else null,
+        text = {
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth().heightIn(max = 420.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                item { SettingHint(text = stringResource(R.string.settings_remote_diagnostics_logs_help)) }
+                if (selectedId != null && selected == null) {
+                    item { SettingHint(text = stringResource(R.string.settings_remote_diagnostics_logs_removed)) }
+                }
+                if (selected != null) {
+                    remoteDiagnosticLogDetail(selected, dateFormat)
+                } else if (diagnostics.logs.isEmpty()) {
+                    item { SettingHint(text = stringResource(R.string.settings_remote_diagnostics_logs_empty)) }
+                } else {
+                    items(diagnostics.logs, key = { it.batchId }) { batch ->
+                        Column(
+                            modifier = Modifier.fillMaxWidth().clickable { selectedId = batch.batchId }.padding(vertical = 6.dp),
+                        ) {
+                            Text(dateFormat.format(java.util.Date(batch.createdAtMs)), color = TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                            Text(
+                                "${remoteDiagnosticStatusLabel(batch.status)} · " +
+                                    stringResource(R.string.settings_remote_diagnostics_logs_events, batch.eventCount),
+                                color = TextSecondary, fontSize = 12.sp,
+                            )
+                        }
+                    }
+                }
+            }
+        },
+    )
+}
+
+private fun androidx.compose.foundation.lazy.LazyListScope.remoteDiagnosticLogDetail(
+    batch: RemoteDiagnosticLogBatch,
+    dateFormat: java.text.DateFormat,
+) {
+    item {
+        Text(
+            dateFormat.format(java.util.Date(batch.createdAtMs)) + " · " + remoteDiagnosticStatusLabel(batch.status),
+            color = TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Medium,
+        )
+    }
+    item { SettingSubhead(stringResource(R.string.settings_remote_diagnostics_logs_events, batch.events.size)) }
+    items(batch.events) { RemoteDiagnosticLogLine(it) }
+    item { SettingSubhead(stringResource(R.string.settings_remote_diagnostics_logs_logcat, batch.logcatEntries.size)) }
+    items(batch.logcatEntries) { RemoteDiagnosticLogLine(it) }
+    item {
+        SettingHint(text = stringResource(R.string.settings_remote_diagnostics_logs_dropped, batch.droppedUnrecognisedLines))
+        SettingHint(text = stringResource(R.string.settings_remote_diagnostics_logs_truncated, batch.truncatedLogEvents))
+    }
+    item {
+        SettingHint(
+            text = stringResource(
+                R.string.settings_remote_diagnostics_logs_counters,
+                batch.counters.captureDropped, batch.counters.queueDropped, batch.counters.storageFailures,
+            ),
+        )
+    }
+}
+
+@Composable
+private fun RemoteDiagnosticLogLine(event: RemoteDiagnosticLogEvent) {
+    Text(
+        buildString {
+            append(event.type).append(" @").append(event.atMs)
+            event.fields.forEach { (key, value) -> append("  ").append(key).append('=').append(value) }
+        },
+        color = TextSecondary, fontSize = 12.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+    )
+}
+
+@Composable
+private fun remoteDiagnosticStatusLabel(status: String): String = stringResource(
+    when (status) {
+        "sending" -> R.string.settings_remote_diagnostics_sending
+        "retrying" -> R.string.settings_remote_diagnostics_retrying
+        "blocked" -> R.string.settings_remote_diagnostics_blocked
+        "terminal" -> R.string.settings_remote_diagnostics_terminal
+        else -> R.string.settings_remote_diagnostics_queued
+    },
+)

@@ -13,11 +13,11 @@
 [![GitHub release](https://img.shields.io/github/v/release/AndyShaman/BYDMate?style=flat-square)](https://github.com/AndyShaman/BYDMate/releases)
 [![Sponsor](https://img.shields.io/badge/Sponsor-FF69B4?style=flat-square&logo=githubsponsors&logoColor=white)](SUPPORT.md)
 
-**English** | [中文](README.zh.md) | [Русский](README.md)
+**English** | [中文](README.zh.md)
 
 **Real consumption, GPS routes, automation, local AI analytics.**
 
-Split screen 1/3 and 2/3, navigation on the instrument cluster, Yandex Navigator guidance on the windshield, turn-signal blind-spot cameras, a Russian voice assistant, ABRP telemetry.
+Split screen 1/3 and 2/3, navigation on the instrument cluster, Yandex Navigator guidance on the windshield, turn-signal blind-spot cameras, a Polish voice assistant, ABRP telemetry.
 
 Tested on Leopard 3 (Fangchengbao Tai 3), with support for Sea Lion 07, Song, Atto 3, Seal, Han and the DM-i and DM-o hybrids (Song Pro DM-i, Leopard 5, Leopard 8, Sealion 06). DiLink 3.0, 4.0, 5.0, 5.1, and firmware with the new UI7 interface (OTA V1.6).
 
@@ -31,7 +31,7 @@ Tested on Leopard 3 (Fangchengbao Tai 3), with support for Sea Lion 07, Song, At
 
 The stock BYD onboard computer **underestimates consumption by 10-30%**. BYDMate reads data straight from the BMS (energydata) and shows the real consumption. Plus data the stock system does not have at all: idle drain, cell balance, trip cost, AI analytics.
 
-All core features (trips, charges, automations, local insights, offline voice agent) run locally on DiLink and need no internet. Cloud features are off by default and turn on only when you enter a key by hand. What exactly leaves the device and when is described in the [Data & Network](#data--network) section.
+All core features (trips, charges, automations, local insights, offline voice agent) run locally on DiLink and need no internet. Cloud features require explicit setup. The online assistant is off by default and requires an OpenClaw endpoint, device pairing, and a separate opt-in. What exactly leaves the device and when is described in the [Data & Network](#data--network) section.
 
 ---
 
@@ -74,7 +74,7 @@ The main changes in version 4.0.0.
 | **HUD** | Windshield projection | Maneuvers, distance, and the speed limit sign from Yandex Navigator on the factory head-up display |
 | **Split** | Split screen | Two apps at once: BYDMate windows in a 1/3 and 2/3 layout, or the firmware's own split |
 | **Cam** | Blind-spot cameras | The camera of the matching side while the turn signal is on: on the cluster or in a small window on the screen |
-| **Voice** | Voice agent | Russian offline assistant: on-device speech recognition, AI agent (32 tools), neural TTS |
+| **Voice** | Voice agent | Polish offline assistant: on-device speech recognition, AI agent (32 tools), neural TTS |
 | **Widget** | Floating widget | 7 fields over other apps: SOC, range, consumption + trend, time, cabin t°, battery t°, 12V; on a hybrid the fuel range and tank level replace consumption |
 | **Auto** | Autostart | WorkManager, starts on boot |
 | **Backup** | Configuration backup | Trips, charges, settings, and keys in one archive in Download, restore by parts, scheduled auto-save with a copy in your Telegram bot |
@@ -329,21 +329,21 @@ Enable it in **Settings → Display**, "Blind spots" section (off by default). T
 
 ## Voice AI Agent
 
-A full Russian voice assistant built into BYDMate. Speech is recognized right on the head unit, with no internet: the GigaAM v3 neural network listens and understands Russian. Simple commands run instantly through local parsing, the AI agent handles everything else: a language model with 32 tools that reads the car's data itself, controls body functions, builds routes, runs automations, and answers by voice.
+BYDMate uses Parakeet for on-device speech recognition, a shared VAD model for speech detection, and Gosia for Polish speech output. Local Polish commands run without a network. Requests sent to the configured assistant require a connection.
 
-### Why Russian, and Only Russian
+### Supported Voice Language
 
-The stock BYD voice assistant already works natively in English and Chinese. Building another English assistant makes no sense. BYDMate covers what the car does not have at all: Russian. That is why speech recognition, command parsing, and the TTS voices are built specifically for Russian, and there are no plans for an English version of the agent.
+Polish is the supported voice language. The app interface language is separate. Parakeet detects language automatically; the app does not force the recognition model to emit Polish. Russian recognition, commands and voices have been removed.
 
 ### How to Enable It
 
-1. **Settings → Voice agent**: turn on the **"Voice AI agent"** toggle. *What should happen:* fields for the agent's name, personality, and gender appear below.
-2. Set a language model key: **Settings → Integrations → AI connections**. We recommend OpenRouter (sign up at openrouter.ai, paid, fractions of a cent per question) with a fast model such as Gemini Flash. There is a free option, z.ai with the glm-4.7-flash model, but it answers noticeably slower. A third option: your own OpenAI-compatible server. *What should happen:* the connection gets a mark that the key is set. You can set up two connections: if the main one fails, the agent switches to the second one by itself.
-3. Go back to **Voice agent**, "Agent" section, and tap **"Test model"**. *What should happen:* the model name, response time, and a short phrase from the agent appear under the button. If the button is gray, the key was not saved: check it in Integrations. The **"Agent chat (debug)"** button next to it lets you check text replies even before using the microphone.
-4. In the **"Speech recognition"** section tap **"Download (226 MB)"**, preferably over Wi-Fi. *What should happen:* a download percentage appears, and at the end the line changes to **"Model ready"**.
-5. In the **"Button and microphone"** section turn on the **"Voice commands"** toggle and grant the microphone. *What should happen:* the current steering-wheel button shows up below. On Leopard 3 it is already assigned, on other cars tap **"Assign button"** and press a button on the wheel once.
-6. Press the wheel button and say "Сколько заряда?" (How much charge is left?). *What should happen:* a "Listening" pill appears, a short beep follows the phrase, and an answer comes a second or two later.
-7. TTS is optional: in the **"Agent replies"** section, turn on the toggle and download a voice (a regular one is 18-21 MB, or the improved Mark or Sofia share a 145 MB download). *What should happen:* the agent starts answering out loud; without TTS the answer stays as text on the screen.
+1. Open the voice settings and the Polish offline setup.
+2. Download Parakeet recognition assets, the shared VAD and Gosia. Use the sizes shown in the app. Missing assets leave voice not ready. Downloads do not enable the microphone or an assistant.
+3. Activate Polish after the assets are ready.
+4. For online assistant requests, enter your OpenClaw endpoint, pair the app, and use the connection test. Keep the assistant disabled until you choose to enable it.
+5. Grant microphone permission and enable voice commands when you are ready to test. Assign a steering-wheel button if your car requires it.
+6. Press the voice button and try a Polish command such as "Ile mam energii?". The floating widget shows listening, recognition and command status.
+7. Spoken replies are optional and off by default. Enable the spoken-reply setting to use Gosia; otherwise replies stay as text.
 
 <img src="docs/screenshots/settings-voice.jpg" alt="Settings → Voice agent: agent, name, personality, voice" width="800">
 
@@ -353,45 +353,45 @@ The stock BYD voice assistant already works natively in English and Chinese. Bui
 - A "Listening" pill indicator appears on the screen. You can drag it anywhere, the position is remembered. The pill shows the last lines: "You:" and "Agent:".
 - Speak in normal phrases. The session stays open: after the agent answers, you can keep talking right away, no need to press the button again.
 - The session ends by itself after 30 seconds of silence, with its own sound cue. There is no limit on how long the conversation runs: while the dialog continues, the agent keeps listening. Short beeps confirm a command was received and signal an error.
-- **Interrupting by name.** If you give the agent a name (the "Agent name" field in Settings), saying that name while it is answering makes it stop and listen again. A name at the start of a phrase is dropped ("Штурман, открой окна" is understood as "открой окна", open the windows). Important: this is not a wake word like Alice's, the agent does not listen to the microphone without a button press. The name is empty by default and interrupting is off.
+- **Interrupting by name.** If you give the agent a name (the "Agent name" field in Settings), saying that name while it is answering makes it stop and listen again. A name at the start of a phrase is dropped ("Nawigatorze, otwórz okna" is understood as "otwórz okna", open the windows). Important: this is not a wake word like Alice's, the agent does not listen to the microphone without a button press. The name is empty by default and interrupting is off.
 
 ### What the Agent Can Do
 
 The agent has 32 tools. Example phrases:
 
 **Car and climate**
-- "Сколько заряда?" (How much charge is left?), "Какая температура за бортом?" (What's the temperature outside?), "Какой запас хода?" (What's my range?) (live vehicle status)
-- "Открой окна" (Open the windows), "Включи подогрев сиденья" (Turn on seat heating), "Поставь климат на 22" (Set the climate to 22) (full catalog of 110 commands, see below)
-- "Сделай музыку громче" (Turn the music up), "Потише" (Quieter) (media volume)
+- "Ile mam energii?" (How much charge is left?), "Jaka jest temperatura na zewnątrz?" (What's the temperature outside?), "Jaki mam zasięg?" (What's my range?) (live vehicle status)
+- "Otwórz okna" (Open the windows), "Włącz ogrzewanie siedzenia" (Turn on seat heating), "Ustaw klimatyzację na 22" (Set the climate to 22) (full catalog of 110 commands, see below)
+- "Zrób głośniej muzykę" (Turn the music up), "Ciszej" (Quieter) (media volume)
 
 **Trips, charges, statistics**
-- "Покажи поездки за неделю" (Show my trips for the week), "Сколько я проехал за месяц?" (How far did I drive this month?)
-- "Когда я последний раз заряжался?" (When did I last charge?)
-- "Запиши зарядку на 30 киловатт-часов за 200 рублей" (Log a charge of 30 kWh for 200 rubles) (manual entry in the charging log)
-- "Какой у меня средний расход?" (What's my average consumption?)
+- "Pokaż podróże z tygodnia" (Show my trips for the week), "Ile przejechałem w tym miesiącu?" (How far did I drive this month?)
+- "Kiedy ostatnio ładowałem?" (When did I last charge?)
+- "Zapisz ładowanie 30 kilowatogodzin za 200 złotych" (Log a charge of 30 kWh for 200 złoty) (manual entry in the charging log)
+- "Jakie mam średnie zużycie?" (What's my average consumption?)
 
 **Navigation and places**
-- "Поехали домой" (Let's go home), "Поехали на работу" (Let's go to work), "Поехали на дачу" (Let's go to the dacha) (saved places). On "поехали" (let's go) the assistant taps "Go" in Yandex Navigator by itself, on "построй маршрут домой" (build a route home) it only builds the route
+- "Jedź do domu" (Let's go home), "Jedź do pracy" (Let's go to work), "Jedź na działkę" (Let's go to the dacha) (saved places). On "jedź" (let's go) the assistant taps "Go" in Yandex Navigator by itself, on "wyznacz trasę do domu" (build a route home) it only builds the route
 - With split screen on, the assistant first collapses it, builds the route, and puts the panes back: otherwise the firmware recreates the Navigator and the route is lost. Requires the BYDMate accessibility service to be on
-- Say "в картах" (in Maps): "поехали домой в картах" (let's go home in Maps), "найди заправку в яндекс картах" (find a gas station in Yandex Maps); the route, search, or point display go to Yandex Maps, without these words the route goes to the navigator chosen in the "Navigator for routes" setting (Settings → Voice agent → Agent), Yandex Navigator by default; 2GIS, Yandex Maps and Waze are the other choices
-- "Найди зарядки рядом" (Find charging stations nearby)
-- "Хватит ли заряда до Казани?" (Is there enough charge to reach Kazan?), "Сколько ехать до аэропорта?" (How long to the airport?)
-- "Запомни это место как дача" (Remember this place as dacha), "Какие места сохранены?" (What places are saved?)
-- "Выведи навигацию на приборку" (Put navigation on the cluster), "Убери с приборки" (Take it off the cluster) (Yandex Navigator projection)
+- Say "w mapach" (in Maps): "jedź do domu w mapach" (let's go home in Maps), "znajdź stację paliw w mapach Yandex" (find a petrol station in Yandex Maps); the route, search, or point display go to Yandex Maps, without these words the route goes to the navigator chosen in the "Navigator for routes" setting (Settings → Voice agent → Agent), Yandex Navigator by default; 2GIS, Yandex Maps and Waze are the other choices
+- "Znajdź ładowarki w pobliżu" (Find charging stations nearby)
+- "Czy wystarczy energii do Kazania?" (Is there enough charge to reach Kazan?), "Ile jedzie się na lotnisko?" (How long to the airport?)
+- "Zapamiętaj to miejsce jako działkę" (Remember this place as dacha), "Jakie miejsca są zapisane?" (What places are saved?)
+- "Pokaż nawigację na zegarach" (Put navigation on the cluster), "Usuń z zegarów" (Take it off the cluster) (Yandex Navigator projection)
 
 **Media and apps**
-- "Включи мою волну" (Turn on my wave), "Включи джаз" (Play jazz) (Yandex Music)
-- "Включи на ютубе лекции по истории" (Play history lectures on YouTube)
-- "Открой навигатор" (Open the navigator), "Открой камеры" (Open the cameras), "Открой регистратор" (Open the dash cam app), "Открой браузер" (Open the browser), and other apps by their Russian names
+- "Włącz moją falę" (Turn on my wave), "Włącz jazz" (Play jazz) (Yandex Music)
+- "Włącz na YouTube wykład o historii" (Play history lectures on YouTube)
+- "Otwórz nawigację" (Open the navigator), "Otwórz kamery" (Open the cameras), "Otwórz rejestrator" (Open the dash cam app), "Otwórz przeglądarkę" (Open the browser), and other apps by their Polish names
 
 **Automation**
-- "Запусти сценарий домой" (Run the "home" automation), "Какие у меня сценарии?" (What automations do I have?)
-- "Выключи автоматизацию прогрева" (Turn off the warm-up automation)
-- "Создай сценарий: когда приезжаю домой, открывай окна" (Create an automation: when I get home, open the windows) (the agent assembles the rule from a trigger and actions itself)
+- "Uruchom scenariusz dom" (Run the "home" automation), "Jakie mam scenariusze?" (What automations do I have?)
+- "Wyłącz automatyzację podgrzewania" (Turn off the warm-up automation)
+- "Utwórz scenariusz: gdy wracam do domu, otwórz okna" (Create an automation: when I get home, open the windows) (the agent assembles the rule from a trigger and actions itself)
 
 **Internet**
-- "Какая погода?" (What's the weather?), "Какая погода в Москве завтра?" (What's the weather in Moscow tomorrow?)
-- "Поищи в интернете, когда выйдет обновление DiLink" (Search the web for when the DiLink update comes out)
+- "Jaka jest pogoda?" (What's the weather?), "Jaka będzie jutro pogoda w Moskwie?" (What's the weather in Moscow tomorrow?)
+- "Wyszukaj w internecie, kiedy wyjdzie aktualizacja DiLink" (Search the web for when the DiLink update comes out)
 
 ### Vehicle Control: A Catalog of 110 Commands
 
@@ -418,63 +418,44 @@ Safety: window opening is blocked above 120 km/h, the sunroof above 80 km/h, doo
 
 ### Quick Commands Without the Agent and Without Internet
 
-Frequent commands run instantly, without the language model and without the network. For this, the app has a fixed list of Russian phrases: windows and sunroof, seat heating and ventilation, steering wheel heating, mirrors, climate, fan, volume, locks, trunk, and lights.
+Frequent commands run instantly, without the language model and without the network. For this, the app has a fixed list of Polish phrases: windows and sunroof, seat heating and ventilation, steering wheel heating, mirrors, climate, fan, volume, locks, trunk, and lights.
 
 How it works:
 
 - A phrase runs offline only if said in full and exactly as in the list. A different wording of the same thing goes to the agent.
-- Polite words do not get in the way: "пожалуйста" (please), "можешь" (can you), "слушай" (listen), "спасибо" (thanks) are simply dropped.
-- "A and B" runs both commands if each one is in the list: "открой окно водителя и закрой люк" (open the driver's window and close the sunroof).
-- Windows and the sunroof open by a fraction: "наполовину" (halfway), "на 50 процентов" (at 50 percent), "чуть-чуть" (just a bit), "полностью" (all the way), "на треть" (a third). The percent is rounded down to the nearest supported position, the window never opens wider than asked.
+- Polite words do not get in the way: "proszę" (please), "możesz" (can you), "słuchaj" (listen), "dziękuję" (thanks) are simply dropped.
+- "A and B" runs both commands if each one is in the list: "otwórz okno kierowcy i zamknij szyberdach" (open the driver's window and close the sunroof).
+- Windows and the sunroof open by a fraction: "do połowy" (halfway), "na 50 procent" (at 50 percent), "trochę" (just a bit), "całkowicie" (all the way), "w jednej trzeciej" (a third). The percent is rounded down to the nearest supported position, the window never opens wider than asked.
 - Everything else goes to the cloud AI agent, if it is on. Without the agent, such a phrase gets "didn't understand" as the answer, while the phrases from the list keep working.
 
 Examples from the list. Full list with wording variants: [docs/VOICE_COMMANDS.md](docs/VOICE_COMMANDS.md).
 
 | Phrase | What happens |
 |-------|----------------|
-| "Открой окна" (Open the windows) | all windows open all the way |
-| "Открой окно на 50 процентов" (Open the window 50 percent) | the driver's window opens halfway |
-| "Приоткрой окно водителя" (Crack the driver's window) | the driver's window opens to vent |
-| "Режим проветривания" (Airing mode) | all windows go to vent, the sunroof lifts |
-| "Выключи режим проветривания" (Turn off airing mode) | the windows and sunroof close |
-| "Открой люк наполовину" (Open the sunroof halfway) | the sunroof opens halfway |
-| "Включи подогрев сиденья пассажира на второй уровень" (Turn on the passenger seat heater, level two) | passenger seat heating, level 2 |
-| "Включи подогрев руля" (Turn on the steering wheel heater) | steering wheel heating |
-| "Поставь температуру 22" (Set the temperature to 22) | climate set to 22 degrees |
-| "Громкость 20" (Volume 20) | media volume set to 20 |
-| "Включи Яндекс Музыку", "Яндекс Музыка" (Turn on Yandex Music, Yandex Music) | starts "My Wave" in Yandex Music |
-| "Запри машину" (Lock the car) | doors lock |
+| "Otwórz okna" (Open the windows) | all windows open all the way |
+| "Otwórz okno na 50 procent" (Open the window 50 percent) | the driver's window opens halfway |
+| "Uchyl okno kierowcy" (Crack the driver's window) | the driver's window opens to vent |
+| "Tryb wietrzenia" (Airing mode) | all windows go to vent, the sunroof lifts |
+| "Wyłącz tryb wietrzenia" (Turn off airing mode) | the windows and sunroof close |
+| "Otwórz szyberdach do połowy" (Open the sunroof halfway) | the sunroof opens halfway |
+| "Włącz ogrzewanie siedzenia pasażera na drugi poziom" (Turn on the passenger seat heater, level two) | passenger seat heating, level 2 |
+| "Włącz ogrzewanie kierownicy" (Turn on the steering wheel heater) | steering wheel heating |
+| "Ustaw temperaturę na 22" (Set the temperature to 22) | climate set to 22 degrees |
+| "Głośność 20" (Volume 20) | media volume set to 20 |
+| "Włącz Yandex Music", "Yandex Music" (Turn on Yandex Music, Yandex Music) | starts "My Wave" in Yandex Music |
+| "Zamknij samochód" (Lock the car) | doors lock |
 
-The English offline commands were removed, the list is Russian only. The app's interface language does not affect this: the offline commands and the agent work regardless of the app's language.
+The offline command list supports Polish. The app's interface language does not affect this: the offline commands and the agent work regardless of the app's language.
 
-### Keys: What to Enter and What's Optional
+### Online Assistant Setup (OpenClaw)
 
-| Key | Required | Why |
-|------|------------|-------|
-| OpenRouter | Any one LLM key is enough; OpenRouter is recommended for speed | The agent's brain. Fast models (Gemini Flash, for example) answer almost instantly, price: fractions of a cent per request |
-| z.ai | Free alternative | The agent's brain, glm-4.7-flash model, free but noticeably slower |
-| Your own server | Alternative | Any OpenAI-compatible endpoint: URL, key, model |
-| Exa | No | Better web search. Without it, "search the web" runs through the LLM provider's built-in search |
-| MiniMax | No | Only for the MiniMax online voice, does not affect the agent |
+Enter your OpenClaw Gateway `wss://` endpoint in Settings → Voice agent, pair this device, then test the connection. Enable the online assistant only when you want to send requests. Pairing credentials stay on this device and are not included in backups.
 
-All keys are entered in the app and stored locally, there are none in the code or in the secrets repository.
+Choose the model, provider, and any remote tools on your OpenClaw server. The Polish assistant has no direct OpenRouter, z.ai, or OpenAI-compatible provider setup or fallback in the app. See [OpenClaw setup](docs/voice/openclaw-setup.md) for the pairing flow.
 
 ### Voices
 
-Offline voices (work without internet, downloaded one at a time):
-
-| Voice | Gender | Size | Quality |
-|-------|-----|--------|----------|
-| Dmitri (default) | male | 21 MB | standard |
-| Alyona | female | 18 MB | standard |
-| Ruslan | male | 21 MB | standard |
-| Irina | female | 21 MB | standard |
-| Mark | male | 145 MB | improved |
-| Sofia | female | 145 MB | improved |
-
-Mark and Sofia (the Supertonic engine) sound noticeably more natural than the standard voices, but weigh more and share one download: once you get either one, you cannot get the other without a separate download. Speed and intonation liveliness are set with sliders, with a "Play a sample" button next to them.
-
-Online voices (optional, sound more natural): Gemini and OpenAI through the OpenRouter key, MiniMax through its own key (three connection methods: the official API, fal.run, replicate). There is no offline fallback: if the online voice does not answer or fails, the reply stays as text in the pill but is not spoken.
+Gosia is the supported Polish offline voice. Download it from Polish voice setup; the app shows the required size. Russian voices and the former online voice choices are removed. If Gosia is missing, speech output is not ready. Spoken replies require explicit opt-in.
 
 About volume: agent replies go through BYD's own voice channel (the same one native prompts use), its volume is set by the car's system voice setting. The "turn it up" command changes the music volume, not the agent's voice. If the agent sounds too quiet or too loud, adjust the system voice volume.
 
@@ -483,8 +464,8 @@ About volume: agent replies go through BYD's own voice channel (the same one nat
 The agent works in three steps, and delay builds up at each one.
 
 1. **Speech to text.** Entirely on the device, no network. Speed depends on the head unit's processor.
-2. **Understanding the phrase.** Phrases from the built-in list run almost instantly. Everything else goes to the language model: however long it thinks, plus the ping to the provider. This is the main source of delay. Gemini Flash through OpenRouter answers in a fraction of a second, the free glm-4.7-flash is noticeably slower.
-3. **Speaking the answer.** Offline voices are light and fast, but still take some time. Online voices are slower: they depend on ping too.
+2. **Understanding the phrase.** Built-in commands run locally. Other requests go as text to your paired OpenClaw Gateway when the online assistant is enabled. Delay depends on the connection, the server's chosen model, and any remote tools it uses.
+3. **Speaking the answer.** Gosia generates speech on the device. This adds local processing time.
 
 If you need maximum speed, turn off the "Agent replies" toggle. There will be no TTS, the reply stays as text on the screen, and only the first two steps run. Quick commands run without internet either way.
 
@@ -495,7 +476,7 @@ In Settings you pick one of three response personalities (Navigator by default) 
 ### Privacy
 
 - Microphone audio never leaves the car: speech recognition is entirely offline.
-- Only text goes to the cloud (to the LLM provider): your phrase and the data the agent fetched with its tools to answer it.
+- When enabled, the online assistant sends recognized or typed text to your paired OpenClaw Gateway. BYDMate does not attach vehicle state or GPS coordinates to these requests or expose local car tools to OpenClaw. Text you include yourself is sent. The Gateway may forward text to its configured model providers and tools; check that server’s storage and privacy settings.
 - The voice journal (the last 50 recognitions with their outcomes, for self-diagnosis) is stored only on the head unit and survives restarts. It ends up in the log recording file: what the head unit heard, what command it became, and why it was declined. Journal screen: Settings → Voice agent → "Voice journal", it shows how a phrase was recognized, where it went, and how it ended.
 - To check the agent without a microphone there is a text chat (a debug screen in Settings).
 
@@ -507,14 +488,14 @@ The stock assistant is disabled in the car's system, so turn this toggle off bef
 
 ### Requirements
 
-- Disk space: the recognition model is 226 MB plus a TTS voice (a regular one is 18-21 MB, or the improved Mark/Sofia share a 145 MB download). Roughly 245 to 370 MB in total.
-- Internet: needed only by the AI agent (language model), weather, search, and online voices. Speech recognition, quick commands, and offline voices work without the network.
+- Disk space: Parakeet recognition assets, shared VAD and Gosia. Use the download sizes shown in the app.
+- Internet: needed only by the AI agent (language model), weather and search. Speech recognition, quick commands, and offline voices work without the network.
 - Permissions: the microphone (requested when you turn it on) and the accessibility service for the wheel button (turns on automatically).
 - Confirmed on Leopard 3 (DiLink 5.0). The voice wheel button is set up for Leopard 3 out of the box, on other models teach your own button in Settings.
 
 ### Memory About the Driver
 
-Tell the agent your name or what you usually prefer, and it remembers this between conversations. Saying "Забудь ..." ("Forget ...") removes one fact. The list of facts and the "Forget everything" button: Settings → Voice agent → Agent. Facts are stored only on the head unit and only go out in the request to the language model you chose.
+Online conversation history and memory follow your OpenClaw server's configuration. Manage stored facts and retention on that server. BYDMate's local driver-memory tools are not exposed through the Polish OpenClaw assistant.
 
 ---
 
@@ -603,7 +584,7 @@ Three ways. The "?" badge next to the section header in Settings reminds you of 
 
 - **From the widget** (the most convenient). In Settings, "Widget tap" section, turn on "Tap zoning", and set "Left tap action" to "Launch split screen". A tap on the left third of the widget now opens the split, tapping again closes it.
 - **From automations.** Rules have three actions: "Split Screen", "Close Split Screen", and "Toggle Split Screen". You can, for example, turn on the split whenever navigation starts.
-- **By voice.** Tell the agent "включи разделение экрана" (turn on split screen).
+- **By voice.** Tell the agent "włącz podzielony ekran" (turn on split screen).
 
 ### First Launch and Choosing Apps
 
@@ -732,7 +713,7 @@ Everything is in **Settings → Service & Data → Data → "Configuration"**.
 2. In the "What to save" window, check the parts you want:
    - **Tables**: trips, charges, statistics.
    - **Car and app settings**: settings, tariffs, automations, places, widget, voice.
-   - **Keys and tokens**: OpenRouter, ABRP, Telegram bot, and others. Unchecked by default. Leave them unchecked if you are giving the file to someone else.
+   - **Keys and tokens**: legacy provider keys, ABRP, Telegram bot, and others. OpenClaw device pairing is not included. Unchecked by default. Leave them unchecked if you are giving the file to someone else.
 3. Tap **"Save"**. The archive `bydmate_backup_<date>.zip` appears in the Download folder. If a Telegram bot is connected, a copy goes there too.
 4. In the "Saved" window you can tap **"Share"** right away. The archive holds your trip history, so only share it with someone you trust.
 
@@ -768,6 +749,25 @@ Errors show up right under the button: a wrong token, no network, the code has n
 The archive is not encrypted. The bot and the chat should be yours alone. If the bot is already connected to a webhook or another program, Telegram will not deliver the code message to the app: turn off the webhook.
 
 ---
+
+### Telegram report when the car turns off
+
+The same bot can send a short report each time you turn the car off. It is useful for checking where the car is parked, the remaining charge, and whether everything is closed.
+
+Enable it in **Telegram bot** with **Report when car turns off**. Select the report items below:
+
+- **Location on the map:** an "Open on map" link at the end of the message;
+- **Charge** and **Range**, as on the Home screen;
+- **Mileage:** the vehicle's total mileage;
+- **Trip:** distance, consumption and duration of the last trip;
+- **TRIP 1** and **TRIP 2:** Home-screen counters, selected separately. A counter that has never been reset is marked "all time";
+- **Temperature:** outside and cabin;
+- **What is open:** doors, windows, sunroof, trunk and hood. The report says when everything is closed;
+- **Tyre pressure:** all four wheels.
+
+The report is sent in the first seconds after turn-off through the car's mobile connection. If there is no connection, it arrives after the next turn-on and states when the data was recorded.
+
+You can also send the same report from automation with the **Telegram report** action. It has its own item selection and optional text below the heading. For example, a "home-area entry" rule can send the charge and open-item status.
 
 ## Battery Health (SoH)
 
@@ -849,18 +849,15 @@ autoservice (command writes) ←  AutomationEngine   ←  Rules (Room DB)
 
 | Feature | Destination | What is sent | When active |
 |---|---|---|---|
-| Voice agent (LLM) | OpenRouter / z.ai / your own server | command text, vehicle state (SOC, climate, etc.), GPS coordinates for navigation requests | only after setting up a provider |
-| Agent web search | Exa / z.ai / OpenRouter | search query text | a key is entered and the agent called the tool |
-| Weather (agent) | Open-Meteo | GPS coordinates or a place name (geocoding) | the agent called the tool |
-| Charging stations (agent) | Overpass (overpass-api.de / maps.mail.ru) | GPS coordinates | the agent called the tool |
-| Online TTS voices | MiniMax / fal.ai / Replicate / OpenRouter | text of the spoken reply | only if an online voice is chosen |
+| Online assistant (OpenClaw) | Your paired OpenClaw Gateway; downstream providers and tools configured there | Recognized or typed request text; no automatic vehicle state or GPS attachment | Only with online opt-in enabled and a paired connection |
+| Assistant remote tools/search | Destinations configured on your OpenClaw server | Data selected by that server and its tools | When the Gateway uses them for your request |
 | Map in trip details | OpenStreetMap tile servers (or Amap, if chosen in Settings) | coordinates of the visible map area | when the trip map or the places editor is opened |
 | Update check | GitHub API | nothing (fetches the release list, version comparison is local) | automatically |
 | ABRP live telemetry | abetterrouteplanner.com | SOC, power, speed, temperatures, odometer, tire pressure, charging status, battery capacity, SoH, kWh of the current charging session, car model (coordinates only with a separate toggle, for following the car from a phone) | only after entering a token |
 | Configuration copies to Telegram | api.telegram.org, your bot | the configuration archive with the chosen parts, and a message when the bot connects | only after connecting a bot |
 | Telemetry webhook | Settings → Integrations → Webhook | the same JSON as ABRP, POST to your URL every 1/8/30 s (driving/charging/parked); coordinates only with a separate toggle | off by default |
 
-Without any keys entered, only the update check (GitHub) and map tiles when viewing a trip route leave the device, along with voice model downloads on your explicit request (github.com). API keys are stored locally in the app's database and are never sent anywhere except the provider itself.
+With optional network integrations disabled, network requests include update checks (GitHub), map tiles when viewing a trip route, and voice model downloads on your explicit request (github.com). OpenClaw pairing and requests also use the network after explicit setup; entering a provider API key in BYDMate is not required for OpenClaw. API keys are stored locally in the app's database and are never sent anywhere except the provider itself.
 
 ---
 
@@ -1133,11 +1130,11 @@ Common cases:
 - **Split screen or projection to cluster does not work**: reboot the head unit (step 1).
 - **A command runs but the car does not react** (windows, sunroof, climate): your model most likely has a different command catalog, send logs and the fid catalog (steps 2-4).
 - **Something broke after an update**: reboot the head unit; if that does not help, send logs.
-- **The "Test model" button is gray, or the reply is an error**: the language model key was not saved, or the server does not answer, check it in Settings → Integrations → AI connections.
+- **The OpenClaw connection test fails**: check the Gateway endpoint, network access, device approval, and the online assistant toggle in Settings → Voice agent. Model and provider configuration belongs on the OpenClaw server.
 - **The wheel button does not react**: assign it again (Settings → Voice agent → "Assign button") and check that BYDMate's accessibility service has permission.
-- **The agent replies with text, not voice**: turn on the "Speak agent replies" toggle and download a voice (the "Agent replies" section).
+- **The agent replies with text, not voice**: turn on the "Speak agent replies" toggle and download Gosia in Polish voice setup.
 - **The agent's voice is barely audible**: it goes through the system Voice channel, its volume is set separately from the music, use the volume buttons during the reply or the car's sound settings.
-- **"Test model" passes, but the agent declines mid-conversation**: send logs in an Issue and note which connection and which model are selected.
+- **Pairing succeeds, but an OpenClaw request fails**: check the server status and configured model. Include the app version and the displayed failure in an Issue; remove request text and pairing credentials from shared logs.
 
 ---
 

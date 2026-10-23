@@ -134,6 +134,6 @@ class ActionDispatcherFreshSpeedGateTest {
 
     private companion object {
         const val WINDOW_OPEN = "主驾打开100"
-        const val FRUNK_SPEED_UNKNOWN = "Скорость неизвестна"
+        const val FRUNK_SPEED_UNKNOWN = "Prędkość jest nieznana"
     }
 }

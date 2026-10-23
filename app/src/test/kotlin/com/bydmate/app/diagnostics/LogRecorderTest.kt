@@ -112,7 +112,6 @@ class LogRecorderTest {
         // #180: the "decode rejected" line lives on this tag.
         assertTrue(spawned[0].contains("NativeParsReader:*"))
         // Voice speed wave: TTS source + synth time, LLM retries, token usage lines.
-        assertTrue(spawned[0].contains("TtsRouter:*"))
         assertTrue(spawned[0].contains("LlmAgentBackend:*"))
         assertTrue(spawned[0].contains("OpenRouterClient:*"))
         assertTrue(spawned[0].contains("HttpPrewarm:*"))
@@ -237,7 +236,7 @@ class LogRecorderTest {
 
     @Test
     fun `size limit counts the bytes of Cyrillic lines, not their chars`() = runTest {
-        val line = "ж".repeat(100) // 200 bytes in UTF-8
+        val line = "ż".repeat(100) // 200 bytes in UTF-8
         val limit = 128 * 1024L
         val recorder = recorder(
             maxSizeBytes = limit,
@@ -278,7 +277,7 @@ class LogRecorderTest {
 
     @Test
     fun `size limit counts the bytes of Cyrillic lines flushed by the idle flusher`() = runTest {
-        val line = "ж".repeat(1000) // 2000 bytes in UTF-8
+        val line = "ż".repeat(1000) // 2000 bytes in UTF-8
         val burst = ((line + "\n").repeat(2)).toByteArray() // well below a batch: only the idle flush writes it
         val limit = 8 * 1024L
         val recorder = recorder(

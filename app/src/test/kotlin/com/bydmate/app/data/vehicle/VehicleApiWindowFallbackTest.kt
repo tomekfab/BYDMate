@@ -19,7 +19,7 @@ import org.junit.Assert.assertTrue
  * and moves nothing, while the percent fid on the same door works. The log shape:
  *
  *   doWrite OK: action=window_driver_open dev=1001 fid=1125122104 value=1 ...
- *   window readback action=window_driver_open ... before=0 after=0,0 verdict=не сдвинулось
+*   window readback action=window_driver_open ... before=0 after=0,0 verdict=did not move
  *   window readback action=window_driver_pos ... before=0 after=10 verdict=moved
  *   window channel: PERCENT
  *
@@ -107,7 +107,7 @@ class VehicleApiWindowFallbackTest {
 
         assertTrue(result.isFailure)
         val err = result.exceptionOrNull() as VehicleWriteError.ReadbackMismatch
-        assertTrue(err.message!!, err.message!!.contains("не сдвинулось"))
+        assertTrue(err.message!!, err.message!!.contains("nie przesunęło się"))
         coVerify(exactly = 1) { helper.write(DEV, DRIVER_POS_FID, 100) }
     }
 

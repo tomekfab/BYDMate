@@ -85,7 +85,7 @@ class TelegramReporterTest {
         reporter.language = { "ru" }
     }
 
-    private fun connect() = runBlocking { settings.saveTgBackup("tok", "bot", chat, "Андрей") }
+    private fun connect() = runBlocking { settings.saveTgBackup("tok", "bot", chat, "Andrzej") }
 
     private fun answer(results: List<Result<Unit>> = emptyList()) {
         val queue = ArrayDeque(results)
@@ -102,15 +102,15 @@ class TelegramReporterTest {
 
     @Test fun `no bot connected sends nothing`() = runBlocking {
         answer()
-        assertEquals(TelegramReporter.SendResult.NotConnected, reporter.sendRuleReport("Где машина", ReportField.DEFAULT, ""))
+        assertEquals(TelegramReporter.SendResult.NotConnected, reporter.sendRuleReport("Gdzie jest samochód", ReportField.DEFAULT, ""))
         coVerify(exactly = 0) { sink.sendMessage(any(), any(), any(), any(), any()) }
     }
 
     @Test fun `a sent report goes out as Telegram HTML without a link preview, with the rule name`() = runBlocking {
         connect()
         answer(listOf(Result.success(Unit)))
-        assertEquals(TelegramReporter.SendResult.Sent, reporter.sendRuleReport("Где машина", setOf(ReportField.SOC), ""))
-        assertEquals(listOf("<b>BYDMate: Где машина</b>\n\n🔋 Заряд <b>64%</b>"), sent)
+        assertEquals(TelegramReporter.SendResult.Sent, reporter.sendRuleReport("Gdzie jest samochód", setOf(ReportField.SOC), ""))
+        assertEquals(listOf("<b>BYDMate: Gdzie jest samochód</b>\n\n🔋 Naładowanie <b>64%</b>"), sent)
         coVerify(exactly = 1) { sink.sendMessage("tok", chat, any(), "HTML", false) }
         assertEquals(0, reporter.outboxSize())
     }
@@ -163,18 +163,18 @@ class TelegramReporterTest {
         reporter.enqueue(entry("fresh", now - 60_000L))
         reporter.drainOutbox("test")
         val stamp = TelegramReportBuilder.formatTime(now - 3 * 60_000L)
-        assertEquals("text old\n\n<i>(записано в $stamp)</i>", sent[0])
+        assertEquals("text old\n\n<i>(zapisano o $stamp)</i>", sent[0])
         assertEquals("text fresh", sent[1])
     }
 
     @Test fun `a late report keeps the map link last, the mark goes right above it`() = runBlocking {
         connect()
         answer()
-        val map = "📍 <a href=\"https://yandex.ru/maps/?pt=1&amp;z=16\">Открыть на карте</a>"
-        reporter.enqueue(OutboxEntry("m", chat, now - 3 * 60_000L, "<b>h</b>\n\n🔋 Заряд <b>64%</b>\n\n$map"))
+        val map = "📍 <a href=\"https://yandex.ru/maps/?pt=1&amp;z=16\">Otwórz na mapie</a>"
+        reporter.enqueue(OutboxEntry("m", chat, now - 3 * 60_000L, "<b>h</b>\n\n🔋 Naładowanie <b>64%</b>\n\n$map"))
         reporter.drainOutbox("test")
         val stamp = TelegramReportBuilder.formatTime(now - 3 * 60_000L)
-        assertEquals("<b>h</b>\n\n🔋 Заряд <b>64%</b>\n\n<i>(записано в $stamp)</i>\n\n$map", sent.single())
+        assertEquals("<b>h</b>\n\n🔋 Naładowanie <b>64%</b>\n\n<i>(zapisano o $stamp)</i>\n\n$map", sent.single())
     }
 
     @Test fun `an outbox entry saved by 3_19_0 still goes out as Telegram HTML`() = runBlocking {
@@ -242,8 +242,8 @@ class TelegramReporterTest {
         val report = reporter.powerOffReport()!!
         assertEquals("tok", report.token)
         assertEquals(chat, report.chatId)
-        assertEquals("<b>BYDMate: машина выключена в ${TelegramReportBuilder.TIME_PLACEHOLDER}</b>\n\n🔋 Заряд <b>64%</b>", report.text)
-        assertEquals("<i>(записано в ${TelegramReportBuilder.TIME_PLACEHOLDER})</i>", report.lateMark)
+        assertEquals("<b>BYDMate: samochód wyłączony o ${TelegramReportBuilder.TIME_PLACEHOLDER}</b>\n\n🔋 Naładowanie <b>64%</b>", report.text)
+        assertEquals("<i>(zapisano o ${TelegramReportBuilder.TIME_PLACEHOLDER})</i>", report.lateMark)
         assertFalse(report.toString().contains("tok"))
     }
 
@@ -263,12 +263,12 @@ class TelegramReporterTest {
         settings.setTgReportOffEnabled(true)
         connect()
         assertTrue("a fresh install has it on", "odometer" in settings.getTgReportOffFields().map { it.id })
-        val header = "<b>BYDMate: машина выключена в ${TelegramReportBuilder.TIME_PLACEHOLDER}</b>"
+        val header = "<b>BYDMate: samochód wyłączony o ${TelegramReportBuilder.TIME_PLACEHOLDER}</b>"
         reporter.inputs = { ReportInputs(diParsData(soc = 64, mileage = 23_456.7), 312.0, null, null, null, null) }
         settings.setTgReportOffFields(setOf(ReportField.SOC, ReportField.fromId("odometer")!!))
-        assertEquals("$header\n\n🔋 Заряд <b>64%</b>\n🧭 Пробег 23\u00A0456 км", reporter.powerOffReport()!!.text)
+        assertEquals("$header\n\n🔋 Naładowanie <b>64%</b>\n🧭 Przebieg 23\u00A0456 km", reporter.powerOffReport()!!.text)
         reporter.inputs = { ReportInputs(diParsData(soc = 64, mileage = null), 312.0, null, null, null, null) }
-        assertEquals("$header\n\n🔋 Заряд <b>64%</b>", reporter.powerOffReport()!!.text)
+        assertEquals("$header\n\n🔋 Naładowanie <b>64%</b>", reporter.powerOffReport()!!.text)
     }
 
     @Test fun `a drain that runs while a send is in flight still catches the report once it fails`() = runBlocking {
@@ -313,7 +313,7 @@ class TelegramReporterTest {
         reporter.drainOutbox("test")
         val stamp = TelegramReportBuilder.formatTime(buildMs)
         assertEquals(2, sent.size)
-        assertTrue(sent[1], sent[1].endsWith("<i>(записано в $stamp)</i>"))
+        assertTrue(sent[1], sent[1].endsWith("<i>(zapisano o $stamp)</i>"))
     }
 
     @Test fun `a cancelled send propagates and leaves the outbox untouched`() = runBlocking {

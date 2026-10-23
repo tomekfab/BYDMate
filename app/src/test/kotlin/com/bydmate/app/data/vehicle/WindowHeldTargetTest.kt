@@ -15,7 +15,7 @@ import org.junit.Test
  * Regression from the Song L user log of 2026-09-29 (fixture
  * native-stack-fixtures/window-songl-held-target-20260929.txt): BYDMate never released the
  * percent fid, so the last target stayed on the bus. The unit then ignored a repeated
- * "проветрить" (10) or "половина" (50) — and the +1 nudge with it — and drove the glass to the
+* the 10% or 50% targets — and the +1 nudge with them — and drove the glass to the
  * held target again when the car woke up.
  */
 class WindowHeldTargetTest {
@@ -44,11 +44,11 @@ class WindowHeldTargetTest {
             .filterNot { it.startsWith("#") || it.isBlank() }
 
     /** The old write sequence (no reset) on the modelled Song L reproduces every verdict of the
-     *  log, including the failed «проветрить → закрыть → проветрить» and «половина → закрыть →
-     *  половина», and leaves the target held on the bus for the next wake-up. */
+*  log, including failed 10% -> closed -> 10% and 50% -> closed -> 50% sequences, and leaves
+*  the target held on the bus for the next wake-up. */
     @Test fun `the logged write sequence without a reset reproduces the user's failures`() = runTest {
         val car = car(Rule.SONG_L)
-        // The successful "проветрить" of 17:48:36 was the last percent before the excerpt.
+// The successful 10% target at 17:48:36 was the last percent before the excerpt.
         car.hold(DRIVER_POS, 10)
         val verdicts = mutableListOf<Pair<Int, Boolean>>()
         for (w in loggedWrites) {

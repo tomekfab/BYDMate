@@ -23,8 +23,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import com.bydmate.app.voice.VoiceUserPhrases
 
-/** «Списком» / «Карточками» in the Automation header: remembered across app restarts. */
+/** List / Cards in the Automation header: remembered across app restarts. */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29])
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -56,6 +57,7 @@ class RuleViewModeTest {
             actionDispatcher = mockk(relaxed = true),
             settingsRepository = mockk(relaxed = true),
             context = ctx,
+            userPhrases = VoiceUserPhrases(),
         ).also { testDispatcher.scheduler.advanceUntilIdle() }
     }
 

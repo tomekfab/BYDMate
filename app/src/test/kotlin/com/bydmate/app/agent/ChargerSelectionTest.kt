@@ -46,7 +46,7 @@ class ChargerSelectionTest {
     // --- connector filter ---
 
     @Test fun gbt_counts_both_gbt_dc_and_gbt_ac() {
-        val s = station("Две розетки", connectors = listOf(
+        val s = station("Dwa gniazda", connectors = listOf(
             gbt("available", standard = "GBT_DC"), gbt("charging", powerKw = 7.0, standard = "GBT_AC"), other("CCS2")))
         val summary = ChargerSelection.summarize(s.connectors!!, ChargeConnector.GBT)!!
         assertEquals(2, summary.total)
@@ -56,13 +56,13 @@ class ChargerSelectionTest {
     }
 
     @Test fun free_ccs2_with_every_gbt_busy_is_busy_for_a_gbt_car() {
-        val s = station("Занято", connectors = listOf(gbt("charging"), gbt("occupied"), other("CCS2")))
+        val s = station("Zajęte", connectors = listOf(gbt("charging"), gbt("occupied"), other("CCS2")))
         val summary = ChargerSelection.summarize(s.connectors!!, ChargeConnector.GBT)!!
         assertEquals(2, summary.total)
         assertEquals(0, summary.free)
         assertEquals(StationStatus.BUSY, summary.status)
         // The driver may still want it: it stays in the list.
-        assertEquals(listOf("Занято"), choose(listOf(s)).picks.map { it.station.name })
+        assertEquals(listOf("Zajęte"), choose(listOf(s)).picks.map { it.station.name })
     }
 
     @Test fun every_gbt_out_of_order_is_unavailable() {
@@ -106,7 +106,7 @@ class ChargerSelectionTest {
 
     @Test fun station_without_the_cars_connector_is_left_out() {
         val choice = choose(listOf(
-            station("Только Type2", northKm = 0.5, connectors = listOf(other("Type2"))),
+            station("Tylko Type2", northKm = 0.5, connectors = listOf(other("Type2"))),
             station("GB/T", northKm = 2.0),
         ))
         assertEquals(listOf("GB/T"), choice.picks.map { it.station.name })
@@ -114,8 +114,8 @@ class ChargerSelectionTest {
     }
 
     @Test fun no_station_with_the_cars_connector_lists_the_others_and_says_so() {
-        val choice = choose(listOf(station("Только Type2", connectors = listOf(other("Type2")))))
-        assertEquals(listOf("Только Type2"), choice.picks.map { it.station.name })
+        val choice = choose(listOf(station("Tylko Type2", connectors = listOf(other("Type2")))))
+        assertEquals(listOf("Tylko Type2"), choice.picks.map { it.station.name })
         assertTrue(choice.connectorMissing)
         assertNull(choice.picks.single().summary)
     }
@@ -146,22 +146,22 @@ class ChargerSelectionTest {
 
     @Test fun corridor_keeps_a_station_20_km_ahead_3_km_aside_and_drops_one_5_km_behind() {
         val choice = choose(listOf(
-            station("Впереди", northKm = 20.0, eastKm = 3.0),
-            station("Позади", northKm = -5.0),
-            station("Далеко в стороне", northKm = 3.0, eastKm = 10.0),
+            station("Przed nami", northKm = 20.0, eastKm = 3.0),
+            station("Za nami", northKm = -5.0),
+            station("Daleko z boku", northKm = 3.0, eastKm = 10.0),
         ), where = ChargerWhere.AHEAD, course = 0.0)
         assertEquals(AheadOutcome.CORRIDOR, choice.ahead)
         val pick = choice.picks.single()
-        assertEquals("Впереди", pick.station.name)
+        assertEquals("Przed nami", pick.station.name)
         assertEquals(RelPosition.AHEAD, pick.position)
     }
 
     @Test fun corridor_orders_by_distance_along_the_course() {
         val picks = choose(listOf(
-            station("30 км", northKm = 30.0, eastKm = 1.0),
-            station("10 км", northKm = 10.0, eastKm = -2.0),
+            station("30 km", northKm = 30.0, eastKm = 1.0),
+            station("10 km", northKm = 10.0, eastKm = -2.0),
         ), where = ChargerWhere.AHEAD, course = 0.0).picks
-        assertEquals(listOf("10 км", "30 км"), picks.map { it.station.name })
+        assertEquals(listOf("10 km", "30 km"), picks.map { it.station.name })
     }
 
     @Test fun corridor_widens_with_distance() {
@@ -173,13 +173,13 @@ class ChargerSelectionTest {
 
     @Test fun known_destination_ranks_by_detour_and_orders_by_distance() {
         val choice = choose(listOf(
-            station("60 км по пути", northKm = 60.0, eastKm = -1.0),
-            station("40 км по пути", northKm = 40.0, eastKm = 2.0),
-            station("Крюк в сторону", northKm = 20.0, eastKm = 30.0),
-            station("8 км назад", northKm = -8.0),
+            station("60 km po trasie", northKm = 60.0, eastKm = -1.0),
+            station("40 km po trasie", northKm = 40.0, eastKm = 2.0),
+            station("Objazd z boku", northKm = 20.0, eastKm = 30.0),
+            station("8 km za nami", northKm = -8.0),
         ), where = ChargerWhere.AHEAD, course = 0.0, destination = point(100.0, 0.0))
         assertEquals(AheadOutcome.DESTINATION, choice.ahead)
-        assertEquals(listOf("40 км по пути", "60 км по пути"), choice.picks.map { it.station.name })
+        assertEquals(listOf("40 km po trasie", "60 km po trasie"), choice.picks.map { it.station.name })
         val detour = choice.picks.first().detourKm!!
         assertTrue("detour $detour", detour in 0.0..1.0)
     }
@@ -188,16 +188,16 @@ class ChargerSelectionTest {
     // the route's end 100 km ahead costs 8 km, inside the 10 km limit.
     @Test fun destination_mode_drops_stations_behind() {
         val dest = point(100.0, 0.0)
-        val back = station("4 км назад", northKm = -4.0)
-        val forward = station("20 км вперёд", northKm = 20.0)
+        val back = station("4 km za nami", northKm = -4.0)
+        val forward = station("20 km przed nami", northKm = 20.0)
         for (course in listOf(0.0, null)) {
             val choice = choose(listOf(back, forward), where = ChargerWhere.AHEAD, course = course, destination = dest)
             assertEquals(AheadOutcome.DESTINATION, choice.ahead)
-            assertEquals(listOf("20 км вперёд"), choice.picks.map { it.station.name })
+            assertEquals(listOf("20 km przed nami"), choice.picks.map { it.station.name })
         }
         val only = choose(listOf(back), where = ChargerWhere.AHEAD, course = 0.0, destination = dest)
         assertEquals(AheadOutcome.NOTHING_AHEAD, only.ahead)
-        assertEquals(listOf("4 км назад"), only.picks.map { it.station.name })
+        assertEquals(listOf("4 km za nami"), only.picks.map { it.station.name })
         assertEquals(RelPosition.BEHIND, only.picks.single().position)
     }
 
@@ -209,11 +209,11 @@ class ChargerSelectionTest {
 
     @Test fun nothing_ahead_falls_back_to_the_nearest_around_marked_behind() {
         val choice = choose(listOf(
-            station("7 км позади", northKm = -7.0),
-            station("5 км позади", northKm = -5.0),
+            station("7 km za nami", northKm = -7.0),
+            station("5 km za nami", northKm = -5.0),
         ), where = ChargerWhere.AHEAD, course = 0.0)
         assertEquals(AheadOutcome.NOTHING_AHEAD, choice.ahead)
-        assertEquals(listOf("5 км позади", "7 км позади"), choice.picks.map { it.station.name })
+        assertEquals(listOf("5 km za nami", "7 km za nami"), choice.picks.map { it.station.name })
         assertTrue(choice.picks.all { it.position == RelPosition.BEHIND })
     }
 
@@ -225,9 +225,9 @@ class ChargerSelectionTest {
 
     @Test fun around_marks_position_when_the_course_is_known() {
         val picks = choose(listOf(
-            station("Сбоку", northKm = 0.0, eastKm = 2.0),
-            station("Позади", northKm = -3.0),
-            station("Впереди", northKm = 4.0),
+            station("Z boku", northKm = 0.0, eastKm = 2.0),
+            station("Za nami", northKm = -3.0),
+            station("Przed nami", northKm = 4.0),
         ), course = 0.0).picks
         assertEquals(
             listOf(RelPosition.ASIDE, RelPosition.BEHIND, RelPosition.AHEAD),
@@ -263,7 +263,7 @@ class ChargerSelectionTest {
     }
 
     @Test fun picks_carry_the_straight_distance() {
-        val pick = choose(listOf(station("10 км", northKm = 10.0))).picks.single()
+        val pick = choose(listOf(station("10 km", northKm = 10.0))).picks.single()
         assertNotNull(pick.distanceKm)
         assertEquals(10.0, pick.distanceKm, 0.05)
     }

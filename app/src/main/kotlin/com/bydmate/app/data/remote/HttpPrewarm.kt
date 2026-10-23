@@ -1,5 +1,7 @@
 package com.bydmate.app.data.remote
 
+import com.bydmate.app.diagnostics.DiagnosticEmitters
+
 import android.util.Log
 import okhttp3.Call
 import okhttp3.Callback
@@ -19,18 +21,20 @@ import java.io.IOException
 object HttpPrewarm {
     private const val TAG = "HttpPrewarm"
 
-    fun fire(http: OkHttpClient, url: String) {
+    fun fire(http: OkHttpClient, url: String, diagnosticBackend: String? = null) {
         val parsed = url.toHttpUrlOrNull() ?: return
         val startNs = System.nanoTime()
         val request = Request.Builder().url(parsed).head().build()
         http.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
+                diagnosticBackend?.let { DiagnosticEmitters.failure(it, e) }
                 Log.w(TAG, "prewarm failed: host=${parsed.host} ${e.javaClass.simpleName}: ${e.message}")
             }
 
             override fun onResponse(call: Call, response: Response) {
                 response.close()
                 val ms = (System.nanoTime() - startNs) / 1_000_000
+                diagnosticBackend?.let { DiagnosticEmitters.request(it, "prewarm", ms, httpStatus = response.code) }
                 Log.i(TAG, "prewarm: host=${parsed.host} code=${response.code} ms=$ms")
             }
         })

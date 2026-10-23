@@ -5,7 +5,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The smallest SocGauge on Главная must keep «100» and «SOC %» (and the bolt while charging)
+* The smallest SocGauge on Dashboard must keep “100” and “SOC %” (and the bolt while charging)
  * inside the arc. Rows here model the real text at 1 px per dp: a 22 sp theme line height,
  * monospace digits 0.6 em wide with ink 0.73 em above the baseline, baseline 0.35 em below the
  * row centre (the 32 sp glyphs overflow their 22 sp row).

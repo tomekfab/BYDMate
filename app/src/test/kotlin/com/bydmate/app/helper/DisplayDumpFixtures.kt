@@ -3,7 +3,7 @@ package com.bydmate.app.helper
 /**
  * `dumpsys display` fragments the display parser and the cluster pick are tested against.
  *
- * [DILINK4] is copied verbatim out of a field log (Алимжан, Song Plus Champion 2021, DiLink 4.0,
+* [DILINK4] is copied verbatim out of a field log (driver name redacted, Song Plus Champion 2021, DiLink 4.0,
  * 2026-09-11, `.research/fid-dumps/bydmate_logs_alimzhan_dilink4_20260911.txt`) — including the
  * 300-character truncation the cdiag log budget applied to it, which is why the virtual display
  * carries no owner, flags or density there. Only `$` had to be escaped for Kotlin.

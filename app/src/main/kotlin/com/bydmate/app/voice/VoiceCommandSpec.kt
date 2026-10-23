@@ -6,7 +6,7 @@ import com.bydmate.app.voice.DeviceSlot.*
 /** One supported voice command: a (action, device, value?) key and the
  *  dispatchable Chinese command string it produces. The string MUST exist in
  *  CommandTranslator (validated by VoiceCommandSpecTest.every_catalog_command_is_dispatchable).
- *  The command dictionary (voice/ru_commands.txt) may emit only these strings. */
+ *  The command dictionary may emit only these strings. */
 data class VoiceCommandSpec(
     val action: ActionSlot,
     val device: DeviceSlot,
@@ -93,12 +93,12 @@ object VoiceCatalog {
         // HUD master switch
         VoiceCommandSpec(ON, HUD) { "打开抬头显示" },
         VoiceCommandSpec(OFF, HUD) { "关闭抬头显示" },
-        // Locks — "запри"/"отопри" via the door/lock synonyms ("замок", "двери").
+        // Locks are recognized through the door/lock synonyms.
         VoiceCommandSpec(ON, LOCK) { "车门上锁" },
         VoiceCommandSpec(OFF, LOCK) { "车门解锁" },
         // Car — open/close verbs are deliberately NOT wired to the door/lock
-        // synonyms: "закрой дверь" from cabin chatter must fall through to the
-        // agent. Only the explicit "машина" surface locks/unlocks via fast-path.
+        // synonyms: "zamknij drzwi" from cabin chatter must fall through to the
+        // agent. Only the explicit "samochód" surface locks/unlocks via fast-path.
         VoiceCommandSpec(ON, CAR) { "车门上锁" },
         VoiceCommandSpec(OFF, CAR) { "车门解锁" },
         VoiceCommandSpec(CLOSE, CAR) { "车门上锁" },

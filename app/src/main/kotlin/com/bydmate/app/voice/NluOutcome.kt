@@ -16,20 +16,41 @@ object VoiceRefusal {
     const val DISPATCH_FAILED = "dispatch_failed"
     const val RULE_NOT_FOUND = "rule_not_found"
     const val INTERNAL_ERROR = "internal_error"
+    /** Unknown Polish speech while the online assistant is off: nothing was sent anywhere. */
+    const val AI_DISABLED = "ai_disabled"
+    /** The online assistant could not answer; the phrase was not sent to anything else. */
+    const val ASSISTANT_FAILED = "assistant_failed"
+    /** A local command arrived while an assistant turn ran: the turn was cancelled for it. */
+    const val LOCAL_PRIORITY = "local_priority"
 
     /** A safety gate held the command back, e.g. `gate:speed_unknown`. */
     fun gate(name: String): String = "gate:$name"
 }
 
-/** What the built-in dictionary made of a phrase: a command to run, or a refusal with its code. */
+/** What the built-in dictionary made of a phrase: a command to run, a phrase for the assistant, or
+ *  a request to the car that is refused here and never leaves the device. */
 sealed interface NluOutcome {
     data class Understood(val result: ParseResult) : NluOutcome
+
+    /** Nothing in the dictionary and nothing car-like in it: the assistant may take it when enabled.
+     *  [reason] is a [VoiceRefusal] code. */
     data class Refused(val reason: String) : NluOutcome
+
+    /** It looks like a request to the car and nothing runs. [reason] is an [NluRefusal] code. It is
+     *  answered locally and never goes to the assistant, whatever the online settings are. */
+    data class Rejected(val reason: String) : NluOutcome
 
     companion object {
         fun of(result: ParseResult): NluOutcome = when (result) {
             ParseResult.Unrecognized -> Refused(VoiceRefusal.UNRECOGNIZED)
             else -> Understood(result)
+        }
+
+        /** Every verdict of the dictionary: a refused request is [Rejected], never [Refused]. */
+        fun of(verdict: NluVerdict): NluOutcome = when (verdict) {
+            is NluVerdict.Match -> of(verdict.result)
+            NluVerdict.Unknown -> Refused(VoiceRefusal.UNRECOGNIZED)
+            is NluVerdict.Refused -> Rejected(verdict.reason)
         }
     }
 }

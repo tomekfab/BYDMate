@@ -314,7 +314,7 @@ private fun AdbStep(state: WelcomeUiState, viewModel: WelcomeViewModel) {
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // «Далее» stays enabled: the check is advisory, the user may skip it.
+            // "Next" stays enabled: the check is advisory, the user may skip it.
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)

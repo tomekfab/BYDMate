@@ -198,7 +198,7 @@ class VehicleApiWriteTest {
 
         assertTrue(result.isFailure)
         val err = result.exceptionOrNull() as VehicleWriteError.ReadbackMismatch
-        assertTrue(err.message!!, err.message!!.contains("не сдвинулось"))
+        assertTrue(err.message!!, err.message!!.contains("nie przesunęło się"))
         // The driver's text is worded from the pane, in the app language (#242).
         assertEquals(listOf(WindowPane.DRIVER), err.stuckPanes)
     }
@@ -341,8 +341,8 @@ class VehicleApiWriteTest {
 
         assertTrue(result.isFailure)
         val message = result.exceptionOrNull()!!.message!!
-        assertTrue(message, message.contains("заднее правое окно"))
-        assertFalse(message, message.contains("заднее левое"))
+        assertTrue(message, message.contains("prawe tylne okno"))
+        assertFalse(message, message.contains("lewe tylne"))
         assertEquals(listOf(WindowPane.REAR_RIGHT), (result.exceptionOrNull() as VehicleWriteError.ReadbackMismatch).stuckPanes)
     }
 
@@ -370,7 +370,7 @@ class VehicleApiWriteTest {
         val result = verifyingApi().dispatch("主驾打开100")
 
         assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull()!!.message!!.contains("окно водителя"))
+        assertTrue(result.exceptionOrNull()!!.message!!.contains("okno kierowcy"))
     }
 
     // The physical write lands before the verdict is read back, so a caller cancelled inside

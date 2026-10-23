@@ -19,7 +19,7 @@ import org.junit.Test
  * write to the same window fid is accepted and the motor never starts. The log shape:
  *
  *   write dev=1001 fid=1276219408 value=10 status=1 accepted=true
- *   window readback action=window_driver_pos ... value=10 before=0 after=0,0 verdict=не сдвинулось
+*   window readback action=window_driver_pos ... value=10 before=0 after=0,0 verdict=did not move
  *
  * On the car "10" stayed at 0 while "11" moved to 11, so a stuck percent write is re-sent once
  * with the value nudged by one percent (down for 100, never for a close of 0). A pane that
@@ -114,7 +114,7 @@ class WindowPercentNudgeTest {
 
         assertTrue(result.isFailure)
         val err = result.exceptionOrNull() as VehicleWriteError.ReadbackMismatch
-        assertTrue(err.message!!, err.message!!.contains("окно водителя не сдвинулось с места, команда не сработала"))
+        assertTrue(err.message!!, err.message!!.contains("okno kierowcy nie przesunęło się z miejsca, polecenie nie zostało wykonane"))
         assertEquals(listOf(10, 11, 0, 10), posWrites)
     }
 
@@ -269,7 +269,7 @@ class WindowPercentNudgeTest {
 
         assertTrue(result.isFailure)
         val err = result.exceptionOrNull() as VehicleWriteError.ReadbackMismatch
-        assertTrue(err.message!!, err.message!!.contains("окно водителя не сдвинулось с места, команда не сработала"))
+        assertTrue(err.message!!, err.message!!.contains("okno kierowcy nie przesunęło się z miejsca, polecenie nie zostało wykonane"))
         assertEquals(listOf(0), posWrites)
     }
 

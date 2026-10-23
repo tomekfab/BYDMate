@@ -52,15 +52,15 @@ class AgentOrchestratorFillerTest {
     private fun toolCall(name: String) = Result.success(AgentReply(null, listOf(AgentToolCall("c1", name, "{}"))))
 
     // The default identity's persona is NAVIGATOR (AgentOrchestrator's identity default).
-    private val navigatorFillers = listOf("Сейчас посмотрю.", "Секунду, проверяю.", "Минутку.", "Уже смотрю.")
+    private val navigatorFillers = listOf("Sprawdzam.", "Chwileczkę, już patrzę.", "Moment.", "Już sprawdzam.")
 
     @Test fun `filler is spoken once when round 1 calls a slow tool, through onFiller only`() = runTest {
         coEvery { tools.execute(any()) } returns """{"results":[]}"""
-        val backend = FakeBackend(replies = ArrayDeque(listOf(toolCall("web_search"), answer("Нашёл."))))
+        val backend = FakeBackend(replies = ArrayDeque(listOf(toolCall("web_search"), answer("Znalazłem."))))
         val lines = mutableListOf<String>()
         val fillers = mutableListOf<String>()
         val sentences = mutableListOf<String>()
-        orchestrator(backend, lines).ask("что там на трассе", onFiller = { fillers += it }, onSentence = { sentences += it })
+        orchestrator(backend, lines).ask("co jest na trasie", onFiller = { fillers += it }, onSentence = { sentences += it })
         assertEquals(1, fillers.size)
         assertTrue(fillers[0], fillers[0] in navigatorFillers)
         assertTrue("$sentences", sentences.none { it in navigatorFillers })
@@ -70,20 +70,20 @@ class AgentOrchestratorFillerTest {
     // where_am_i waits on Overpass, a network round-trip like web_search.
     @Test fun `where_am_i gets a filler`() = runTest {
         coEvery { tools.execute(any()) } returns """{"settlements":[]}"""
-        val backend = FakeBackend(replies = ArrayDeque(listOf(toolCall("where_am_i"), answer("Не знаю."))))
+        val backend = FakeBackend(replies = ArrayDeque(listOf(toolCall("where_am_i"), answer("Nie wiem."))))
         val lines = mutableListOf<String>()
         val fillers = mutableListOf<String>()
-        orchestrator(backend, lines).ask("где я", onFiller = { fillers += it }, onSentence = {})
+        orchestrator(backend, lines).ask("gdzie jestem", onFiller = { fillers += it }, onSentence = {})
         assertEquals(1, fillers.size)
         assertTrue("$lines", lines.any { it == "filler: \"${fillers[0]}\" tool=where_am_i" })
     }
 
     @Test fun `filler is not spoken for a fast tool`() = runTest {
         coEvery { tools.execute(any()) } returns """{"ok":true}"""
-        val backend = FakeBackend(replies = ArrayDeque(listOf(toolCall("vehicle_control"), answer("Готово."))))
+        val backend = FakeBackend(replies = ArrayDeque(listOf(toolCall("vehicle_control"), answer("Gotowe."))))
         val lines = mutableListOf<String>()
         val fillers = mutableListOf<String>()
-        orchestrator(backend, lines).ask("закрой окна", onFiller = { fillers += it }, onSentence = {})
+        orchestrator(backend, lines).ask("zamknij okna", onFiller = { fillers += it }, onSentence = {})
         assertTrue(fillers.isEmpty())
         assertFalse(lines.any { it.startsWith("filler:") })
     }
@@ -93,28 +93,28 @@ class AgentOrchestratorFillerTest {
         val backend = FakeBackend(
             replies = ArrayDeque(listOf(
                 Result.success(AgentReply(null, listOf(AgentToolCall("c1", "web_search", "{}")))),
-                answer("Нашёл."),
+                answer("Znalazłem."),
             )),
             // Terminator + trailing space -> the chunker emits this sentence mid-round, before
             // the filler gate downstream is even checked for this round's tool calls.
-            deltasPerReply = ArrayDeque(listOf(listOf("Секунду, ищу. "))),
+            deltasPerReply = ArrayDeque(listOf(listOf("Moment, szukam. "))),
         )
         val lines = mutableListOf<String>()
         val fillers = mutableListOf<String>()
         val sentences = mutableListOf<String>()
-        orchestrator(backend, lines).ask("что там на трассе", onFiller = { fillers += it }, onSentence = { sentences += it })
-        assertEquals(listOf("Секунду, ищу."), sentences)
+        orchestrator(backend, lines).ask("co jest na trasie", onFiller = { fillers += it }, onSentence = { sentences += it })
+        assertEquals(listOf("Moment, szukam."), sentences)
         assertTrue(fillers.isEmpty())
         assertFalse(lines.any { it.startsWith("filler:") })
     }
 
     @Test fun `filler is not spoken when onFiller is null`() = runTest {
         coEvery { tools.execute(any()) } returns """{"results":[]}"""
-        val backend = FakeBackend(replies = ArrayDeque(listOf(toolCall("web_search"), answer("Нашёл."))))
+        val backend = FakeBackend(replies = ArrayDeque(listOf(toolCall("web_search"), answer("Znalazłem."))))
         val lines = mutableListOf<String>()
         val sentences = mutableListOf<String>()
-        val result = orchestrator(backend, lines).ask("что там на трассе") { sentences += it }
-        assertEquals("Нашёл.", (result as AgentResult.Answer).text)
+        val result = orchestrator(backend, lines).ask("co jest na trasie") { sentences += it }
+        assertEquals("Znalazłem.", (result as AgentResult.Answer).text)
         assertTrue("$sentences", sentences.none { it in navigatorFillers })
         assertFalse(lines.any { it.startsWith("filler:") })
     }
@@ -122,11 +122,11 @@ class AgentOrchestratorFillerTest {
     @Test fun `at most one filler across multiple slow rounds`() = runTest {
         coEvery { tools.execute(any()) } returns """{"results":[]}"""
         val backend = FakeBackend(replies = ArrayDeque(listOf(
-            toolCall("get_weather"), toolCall("find_chargers"), answer("Готово."),
+            toolCall("get_weather"), toolCall("find_chargers"), answer("Gotowe."),
         )))
         val lines = mutableListOf<String>()
         val fillers = mutableListOf<String>()
-        orchestrator(backend, lines).ask("погода и зарядки", onFiller = { fillers += it }, onSentence = {})
+        orchestrator(backend, lines).ask("pogoda i ładowarki", onFiller = { fillers += it }, onSentence = {})
         assertEquals(1, fillers.size)
         assertTrue(fillers[0], fillers[0] in navigatorFillers)
         assertEquals(1, lines.count { it.startsWith("filler:") })
@@ -134,19 +134,19 @@ class AgentOrchestratorFillerTest {
 
     @Test fun `filler never reaches history or the answer text`() = runTest {
         coEvery { tools.execute(any()) } returns """{"results":[]}"""
-        val backend = FakeBackend(replies = ArrayDeque(listOf(toolCall("web_search"), answer("Нашёл."), answer("Ещё раз нашёл."))))
+        val backend = FakeBackend(replies = ArrayDeque(listOf(toolCall("web_search"), answer("Znalazłem."), answer("Znalazłem ponownie."))))
         val orch = orchestrator(backend)
         val fillers = mutableListOf<String>()
-        val result = orch.ask("что там на трассе", onFiller = { fillers += it }, onSentence = {}) as AgentResult.Answer
+        val result = orch.ask("co jest na trasie", onFiller = { fillers += it }, onSentence = {}) as AgentResult.Answer
         assertEquals(1, fillers.size)
-        assertEquals("Нашёл.", result.text)
+        assertEquals("Znalazłem.", result.text)
         assertFalse(result.text.contains(fillers[0]))
 
-        orch.ask("а ещё раз")  // same clock tick: history survives the TTL and is replayed
+        orch.ask("a jeszcze raz")  // same clock tick: history survives the TTL and is replayed
         // The first turn made two requests (tool round + answer); the next turn's request is the third.
         assertEquals(3, backend.requests.size)
         val replayed = backend.requests[2]
-        assertTrue(replayed.any { it is AgentMessage.Assistant && it.content == "Нашёл." })
+        assertTrue(replayed.any { it is AgentMessage.Assistant && it.content == "Znalazłem." })
         replayed.filterIsInstance<AgentMessage.Assistant>().forEach { msg ->
             assertFalse(msg.content?.contains(fillers[0]) == true)
         }

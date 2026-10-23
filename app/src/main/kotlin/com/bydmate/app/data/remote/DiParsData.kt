@@ -71,7 +71,7 @@ data class DiParsData(
     val autoWipers: Int? = null,         // rain-sensing auto wipers: 1=enabled
     val bmsState: Int? = null,           // BMS charging state: 1=CHARGING, 2=FINISH, 13=PAUSE (raw signal for chargingStatus derivation)
     val turnSignal: Int? = null,         // 1=off, 2=left, 4=right, 6=hazard (mask holds while blinking)
-    // Tech panel wave (2026-09-05): live technical readings for the «Техника» screen.
+    // Technical panel wave (2026-09-05): live technical readings for the screen.
     val insulationKohm: Int? = null,     // HV pack ↔ body insulation resistance, kΩ
     val motorTempFront: Int? = null,     // °C
     val motorTempRear: Int? = null,

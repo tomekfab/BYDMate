@@ -273,7 +273,7 @@ class WidgetPreferences(private val prefs: SharedPreferences) {
         const val KEY_BUTTON_ICON_PREFIX = "widget_button_icon_"
         fun buttonIconKey(number: Int): String = "$KEY_BUTTON_ICON_PREFIX$number"
         const val DEFAULT_LEFT_TAP_APP_PKG = "ru.yandex.yandexnavi"
-        const val DEFAULT_LEFT_TAP_APP_LABEL = "Яндекс.Навигатор"
+        const val DEFAULT_LEFT_TAP_APP_LABEL = "Nawigator Yandex"
         const val SCALE_MIN = 0.7f
         const val SCALE_MAX = 2.0f
     }

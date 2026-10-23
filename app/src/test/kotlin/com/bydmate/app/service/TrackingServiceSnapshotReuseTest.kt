@@ -6,7 +6,7 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 /**
- * Pure JVM tests for the П4a/П4b snapshot-reuse seams: gun-state and ABRP engine
+ * Pure JVM tests for the P4a/P4b snapshot-reuse seams: gun-state and ABRP engine
  * power are now sourced from the tick's already-fetched DiParsData snapshot
  * instead of a second dedicated autoservice read. Touching the companion does
  * NOT instantiate the Android Service — see TrackingServiceButtonBridgeTest /
@@ -32,7 +32,7 @@ class TrackingServiceSnapshotReuseTest {
         lightLow = 0, drl = 1,
     )
 
-    // П4a — gun-state sample for the edge detector ----------------------------
+    // P4a — gun-state sample for the edge detector ----------------------------
 
     @Test fun `gun state sample reuses the snapshot's chargeGunState verbatim`() {
         assertEquals(3, TrackingService.gunStateFromSnapshot(snapshot(chargeGunState = 3)))
@@ -46,7 +46,7 @@ class TrackingServiceSnapshotReuseTest {
         assertNull(TrackingService.gunStateFromSnapshot(snapshot(chargeGunState = null)))
     }
 
-    // П4b — ABRP engine power sample -------------------------------------------
+    // P4b — ABRP engine power sample -------------------------------------------
 
     @Test fun `engine power sample reuses the snapshot's power, converted to Int kW`() {
         assertEquals(42, TrackingService.enginePowerKwFromSnapshot(snapshot(power = 42.0)))

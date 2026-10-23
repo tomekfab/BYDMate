@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>BYDMate — формат длительности</title>
+<title>BYDMate — duration format</title>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -61,72 +61,72 @@
 </head>
 <body>
 <div class="wrap">
-<h1>BYDMate — формат длительности поездки</h1>
+<h1>BYDMate — trip duration format</h1>
 
 <div class="note">
-  Поле используется в двух местах: на <b>дашборде</b> (последние поездки) и в <b>списке поездок</b>.
-  Сейчас формат: <b>50м</b> / <b>1ч 20м</b>. Нужно поменять «м» на «мин».
-  Посмотрите варианты — выберите нужный.
+  The field appears in two places: the <b>dashboard</b> (recent trips) and the <b>trip list</b>.
+  The current format is <b>50 min</b> / <b>1 h 20 min</b>. The short minute marker should be changed to “min”.
+  Review the options and choose one.
 </div>
 
-<h2>Вариант 1 — с пробелами: «50 мин» / «1 ч 20 мин»</h2>
+<h2>Option 1 — spaces: “50 min” / “1 h 20 min”</h2>
 <table>
-  <tr><th>тип поездки</th><th>длительность</th></tr>
-  <tr><td class="label">10 минут</td><td class="val">10 мин</td></tr>
-  <tr><td class="label">29 минут</td><td class="val">29 мин</td></tr>
-  <tr><td class="label">50 минут</td><td class="val">50 мин</td></tr>
-  <tr><td class="label">1 час 20 минут</td><td class="val">1 ч 20 мин</td></tr>
-  <tr><td class="label">2 часа 5 минут</td><td class="val">2 ч 5 мин</td></tr>
+  <tr><th>trip type</th><th>duration</th></tr>
+  <tr><td class="label">10 minutes</td><td class="val">10 min</td></tr>
+  <tr><td class="label">29 minutes</td><td class="val">29 min</td></tr>
+  <tr><td class="label">50 minutes</td><td class="val">50 min</td></tr>
+  <tr><td class="label">1 hour 20 minutes</td><td class="val">1 h 20 min</td></tr>
+  <tr><td class="label">2 hours 5 minutes</td><td class="val">2 h 5 min</td></tr>
 </table>
 <div class="note" style="margin-top:12px">
-  Максимально читабельно, согласуется с idle drain на дашборде, где сейчас <b>«29 мин»</b> с пробелом.
+  Most readable. It matches the dashboard idle-drain format, which already uses <b>“29 min”</b> with a space.
 </div>
 
-<h2>Вариант 2 — смешанный: «50 мин», часы без пробела — «1ч 20 мин»</h2>
+<h2>Option 2 — mixed: “50 min”, hours without a space — “1h 20 min”</h2>
 <table>
-  <tr><th>тип поездки</th><th>длительность</th></tr>
-  <tr><td class="label">10 минут</td><td class="val">10 мин</td></tr>
-  <tr><td class="label">29 минут</td><td class="val">29 мин</td></tr>
-  <tr><td class="label">50 минут</td><td class="val">50 мин</td></tr>
-  <tr><td class="label">1 час 20 минут</td><td class="val">1ч 20 мин</td></tr>
-  <tr><td class="label">2 часа 5 минут</td><td class="val">2ч 5 мин</td></tr>
+  <tr><th>trip type</th><th>duration</th></tr>
+  <tr><td class="label">10 minutes</td><td class="val">10 min</td></tr>
+  <tr><td class="label">29 minutes</td><td class="val">29 min</td></tr>
+  <tr><td class="label">50 minutes</td><td class="val">50 min</td></tr>
+  <tr><td class="label">1 hour 20 minutes</td><td class="val">1h 20 min</td></tr>
+  <tr><td class="label">2 hours 5 minutes</td><td class="val">2h 5 min</td></tr>
 </table>
 <div class="note" style="margin-top:12px">
-  Компактнее, но «1ч» слитно, а «20 мин» с пробелом — неоднородно.
+  More compact, but “1h” has no space while “20 min” does, so the format is inconsistent.
 </div>
 
-<h2>Вариант 3 — слитно: «50мин» / «1ч 20мин»</h2>
+<h2>Option 3 — no spaces: “50min” / “1h 20min”</h2>
 <table>
-  <tr><th>тип поездки</th><th>длительность</th></tr>
-  <tr><td class="label">10 минут</td><td class="val">10мин</td></tr>
-  <tr><td class="label">29 минут</td><td class="val">29мин</td></tr>
-  <tr><td class="label">50 минут</td><td class="val">50мин</td></tr>
-  <tr><td class="label">1 час 20 минут</td><td class="val">1ч 20мин</td></tr>
-  <tr><td class="label">2 часа 5 минут</td><td class="val">2ч 5мин</td></tr>
+  <tr><th>trip type</th><th>duration</th></tr>
+  <tr><td class="label">10 minutes</td><td class="val">10min</td></tr>
+  <tr><td class="label">29 minutes</td><td class="val">29min</td></tr>
+  <tr><td class="label">50 minutes</td><td class="val">50min</td></tr>
+  <tr><td class="label">1 hour 20 minutes</td><td class="val">1h 20min</td></tr>
+  <tr><td class="label">2 hours 5 minutes</td><td class="val">2h 5min</td></tr>
 </table>
 <div class="note" style="margin-top:12px">
-  Самый компактный, но без пробела «мин» плотно прилипает к числу. Расходится с idle drain-карточкой,
-  где сейчас «29 мин» с пробелом.
+  Most compact, but “min” sticks to the number without a space. It differs from the idle-drain card,
+  which currently uses “29 min” with a space.
 </div>
 
-<h2>Контекст — как это встанет в строку поездки</h2>
+<h2>Context — how it fits in a trip row</h2>
 <div class="two">
   <div>
-    <div style="font-size:12px; color:#64748B; margin-bottom:6px">Вариант 1</div>
+    <div style="font-size:12px; color:#64748B; margin-bottom:6px">Option 1</div>
     <table>
-      <tr><th>время</th><th>длит.</th><th style="text-align:right">км</th></tr>
-      <tr><td class="val" style="text-align:left; color:#94A3B8">13:06 – 13:22</td><td class="val">16 мин</td><td class="val">5.4</td></tr>
-      <tr><td class="val" style="text-align:left; color:#94A3B8">12:46 – 12:48</td><td class="val">1 мин</td><td class="val">0.3</td></tr>
-      <tr><td class="val" style="text-align:left; color:#94A3B8">11:40 – 13:05</td><td class="val">1 ч 25 мин</td><td class="val">42.7</td></tr>
+      <tr><th>time</th><th>duration</th><th style="text-align:right">km</th></tr>
+      <tr><td class="val" style="text-align:left; color:#94A3B8">13:06 – 13:22</td><td class="val">16 min</td><td class="val">5.4</td></tr>
+      <tr><td class="val" style="text-align:left; color:#94A3B8">12:46 – 12:48</td><td class="val">1 min</td><td class="val">0.3</td></tr>
+      <tr><td class="val" style="text-align:left; color:#94A3B8">11:40 – 13:05</td><td class="val">1 h 25 min</td><td class="val">42.7</td></tr>
     </table>
   </div>
   <div>
-    <div style="font-size:12px; color:#64748B; margin-bottom:6px">Сейчас (для сравнения)</div>
+    <div style="font-size:12px; color:#64748B; margin-bottom:6px">Current (for comparison)</div>
     <table>
-      <tr><th>время</th><th>длит.</th><th style="text-align:right">км</th></tr>
-      <tr><td class="val" style="text-align:left; color:#94A3B8">13:06 – 13:22</td><td class="val">16м</td><td class="val">5.4</td></tr>
-      <tr><td class="val" style="text-align:left; color:#94A3B8">12:46 – 12:48</td><td class="val">1м</td><td class="val">0.3</td></tr>
-      <tr><td class="val" style="text-align:left; color:#94A3B8">11:40 – 13:05</td><td class="val">1ч 25м</td><td class="val">42.7</td></tr>
+      <tr><th>time</th><th>duration</th><th style="text-align:right">km</th></tr>
+      <tr><td class="val" style="text-align:left; color:#94A3B8">13:06 – 13:22</td><td class="val">16m</td><td class="val">5.4</td></tr>
+      <tr><td class="val" style="text-align:left; color:#94A3B8">12:46 – 12:48</td><td class="val">1m</td><td class="val">0.3</td></tr>
+      <tr><td class="val" style="text-align:left; color:#94A3B8">11:40 – 13:05</td><td class="val">1h 25m</td><td class="val">42.7</td></tr>
     </table>
   </div>
 </div>

@@ -78,11 +78,9 @@ class InsightsManager @Inject constructor(
     private fun todayString(): String =
         SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
 
-    // Return the actually selected language so every locale (pt, zh, ...) gets its
-    // own localized insight resources AND its own cache key. Collapsing everything
-    // but "en" to "ru" made pt/zh reuse the Russian resources and cache entry.
-    private fun currentLanguage(): String =
-        localePreferences.getLanguage() ?: "ru"
+    // Return the actually selected language so every retained locale gets its own
+    // localized insight resources and cache key.
+    private fun currentLanguage(): String = localePreferences.getLanguage()
 
     fun needsRefresh(periodDays: Int = 7): Boolean {
         return !prefs.contains(cacheKey(todayString(), currentLanguage(), periodDays))

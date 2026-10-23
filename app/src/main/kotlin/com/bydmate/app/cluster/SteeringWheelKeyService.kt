@@ -15,6 +15,8 @@ import com.bydmate.app.diagnostics.Trace
 import com.bydmate.app.diagnostics.TraceArea
 import com.bydmate.app.media.KnobPlayPause
 import com.bydmate.app.navdata.NavA11yFeed
+import com.bydmate.app.navdata.NavCaptureBridge
+import com.bydmate.app.navdata.NavCaptureA11yCallbacks
 import com.bydmate.app.service.TrackingService
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -218,15 +220,23 @@ class SteeringWheelKeyService : AccessibilityService() {
      *  mini-window, or the instrument cluster (display 2, projection mode). Caller must
      *  recycle the returned node. Null when the Navigator has no window anywhere. */
     fun findNavigatorRoot(): android.view.accessibility.AccessibilityNodeInfo? {
+        return findRootForPackages(com.bydmate.app.navdata.NavPackages.GUIDANCE_SOURCES)
+    }
+
+    /** Capture is scoped to the user-selected Google Maps or Waze package, never the HUD source set. */
+    fun findCaptureRoot(packageName: String): android.view.accessibility.AccessibilityNodeInfo? =
+        findRootForPackages(setOf(packageName))
+
+    private fun findRootForPackages(packages: Set<String>): android.view.accessibility.AccessibilityNodeInfo? {
         val active = runCatching { rootInActiveWindow }.getOrNull()
         if (active != null) {
-            if (active.packageName?.toString() in com.bydmate.app.navdata.NavPackages.GUIDANCE_SOURCES) return active
+            if (active.packageName?.toString() in packages) return active
             @Suppress("DEPRECATION") runCatching { active.recycle() }
         }
         val windowList = allWindows() ?: return null
         for (window in windowList) {
             val root = runCatching { window.root }.getOrNull() ?: continue
-            if (root.packageName?.toString() in com.bydmate.app.navdata.NavPackages.GUIDANCE_SOURCES) return root
+            if (root.packageName?.toString() in packages) return root
             @Suppress("DEPRECATION") runCatching { root.recycle() }
         }
         return null
@@ -254,6 +264,15 @@ class SteeringWheelKeyService : AccessibilityService() {
 
     // Single volatile read when the HUD feature is off - see NavA11yFeed.enabled.
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        // Capture stays independent of HUD enablement and runs before its Yandex-only filter.
+        NavCaptureA11yCallbacks.onEvent(event)
+        val selectedPackage = NavCaptureBridge.selectedPackage()
+        if (selectedPackage != null && event?.packageName?.toString() == selectedPackage) {
+            findCaptureRoot(selectedPackage)?.let { root ->
+                try { NavCaptureA11yCallbacks.onRoot(root) }
+                finally { runCatching { root.recycle() } }
+            }
+        }
         NavA11yFeed.onEvent(this, event)
         // Whoever just took the MAIN screen, reported the moment it happens: the blind-spot
         // window has to be gone before the native 360 view is drawn, and the UsageStats poll is

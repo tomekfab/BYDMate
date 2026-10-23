@@ -72,7 +72,7 @@ class AgentToolsRouteEnergyTest {
     @Test fun `energy_estimate present when hub active with soc=50`() = runTest {
         NavGuidanceHub.update(
             NavGuidance(
-                maneuverGaode = 2, distanceMeters = 300, road = "тест",
+                maneuverGaode = 2, distanceMeters = 300, road = "test",
                 etaSeconds = 1800, totalDistMeters = 50_000,
             ),
             NavGuidanceHub.Source.A11Y,
@@ -103,7 +103,7 @@ class AgentToolsRouteEnergyTest {
     @Test fun `energy_estimate warning when soc=14 arrival below 10pct`() = runTest {
         NavGuidanceHub.update(
             NavGuidance(
-                maneuverGaode = 2, distanceMeters = 300, road = "тест",
+                maneuverGaode = 2, distanceMeters = 300, road = "test",
                 etaSeconds = 600, totalDistMeters = 50_000,
             ),
             NavGuidanceHub.Source.A11Y,

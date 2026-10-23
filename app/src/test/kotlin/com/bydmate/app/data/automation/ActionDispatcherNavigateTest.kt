@@ -33,7 +33,7 @@ class ActionDispatcherNavigateTest {
             com.bydmate.app.util.AppStrings(app), dagger.Lazy { io.mockk.mockk(relaxed = true) })
 
     init {
-        // The fallback reasons below are asserted in Russian; another test may leave its language set.
+        // The fallback reasons below are Polish; another test may leave its language set.
         LocalePreferences(app).setLanguage("ru")
     }
 
@@ -64,7 +64,7 @@ class ActionDispatcherNavigateTest {
 
     @Test fun show_point_builds_show_point_uri_with_desc() = runTest {
         val res = dispatcher.dispatch(
-            actionDef("""{"show":true,"lat":55.75,"lon":37.62,"label":"Кафе"}"""), null)
+            actionDef("""{"show":true,"lat":55.75,"lon":37.62,"label":"Kawiarnia"}"""), null)
         assertTrue(res.success)
         val intent = shadowOf(app).nextStartedActivity
         assertEquals(Intent.ACTION_VIEW, intent.action)
@@ -85,7 +85,7 @@ class ActionDispatcherNavigateTest {
     }
 
     @Test fun query_still_opens_map_search() = runTest {
-        dispatcher.dispatch(actionDef("""{"query":"кафе"}"""), null)
+        dispatcher.dispatch(actionDef("""{"query":"kawiarnia"}"""), null)
         assertTrue(shadowOf(app).nextStartedActivity.dataString!!
             .startsWith("yandexnavi://map_search?text="))
     }
@@ -110,7 +110,7 @@ class ActionDispatcherNavigateTest {
         val res = dispatcher.dispatch(actionDef("""{"lat":57.0,"lon":36.0}"""), null)
         assertTrue(res.success)
         assertTrue("the reason must mention the fallback: ${res.reason}",
-            res.reason!!.contains("2ГИС"))
+            res.reason!!.contains("2GIS"))
         val intent = shadowOf(app).nextStartedActivity
         assertEquals("yandexnavi://build_route_on_map?lat_to=57.0&lon_to=36.0", intent.dataString)
         assertEquals(null, intent.`package`)
@@ -120,7 +120,7 @@ class ActionDispatcherNavigateTest {
         selectNavigator(RouteNavigatorUris.DGIS)
         installDgis()
 
-        dispatcher.dispatch(actionDef("""{"query":"кафе"}"""), null)
+        dispatcher.dispatch(actionDef("""{"query":"kawiarnia"}"""), null)
         assertTrue(shadowOf(app).nextStartedActivity.dataString!!
             .startsWith("dgis://2gis.ru/search/"))
 
@@ -149,7 +149,7 @@ class ActionDispatcherNavigateTest {
         val res = dispatcher.dispatch(actionDef("""{"lat":57.0,"lon":36.0}"""), null)
         assertTrue(res.success)
         assertTrue("the reason must mention the fallback: ${res.reason}",
-            res.reason!!.contains("Яндекс Карты"))
+            res.reason!!.contains("Yandex Maps"))
         val intent = shadowOf(app).nextStartedActivity
         assertEquals("yandexnavi://build_route_on_map?lat_to=57.0&lon_to=36.0", intent.dataString)
         assertEquals(null, intent.`package`)
@@ -159,7 +159,7 @@ class ActionDispatcherNavigateTest {
         selectNavigator(RouteNavigatorUris.MAPS)
         installYandexMaps()
 
-        dispatcher.dispatch(actionDef("""{"query":"кафе"}"""), null)
+        dispatcher.dispatch(actionDef("""{"query":"kawiarnia"}"""), null)
         assertTrue(shadowOf(app).nextStartedActivity.dataString!!
             .startsWith("yandexmaps://maps.yandex.ru/?text="))
 
@@ -168,7 +168,7 @@ class ActionDispatcherNavigateTest {
             shadowOf(app).nextStartedActivity.dataString)
     }
 
-    /** Maps chosen also covers «поехали домой/на работу» - navigateMaps() has its own
+/** Maps chosen also covers go-home and go-work requests - navigateMaps() has its own
      *  ROUTE_TO_HOME/WORK dialect for that. */
     @Test fun maps_selected_home_shortcut_uses_the_maps_action() = runTest {
         selectNavigator(RouteNavigatorUris.MAPS)
@@ -182,17 +182,17 @@ class ActionDispatcherNavigateTest {
     }
 
     /**
-     * Review P2: with Maps chosen, «поехали домой» (go=true) must not wait for the Navigator's
-     * «Поехали» button - that a11y read only ever looks at the Navigator's window. Without the
+* Review P2: with Maps chosen, go-home (go=true) must not wait for the Navigator's
+* Start button - that a11y read only ever looks at the Navigator's window. Without the
      * fix autoGoSupported stays true for any shortcut, and the dispatch fails with the
-     * "не удалось проверить маршрут" a11y timeout even though Maps opened successfully.
+* route-verification a11y timeout even though Maps opened successfully.
      */
     @Test fun maps_selected_home_shortcut_with_go_skips_auto_go_wait() = runTest {
         selectNavigator(RouteNavigatorUris.MAPS)
         installYandexMaps()
 
         val res = dispatcher.dispatch(actionDef("""{"shortcut":"home","go":true}"""), null)
-        assertTrue("go on a Maps shortcut must not wait for the Navigator's «Поехали»: ${res.reason}",
+        assertTrue("go on a Maps shortcut must not wait for Navigator's „Jedziemy”: ${res.reason}",
             res.success)
     }
 
@@ -226,14 +226,40 @@ class ActionDispatcherNavigateTest {
         selectNavigator("waze")
         installWaze()
 
-        dispatcher.dispatch(actionDef("""{"query":"кафе"}"""), null)
+        dispatcher.dispatch(actionDef("""{"query":"kawiarnia"}"""), null)
         assertTrue(shadowOf(app).nextStartedActivity.dataString!!.startsWith("waze://?q="))
 
         dispatcher.dispatch(actionDef("""{"show":true,"lat":55.75,"lon":37.62}"""), null)
         assertEquals("waze://?ll=55.75,37.62", shadowOf(app).nextStartedActivity.dataString)
     }
 
-    /** «Поехали» is pressed through the Yandex Navigator's a11y window; Waze has no such read. */
+    @Test fun waze_selected_query_is_pinned_encoded_search_and_never_auto_go() = runTest {
+        selectNavigator(RouteNavigatorUris.WAZE)
+        installWaze()
+        val payload = org.json.JSONObject("""{"query":"ulicę Janowskiego 82","go":true}""")
+
+        val result = dispatcher.dispatch(actionDef(payload.toString()), null)
+
+        assertTrue(result.success)
+        val intent = shadowOf(app).nextStartedActivity
+        assertEquals(Intent.ACTION_VIEW, intent.action)
+        assertEquals("waze://?q=ulic%C4%99%20Janowskiego%2082", intent.dataString)
+        assertEquals(RouteNavigatorUris.WAZE_PACKAGE, intent.`package`)
+        assertFalse(dispatcher.autoGoWillRun(payload))
+    }
+
+    @Test fun yandex_query_disables_auto_go_while_a_blank_query_route_supports_it() {
+        selectNavigator(RouteNavigatorUris.YANDEX)
+        val query = org.json.JSONObject("""{"query":"ulicę Janowskiego 82","go":true}""")
+        val route = org.json.JSONObject("""{"query":"","lat":57.0,"lon":36.0,"go":true}""")
+
+        assertFalse(dispatcher.autoGoSupported(query))
+        assertFalse(dispatcher.autoGoWillRun(query))
+        assertTrue(dispatcher.autoGoSupported(route))
+        assertTrue(dispatcher.autoGoWillRun(route))
+    }
+
+/** Start is pressed through the Yandex Navigator a11y window; Waze has no such read. */
     @Test fun waze_route_has_no_auto_go() {
         selectNavigator("waze")
         installWaze()
@@ -241,7 +267,7 @@ class ActionDispatcherNavigateTest {
     }
 
     /** #305: AgentTools waits for the package the intent was pinned to, so this must agree with
-     *  sendNavigateIntent: pinned only for an installed 2GIS/Waze and never for Maps or Home/Work. */
+     *  sendNavigateIntent: pinned only for an installed 2GIS/Waze and never for Maps. */
     @Test fun willOpenPinned_follows_the_routing() {
         selectNavigator("waze")
         assertEquals(null, dispatcher.willOpenPinned(org.json.JSONObject("""{"lat":57.0,"lon":36.0}""")))
@@ -249,7 +275,32 @@ class ActionDispatcherNavigateTest {
         installWaze()
         assertEquals("com.waze", dispatcher.willOpenPinned(org.json.JSONObject("""{"lat":57.0,"lon":36.0}""")))
         assertEquals(null, dispatcher.willOpenPinned(org.json.JSONObject("""{"app":"maps","lat":57.0,"lon":36.0}""")))
-        assertEquals(null, dispatcher.willOpenPinned(org.json.JSONObject("""{"shortcut":"home"}""")))
+        assertEquals("com.waze", dispatcher.willOpenPinned(org.json.JSONObject("""{"shortcut":"home"}""")))
+    }
+
+    @Test fun waze_saved_favorites_use_pinned_deep_links_without_yandex_auto_go() = runTest {
+        selectNavigator("waze")
+        installWaze()
+        for (shortcut in listOf("home", "work")) {
+            val json = """{"shortcut":"$shortcut","go":true}"""
+            val payload = org.json.JSONObject(json)
+            val result = dispatcher.dispatch(actionDef(json), null)
+            assertTrue(result.toString(), result.success)
+            val intent = shadowOf(app).nextStartedActivity
+            assertEquals(Intent.ACTION_VIEW, intent.action)
+            assertEquals("waze://?favorite=$shortcut&navigate=yes", intent.dataString)
+            assertEquals("com.waze", intent.`package`)
+            assertEquals("com.waze", dispatcher.willOpenPinned(payload))
+            assertFalse(dispatcher.autoGoSupported(payload))
+            assertFalse(dispatcher.autoGoWillRun(payload))
+        }
+    }
+
+    @Test fun missing_waze_home_keeps_yandex_fallback() = runTest {
+        selectNavigator("waze")
+        val result = dispatcher.dispatch(actionDef("""{"shortcut":"home"}"""), null)
+        assertTrue(result.success)
+        assertEquals("ru.yandex.yandexmaps.action.ROUTE_TO_HOME_SHORTCUT", shadowOf(app).nextStartedActivity.action)
     }
 
     // --- willOpenMaps: what AgentTools asks to pick the right foreground-verification app ---

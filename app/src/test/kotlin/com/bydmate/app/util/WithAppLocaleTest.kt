@@ -17,10 +17,10 @@ import org.robolectric.annotation.Config
  * use the in-app locale (set via [LocalePreferences]) rather than the Robolectric/system locale.
  *
  * The test class is configured with qualifiers="en" to simulate DiLink's system locale (en_US).
- * Setting [LocalePreferences] to "ru" mimics the user selecting Russian inside the app.
+ * Setting [LocalePreferences] to "pl" mimics the default in-app locale.
  *
  * Anti-vacuity: the "without wrapper" assertion confirms that WITHOUT the wrapper the string
- * DOES resolve to English — proving the wrapper is what makes the Russian resolution happen.
+ * DOES resolve to English — proving the wrapper is what makes the Polish resolution happen.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29], qualifiers = "en")
@@ -40,11 +40,10 @@ class WithAppLocaleTest {
     // ---------------------------------------------------------------------------
 
     @Test
-    fun `appLocalizedContext returns Russian split menu string when app locale is ru`() {
-        LocalePreferences(ctx).setLanguage("ru")
+    fun `appLocalizedContext returns Polish split menu string when app locale is pl`() {
+        LocalePreferences(ctx).setLanguage("pl")
         val result = ctx.appLocalizedContext().getString(R.string.split_menu_mirror)
-        // values/strings.xml (ru): "Поменять стороны"
-        assertEquals("Поменять стороны", result)
+        assertEquals("Zamień strony", result)
     }
 
     @Test
@@ -56,20 +55,25 @@ class WithAppLocaleTest {
     }
 
     @Test
-    fun `appLocalizedContext returns Russian fid-dump error string when app locale is ru`() {
-        LocalePreferences(ctx).setLanguage("ru")
+    fun `appLocalizedContext returns Polish fid-dump error string when app locale is pl`() {
+        LocalePreferences(ctx).setLanguage("pl")
         val result = ctx.appLocalizedContext().getString(R.string.settings_fid_dump_error_unavailable)
-        // values/strings.xml (ru): "демон недоступен"
-        assertEquals("демон недоступен", result)
+        assertEquals("demon niedostępny", result)
     }
 
     @Test
-    fun `appLocalizedContext returns Russian fid-dump read-error string when app locale is ru`() {
-        LocalePreferences(ctx).setLanguage("ru")
+    fun `appLocalizedContext returns Polish fid-dump read-error string when app locale is pl`() {
+        LocalePreferences(ctx).setLanguage("pl")
         val detail = "status=-1 at chunk 0"
         val result = ctx.appLocalizedContext().getString(R.string.settings_fid_dump_error_read, detail)
-        // values/strings.xml (ru): "ошибка чтения: %1$s"
-        assertEquals("ошибка чтения: $detail", result)
+        assertEquals("błąd odczytu: $detail", result)
+    }
+
+    @Test
+    fun `appLocalizedContext falls back to Polish for an unsupported locale`() {
+        LocalePreferences(ctx).setLanguage("de")
+
+        assertEquals("Zamień strony", ctx.appLocalizedContext().getString(R.string.split_menu_mirror))
     }
 
     // ---------------------------------------------------------------------------
@@ -77,9 +81,9 @@ class WithAppLocaleTest {
     // ---------------------------------------------------------------------------
 
     @Test
-    fun `anti-vacuity bare context with ru app locale returns English (system locale leak)`() {
-        // Set the app locale to Russian — but intentionally do NOT use appLocalizedContext().
-        LocalePreferences(ctx).setLanguage("ru")
+    fun `anti-vacuity bare context with Polish app locale returns English system locale leak`() {
+        // Set the app locale to Polish — but intentionally do NOT use appLocalizedContext().
+        LocalePreferences(ctx).setLanguage("pl")
         // The bare ApplicationContext stays on the system locale (qualifiers="en").
         val withoutWrapper = ctx.getString(R.string.split_menu_mirror)
         // Must be English (system locale) — proving the wrapper IS what fixes the locale.
@@ -95,6 +99,6 @@ class WithAppLocaleTest {
             withoutWrapper,
             withWrapper,
         )
-        assertEquals("Поменять стороны", withWrapper)
+        assertEquals("Zamień strony", withWrapper)
     }
 }

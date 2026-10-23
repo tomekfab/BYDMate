@@ -22,7 +22,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-// Robolectric: the refusal reasons come from the app strings, the Russian texts below are the real ones.
+// Robolectric: the refusal reasons come from the current Polish app strings.
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29])
 class VoiceAutomationActionsSpeakTest {
@@ -32,10 +32,10 @@ class VoiceAutomationActionsSpeakTest {
     private fun lang(tag: String) = LocalePreferences(ApplicationProvider.getApplicationContext()).setLanguage(tag)
 
     init {
-        lang("ru")
+        lang("pl")
     }
 
-    @After fun restoreLanguage() = lang("ru")
+    @After fun restoreLanguage() = lang("pl")
 
     private fun makeActions(
         ttsEnabled: Boolean = true,
@@ -72,16 +72,16 @@ class VoiceAutomationActionsSpeakTest {
 
     @Test fun `speaks the raw text and reports success`() = runTest {
         val (actions, tts) = makeActions()
-        val r = actions.speak("Позвони жене")
+        val r = actions.speak("Zadzwoń do żony")
         assertTrue(r.success)
-        verify(exactly = 1) { tts.speak("Позвони жене") }  // raw, no persona wrapper
+        verify(exactly = 1) { tts.speak("Zadzwoń do żony") }  // raw, no persona wrapper
     }
 
     @Test fun `ducks music and restores it after speech`() = runTest {
         val capture = mockk<AudioCapture>(relaxed = true)
         io.mockk.every { capture.duckMusic() } returns 20
         val (actions, _) = makeActions(audioCapture = capture)
-        actions.speak("тест")
+        actions.speak("test")
         io.mockk.verifyOrder {
             capture.duckMusic()
             capture.restoreMusic(20)
@@ -90,25 +90,25 @@ class VoiceAutomationActionsSpeakTest {
 
     @Test fun `voice master off - refused with reason`() = runTest {
         val (actions, tts) = makeActions(voiceEnabled = false)
-        val r = actions.speak("тест")
+        val r = actions.speak("test")
         assertFalse(r.success)
-        assertEquals("голосовой помощник выключен в настройках", r.reason)
+        assertEquals("asystent głosowy jest wyłączony w ustawieniach", r.reason)
         verify(exactly = 0) { tts.speak(any()) }
     }
 
     @Test fun `tts toggle off - refused with reason`() = runTest {
         val (actions, tts) = makeActions(ttsEnabled = false)
-        val r = actions.speak("тест")
+        val r = actions.speak("test")
         assertFalse(r.success)
-        assertEquals("озвучка ответов выключена в настройках", r.reason)
+        assertEquals("czytanie odpowiedzi na głos jest wyłączone w ustawieniach", r.reason)
         verify(exactly = 0) { tts.speak(any()) }
     }
 
     @Test fun `live voice session - dropped, not queued`() = runTest {
         val (actions, tts) = makeActions(listening = true)
-        val r = actions.speak("тест")
+        val r = actions.speak("test")
         assertFalse(r.success)
-        assertEquals("идёт голосовая сессия, действие пропущено", r.reason)
+        assertEquals("trwa sesja głosowa, akcja pominięta", r.reason)
         verify(exactly = 0) { tts.speak(any()) }
     }
 
@@ -135,9 +135,9 @@ class VoiceAutomationActionsSpeakTest {
         )
         actions.isOrbShowing = { false }
         actions.canShowOrb = { false }
-        val r = actions.speak("тест")
+        val r = actions.speak("test")
         assertFalse(r.success)
-        assertEquals("идёт голосовая сессия, действие пропущено", r.reason)
+        assertEquals("trwa sesja głosowa, akcja pominięta", r.reason)
         verify(exactly = 0) { tts.speak(any()) }
     }
 
@@ -145,16 +145,16 @@ class VoiceAutomationActionsSpeakTest {
         val (actions, _) = makeActions()
         val r = actions.speak("   ")
         assertFalse(r.success)
-        assertEquals("не задан текст", r.reason)
+        assertEquals("nie podano tekstu", r.reason)
     }
 
     @Test fun `tts refusing to start reports failure but still restores music`() = runTest {
         val capture = mockk<AudioCapture>(relaxed = true)
         io.mockk.every { capture.duckMusic() } returns 12
         val (actions, _) = makeActions(speakOk = false, audioCapture = capture)
-        val r = actions.speak("тест")
+        val r = actions.speak("test")
         assertFalse(r.success)
-        assertEquals("озвучка не запустилась", r.reason)
+        assertEquals("czytanie się nie uruchomiło", r.reason)
         verify(exactly = 1) { capture.restoreMusic(12) }
     }
 
@@ -168,9 +168,9 @@ class VoiceAutomationActionsSpeakTest {
             every { speak(any()) } returns true
         }
         val (actions, _) = makeActions(ttsEngine = tts)
-        val r = actions.speak("тест")
+        val r = actions.speak("test")
         assertFalse(r.success)
-        assertEquals("озвучка прервана по таймауту", r.reason)
+        assertEquals("czytanie przerwane po przekroczeniu czasu", r.reason)
         verify(exactly = 1) { tts.stop() }
     }
 
@@ -184,7 +184,7 @@ class VoiceAutomationActionsSpeakTest {
             every { speak(any()) } returns true
         }
         val (actions, _) = makeActions(ttsEngine = tts, audioCapture = capture)
-        val job = launch { actions.speak("тест") }
+        val job = launch { actions.speak("test") }
         testScheduler.runCurrent()    // start coroutine, run until suspended in drain
         job.cancelAndJoin()           // cancel while suspended; finally must fire
         io.mockk.verify(exactly = 1) { capture.restoreMusic(15) }
@@ -196,14 +196,14 @@ class VoiceAutomationActionsSpeakTest {
             every { speak(any()) } returns true
         }
         val (actions, _) = makeActions(ttsEngine = tts)
-        val first = launch { actions.speak("раз") }
+        val first = launch { actions.speak("pierwsza") }
         testScheduler.runCurrent()    // the first speak now hangs in the drain
 
-        val r = actions.speak("два")
+        val r = actions.speak("druga")
         first.cancelAndJoin()
 
         assertFalse(r.success)
-        assertEquals("другое голосовое действие ещё выполняется", r.reason)
+        assertEquals("inna akcja głosowa jest jeszcze wykonywana", r.reason)
     }
 
     @Test fun `refusals follow the app language`() = runTest {

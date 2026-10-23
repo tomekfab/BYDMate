@@ -81,7 +81,7 @@ class AgentToolsNavigateRangeTest {
         assertTrue(out.has("reserve_km"))
         // distance_km is straight-line × road factor, not the Navigator's routed distance —
         // the note keeps the LLM from voicing it as an exact figure (field report 2026-07-14)
-        assertTrue(out.getString("note").contains("примерн"))
+        assertTrue(out.getString("note").contains("przybliż"))
         assertTrue(out.getString("note").contains("get_route_info"))
     }
 
@@ -138,9 +138,9 @@ class AgentToolsNavigateRangeTest {
             if (fn.getString("name") == "search_on_map") fn.getString("description") else null
         }.first()
         // home/work commands belong to navigate_to now; search_on_map must not claim them
-        assertTrue(navigateDesc.contains("домой"))
-        assertTrue(navigateDesc.contains("на работу"))
-        assertFalse(searchDesc.contains("Дом\""))
+        assertTrue(navigateDesc.contains("do domu"))
+        assertTrue(navigateDesc.contains("do pracy"))
+        assertFalse(searchDesc.contains("Dom\""))
         assertTrue(searchDesc.contains("navigate_to"))
     }
 }

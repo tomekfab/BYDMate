@@ -33,16 +33,16 @@ class LinkRedactionTest {
         assertEquals("navigate:<coords>", log("navigate:53.9045,27.5615"))
         assertEquals("navigate_show:<coords>", log("navigate_show:-33.86, 151.2"))
         assertEquals("navigate_maps:<coords>", log("navigate_maps:53.9045,27.5615"))
-        assertEquals("navigate_maps_show:<coords> (name len=4)", log("navigate_maps_show:53.9045,27.5615 (Дача)"))
+        assertEquals("navigate_maps_show:<coords> (name len=5)", log("navigate_maps_show:53.9045,27.5615 (Dacza)"))
     }
 
     @Test fun `navigate labels drop coordinates in exponent form`() {
         assertEquals("navigate:<coords>", log("navigate:1.0E-4,27.5615"))
-        assertEquals("navigate_maps_show:<coords> (name len=3)", log("navigate_maps_show:53.9,-1.0E-5 (Дом)"))
+        assertEquals("navigate_maps_show:<coords> (name len=3)", log("navigate_maps_show:53.9,-1.0E-5 (Dom)"))
     }
 
     @Test fun `a point name is never logged, whatever it carries`() {
-        val name = "https://host/p?token=SECRET и тел +375291234567, дом 53.9,27.5"
+        val name = "https://host/p?token=SECRET oraz tel. +375291234567, dom 53.9,27.5"
         val out = log("navigate_maps_show:53.9,27.5 ($name)")
         assertEquals("navigate_maps_show:<coords> (name len=${name.length})", out)
         assertTrue(out, "SECRET" !in out)
@@ -51,7 +51,7 @@ class LinkRedactionTest {
     }
 
     @Test fun `search labels keep their text`() {
-        assertEquals("navigate_search:Минск вокзал", log("navigate_search:Минск вокзал"))
+        assertEquals("navigate_search:Warszawa Centralna", log("navigate_search:Warszawa Centralna"))
     }
 
     @Test fun `navigator deep links keep scheme and host or path only`() {
@@ -103,7 +103,7 @@ class LinkRedactionTest {
     }
 
     @Test fun `a phone number in free text is masked`() {
-        assertEquals("Позвонить <phone>", log("Позвонить +375 29 123-45-67"))
+        assertEquals("Zadzwoń <phone>", log("Zadzwoń +375 29 123-45-67"))
     }
 
     @Test fun `text without a link, number or coordinates is unchanged`() {

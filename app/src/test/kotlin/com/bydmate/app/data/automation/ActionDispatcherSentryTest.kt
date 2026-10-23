@@ -35,7 +35,7 @@ class ActionDispatcherSentryTest {
     }
 
     private fun sentry(payload: String) =
-        ActionDef(command = "sentry", displayName = "Охранный режим", kind = "sentry", payload = payload)
+        ActionDef(command = "sentry", displayName = "Tryb ochrony", kind = "sentry", payload = payload)
 
     @Test fun `sentry enable writes global switch 1`() = runBlocking {
         coEvery { helper.putGlobalSetting("sentrymode_enabled_switch", 1) } returns true

@@ -31,7 +31,7 @@ import java.util.Locale
 // the journal lines and what the editor still misses. Pure (a context only for strings), so the
 // wording is tested in every language without a UI.
 
-/** The card phrase «условия: действия»; the two halves are drawn in different colours. */
+/** The card phrase «warunki: działania»; the two halves are drawn in different colours. */
 internal data class RulePhrase(val conditions: String, val actions: String) {
     fun text(context: Context): String =
         if (actions.isEmpty()) conditions
@@ -54,7 +54,7 @@ internal fun rulePhrase(
     val conditions = triggers.map { conditionText(it, lc, now, zone) }
     var joined = conditions.firstOrNull().orEmpty()
     for (i in 1 until conditions.size) {
-        // «30 сентября в 07:30, один раз, и …»: a part that has a comma of its own closes with one.
+        // «30 września w 07:30, jeden razy, i …»: a part that has a comma of its own closes with one.
         val comma = ',' in conditions[i - 1] || '，' in conditions[i - 1]
         val format = when {
             logic == "OR" && comma -> R.string.auto_ui_phrase_or_comma
@@ -73,8 +73,8 @@ private fun listText(parts: List<String>, lc: Context): String =
 private fun Context.locale(): Locale = resources.configuration.locales[0]
 
 /**
- * [s] with a small first letter, for the middle of a sentence: «Скорость» → «скорость»,
- * «Авто AC» → «авто AC». Acronyms («SOC», «ECO», «P») and names written in title case
+ * [s] with a small first letter, for the middle of a sentence: «Prędkość» → «prędkość»,
+ * "Auto AC" → "auto AC". Acronyms ("SOC", "ECO", "P") and names written in title case
  * («Driver Door») stay as they are.
  */
 internal fun decapitalize(s: String, lc: Context): String {
@@ -102,7 +102,7 @@ internal fun operatorWord(op: String, lc: Context): String = when (op) {
     else -> op
 }
 
-/** A number with its unit: «5 км/ч», «20%»; a hint in brackets («(0=сухо)») is left out. */
+/** A number with its unit: "5 km/h", "20%"; a hint in brackets ("(0=dry)") is left out. */
 private fun withUnit(value: String, unit: String): String = when {
     unit.isEmpty() || unit.startsWith("(") -> value
     unit.startsWith("%") -> value + unit
@@ -160,7 +160,7 @@ private val DAY_NAMES = listOf(
     R.string.automation_day_sun,
 )
 
-/** «В 08:00», «По будням с 08:00 до 10:00», «Пн, Ср в 07:30». */
+/** "At 08:00", "Weekdays from 08:00 to 10:00", "Mon, Wed at 07:30". */
 internal fun scheduleText(spec: ScheduleSpec, lc: Context): String {
     val time = if (spec.isExact) lc.getString(R.string.auto_ui_phrase_at, minuteToHHmm(spec.fromMinute))
         else lc.getString(R.string.auto_ui_phrase_between, minuteToHHmm(spec.fromMinute), minuteToHHmm(spec.toMinute))
@@ -173,7 +173,7 @@ internal fun scheduleText(spec: ScheduleSpec, lc: Context): String {
     return lc.getString(R.string.auto_ui_phrase_days, days, decapitalize(time, lc))
 }
 
-/** «Сегодня в 08:12», «Вчера в 18:40», «Завтра в 07:30», «30 сентября в 07:30» (with the year when not this one). */
+/** "Today at 08:12", "Yesterday at 18:40", "Tomorrow at 07:30", "30 September at 07:30" (with the year when needed). */
 internal fun whenText(ms: Long, lc: Context, now: Long, zone: ZoneId): String {
     val at = Instant.ofEpochMilli(ms).atZone(zone)
     val today = Instant.ofEpochMilli(now).atZone(zone).toLocalDate()
@@ -212,7 +212,7 @@ private fun quoted(nameRes: Int, detail: String, lc: Context): String {
     return lc.getString(R.string.auto_ui_act_quoted, name, cut)
 }
 
-/** «0,5 с», «30 с», «1 мин». */
+/** "0.5 s", "30 s", "1 min". */
 internal fun durationText(ms: Long, lc: Context): String {
     if (ms >= 60_000 && ms % 60_000 == 0L) return lc.getString(R.string.auto_ui_minutes, (ms / 60_000).toString())
     val fmt = NumberFormat.getNumberInstance(lc.locale()).apply { maximumFractionDigits = 1 }
@@ -285,7 +285,7 @@ private fun entryKind(log: RuleLogEntity): RuleStatusKind = when (entryResult(lo
 
 /**
  * The line under the rule name: a one-shot rule still waiting says when it runs; otherwise the
- * newest journal entry [last] with its time, or «Ещё не срабатывало».
+ * newest journal entry [last] with its time, or "Not triggered yet".
  */
 internal fun ruleStatus(
     rule: RuleEntity,
@@ -403,10 +403,10 @@ internal fun journalLine(
     return JournalLine(RuleStatusKind.ERROR, lc.getString(R.string.auto_ui_journal_error), time, capitalize(what, lc), why)
 }
 
-/** Snapshot key of a journal entry written by «Тестовый запуск». */
+/** Snapshot key of a journal entry written by «Testowy uruchomienie». */
 internal const val TEST_RUN_KEY = "test_run"
 
-/** The car's values a rule fired on: «Передача P, скорость 0 км/ч»; null when none were stored. */
+/** The car's values a rule fired on: "Gear P, speed 0 km/h"; null when none were stored. */
 private fun snapshotText(snapshot: JSONObject, lc: Context): String? {
     // In the order the rule stored them, which is the order of its conditions.
     val parts = snapshot.keys().asSequence().toList().mapNotNull { key ->
@@ -426,7 +426,7 @@ private fun snapshotText(snapshot: JSONObject, lc: Context): String? {
     return listText(parts.mapIndexed { i, s -> if (i == 0) s else decapitalize(s, lc) }, lc)
 }
 
-// --- Editor: what is missing before «Сохранить» ---
+// --- Editor: what is missing before «Zapisz» ---
 
 /** One thing the draft still needs; [condition] and [action] are 1-based row numbers. */
 internal sealed interface Missing {
@@ -480,7 +480,7 @@ internal fun Missing.text(lc: Context): String = when (this) {
     is Missing.Action -> message
 }
 
-/** The line beside «Сохранить»: one thing, two joined, or the first and «ещё N»; null when nothing is missing. */
+/** The line beside «Zapisz»: one thing, two joined, or the first and «jeszcze N»; null when nothing is missing. */
 internal fun saveReason(missing: List<Missing>, context: Context): String? {
     val lc = context.appLocalizedContext()
     return when (missing.size) {
@@ -506,13 +506,13 @@ internal fun eventTriggerWithOthers(triggers: List<TriggerDef>): String? {
 
 private val EVENT_KINDS = setOf("button_press", AutomationEngine.TRIGGER_KIND_STEERING_KEY, "voice")
 
-/** The operators a parameter offers: «равно / не равно» for a list, all six for a number. */
+/** The operators a parameter offers: «równe / nie równe» for a list, all six for a number. */
 internal fun operatorsFor(option: TriggerParamOption?): List<String> =
     if (option?.enumValues != null) listOf("==", "!=") else OPERATORS
 
 /**
  * True for a list condition saved with an operator the editor no longer offers (an older build
- * allowed «Передача > P»): it opens with neither button chosen and must not be saved as it is.
+ * allowed «Przekazywanie > P»): it opens with neither button chosen and must not be saved as it is.
  */
 internal fun hasListOperatorMissing(t: TriggerDef): Boolean {
     if (t.kind != "param") return false

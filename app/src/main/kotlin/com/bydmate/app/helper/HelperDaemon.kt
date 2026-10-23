@@ -729,7 +729,7 @@ fun main(args: Array<String>) {
                     android.util.Log.e("bydmate_helper", "TX_DUMP_FIDS chunked: error", e)
                     // Write full protocol reply so the client reads status=-1 and returns ReadError,
                     // not BinderAbsent. Without totalLength+byteArray the client sees dataAvail()<8
-                    // and maps the call to BinderAbsent ("демон недоступен"), which is a lie (Q4-1).
+                    // and maps the call to BinderAbsent ("daemon unavailable"), which is a lie (Q4-1).
                     reply?.writeInt(-1); reply?.writeInt(0); reply?.writeByteArray(ByteArray(0))
                     true
                 }

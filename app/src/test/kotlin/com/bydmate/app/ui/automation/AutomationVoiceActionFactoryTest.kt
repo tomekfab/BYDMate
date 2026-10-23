@@ -7,7 +7,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class AutomationVoiceActionFactoryTest {
-    private val context = mockk<Context> { every { getString(any()) } returns "Название" }
+    private val context = mockk<Context> { every { getString(any()) } returns "Nazwa" }
 
     @Test fun `speak factory produces kind speak with empty text payload`() {
         val a = newSpeakAction(context)
@@ -16,8 +16,8 @@ class AutomationVoiceActionFactoryTest {
     }
 
     @Test fun `speak payload round-trips`() {
-        val a = newSpeakAction(context).withSpeakText("Позвони жене")
-        assertEquals("Позвони жене", a.speakText())
+        val a = newSpeakAction(context).withSpeakText("Zadzwoń do żony")
+        assertEquals("Zadzwoń do żony", a.speakText())
     }
 
     @Test fun `agent query factory produces kind agent_query with empty prompt`() {
@@ -27,8 +27,8 @@ class AutomationVoiceActionFactoryTest {
     }
 
     @Test fun `agent prompt payload round-trips`() {
-        val a = newAgentQueryAction(context).withAgentPrompt("расскажи сводку погоды")
-        assertEquals("расскажи сводку погоды", a.agentPrompt())
+        val a = newAgentQueryAction(context).withAgentPrompt("podaj prognozę pogody")
+        assertEquals("podaj prognozę pogody", a.agentPrompt())
     }
 
     @Test fun `cluster factory produces kind cluster_projection with default payload on`() {

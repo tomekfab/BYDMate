@@ -540,8 +540,8 @@ class VehicleApiImpl @Inject constructor(
      */
     private fun windowsStuck(action: String, panes: List<WindowPane>): VehicleWriteError.ReadbackMismatch {
         val labels = panes.map { paneLabel(it) }
-        val details = if (labels.size == 1) "${labels[0]} не сдвинулось с места, команда не сработала"
-        else "не сдвинулись с места: " + labels.joinToString(", ")
+        val details = if (labels.size == 1) "${labels[0]} nie przesunęło się z miejsca, polecenie nie zostało wykonane"
+        else "nie przesunęły się z miejsca: " + labels.joinToString(", ")
         return VehicleWriteError.ReadbackMismatch(action, details, panes)
     }
 
@@ -566,7 +566,7 @@ class VehicleApiImpl @Inject constructor(
         val failed = nudgeSameTarget(left.filter { it in stuck }) + left.filterNot { it in stuck }
         if (failed.isEmpty()) return null
         failed.forEach { pane ->
-            logWindowVerdict(pane, "не сдвинулось")
+            logWindowVerdict(pane, "nie przesunęło się")
             logWrite(pane.check.actionName, pane.check.entry.dev, pane.check.entry.writeFid,
                 pane.check.value, null, false, "window_noop", pane.check.entry.validated)
         }
@@ -822,11 +822,11 @@ class VehicleApiImpl @Inject constructor(
 
     /** Pane name for the log line of a stuck window. */
     private fun paneLabel(pane: WindowPane): String = when (pane) {
-        WindowPane.DRIVER -> "окно водителя"
-        WindowPane.PASSENGER -> "окно пассажира"
-        WindowPane.REAR_LEFT -> "заднее левое окно"
-        WindowPane.REAR_RIGHT -> "заднее правое окно"
-        WindowPane.OTHER -> "стекло"
+        WindowPane.DRIVER -> "okno kierowcy"
+        WindowPane.PASSENGER -> "okno pasażera"
+        WindowPane.REAR_LEFT -> "lewe tylne okno"
+        WindowPane.REAR_RIGHT -> "prawe tylne okno"
+        WindowPane.OTHER -> "szyba"
     }
 
     /** Read address actually sampled, plus the position read right now (raw, sentinels kept as-is). */

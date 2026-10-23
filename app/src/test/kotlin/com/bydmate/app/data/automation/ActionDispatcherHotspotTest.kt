@@ -37,7 +37,7 @@ class ActionDispatcherHotspotTest {
     }
 
     private fun hotspot(payload: String) =
-        ActionDef(command = "hotspot", displayName = "Точка доступа Wi-Fi", kind = "hotspot", payload = payload)
+        ActionDef(command = "hotspot", displayName = "Hotspot Wi-Fi", kind = "hotspot", payload = payload)
 
     @Test fun `hotspot enable calls setHotspot true`() = runBlocking {
         coEvery { helper.setHotspot(true) } returns true

@@ -254,7 +254,7 @@ private fun ChargeActionSheet(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
-                    "${charge.type ?: "—"} • ${charge.kwhCharged?.let { "%.1f".format(it) } ?: "—"} кВт·ч",
+                    "${charge.type ?: "—"} • ${charge.kwhCharged?.let { "%.1f".format(it) } ?: "—"} kWh",
                     color = TextSecondary, fontSize = 12.sp
                 )
                 Row(
@@ -452,7 +452,7 @@ private fun ChargeRow(
 
     Column(
         modifier = Modifier.combinedClickable(
-            onClick = { /* no-op для обычного клика */ },
+            onClick = { /* no-op for a regular click */ },
             onLongClick = onLongClick,
         )
     ) {

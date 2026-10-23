@@ -33,7 +33,7 @@ class LocalInsightEngineTest {
     fun `stable consumption produces stable title`() {
         val stats = baseStats(consumptionChangePct = 2.0)
         val result = LocalInsightEngine.generate(stats, res("ru"), 7)
-        assertTrue(result.title.contains("стабилен", ignoreCase = true))
+        assertTrue(result.title.contains("stabilne", ignoreCase = true))
         assertEquals(18.0, extractAvgFromSummary(result.summary), 0.1)
     }
 
@@ -46,8 +46,8 @@ class LocalInsightEngineTest {
         )
         val result = LocalInsightEngine.generate(stats, res("ru"), 7)
         assertTrue(result.title.contains("▲"))
-        assertTrue(result.summary.contains("коротк", ignoreCase = true))
-        assertTrue(result.insights.any { it.contains("короче 5 км") })
+        assertTrue(result.summary.contains("krótk", ignoreCase = true))
+        assertTrue(result.insights.any { it.contains("krótszych niż 5 km") })
     }
 
     @Test
@@ -72,7 +72,7 @@ class LocalInsightEngineTest {
             drainHours = 4.0,
         )
         val result = LocalInsightEngine.generate(stats, res("ru"), 7)
-        assertTrue(result.insights.any { it.contains("стоянке") || it.contains("кВт") })
+        assertTrue(result.insights.any { it.contains("postoju") || it.contains("kWh") })
     }
 
     @Test
@@ -91,8 +91,8 @@ class LocalInsightEngineTest {
         )
         val result = LocalInsightEngine.generate(stats, res("ru"), 7)
         assertTrue(
-            result.title.contains("ночн", ignoreCase = true) ||
-                result.insights.any { it.contains("Ночью") || it.contains("22:00") },
+            result.title.contains("nocne", ignoreCase = true) ||
+                result.insights.any { it.contains("Nocą") || it.contains("22:00") },
         )
     }
 
@@ -126,7 +126,7 @@ class LocalInsightEngineTest {
     fun `consumption drop adds improvement bullet`() {
         val stats = baseStats(consumptionChangePct = -10.0)
         val result = LocalInsightEngine.generate(stats, res("ru"), 7)
-        assertTrue(result.insights.any { it.contains("снизился", ignoreCase = true) })
+        assertTrue(result.insights.any { it.contains("spadło", ignoreCase = true) })
     }
 
     @Test
@@ -166,9 +166,9 @@ class LocalInsightEngineTest {
         )
         val result = LocalInsightEngine.generate(stats, res("ru"), 30)
         val combined = result.title + result.summary + result.insights.joinToString()
-        assertTrue(!combined.contains("недел", ignoreCase = true))
-        assertTrue(result.summary.contains("месяц"))
-        assertTrue(result.insights.any { it.contains("месяц") })
+        assertTrue(!combined.contains("tygodni", ignoreCase = true))
+        assertTrue(result.summary.contains("miesiąc"))
+        assertTrue(result.insights.any { it.contains("miesiąc") })
     }
 
     @Test
@@ -179,8 +179,8 @@ class LocalInsightEngineTest {
         )
         val result = LocalInsightEngine.generate(stats, res("ru"), 30)
         val combined = result.title + result.summary + result.insights.joinToString()
-        assertTrue(!combined.contains("недел", ignoreCase = true))
-        assertTrue(result.insights.any { it.contains("AC") && it.contains("месяц") })
+        assertTrue(!combined.contains("tygodni", ignoreCase = true))
+        assertTrue(result.insights.any { it.contains("AC") && it.contains("miesiąc") })
     }
 
     @Test
@@ -188,7 +188,7 @@ class LocalInsightEngineTest {
         for (mv in listOf(90.0, 95.0)) {
             val stats = baseStats(consumptionChangePct = 2.0).copy(cellDeltaMv = mv)
             val result = LocalInsightEngine.generate(stats, res("ru"), 7)
-            assertTrue("critical title expected at $mv mV", result.title.contains("разброс", ignoreCase = true))
+            assertTrue("critical title expected at $mv mV", result.title.contains("rozrzut", ignoreCase = true))
         }
     }
 
@@ -197,8 +197,8 @@ class LocalInsightEngineTest {
         // 60 mV was critical under the old 50 mV threshold (#113)
         val stats = baseStats(consumptionChangePct = 2.0).copy(cellDeltaMv = 60.0)
         val result = LocalInsightEngine.generate(stats, res("ru"), 7)
-        assertTrue(!result.title.contains("разброс", ignoreCase = true))
-        assertTrue(result.insights.any { it.contains("банок") })
+        assertTrue(!result.title.contains("rozrzut", ignoreCase = true))
+        assertTrue(result.insights.any { it.contains("ogniw") })
     }
 
     @Test
@@ -206,8 +206,8 @@ class LocalInsightEngineTest {
         // 40 mV fell into the old 31-50 bullet band; healthy under the new spec (#113)
         val stats = baseStats(consumptionChangePct = 2.0).copy(cellDeltaMv = 40.0)
         val result = LocalInsightEngine.generate(stats, res("ru"), 7)
-        assertTrue(!result.title.contains("разброс", ignoreCase = true))
-        assertTrue(result.insights.none { it.contains("банок") })
+        assertTrue(!result.title.contains("rozrzut", ignoreCase = true))
+        assertTrue(result.insights.none { it.contains("ogniw") })
     }
 
     @Test

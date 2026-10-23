@@ -70,10 +70,10 @@ class AgentToolsSplitScreenTest {
 
     // Four-app fixture for the launcher resolver.
     private val launcherFixture = listOf(
-        "Навигатор" to "ru.yandex.yandexnavi",
+        "Nawigator" to "ru.yandex.yandexnavi",
         "YouTube" to "com.google.android.youtube",
-        "Камера" to "com.byd.avc",
-        "Браузер" to "com.android.chrome",
+        "Aparat" to "com.byd.avc",
+        "Przeglądarka" to "com.android.chrome",
     )
 
     private fun tools(): AgentTools = AgentTools(
@@ -94,13 +94,13 @@ class AgentToolsSplitScreenTest {
 
     // ─── Feature gate ────────────────────────────────────────────────────────────
 
-    // (a) Feature disabled → every action returns a "выключено" error.
+// (a) Feature disabled -> every action returns a disabled error.
     @Test fun feature_disabled_returns_error_for_start() = runTest {
         every { splitPreferences.isFeatureEnabled() } returns false
         val out = JSONObject(tools().execute(
             AgentToolCall("1", "split_screen", """{"action":"start"}""")))
         assertTrue(out.has("error"))
-        assertTrue(out.getString("error").contains("выключено"))
+        assertTrue(out.getString("error").contains("wyłączony"))
         coVerify(exactly = 0) { splitMgr.start(any()) }
         coVerify(exactly = 0) { splitMgr.startLastPair() }
     }
@@ -119,7 +119,7 @@ class AgentToolsSplitScreenTest {
     @Test fun start_with_apps_resolves_and_calls_manager() = runTest {
         coEvery { splitMgr.start(any()) } returns SplitStartResult.OK
         val out = JSONObject(tools().execute(AgentToolCall("1", "split_screen",
-            """{"action":"start","narrow_app":"Навигатор","wide_app":"YouTube"}""")))
+            """{"action":"start","narrow_app":"Nawigator","wide_app":"YouTube"}""")))
         assertTrue(out.getBoolean("ok"))
         coVerify {
             splitMgr.start(SplitPair(
@@ -134,7 +134,7 @@ class AgentToolsSplitScreenTest {
     @Test fun start_with_side_left_passes_left_side() = runTest {
         coEvery { splitMgr.start(any()) } returns SplitStartResult.OK
         tools().execute(AgentToolCall("1", "split_screen",
-            """{"action":"start","narrow_app":"Навигатор","wide_app":"YouTube","side":"left"}"""))
+            """{"action":"start","narrow_app":"Nawigator","wide_app":"YouTube","side":"left"}"""))
         coVerify {
             splitMgr.start(SplitPair("ru.yandex.yandexnavi", "com.google.android.youtube", SplitSide.LEFT))
         }
@@ -150,19 +150,19 @@ class AgentToolsSplitScreenTest {
         coVerify(exactly = 0) { splitMgr.start(any()) }
     }
 
-    // (e) start with no apps + no saved pair → honest "нет сохранённой пары" error.
+// (e) Start with no apps and no saved pair -> an honest no-saved-pair error.
     @Test fun start_no_apps_no_saved_pair_returns_error() = runTest {
         coEvery { splitMgr.startLastPair() } returns null
         val out = JSONObject(tools().execute(
             AgentToolCall("1", "split_screen", """{"action":"start"}""")))
         assertTrue(out.has("error"))
-        assertTrue(out.getString("error").contains("нет сохранённой пары"))
+        assertTrue(out.getString("error").contains("brak zapisanej pary"))
     }
 
     // (f) only one app specified → error, no manager call.
     @Test fun start_only_one_app_returns_error() = runTest {
         val out = JSONObject(tools().execute(AgentToolCall("1", "split_screen",
-            """{"action":"start","narrow_app":"Навигатор"}""")))
+            """{"action":"start","narrow_app":"Nawigator"}""")))
         assertTrue(out.has("error"))
         assertTrue(out.getString("error").contains("narrow_app"))
         coVerify(exactly = 0) { splitMgr.start(any()) }
@@ -171,35 +171,35 @@ class AgentToolsSplitScreenTest {
     // (g) same package for both panes → same-package guard, no manager call.
     @Test fun start_same_package_rejected() = runTest {
         val out = JSONObject(tools().execute(AgentToolCall("1", "split_screen",
-            """{"action":"start","narrow_app":"Навигатор","wide_app":"навигатор"}""")))
+            """{"action":"start","narrow_app":"Nawigator","wide_app":"nawigator"}""")))
         assertTrue(out.has("error"))
-        assertTrue(out.getString("error").contains("одинаковые"))
+        assertTrue(out.getString("error").contains("takie same"))
         coVerify(exactly = 0) { splitMgr.start(any()) }
     }
 
-    // (h) unresolvable app name → honest "приложение не найдено" error, no start().
+// (h) An unresolvable app name -> an honest app-not-found error, no start().
     @Test fun start_unresolvable_narrow_app_returns_not_found() = runTest {
         val out = JSONObject(tools().execute(AgentToolCall("1", "split_screen",
-            """{"action":"start","narrow_app":"Калькулятор","wide_app":"YouTube"}""")))
+            """{"action":"start","narrow_app":"Kalkulator","wide_app":"YouTube"}""")))
         assertTrue(out.has("error"))
-        assertTrue(out.getString("error").contains("приложение не найдено"))
+        assertTrue(out.getString("error").contains("nie znaleziono aplikacji"))
         coVerify(exactly = 0) { splitMgr.start(any()) }
     }
 
-    // (i) FREEFORM_UNAVAILABLE → "перезагрузки машины" error text.
+// (i) FREEFORM_UNAVAILABLE -> restart-the-car error text.
     @Test fun start_freeform_unavailable_returns_reboot_hint() = runTest {
         coEvery { splitMgr.start(any()) } returns SplitStartResult.FREEFORM_UNAVAILABLE
         val out = JSONObject(tools().execute(AgentToolCall("1", "split_screen",
-            """{"action":"start","narrow_app":"Навигатор","wide_app":"YouTube"}""")))
+            """{"action":"start","narrow_app":"Nawigator","wide_app":"YouTube"}""")))
         assertTrue(out.has("error"))
-        assertTrue(out.getString("error").contains("перезагрузки"))
+        assertTrue(out.getString("error").contains("uruchomieniu"))
     }
 
     // (j) LAUNCH_FAILED → error response.
     @Test fun start_launch_failed_returns_error() = runTest {
         coEvery { splitMgr.start(any()) } returns SplitStartResult.LAUNCH_FAILED
         val out = JSONObject(tools().execute(AgentToolCall("1", "split_screen",
-            """{"action":"start","narrow_app":"Навигатор","wide_app":"YouTube"}""")))
+            """{"action":"start","narrow_app":"Nawigator","wide_app":"YouTube"}""")))
         assertTrue(out.has("error"))
     }
 
@@ -217,23 +217,23 @@ class AgentToolsSplitScreenTest {
     }
 
     // Wave 3: mirror() is a silent no-op in several states (pane on the cluster, move in
-    // progress) — the driver must hear the reason, not "готово".
+// progress) — the driver must hear the reason, not a generic success reply.
     @Test fun mirror_that_did_nothing_returns_the_reason() = runTest {
         stateFlow.value = SplitSessionState.Active(
             SplitPair("a.pkg", "b.pkg", SplitSide.RIGHT), narrowTaskId = 1, wideTaskId = 2)
-        coEvery { splitMgr.mirror() } returns "одна из панелей сейчас на приборке"
+        coEvery { splitMgr.mirror() } returns "jeden z paneli jest teraz na zestawie wskaźników"
         val out = JSONObject(tools().execute(
             AgentToolCall("1", "split_screen", """{"action":"mirror"}""")))
-        assertEquals("одна из панелей сейчас на приборке", out.getString("error"))
+        assertEquals("jeden z paneli jest teraz na zestawie wskaźników", out.getString("error"))
     }
 
-    // (l) mirror when Idle → "сплит не запущен", no manager call.
+// (l) Mirror when Idle -> split-not-started, no manager call.
     @Test fun mirror_when_idle_returns_not_running() = runTest {
         stateFlow.value = SplitSessionState.Idle
         val out = JSONObject(tools().execute(
             AgentToolCall("1", "split_screen", """{"action":"mirror"}""")))
         assertTrue(out.has("error"))
-        assertTrue(out.getString("error").contains("сплит не запущен"))
+        assertTrue(out.getString("error").contains("podział ekranu nie jest uruchomiony"))
         coVerify(exactly = 0) { splitMgr.mirror() }
     }
 
@@ -249,13 +249,13 @@ class AgentToolsSplitScreenTest {
         coVerify { splitMgr.swapApps() }
     }
 
-    // (n) swap when Idle → "сплит не запущен", no manager call.
+// (n) Swap when Idle -> split-not-started, no manager call.
     @Test fun swap_when_idle_returns_not_running() = runTest {
         stateFlow.value = SplitSessionState.Idle
         val out = JSONObject(tools().execute(
             AgentToolCall("1", "split_screen", """{"action":"swap"}""")))
         assertTrue(out.has("error"))
-        assertTrue(out.getString("error").contains("сплит не запущен"))
+        assertTrue(out.getString("error").contains("podział ekranu nie jest uruchomiony"))
         coVerify(exactly = 0) { splitMgr.swapApps() }
     }
 
@@ -268,7 +268,7 @@ class AgentToolsSplitScreenTest {
             narrowTaskId = 1, wideTaskId = 2)
         coEvery { splitMgr.changeApp(Pane.NARROW, "com.byd.avc") } returns SplitStartResult.OK
         val out = JSONObject(tools().execute(AgentToolCall("1", "split_screen",
-            """{"action":"change","side":"right","app":"Камера"}""")))
+            """{"action":"change","side":"right","app":"Aparat"}""")))
         assertTrue(out.getBoolean("ok"))
         coVerify { splitMgr.changeApp(Pane.NARROW, "com.byd.avc") }
     }
@@ -280,31 +280,31 @@ class AgentToolsSplitScreenTest {
             narrowTaskId = 1, wideTaskId = 2)
         coEvery { splitMgr.changeApp(Pane.WIDE, "com.byd.avc") } returns SplitStartResult.OK
         val out = JSONObject(tools().execute(AgentToolCall("1", "split_screen",
-            """{"action":"change","side":"left","app":"Камера"}""")))
+            """{"action":"change","side":"left","app":"Aparat"}""")))
         assertTrue(out.getBoolean("ok"))
         coVerify { splitMgr.changeApp(Pane.WIDE, "com.byd.avc") }
     }
 
     // (q) change: new app same as OTHER pane → same-package guard, no manager call.
     @Test fun change_same_as_other_pane_is_rejected() = runTest {
-        // narrow=нavi on right, wide=youtube on left. Changing right (NARROW) to youtube = same as wide.
+// narrow=navigator on right, wide=youtube on left. Changing right (NARROW) to youtube = same as wide.
         stateFlow.value = SplitSessionState.Active(
             SplitPair("ru.yandex.yandexnavi", "com.google.android.youtube", SplitSide.RIGHT),
             narrowTaskId = 1, wideTaskId = 2)
         val out = JSONObject(tools().execute(AgentToolCall("1", "split_screen",
             """{"action":"change","side":"right","app":"YouTube"}""")))
         assertTrue(out.has("error"))
-        assertTrue(out.getString("error").contains("одинаковые"))
+        assertTrue(out.getString("error").contains("takie same"))
         coVerify(exactly = 0) { splitMgr.changeApp(any(), any()) }
     }
 
-    // (r) change when Idle → "сплит не запущен".
+// (r) Change when Idle -> split-not-started.
     @Test fun change_when_idle_returns_not_running() = runTest {
         stateFlow.value = SplitSessionState.Idle
         val out = JSONObject(tools().execute(AgentToolCall("1", "split_screen",
-            """{"action":"change","side":"right","app":"Камера"}""")))
+            """{"action":"change","side":"right","app":"Aparat"}""")))
         assertTrue(out.has("error"))
-        assertTrue(out.getString("error").contains("сплит не запущен"))
+        assertTrue(out.getString("error").contains("podział ekranu nie jest uruchomiony"))
         coVerify(exactly = 0) { splitMgr.changeApp(any(), any()) }
     }
 
@@ -313,7 +313,7 @@ class AgentToolsSplitScreenTest {
         stateFlow.value = SplitSessionState.Active(
             SplitPair("a.pkg", "b.pkg", SplitSide.RIGHT), narrowTaskId = 1, wideTaskId = 2)
         val out = JSONObject(tools().execute(AgentToolCall("1", "split_screen",
-            """{"action":"change","app":"Камера"}""")))
+            """{"action":"change","app":"Aparat"}""")))
         assertTrue(out.has("error"))
         assertTrue(out.getString("error").contains("side"))
         coVerify(exactly = 0) { splitMgr.changeApp(any(), any()) }
@@ -334,9 +334,9 @@ class AgentToolsSplitScreenTest {
         stateFlow.value = SplitSessionState.Active(
             SplitPair("a.pkg", "b.pkg", SplitSide.RIGHT), narrowTaskId = 1, wideTaskId = 2)
         val out = JSONObject(tools().execute(AgentToolCall("1", "split_screen",
-            """{"action":"change","side":"right","app":"Калькулятор"}""")))
+            """{"action":"change","side":"right","app":"Kalkulator"}""")))
         assertTrue(out.has("error"))
-        assertTrue(out.getString("error").contains("приложение не найдено"))
+        assertTrue(out.getString("error").contains("nie znaleziono aplikacji"))
         coVerify(exactly = 0) { splitMgr.changeApp(any(), any()) }
     }
 
@@ -352,13 +352,13 @@ class AgentToolsSplitScreenTest {
         coVerify { splitMgr.exit() }
     }
 
-    // (w) exit when Idle → "сплит не запущен", no manager call.
+// (w) Exit when Idle -> split-not-started, no manager call.
     @Test fun exit_when_idle_returns_not_running() = runTest {
         stateFlow.value = SplitSessionState.Idle
         val out = JSONObject(tools().execute(
             AgentToolCall("1", "split_screen", """{"action":"exit"}""")))
         assertTrue(out.has("error"))
-        assertTrue(out.getString("error").contains("сплит не запущен"))
+        assertTrue(out.getString("error").contains("podział ekranu nie jest uruchomiony"))
         coVerify(exactly = 0) { splitMgr.exit() }
     }
 
@@ -377,7 +377,7 @@ class AgentToolsSplitScreenTest {
 
     // Helper that builds a create_automation JSON with a split_screen action.
     private fun createArgs(
-        name: String = "Ночной режим",
+        name: String = "Tryb nocny",
         trigger: String = """{"kind":"param","param":"SOC","operator":"<","value":"20"}""",
         actions: String,
     ) = """{"name":"$name","trigger":$trigger,"actions":$actions}"""
@@ -389,7 +389,7 @@ class AgentToolsSplitScreenTest {
         coEvery { ruleDao.insert(capture(saved)) } returns 1L
         val t = tools()
         val out = JSONObject(t.execute(AgentToolCall("1", "create_automation",
-            createArgs(actions = """[{"kind":"split_screen","narrow_app":"Навигатор","wide_app":"YouTube"}]"""))))
+            createArgs(actions = """[{"kind":"split_screen","narrow_app":"Nawigator","wide_app":"YouTube"}]"""))))
         assertTrue(out.getBoolean("ok"))
         val action = ActionDef.listFromJson(saved.captured.actions).single()
         assertEquals("split_screen", action.kind)
@@ -400,13 +400,13 @@ class AgentToolsSplitScreenTest {
     }
 
     // (z) create_automation: same narrow_app and wide_app → rejected by validator with
-    // "оба приложения должны быть разными" (surfaced from SplitScreenSamePackage).
+// The two-apps-must-differ error is surfaced from SplitScreenSamePackage.
     @Test fun create_automation_split_screen_same_package_is_rejected() = runTest {
         coEvery { ruleDao.getAllList() } returns emptyList()
         val out = JSONObject(tools().execute(AgentToolCall("1", "create_automation",
-            createArgs(actions = """[{"kind":"split_screen","narrow_app":"Навигатор","wide_app":"Навигатор"}]"""))))
+            createArgs(actions = """[{"kind":"split_screen","narrow_app":"Nawigator","wide_app":"Nawigator"}]"""))))
         assertTrue(out.has("error"))
-        assertTrue(out.getString("error").contains("одинаковые") || out.getString("error").contains("разными"))
+        assertTrue(out.getString("error").contains("takie same") || out.getString("error").contains("różne"))
         coVerify(exactly = 0) { ruleDao.insert(any()) }
     }
 
@@ -416,7 +416,7 @@ class AgentToolsSplitScreenTest {
         val saved = slot<RuleEntity>()
         coEvery { ruleDao.insert(capture(saved)) } returns 1L
         val out = JSONObject(tools().execute(AgentToolCall("1", "create_automation",
-            createArgs(actions = """[{"kind":"split_screen","narrow_app":"Навигатор","wide_app":"YouTube","side":"left"}]"""))))
+            createArgs(actions = """[{"kind":"split_screen","narrow_app":"Nawigator","wide_app":"YouTube","side":"left"}]"""))))
         assertTrue(out.getBoolean("ok"))
         val payload = JSONObject(ActionDef.listFromJson(saved.captured.actions).single().payload!!)
         assertEquals("left", payload.getString("side"))

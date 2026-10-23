@@ -3,7 +3,7 @@ package com.bydmate.app.ui.tech
 import com.bydmate.app.data.nativestack.VehicleKind
 
 /**
- * The cards of the «Техника» screen, in their factory order. The id is what gets persisted,
+ * The cards of the technical panel, in their factory order. The id is what gets persisted,
  * so it must never change once shipped — the enum name may.
  */
 enum class TechCard(val id: String) {

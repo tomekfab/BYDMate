@@ -150,12 +150,12 @@ class HudPushLoop(
     }
 
     /** Donor running line (f10): beyond 3 km to go, enrich the street with remaining
-     *  time and wall-clock arrival: "<road> | ЧЧ:ММ мин | ЧЧ:ММ". */
+     *  time and wall-clock arrival: "<road> | HH:MM min | HH:MM". */
     internal fun runningLine(s: NavGuidanceHub.Snapshot): String {
         if (s.totalDistMeters <= 3000 || s.etaSeconds <= 0 || s.road.isEmpty()) return s.road
         val etaTotalMin = s.etaSeconds / 60
         val remStr = String.format(Locale.US, "%02d:%02d", etaTotalMin / 60, etaTotalMin % 60)
-        return "${s.road} | $remStr мин | ${etaString(s.etaSeconds)}"
+        return "${s.road} | $remStr min | ${etaString(s.etaSeconds)}"
     }
 
     /** Remaining seconds -> wall-clock arrival "HH:MM" (f26); null when unknown. */

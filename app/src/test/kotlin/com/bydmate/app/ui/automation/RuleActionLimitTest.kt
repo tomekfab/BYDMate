@@ -25,11 +25,11 @@ class RuleActionLimitTest {
     @Test fun `20 actions survive the share file in their order`() {
         val rule = SharedRule(
             name = "Long", triggerLogic = "AND",
-            triggers = listOf(TriggerDef("Speed", "车速", ">", "7", "Скорость")),
+            triggers = listOf(TriggerDef("Speed", "车速", ">", "7", "Prędkość")),
             actions = twentyActions(), cooldownSeconds = 60, requirePark = false,
             confirmBeforeExecute = false, fireOncePerTrip = false, playSound = false,
         )
-        val parsed = RuleShare.parse(RuleShare.exportJson(rule, "3.19.5"), "Звонок")
+        val parsed = RuleShare.parse(RuleShare.exportJson(rule, "3.19.5"), "Połączenie")
         assertTrue(parsed is RuleParseResult.Ok)
         val imported = (parsed as RuleParseResult.Ok).rule.actions
         assertEquals(twentyActions(), imported)
@@ -40,12 +40,12 @@ class RuleActionLimitTest {
         /** Twenty valid actions, kinds cycling, each with its own display name. */
         fun twentyActions(): List<ActionDef> {
             val kinds = listOf(
-                ActionDef("车窗关闭", "Окна"),
-                ActionDef(command = "", displayName = "Пауза", kind = "delay", payload = "500"),
-                ActionDef(command = "media_volume", displayName = "Громкость", kind = "media_volume", payload = "10"),
-                ActionDef(command = "", displayName = "Навигатор", kind = "app_launch",
+                ActionDef("车窗关闭", "Szyby"),
+                ActionDef(command = "", displayName = "Pauza", kind = "delay", payload = "500"),
+                ActionDef(command = "media_volume", displayName = "Głośność", kind = "media_volume", payload = "10"),
+                ActionDef(command = "", displayName = "Nawigacja", kind = "app_launch",
                     payload = """{"packageName":"ru.yandex.yandexnavi"}"""),
-                ActionDef(command = "", displayName = "Скажи", kind = "speak", payload = """{"text":"Привет"}"""),
+                ActionDef(command = "", displayName = "Powiedz", kind = "speak", payload = """{"text":"Cześć"}"""),
             )
             return (1..20).map { n -> kinds[(n - 1) % kinds.size].let { it.copy(displayName = "${it.displayName} $n") } }
         }

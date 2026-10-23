@@ -63,7 +63,7 @@ import java.util.TimeZone
 import com.bydmate.app.ui.theme.ScaledDialogContent
 
 /**
- * Edit dialog for a charge row (long-press → bottom sheet → "Изменить").
+ * Edit dialog for a charge row (long-press → bottom sheet → "Edit").
  *
  * Inputs: type (AC/DC), socStart, socEnd, meter reading, tariff per kWh.
  * kWh is derived: when both SOC values are present and socEnd > socStart, it is

@@ -253,8 +253,8 @@ fun AutomationScreen(
                 .background(Brush.verticalGradient(listOf(NavyDark, NavyDeep)))
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            // Header: title and filters on the left; «Места» / «Журнал», a divider, then «Импорт» /
-            // «+ Создать» and the list/grid toggle on the right. When both groups do not fit one
+            // Header: title and filters on the left; "Places" / "Journal", a divider, then "Import" /
+            // "+ Create" and the list/grid toggle on the right. When both groups do not fit one
             // line, the action group moves whole under the filters (and wraps only if still too wide).
             HeaderLayout {
                 FlowRow(
@@ -431,8 +431,8 @@ fun AutomationScreen(
         }
     }
 
-    // After «Поделиться» (card or editor), before the file is written: drawn last so it sits
-    // above the editor. «Продолжить» writes the file and opens the share sheet.
+    // After «Udostępnij» (card or editor), before the file is written: drawn last so it sits
+    // above the editor. «Kontynuuj» writes the file and opens the share sheet.
     if (state.pendingShare != null) {
         ShareNoteDialog(
             onContinue = { viewModel.confirmShare() },
@@ -440,7 +440,7 @@ fun AutomationScreen(
         )
     }
 
-    // «Сохранить» on a rule deleted meanwhile: above the editor, save as new or close it.
+    // «Zapisz» on a rule deleted meanwhile: above the editor, save as new or close it.
     if (state.showEditor && state.editorRuleDeleted) {
         RuleDeletedDialog(
             onSaveAsNew = { viewModel.saveDeletedRuleAsNew() },
@@ -495,7 +495,7 @@ private val ROW_DIVIDER_SLOT = 17.dp
 /** Least width the list row text keeps beside the buttons; in sp so it grows with the text size. */
 private val MIN_ROW_TEXT = 240.sp
 
-/** One of the four buttons of a rule: Изменить / Копия / Отправить / Удалить. */
+/** One of the four buttons of a rule: Edit / Copy / Send / Delete. */
 private class RuleAction(
     val label: String,
     val icon: ImageVector,
@@ -536,7 +536,7 @@ private fun rowCellWidth(labelWidth: Dp): Dp = maxOf(ROW_CELL_MIN, labelWidth + 
 
 /**
  * Today's day number, re-read when the screen comes back and at every midnight: a remember key
- * for the words that say «сегодня» or «вчера».
+ * for the words that say «dzisiaj» or «wczoraj».
  */
 @Composable
 private fun rememberToday(): Long {
@@ -907,7 +907,7 @@ private fun HeaderOutlinedButton(label: String, icon: androidx.compose.ui.graphi
 
 // --- Drag to reorder (#249) ---
 
-/** How much a held rule grows, so the driver sees which one they picked up (as on «Техника»). */
+/** How much a held rule grows, so the driver sees which one they picked up (as on the technical panel). */
 private const val LIFT_SCALE = 1.03f
 
 /**
@@ -1228,9 +1228,9 @@ private fun Missing.anchor(): Pair<Boolean, String> = when (this) {
 
 /**
  * The rule editor, almost the whole screen: conditions on the left, actions and settings on
- * the right. What the draft still misses is outlined in orange and named beside «Сохранить»;
- * a tap on the grey «Сохранить» scrolls to the first such place. «Назад», the cross and
- * «Отмена» ask before dropping changes.
+ * the right. What the draft still misses is outlined in orange and named beside «Zapisz»;
+ * a tap on the grey «Zapisz» scrolls to the first such place. «Wstecz», the cross and
+ * «Anuluj» ask before dropping changes.
  */
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
@@ -1267,7 +1267,7 @@ private fun EditorDialog(
             val missing = remember(editing, context) { missingParts(editing, context) }
             val leftScroll = rememberScrollState()
             val rightScroll = rememberScrollState()
-            // Content y of every row, so the grey «Сохранить» can scroll to what is missing.
+            // Content y of every row, so the grey «Zapisz» can scroll to what is missing.
             val leftY = remember { mutableStateMapOf<String, Int>() }
             val rightY = remember { mutableStateMapOf<String, Int>() }
             val scope = rememberCoroutineScope()
@@ -1323,13 +1323,13 @@ private fun EditorDialog(
                             Spacer(Modifier.height(14.dp))
                             SectionHeader(stringResource(R.string.automation_section_when))
 
-                            // «Все условия / Любое условие» only once there is something to combine.
+                            // "All conditions / Any condition" only once there is something to combine.
                             if (editing.triggers.size >= 2) {
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     ChoiceChip(stringResource(R.string.auto_ui_logic_all), editing.triggerLogic == "AND") {
                                         onUpdate { copy(triggerLogic = "AND") }
                                     }
-                                    // A one-shot rule combines only with «Все условия».
+                                    // A one-shot rule combines only with «Wszystkie warunki».
                                     ChoiceChip(
                                         stringResource(R.string.auto_ui_logic_any), editing.triggerLogic == "OR",
                                         enabled = !hasOneShot || editing.triggerLogic == "OR",
@@ -1449,7 +1449,7 @@ private fun EditorDialog(
                             Spacer(Modifier.height(20.dp))
                             SectionHeader(stringResource(R.string.automation_section_settings))
 
-                            // Cooldown: «Не чаще, чем раз в 60 с»
+                            // Cooldown: "No more often than once per 60 s"
                             Row(
                                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                                 verticalAlignment = Alignment.CenterVertically,
@@ -1524,7 +1524,7 @@ private fun EditorDialog(
                             .padding(16.dp, 10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // «Тестовый запуск»: every action now, as if the conditions had matched.
+                        // «Testowy uruchomienie»: every action now, as if the conditions had matched.
                         Column(modifier = Modifier.widthIn(max = 360.dp).padding(end = 16.dp)) {
                             OutlinedEditorButton(
                                 stringResource(R.string.automation_test_run_button),
@@ -1601,7 +1601,7 @@ private fun EditorDialog(
     }
 }
 
-/** «Сохранить изменения?»: «Не сохранять» stands alone on the left, far from «Сохранить». */
+/** «Zapisz zmiany?»: «Nie zapisywać» stands alone on the left, far from «Zapisz». */
 @Composable
 private fun UnsavedChangesDialog(onDiscard: () -> Unit, onCancel: () -> Unit, onSave: () -> Unit) {
     Dialog(onDismissRequest = onCancel) {
@@ -1941,8 +1941,8 @@ private fun TriggerRow(
 
 /**
  * The second line of a parameter condition. A list (gear, doors, trunk, belts) offers only
- * «равно / не равно» as buttons and a value dropdown; a number offers the six operators as
- * words, the field and its unit, with «Введите число, например 12,5» under a missing number.
+ * «równe / nie równe» as buttons and a value dropdown; a number offers the six operators as
+ * words, the field and its unit, with "Enter a number, for example 12.5" under a missing number.
  */
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
@@ -2010,7 +2010,7 @@ private fun ParamTriggerControls(
 }
 
 /**
- * «Один раз: дата и время»: the date opens the system calendar, the time the system clock.
+ * "Once: date and time": the date opens the system calendar, the time the system clock.
  * The rule runs once at that moment and then switches itself off.
  */
 @Composable
@@ -2094,7 +2094,7 @@ private fun PlaceTriggerControls(
     val exitPrefix = stringResource(R.string.automation_trigger_place_exit_prefix)
 
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        // Kind: Въезд / Выезд
+        // Kind: entry / exit
         listOf("place_enter" to R.string.automation_trigger_place_enter_label, "place_exit" to R.string.automation_trigger_place_exit_label)
             .forEach { (kind, label) ->
                 ChoiceChip(stringResource(label), trigger.kind == kind) {
@@ -2444,7 +2444,7 @@ private fun SteeringKeyTriggerControls(
     if (learning) {
         LearnButtonDialog(
             onSave = { learned ->
-                onUpdate(trigger.copy(value = learned.toString(), displayName = "Клавиша $learned"))
+                onUpdate(trigger.copy(value = learned.toString(), displayName = "Przycisk $learned"))
                 learning = false
             },
             onDismiss = { learning = false },
@@ -2453,7 +2453,7 @@ private fun SteeringKeyTriggerControls(
     }
 }
 
-/** Human label for a steering-wheel keycode, e.g. "Левая звезда" or "Кнопка (код 383)". */
+/** Human label for a steering-wheel keycode, e.g. "Left star" or "Button (code 383)". */
 internal fun steeringKeyLabel(context: Context, keyCode: Int): String {
     val res = knownButtonNameRes(keyCode)
     return if (res != 0) context.getString(res)
@@ -2494,7 +2494,7 @@ private fun steeringKeyOccupiedReason(context: Context): (Int) -> String? {
 // --- Action Row ---
 
 /**
- * One action: «Выполнить сейчас» (green triangle in a light circle) at the left before the
+ * One action: «Wykonaj teraz» (green triangle in a light circle) at the left before the
  * action, the action's own controls across the row, then the arrows and the orange bin at the
  * far end. Every button is 48x48dp.
  */
@@ -2529,7 +2529,7 @@ private fun ActionRow(
             Text("${index + 1}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = AccentTeal)
         }
 
-        // "Выполнить сейчас" — fire this vehicle action immediately for live testing.
+        // "Wykonaj teraz" — fire this vehicle action immediately for live testing.
         // Param actions send their command; toggle actions go through the dispatcher so the
         // target is flipped from the live state. Result is shown via Toast + logcat line.
         val testable = (action.kind == "param" && action.command.isNotBlank()) ||
@@ -2578,7 +2578,7 @@ private fun ActionRow(
                 "cluster_projection" ->
                     ClusterActionControls(action = action, onUpdate = onUpdate, modifier = fill)
                 // A toggle on sentry or the cluster goes back to its own three-state row, so the
-                // user can return to Вкл/Выкл; every other target is edited by the target dropdown.
+                // user can return to Wł./Wył.; every other target is edited by the target dropdown.
                 "toggle" -> when (toggleRowSpecFor(action)) {
                     SENTRY_ROW ->
                         SentryActionControls(action = action, onUpdate = onUpdate, modifier = fill)
@@ -2632,7 +2632,7 @@ private fun ParamActionControls(
     )
 }
 
-/** A graded command («Температура: 22 °C»): the catalog dropdown and its level controls in one line. */
+/** A graded command («Temperatura: 22 °C»): the catalog dropdown and its level controls in one line. */
 @Composable
 private fun LevelActionControls(
     action: ActionDef,
@@ -2658,7 +2658,7 @@ private fun LevelActionControls(
 /**
  * One graded value in one line: icon, [header] (name or dropdown), minus, a slider with a tick
  * per step, plus and the value. Minus and plus are 48 dp and stop at the ends of [range]; the
- * value keeps a fixed minimum width so the slider does not jump when «выкл» becomes «3».
+ * value keeps a fixed minimum width so the slider does not jump when «wył.» becomes «3».
  */
 @Composable
 private fun LevelRow(
@@ -2734,7 +2734,7 @@ private fun delayAction(ms: Long, context: Context): ActionDef {
     )
 }
 
-/** «Подождать 30 с»: the wait between two actions. */
+/** "Wait 30 s": the wait between two actions. */
 @Composable
 private fun DelayActionControls(
     action: ActionDef,
@@ -2811,9 +2811,9 @@ private fun SentryActionControls(
 }
 
 /**
- * On / off / «переключить» for a kind that has its own control row and a state the car can be
+ * On / off / «przełącz» for a kind that has its own control row and a state the car can be
  * asked for: the name on top, the three buttons below. The first two store the row's own kind
- * with payload "1"/"0" — also when the row currently holds a toggle, so «Переключить» is never a
+ * with payload "1"/"0" — also when the row currently holds a toggle, so «Przełącz» is never a
  * one-way door; the third stores the very same `toggle` action the catalog entries store, so one
  * target has one storage shape.
  */
@@ -2859,7 +2859,7 @@ private fun OnOffToggleControls(
     }
 }
 
-/** «Включить / Отключить / Переключить»: green outline when chosen, 40dp to see, 48dp to touch. */
+/** «Włącz / Wyłącz / Przełącz»: green outline when chosen, 40dp to see, 48dp to touch. */
 @Composable
 private fun StateChip(label: String, selected: Boolean, onClick: () -> Unit) {
     Box(
@@ -2921,7 +2921,7 @@ private fun HotspotActionControls(
 
 // --- Screen Action Controls (#275) ---
 
-/** «Экран: выключить / включить»: nothing to configure, the row only names the step. */
+/** "Screen: off / on": nothing to configure, the row only names the step. */
 @Composable
 private fun ScreenActionControls(payload: String?, modifier: Modifier = Modifier) {
     Row(
@@ -2970,8 +2970,8 @@ private fun ClusterActionControls(
 // --- Toggle Action Controls ---
 
 /**
- * Row for the "toggle" action: one dropdown picking what gets flipped, «Передний багажник,
- * переключить». The label comes from the target id, so it follows an in-app language switch;
+ * Row for the "toggle" action: one dropdown picking what gets flipped, "Front trunk,
+ * przełącz». The label comes from the target id, so it follows an in-app language switch;
  * displayName is rewritten on pick because that is what the journal and the dump show.
  */
 @Composable
@@ -3096,7 +3096,7 @@ private fun CatalogDropdown(
     }
 }
 
-// --- «Добавить действие» ---
+// --- «Dodaj działanie» ---
 
 /** One tile of the action picker: its label and the action it adds. */
 private class PickerTile(val label: String, val needsOverlay: Boolean = false, val make: (Context) -> ActionDef)
@@ -3154,7 +3154,7 @@ private fun pickerSections(): List<PickerSection> {
     }
 }
 
-/** «+ Добавить действие»: opens the picker; outlined orange while the rule has no action. */
+/** «+ Dodaj działanie»: opens the picker; outlined orange while the rule has no action. */
 @Composable
 private fun AddActionButton(
     highlight: Boolean,
@@ -3215,7 +3215,7 @@ private fun AddActionButton(
     }
 }
 
-/** «+ Добавить условие / действие»: a 48dp row across the column with a plus. */
+/** «+ Dodaj warunek / działanie»: a 48dp row across the column with a plus. */
 @Composable
 private fun AddRowButton(label: String, highlight: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Row(
@@ -3237,7 +3237,7 @@ private fun AddRowButton(label: String, highlight: Boolean, modifier: Modifier =
 }
 
 /**
- * «Добавить действие»: sections on the left, the section's actions as large tiles on the right.
+ * «Dodaj działanie»: sections on the left, the section's actions as large tiles on the right.
  * A tap on a tile adds the action and closes the window; it opens on the section used last.
  */
 @Composable
@@ -3320,9 +3320,9 @@ private fun ActionPickerDialog(onPick: (PickerTile) -> Unit, onDismiss: () -> Un
     }
 }
 
-// --- «Добавить условие» ---
+// --- «Dodaj warunek» ---
 
-/** «+ Добавить условие»: a list of condition kinds; outlined orange while the rule has none. */
+/** «+ Dodaj warunek»: a list of condition kinds; outlined orange while the rule has none. */
 @Composable
 private fun AddTriggerButton(
     places: List<PlaceEntity>,
@@ -3423,7 +3423,7 @@ private fun MessagePill(text: String, modifier: Modifier = Modifier) {
 // --- Journal Dialog ---
 
 /**
- * The journal: all rules (header «Журнал», each entry names its rule on top) or one rule
+ * The journal: all rules (header «Dziennik», each entry names its rule on top) or one rule
  * ([ruleName] set, opened from the card's status pill).
  */
 @Composable
@@ -3884,7 +3884,7 @@ private fun AgentQueryEditDialog(
 
 // --- Telegram Report Action Controls (3.19) ---
 
-/** Two lines, 48 dp: «Отчёт в Telegram» and what goes in; a tap opens [TelegramReportEditDialog]. */
+/** Two lines, 48 dp: "Telegram report" and its contents; a tap opens [TelegramReportEditDialog]. */
 @Composable
 private fun TelegramReportActionControls(
     action: ActionDef,
@@ -3948,7 +3948,7 @@ private fun TelegramReportActionControls(
     }
 }
 
-/** Check rows as in «Что сохранить», then the optional own text. Saves with an item or some text. */
+/** Check rows as in «Co zapisz», then the optional own text. Saves with an item or some text. */
 @Composable
 private fun TelegramReportEditDialog(
     initialFields: Set<ReportField>,

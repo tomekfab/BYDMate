@@ -489,7 +489,7 @@ class SplitSessionManagerTest {
     @Test fun `mirror without a session reports that the split is not running`() = runTest {
         val helper = mockk<HelperClient>(relaxed = true)
         val mgr = SplitSessionManager(helper, FakeSplitPreferences(), FakeSplitBackdrop(), backgroundScope, 60_000)
-        assertEquals("сплит не запущен", mgr.mirror())
+        assertEquals("podział ekranu nie jest uruchomiony", mgr.mirror())
     }
 
     @Test fun `mirror LEFT to RIGHT uses RIGHT geometry`() = runTest {
@@ -3145,7 +3145,7 @@ class SplitSessionManagerTest {
         val stateBefore = mgr.state.value as SplitSessionState.Active
 
         val reason = mgr.mirror()
-        assertEquals("одна из панелей сейчас на приборке", reason)
+        assertEquals("jeden z paneli jest teraz na zestawie wskaźników", reason)
 
         // mirror() must be a full no-op: no bounds changes and session state unchanged.
         // Without the guard, mirror() would stamp main-screen bounds onto the cluster task,

@@ -92,7 +92,7 @@ class AgentEvalLiveTest {
             .put(JSONObject().put("role", "system").put("content", AgentOrchestrator.SYSTEM_PROMPT))
             .put(JSONObject().put("role", "user").put("content", utterance))
         return client.chatRaw(OPENROUTER_BASE, apiKey!!, model, messages, schemas)
-            .getOrElse { return JSONObject().put("content", "ошибка запроса: ${it.message}") }
+            .getOrElse { return JSONObject().put("content", "błąd żądania: ${it.message}") }
     }
 
     /** Null when the reply matches the expectation, else a one-line reason for the printout. */
@@ -102,11 +102,11 @@ class AgentEvalLiveTest {
         val name = first?.optString("name")
         val arguments = first?.optString("arguments").orEmpty()
         if (case.tool == null) {
-            return if (name == null) null else "ждали вопрос словами, получили вызов $name"
+            return if (name == null) null else "oczekiwano pytania tekstowego, otrzymano wywołanie $name"
         }
-        if (name != case.tool) return "ждали ${case.tool}, получили ${name ?: "текст без вызова"}"
+        if (name != case.tool) return "oczekiwano ${case.tool}, otrzymano ${name ?: "tekst bez wywołania"}"
         val missing = case.args.filterNot { arguments.contains(it, ignoreCase = true) }
-        return if (missing.isEmpty()) null else "в аргументах нет $missing: $arguments"
+        return if (missing.isEmpty()) null else "w argumentach brakuje $missing: $arguments"
     }
 
     private companion object {

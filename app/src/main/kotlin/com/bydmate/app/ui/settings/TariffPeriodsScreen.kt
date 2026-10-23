@@ -83,7 +83,7 @@ private const val RATE_DECIMALS = 3
 private const val LOSS_DECIMALS = 0
 
 /**
- * Price-history screen, built like «Техника»: the list of periods on the left, the form of the
+ * Price-history screen, built like the technical panel: the list of periods on the left, the form of the
  * selected one on the right. Saving a period re-prices everything from its date onwards, which
  * is how a rate entered in the middle of the month reaches the charges already recorded that
  * month.
@@ -119,7 +119,7 @@ fun TariffPeriodsScreen(
             .background(Brush.verticalGradient(listOf(NavyDark, NavyDeep)))
             .padding(horizontal = 16.dp, vertical = 10.dp)
     ) {
-        // Header in the «Техника» shape; the hint sits where that screen keeps its status.
+        // Header in the technical panel shape; the hint sits where that screen keeps its status.
         Row(
             modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -318,7 +318,7 @@ private fun PeriodList(
 }
 
 /**
- * Two cards in the «Техника» style: the dates and rates of the period, then the rule the trips
+ * Two cards in the technical panel style: the dates and rates of the period, then the rule the trips
  * of that period are costed by. The rates sit in two columns, so the form needs no scrolling.
  */
 @Composable

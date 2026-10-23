@@ -524,6 +524,7 @@ object RuleShareFiles {
     /** Largest share file the importer reads: a real rule is a few KiB. */
     const val MAX_FILE_BYTES = 256 * 1024
 
+    // Legacy input transliteration table; retain exact mappings so existing rule-share filenames keep their slugs.
     private val CYRILLIC = mapOf(
         'а' to "a", 'б' to "b", 'в' to "v", 'г' to "g", 'ґ' to "g", 'д' to "d", 'е' to "e", 'ё' to "e",
         'є' to "ye", 'ж' to "zh", 'з' to "z", 'и' to "i", 'і' to "i", 'ї' to "yi", 'й' to "y", 'к' to "k",

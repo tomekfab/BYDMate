@@ -34,7 +34,7 @@ class OpenRouterClientChatStreamTest {
     @After fun tearDown() { server.shutdown() }
 
     private fun messages(): JSONArray = JSONArray()
-        .put(JSONObject().put("role", "user").put("content", "привет"))
+        .put(JSONObject().put("role", "user").put("content", "cześć"))
 
     private fun sse(vararg events: String): MockResponse = MockResponse()
         .setHeader("Content-Type", "text/event-stream")
@@ -45,11 +45,11 @@ class OpenRouterClientChatStreamTest {
 
     @Test
     fun `content deltas are forwarded and accumulated`() = runTest {
-        server.enqueue(sse(chunk("При"), chunk("вет."), "data: [DONE]"))
+        server.enqueue(sse(chunk("Cze"), chunk("ść."), "data: [DONE]"))
         val deltas = mutableListOf<String>()
         val msg = client.chatStream("u", "k", "m", messages(), null) { deltas += it }.getOrThrow()
-        assertEquals(listOf("При", "вет."), deltas)
-        assertEquals("Привет.", msg.getString("content"))
+        assertEquals(listOf("Cze", "ść."), deltas)
+        assertEquals("Cześć.", msg.getString("content"))
         val sent = JSONObject(server.takeRequest().body.readUtf8())
         assertTrue(sent.getBoolean("stream"))
     }
@@ -59,7 +59,7 @@ class OpenRouterClientChatStreamTest {
     @Test
     fun `finish reason from the stream reaches the returned message`() = runTest {
         server.enqueue(sse(
-            chunk("Маршрут"),
+            chunk("Trasa"),
             """data: {"choices":[{"delta":{},"finish_reason":"length"}]}""",
             "data: [DONE]",
         ))
@@ -69,7 +69,7 @@ class OpenRouterClientChatStreamTest {
 
     @Test
     fun `extras are merged into the streaming payload`() = runTest {
-        server.enqueue(sse(chunk("Ок."), "data: [DONE]"))
+        server.enqueue(sse(chunk("OK."), "data: [DONE]"))
         val extras = JSONObject().put("thinking", JSONObject().put("type", "disabled"))
         client.chatStream("u", "k", "m", messages(), null, extras) {}.getOrThrow()
         val sent = JSONObject(server.takeRequest().body.readUtf8())
@@ -79,7 +79,7 @@ class OpenRouterClientChatStreamTest {
 
     @Test
     fun `without extras the streaming payload has no provider fields`() = runTest {
-        server.enqueue(sse(chunk("Ок."), "data: [DONE]"))
+        server.enqueue(sse(chunk("OK."), "data: [DONE]"))
         client.chatStream("u", "k", "m", messages(), null) {}.getOrThrow()
         val sent = JSONObject(server.takeRequest().body.readUtf8())
         assertTrue(!sent.has("reasoning"))
@@ -89,37 +89,37 @@ class OpenRouterClientChatStreamTest {
     @Test
     fun `usage chunk does not disturb the assembled message`() = runTest {
         server.enqueue(sse(
-            chunk("Ок."),
+            chunk("OK."),
             """data: {"choices":[],"usage":{"prompt_tokens":900,"prompt_tokens_details":{"cached_tokens":850}}}""",
             "data: [DONE]",
         ))
         val deltas = mutableListOf<String>()
         val msg = client.chatStream("u", "k", "m", messages(), null) { deltas += it }.getOrThrow()
-        assertEquals(listOf("Ок."), deltas)
-        assertEquals("Ок.", msg.getString("content"))
+        assertEquals(listOf("OK."), deltas)
+        assertEquals("OK.", msg.getString("content"))
     }
 
     @Test
     fun `comment keepalive lines are ignored`() = runTest {
-        server.enqueue(sse(": OPENROUTER PROCESSING", chunk("Ок."), "data: [DONE]"))
+        server.enqueue(sse(": OPENROUTER PROCESSING", chunk("OK."), "data: [DONE]"))
         val deltas = mutableListOf<String>()
         val msg = client.chatStream("u", "k", "m", messages(), null) { deltas += it }.getOrThrow()
-        assertEquals(listOf("Ок."), deltas)
-        assertEquals("Ок.", msg.getString("content"))
+        assertEquals(listOf("OK."), deltas)
+        assertEquals("OK.", msg.getString("content"))
     }
 
     @Test
     fun `tool call fragments merge by index and mute later content`() = runTest {
         server.enqueue(sse(
-            chunk("Сейчас проверю. "),
+            chunk("Już sprawdzam. "),
             """data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"c1","function":{"name":"get_vehicle_state","arguments":"{\"fi"}}]}}]}""",
             """data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"arguments":"elds\":1}"}}]}}]}""",
-            chunk("хвост после инструмента"),
+            chunk("tekst po narzędziu"),
             "data: [DONE]",
         ))
         val deltas = mutableListOf<String>()
         val msg = client.chatStream("u", "k", "m", messages(), null) { deltas += it }.getOrThrow()
-        assertEquals(listOf("Сейчас проверю. "), deltas)
+        assertEquals(listOf("Już sprawdzam. "), deltas)
         val tc = msg.getJSONArray("tool_calls").getJSONObject(0)
         assertEquals("c1", tc.getString("id"))
         assertEquals("get_vehicle_state", tc.getJSONObject("function").getString("name"))
@@ -128,7 +128,7 @@ class OpenRouterClientChatStreamTest {
 
     @Test
     fun `mid stream error event fails the result`() = runTest {
-        server.enqueue(sse(chunk("Нач"), """data: {"error":{"code":"server_error","message":"boom"},"choices":[{"delta":{"content":""},"finish_reason":"error"}]}"""))
+        server.enqueue(sse(chunk("Pocz"), """data: {"error":{"code":"server_error","message":"boom"},"choices":[{"delta":{"content":""},"finish_reason":"error"}]}"""))
         val result = client.chatStream("u", "k", "m", messages(), null) {}
         assertTrue(result.isFailure)
     }
@@ -137,11 +137,11 @@ class OpenRouterClientChatStreamTest {
     fun `non sse json body falls back to whole completion`() = runTest {
         server.enqueue(MockResponse()
             .setHeader("Content-Type", "application/json")
-            .setBody("""{"choices":[{"message":{"role":"assistant","content":"Целиком."}}]}"""))
+            .setBody("""{"choices":[{"message":{"role":"assistant","content":"W całości."}}]}"""))
         val deltas = mutableListOf<String>()
         val msg = client.chatStream("u", "k", "m", messages(), null) { deltas += it }.getOrThrow()
-        assertEquals(listOf("Целиком."), deltas)
-        assertEquals("Целиком.", msg.getString("content"))
+        assertEquals(listOf("W całości."), deltas)
+        assertEquals("W całości.", msg.getString("content"))
     }
 
     @Test

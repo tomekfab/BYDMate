@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BYDMate — Автоматизация (mockup)</title>
+<title>BYDMate — Automatyzacja (mockup)</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -237,15 +237,15 @@
 
   <!-- Header: Title + Chips ... Buttons -->
   <div class="header">
-    <h1>Автоматизация</h1>
+    <h1>Automatyzacja</h1>
     <div class="chips">
-      <div class="chip active" onclick="filterRules(this,'all')">Все</div>
-      <div class="chip" onclick="filterRules(this,'on')">Активные</div>
-      <div class="chip" onclick="filterRules(this,'off')">Выключенные</div>
+      <div class="chip active" onclick="filterRules(this,'all')">Wszystkie</div>
+      <div class="chip" onclick="filterRules(this,'on')">Aktywne</div>
+      <div class="chip" onclick="filterRules(this,'off')">Wyłączone</div>
     </div>
     <div class="header-right">
-      <button class="btn btn-outline" onclick="toggleLog()">Журнал</button>
-      <button class="btn btn-green" onclick="openEditor('new')">+ Создать правило</button>
+      <button class="btn btn-outline" onclick="toggleLog()">Dziennik</button>
+      <button class="btn btn-green" onclick="openEditor('new')">+ Utwórz regułę</button>
     </div>
   </div>
 
@@ -254,68 +254,68 @@
 
     <div class="rule-card enabled" onclick="openEditor('edit1')">
       <div class="rule-header">
-        <div class="rule-name"><div class="rule-dot on"></div>Закрыть окна на трассе</div>
+        <div class="rule-name"><div class="rule-dot on"></div>Zamknij okna na trasie</div>
         <div class="rule-controls"><div class="toggle on" onclick="event.stopPropagation()"></div><div class="rule-menu" onclick="event.stopPropagation()">⋮</div></div>
       </div>
       <div class="rule-body">
-        <span class="p">Скорость</span> <span class="o">&gt;</span> <span class="v">100</span> км/ч
-        <span class="ar">→</span> <span class="act">Закрыть все окна</span>
+        <span class="p">Prędkość</span> <span class="o">&gt;</span> <span class="v">100</span> km/h
+        <span class="ar">→</span> <span class="act">Zamknij wszystkie okna</span>
       </div>
-      <div class="rule-stats">Сработало: <span class="c">12</span> раз · Последний: сегодня 14:30 · Пауза: 60 сек</div>
+      <div class="rule-stats">Uruchomiono: <span class="c">12</span> razy · Ostatnio: dzisiaj 14:30 · Przerwa: 60 s</div>
     </div>
 
     <div class="rule-card enabled" onclick="openEditor('edit2')">
       <div class="rule-header">
-        <div class="rule-name"><div class="rule-dot on"></div>Зимний старт</div>
+        <div class="rule-name"><div class="rule-dot on"></div>Zimowy start</div>
         <div class="rule-controls"><div class="toggle on" onclick="event.stopPropagation()"></div><div class="rule-menu" onclick="event.stopPropagation()">⋮</div></div>
       </div>
       <div class="rule-body">
-        <span class="p">Темп. снаружи</span> <span class="o">&lt;</span> <span class="v">0</span>°C
-        <span class="lg">И</span>
-        <span class="p">Питание</span> <span class="o">=</span> <span class="v">ON</span>
-        <span class="ar">→</span> <span class="act">Подогрев водителя 2, Подогрев руля, Подогрев зеркал</span>
+        <span class="p">Temp. na zewnątrz</span> <span class="o">&lt;</span> <span class="v">0</span>°C
+        <span class="lg">I</span>
+        <span class="p">Zasilanie</span> <span class="o">=</span> <span class="v">ON</span>
+        <span class="ar">→</span> <span class="act">Ogrzewanie kierowcy 2, Ogrzewanie kierownicy, Ogrzewanie lusterek</span>
       </div>
-      <div class="rule-stats">Сработало: <span class="c">8</span> раз · Последний: вчера 07:15 · Пауза: 600 сек</div>
+      <div class="rule-stats">Uruchomiono: <span class="c">8</span> razy · Ostatnio: wczoraj 07:15 · Przerwa: 600 s</div>
     </div>
 
     <div class="rule-card enabled" onclick="openEditor('edit3')">
       <div class="rule-header">
-        <div class="rule-name"><div class="rule-dot on"></div>Эко при низком заряде</div>
+        <div class="rule-name"><div class="rule-dot on"></div>Eco przy niskim poziomie baterii</div>
         <div class="rule-controls"><div class="toggle on" onclick="event.stopPropagation()"></div><div class="rule-menu" onclick="event.stopPropagation()">⋮</div></div>
       </div>
       <div class="rule-body">
         <span class="p">SOC</span> <span class="o">&lt;</span> <span class="v">15</span>%
-        <span class="ar">→</span> <span class="act">ECO режим</span>
+        <span class="ar">→</span> <span class="act">Tryb ECO</span>
       </div>
-      <div class="rule-stats">Сработало: <span class="c">3</span> раз · Последний: 06.04 18:42 · Пауза: 300 сек</div>
+      <div class="rule-stats">Uruchomiono: <span class="c">3</span> razy · Ostatnio: 06.04 18:42 · Przerwa: 300 s</div>
     </div>
 
     <div class="rule-card disabled" onclick="openEditor('edit4')">
       <div class="rule-header">
-        <div class="rule-name"><div class="rule-dot off"></div>Летнее охлаждение</div>
+        <div class="rule-name"><div class="rule-dot off"></div>Letnie chłodzenie</div>
         <div class="rule-controls"><div class="toggle" onclick="event.stopPropagation()"></div><div class="rule-menu" onclick="event.stopPropagation()">⋮</div></div>
       </div>
       <div class="rule-body">
-        <span class="p">Темп. салона</span> <span class="o">&gt;</span> <span class="v">30</span>°C
-        <span class="lg">И</span>
-        <span class="p">Питание</span> <span class="o">=</span> <span class="v">ON</span>
-        <span class="ar">→</span> <span class="act">Вентиляция водителя 1, Авто AC</span>
+        <span class="p">Temp. w kabinie</span> <span class="o">&gt;</span> <span class="v">30</span>°C
+        <span class="lg">I</span>
+        <span class="p">Zasilanie</span> <span class="o">=</span> <span class="v">ON</span>
+        <span class="ar">→</span> <span class="act">Wentylacja kierowcy 1, Auto AC</span>
       </div>
-      <div class="rule-stats">Сработало: <span class="c">0</span> раз · Пауза: 600 сек</div>
+      <div class="rule-stats">Uruchomiono: <span class="c">0</span> razy · Przerwa: 600 s</div>
     </div>
 
     <div class="rule-card disabled" onclick="openEditor('edit6')">
       <div class="rule-header">
-        <div class="rule-name"><div class="rule-dot off"></div>Климат при зарядке</div>
+        <div class="rule-name"><div class="rule-dot off"></div>Klimatyzacja podczas ładowania</div>
         <div class="rule-controls"><div class="toggle" onclick="event.stopPropagation()"></div><div class="rule-menu" onclick="event.stopPropagation()">⋮</div></div>
       </div>
       <div class="rule-body">
-        <span class="p">Зарядка</span> <span class="o">=</span> <span class="v">Начата</span>
-        <span class="lg">И</span>
-        <span class="p">Темп. снаружи</span> <span class="o">&lt;</span> <span class="v">5</span>°C
-        <span class="ar">→</span> <span class="act">Авто AC, Подогрев водителя 1</span>
+        <span class="p">Ładowanie</span> <span class="o">=</span> <span class="v">Rozpoczęte</span>
+        <span class="lg">I</span>
+        <span class="p">Temp. na zewnątrz</span> <span class="o">&lt;</span> <span class="v">5</span>°C
+        <span class="ar">→</span> <span class="act">Auto AC, Ogrzewanie kierowcy 1</span>
       </div>
-      <div class="rule-stats">Сработало: <span class="c">0</span> раз · Пауза: 600 сек · Энергия от сети, не от батареи</div>
+      <div class="rule-stats">Uruchomiono: <span class="c">0</span> razy · Przerwa: 600 s · Energia z sieci, nie z baterii</div>
     </div>
 
 
@@ -326,19 +326,19 @@
 <div class="tab-bar">
   <div class="tab">
     <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-    <span>Главная</span>
+    <span>Główna</span>
   </div>
   <div class="tab">
     <svg viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
-    <span>Поездки</span>
+    <span>Podróże</span>
   </div>
   <div class="tab active">
     <svg viewBox="0 0 24 24"><path d="M17 11c.34 0 .67.04 1 .09V6.27L10.5 3 3 6.27v4.91c0 4.54 3.2 8.79 7.5 9.82.55-.13 1.08-.32 1.6-.55-.69-.98-1.1-2.17-1.1-3.45 0-3.31 2.69-6 6-6z"/><path d="M17 13c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 1.38a1.12 1.12 0 110 2.24 1.12 1.12 0 010-2.24zm0 5.37c-.97 0-1.82-.48-2.34-1.22.25-.42.97-.82 2.34-.82 1.37 0 2.09.4 2.34.82-.52.74-1.37 1.22-2.34 1.22z"/></svg>
-    <span>Автоматизация</span>
+    <span>Automatyzacja</span>
   </div>
   <div class="tab">
     <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.6 3.6 0 0112 15.6z"/></svg>
-    <span>Настройки</span>
+    <span>Ustawienia</span>
   </div>
 </div>
 
@@ -346,74 +346,74 @@
 <div class="overlay hidden" id="editor-overlay" onclick="if(event.target===this)closeEditor()">
   <div class="editor">
     <div class="editor-bar">
-      <h2 id="editor-title">Закрыть окна при движении</h2>
+      <h2 id="editor-title">Zamknij okna podczas jazdy</h2>
       <div class="close-btn" onclick="closeEditor()">✕</div>
     </div>
     <div class="editor-body">
       <div class="col">
-        <input class="name-input" value="Закрыть окна при движении">
+        <input class="name-input" value="Zamknij okna podczas jazdy">
         <div class="sec">
-          <h3>Когда (условия)</h3>
+          <h3>Kiedy (warunki)</h3>
           <div class="logic-toggle">
-            <button class="logic-btn active">И (AND)</button>
-            <button class="logic-btn">ИЛИ (OR)</button>
+            <button class="logic-btn active">I (AND)</button>
+            <button class="logic-btn">LUB (OR)</button>
           </div>
           <div class="trig-row">
             <span class="row-num">1</span>
             <select class="inp" style="width:160px">
-              <optgroup label="Движение"><option selected>Скорость</option><option>Передача</option><option>Режим вождения</option></optgroup>
-              <optgroup label="Энергия"><option>SOC (%)</option><option>Статус зарядки</option></optgroup>
-              <optgroup label="Температура"><option>Темп. снаружи</option><option>Темп. салона</option><option>Темп. батареи</option></optgroup>
-              <optgroup label="Кузов"><option>Окно водителя (%)</option><option>Окно пассажира (%)</option><option>Окно ЛЗ (%)</option><option>Окно ПЗ (%)</option><option>Люк (%)</option><option>Дверь водителя</option><option>Багажник</option></optgroup>
-              <optgroup label="Климат"><option>Кондиционер</option><option>Темп. AC</option><option>Вентилятор</option></optgroup>
-              <optgroup label="Безопасность"><option>Ремень водителя</option><option>Давление ЛП шины</option><option>Дождь</option></optgroup>
+              <optgroup label="Jazda"><option selected>Prędkość</option><option>Bieg</option><option>Tryb jazdy</option></optgroup>
+              <optgroup label="Energia"><option>SOC (%)</option><option>Stan ładowania</option></optgroup>
+              <optgroup label="Temperatura"><option>Temp. na zewnątrz</option><option>Temp. w kabinie</option><option>Temp. baterii</option></optgroup>
+              <optgroup label="Nadwozie"><option>Okno kierowcy (%)</option><option>Okno pasażera (%)</option><option>Tylne lewe okno (%)</option><option>Tylne prawe okno (%)</option><option>Szyberdach (%)</option><option>Drzwi kierowcy</option><option>Bagażnik</option></optgroup>
+              <optgroup label="Klimatyzacja"><option>Klimatyzacja</option><option>Temp. AC</option><option>Wentylator</option></optgroup>
+              <optgroup label="Bezpieczeństwo"><option>Pas kierowcy</option><option>Ciśnienie lewej przedniej opony</option><option>Deszcz</option></optgroup>
             </select>
             <select class="inp" style="width:60px"><option selected>&gt;</option><option>&lt;</option><option>&gt;=</option><option>&lt;=</option><option>=</option><option>≠</option></select>
             <input class="inp narrow" value="5">
             <span class="row-del">✕</span>
           </div>
-          <button class="add-btn">+ Добавить условие</button>
+          <button class="add-btn">+ Dodaj warunek</button>
         </div>
       </div>
       <div class="col">
         <div class="sec">
-          <h3>Тогда (действия)</h3>
+          <h3>Wtedy (działania)</h3>
           <div class="act-row">
             <span class="row-num" style="color:var(--teal)">1</span>
             <select class="inp" style="flex:1">
-              <optgroup label="Окна"><option selected>Закрыть все окна</option><option>Открыть все окна</option><option>Все окна на 50%</option><option>Закрыть передние</option><option>Закрыть задние</option><option>Проветривание</option></optgroup>
-              <optgroup label="Климат"><option>Включить AC</option><option>Выключить AC</option><option>Авто AC</option><option>Температура +1</option><option>Температура -1</option><option>Циркуляция внутр.</option><option>Циркуляция внешн.</option><option>Обдув лобового</option></optgroup>
-              <optgroup label="Сиденья"><option>Подогрев водителя 1</option><option>Подогрев водителя 2</option><option>Подогрев водителя выкл</option><option>Подогрев пассажира 1</option><option>Подогрев пассажира 2</option><option>Вентиляция водителя 1</option><option>Вентиляция водителя выкл</option></optgroup>
-              <optgroup label="Руль и зеркала"><option>Подогрев руля вкл</option><option>Подогрев руля выкл</option><option>Подогрев зеркал вкл</option><option>Подогрев зеркал выкл</option></optgroup>
-              <optgroup label="Свет"><option>Амбиент вкл</option><option>Амбиент выкл</option><option>Салонный свет вкл</option><option>ПТФ вкл</option><option>ПТФ выкл</option></optgroup>
-              <optgroup label="Режимы"><option>ECO режим</option><option>SPORT режим</option><option>NORMAL режим</option><option>Режим EV</option><option>Режим HEV</option></optgroup>
-              <optgroup label="Замки"><option>Заблокировать</option><option>Разблокировать</option></optgroup>
-              <optgroup label="Люк"><option>Закрыть люк</option><option>Закрыть шторку</option></optgroup>
+              <optgroup label="Okna"><option selected>Zamknij wszystkie okna</option><option>Otwórz wszystkie okna</option><option>Wszystkie okna na 50%</option><option>Zamknij przednie</option><option>Zamknij tylne</option><option>Wietrzenie</option></optgroup>
+              <optgroup label="Klimatyzacja"><option>Włącz AC</option><option>Wyłącz AC</option><option>Auto AC</option><option>Temperatura +1</option><option>Temperatura -1</option><option>Obieg wewn.</option><option>Obieg zewn.</option><option>Nawiew na szybę przednią</option></optgroup>
+              <optgroup label="Siedzenia"><option>Ogrzewanie kierowcy 1</option><option>Ogrzewanie kierowcy 2</option><option>Ogrzewanie kierowcy wył.</option><option>Ogrzewanie pasażera 1</option><option>Ogrzewanie pasażera 2</option><option>Wentylacja kierowcy 1</option><option>Wentylacja kierowcy wył.</option></optgroup>
+              <optgroup label="Kierownica i lusterka"><option>Ogrzewanie kierownicy wł.</option><option>Ogrzewanie kierownicy wył.</option><option>Ogrzewanie lusterek wł.</option><option>Ogrzewanie lusterek wył.</option></optgroup>
+              <optgroup label="Światła"><option>Oświetlenie ambientowe wł.</option><option>Oświetlenie ambientowe wył.</option><option>Światło kabiny wł.</option><option>Światła przeciwmgielne wł.</option><option>Światła przeciwmgielne wył.</option></optgroup>
+              <optgroup label="Tryby"><option>Tryb ECO</option><option>Tryb SPORT</option><option>Tryb NORMAL</option><option>Tryb EV</option><option>Tryb HEV</option></optgroup>
+              <optgroup label="Zamki"><option>Zablokuj</option><option>Odblokuj</option></optgroup>
+              <optgroup label="Szyberdach"><option>Zamknij szyberdach</option><option>Zamknij roletę</option></optgroup>
             </select>
             <span class="row-del">✕</span>
           </div>
-          <button class="add-btn">+ Добавить действие</button>
+          <button class="add-btn">+ Dodaj działanie</button>
         </div>
         <div class="sec">
-          <h3>Настройки</h3>
+          <h3>Ustawienia</h3>
           <div class="setting-row">
-            <span>Пауза между срабатываниями</span>
-            <div class="setting-val"><input class="inp narrow" value="60"><span class="unit">сек</span></div>
+            <span>Przerwa między uruchomieniami</span>
+            <div class="setting-val"><input class="inp narrow" value="60"><span class="unit">s</span></div>
           </div>
           <div class="setting-row">
-            <span>Только на парковке (P)</span>
+            <span>Tylko na postoju (P)</span>
             <div class="toggle" onclick="this.classList.toggle('on')"></div>
           </div>
           <div class="setting-row">
-            <span>Спрашивать перед выполнением</span>
+            <span>Pytaj przed wykonaniem</span>
             <div class="toggle" onclick="this.classList.toggle('on')"></div>
           </div>
         </div>
       </div>
     </div>
     <div class="editor-footer">
-      <button class="btn btn-outline" onclick="closeEditor()">Отмена</button>
-      <button class="btn btn-green" onclick="closeEditor()">Сохранить</button>
+      <button class="btn btn-outline" onclick="closeEditor()">Anuluj</button>
+      <button class="btn btn-green" onclick="closeEditor()">Zapisz</button>
     </div>
   </div>
 </div>
@@ -422,34 +422,34 @@
 <div class="overlay hidden" id="log-overlay" onclick="if(event.target===this)toggleLog()">
   <div class="log-panel">
     <div class="log-bar">
-      <span>Журнал срабатываний</span>
+      <span>Dziennik uruchomień</span>
       <div class="close-btn" onclick="toggleLog()">✕</div>
     </div>
     <div class="log-list">
       <div class="log-item ok">
-        <div style="display:flex;justify-content:space-between"><span class="log-name">Закрыть окна при движении</span><span class="log-time">14:30:12</span></div>
-        <div class="log-act">→ Закрыть все окна</div>
-        <div class="log-det">Скорость: 8 км/ч · Окно ЛП: 12%</div>
+        <div style="display:flex;justify-content:space-between"><span class="log-name">Zamknij okna podczas jazdy</span><span class="log-time">14:30:12</span></div>
+        <div class="log-act">→ Zamknij wszystkie okna</div>
+        <div class="log-det">Prędkość: 8 km/h · Lewe przednie okno: 12%</div>
       </div>
       <div class="log-item ok">
-        <div style="display:flex;justify-content:space-between"><span class="log-name">Зимний старт</span><span class="log-time">07:15:03</span></div>
-        <div class="log-act">→ Подогрев водителя 2, Подогрев руля</div>
-        <div class="log-det">Темп: -3°C · Питание: ON</div>
+        <div style="display:flex;justify-content:space-between"><span class="log-name">Zimowy start</span><span class="log-time">07:15:03</span></div>
+        <div class="log-act">→ Ogrzewanie kierowcy 2, Ogrzewanie kierownicy</div>
+        <div class="log-det">Temp.: -3°C · Zasilanie: ON</div>
       </div>
       <div class="log-item ok">
-        <div style="display:flex;justify-content:space-between"><span class="log-name">Закрыть окна при движении</span><span class="log-time">07:12:45</span></div>
-        <div class="log-act">→ Закрыть все окна</div>
-        <div class="log-det">Скорость: 12 км/ч · Окно ЛП: 98%</div>
+        <div style="display:flex;justify-content:space-between"><span class="log-name">Zamknij okna podczas jazdy</span><span class="log-time">07:12:45</span></div>
+        <div class="log-act">→ Zamknij wszystkie okna</div>
+        <div class="log-det">Prędkość: 12 km/h · Lewe przednie okno: 98%</div>
       </div>
       <div class="log-item err">
-        <div style="display:flex;justify-content:space-between"><span class="log-name">Эко при низком заряде</span><span class="log-time">вчера 18:42</span></div>
-        <div class="log-act">→ ECO режим</div>
-        <div class="log-det">SOC: 14% · Ошибка: D+ не отвечает</div>
+        <div style="display:flex;justify-content:space-between"><span class="log-name">Eco przy niskim poziomie baterii</span><span class="log-time">wczoraj 18:42</span></div>
+        <div class="log-act">→ Tryb ECO</div>
+        <div class="log-det">SOC: 14% · Błąd: D+ nie odpowiada</div>
       </div>
       <div class="log-item ok">
-        <div style="display:flex;justify-content:space-between"><span class="log-name">Подогрев зеркал</span><span class="log-time">вчера 07:32</span></div>
-        <div class="log-act">→ Подогрев зеркал</div>
-        <div class="log-det">Темп: -1°C · Питание: ON</div>
+        <div style="display:flex;justify-content:space-between"><span class="log-name">Ogrzewanie lusterek</span><span class="log-time">wczoraj 07:32</span></div>
+        <div class="log-act">→ Ogrzewanie lusterek</div>
+        <div class="log-det">Temp.: -1°C · Zasilanie: ON</div>
       </div>
     </div>
   </div>

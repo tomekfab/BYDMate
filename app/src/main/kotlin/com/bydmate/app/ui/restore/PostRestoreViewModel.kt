@@ -6,8 +6,7 @@ import com.bydmate.app.data.backup.PostRestoreCheck
 import com.bydmate.app.data.backup.PostRestoreReport
 import com.bydmate.app.ui.settings.SpaceShortfall
 import com.bydmate.app.voice.ContinuousAsr
-import com.bydmate.app.voice.GigaAmModelManager
-import com.bydmate.app.voice.RuStressMarker
+import com.bydmate.app.voice.PolishModelManager
 import com.bydmate.app.voice.TtsModelManager
 import com.bydmate.app.voice.TtsVoiceCatalog
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,9 +30,8 @@ data class PostRestoreDownload(
 @HiltViewModel
 class PostRestoreViewModel @Inject constructor(
     private val check: PostRestoreCheck,
-    private val gigaAmModelManager: GigaAmModelManager,
+    private val polishModelManager: PolishModelManager,
     private val ttsModelManager: TtsModelManager,
-    private val ruStressMarker: RuStressMarker,
     private val continuousAsr: ContinuousAsr,
 ) : ViewModel() {
 
@@ -51,13 +49,13 @@ class PostRestoreViewModel @Inject constructor(
 
     fun dismiss() = check.dismiss()
 
-    /** Same manager call and follow-up as the Settings screen's GigaAM download. */
+    /** Same manager call and follow-up as the Settings screen's Polish ASR download. */
     fun downloadAsr() {
         if (_asr.value.percent != null) return
         _asr.value = PostRestoreDownload(percent = 0)
         viewModelScope.launch {
-            val result = gigaAmModelManager.download { phase, pct ->
-                _asr.value = PostRestoreDownload(percent = pct, unpacking = phase == GigaAmModelManager.Phase.UNPACK)
+            val result = polishModelManager.download { _, pct ->
+                _asr.value = PostRestoreDownload(percent = pct, unpacking = false)
             }
             _asr.value = PostRestoreDownload(
                 failed = result.isFailure,
@@ -71,13 +69,12 @@ class PostRestoreViewModel @Inject constructor(
     }
 
     /** Same manager calls as the Settings screen's voice download. */
-    fun downloadTts(voiceId: String) {
+    fun downloadTts() {
         if (_tts.value.percent != null) return
         _tts.value = PostRestoreDownload(percent = 0)
         viewModelScope.launch {
-            val voice = TtsVoiceCatalog.byId(voiceId)
+            val voice = TtsVoiceCatalog.GOSIA
             val result = ttsModelManager.download(voice) { pct -> _tts.value = PostRestoreDownload(percent = pct) }
-            if (result.isSuccess && ttsModelManager.ensureStressDict(voice)) ruStressMarker.preload()
             _tts.value = PostRestoreDownload(failed = result.isFailure)
             check.recheck()
         }

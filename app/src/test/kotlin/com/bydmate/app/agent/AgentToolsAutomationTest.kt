@@ -18,6 +18,8 @@ import com.bydmate.app.data.remote.OpenRouterClient
 import com.bydmate.app.data.repository.SettingsRepository
 import com.bydmate.app.domain.battery.BatteryStateRepository
 import com.bydmate.app.domain.calculator.RangeCalculator
+import com.bydmate.app.voice.AliasTarget
+import com.bydmate.app.voice.SaveResult
 import com.bydmate.app.voice.VoiceGate
 import com.bydmate.app.voice.VoiceUserPhrases
 import io.mockk.coEvery
@@ -31,6 +33,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+@Suppress("LargeClass") // Automation scenarios share one tool fixture and its collaborator setup.
 class AgentToolsAutomationTest {
 
     private val gate = mockk<VoiceGate>()
@@ -67,7 +70,7 @@ class AgentToolsAutomationTest {
         name: String,
         enabled: Boolean,
         triggerDisplay: String = "SOC < 20%",
-        actionDisplay: String = "Закрыть окна",
+        actionDisplay: String = "Zamknij szyby",
     ) = RuleEntity(
         id = id,
         name = name,
@@ -89,40 +92,40 @@ class AgentToolsAutomationTest {
 
     @Test fun list_automations_includes_disabled_with_display_names() = runTest {
         coEvery { ruleDao.getAllList() } returns listOf(
-            rule(1, "Ночной режим", enabled = true),
-            rule(2, "Выключено", enabled = false),
+            rule(1, "Tryb nocny", enabled = true),
+            rule(2, "Wyłączone", enabled = false),
         )
         val out = JSONObject(tools().execute(call("list_automations", "{}")))
         val arr = out.getJSONArray("automations")
         assertEquals(2, arr.length())
         val first = arr.getJSONObject(0)
-        assertEquals("Ночной режим", first.getString("name"))
+        assertEquals("Tryb nocny", first.getString("name"))
         assertTrue(first.getBoolean("enabled"))
         assertEquals("SOC < 20%", first.getString("triggers"))
-        assertEquals("Закрыть окна", first.getString("actions"))
+        assertEquals("Zamknij szyby", first.getString("actions"))
         val second = arr.getJSONObject(1)
-        assertEquals("Выключено", second.getString("name"))
+        assertEquals("Wyłączone", second.getString("name"))
         assertTrue(!second.getBoolean("enabled"))
     }
 
     // --- set_automation_enabled ---
 
     @Test fun set_automation_enabled_true_matches_case_insensitive() = runTest {
-        coEvery { ruleDao.getAllList() } returns listOf(rule(5, "Проветрить", enabled = false))
+        coEvery { ruleDao.getAllList() } returns listOf(rule(5, "Przewietrz", enabled = false))
         coEvery { ruleDao.setEnabled(5, true) } returns Unit
         val out = JSONObject(tools().execute(
-            call("set_automation_enabled", """{"name":"проветрить","enabled":true}""")))
+            call("set_automation_enabled", """{"name":"przewietrz","enabled":true}""")))
         assertTrue(out.getBoolean("ok"))
-        assertEquals("проветрить", out.getString("name"))
+        assertEquals("przewietrz", out.getString("name"))
         assertTrue(out.getBoolean("enabled"))
         coVerify { ruleDao.setEnabled(5, true) }
     }
 
     @Test fun set_automation_enabled_false() = runTest {
-        coEvery { ruleDao.getAllList() } returns listOf(rule(6, "Фрунк", enabled = true))
+        coEvery { ruleDao.getAllList() } returns listOf(rule(6, "Przedni bagażnik", enabled = true))
         coEvery { ruleDao.setEnabled(6, false) } returns Unit
         val out = JSONObject(tools().execute(
-            call("set_automation_enabled", """{"name":"Фрунк","enabled":false}""")))
+            call("set_automation_enabled", """{"name":"Przedni bagażnik","enabled":false}""")))
         assertTrue(out.getBoolean("ok"))
         assertTrue(!out.getBoolean("enabled"))
         coVerify { ruleDao.setEnabled(6, false) }
@@ -131,18 +134,18 @@ class AgentToolsAutomationTest {
     @Test fun set_automation_enabled_not_found() = runTest {
         coEvery { ruleDao.getAllList() } returns emptyList()
         val out = JSONObject(tools().execute(
-            call("set_automation_enabled", """{"name":"нет такой","enabled":true}""")))
+            call("set_automation_enabled", """{"name":"nie ma takiej","enabled":true}""")))
         assertTrue(out.has("error"))
         coVerify(exactly = 0) { ruleDao.setEnabled(any(), any()) }
     }
 
     @Test fun set_automation_enabled_duplicate_name_reports_error() = runTest {
         coEvery { ruleDao.getAllList() } returns listOf(
-            rule(1, "Дубль", enabled = true),
-            rule(2, "дубль", enabled = false),
+            rule(1, "Duplikat", enabled = true),
+            rule(2, "duplikat", enabled = false),
         )
         val out = JSONObject(tools().execute(
-            call("set_automation_enabled", """{"name":"Дубль","enabled":true}""")))
+            call("set_automation_enabled", """{"name":"Duplikat","enabled":true}""")))
         assertTrue(out.has("error"))
         coVerify(exactly = 0) { ruleDao.setEnabled(any(), any()) }
     }
@@ -158,39 +161,39 @@ class AgentToolsAutomationTest {
     @Test fun set_automation_enabled_dao_failure_returns_error_not_exception() = runTest {
         coEvery { ruleDao.getAllList() } throws RuntimeException("db locked")
         val out = JSONObject(tools().execute(
-            call("set_automation_enabled", """{"name":"Фрунк","enabled":true}""")))
+            call("set_automation_enabled", """{"name":"Przedni bagażnik","enabled":true}""")))
         assertTrue(out.has("error"))
     }
 
     @Test fun set_automation_enabled_missing_enabled_key_reports_error() = runTest {
-        coEvery { ruleDao.getAllList() } returns listOf(rule(6, "Фрунк", enabled = true))
+        coEvery { ruleDao.getAllList() } returns listOf(rule(6, "Przedni bagażnik", enabled = true))
         val out = JSONObject(tools().execute(
-            call("set_automation_enabled", """{"name":"Фрунк"}""")))
-        assertEquals("не указано значение enabled", out.getString("error"))
+            call("set_automation_enabled", """{"name":"Przedni bagażnik"}""")))
+        assertEquals("nie podano wartości enabled", out.getString("error"))
         coVerify(exactly = 0) { ruleDao.setEnabled(any(), any()) }
     }
 
     @Test fun set_automation_enabled_string_true_works() = runTest {
-        coEvery { ruleDao.getAllList() } returns listOf(rule(6, "Фрунк", enabled = false))
+        coEvery { ruleDao.getAllList() } returns listOf(rule(6, "Przedni bagażnik", enabled = false))
         coEvery { ruleDao.setEnabled(6, true) } returns Unit
         val out = JSONObject(tools().execute(
-            call("set_automation_enabled", """{"name":"Фрунк","enabled":"true"}""")))
+            call("set_automation_enabled", """{"name":"Przedni bagażnik","enabled":"true"}""")))
         assertTrue(out.getBoolean("ok"))
         assertTrue(out.getBoolean("enabled"))
         coVerify { ruleDao.setEnabled(6, true) }
     }
 
-    @Test fun set_automation_enabled_empty_name_reports_russian_error() = runTest {
+    @Test fun set_automation_enabled_empty_name_reports_polish_error() = runTest {
         val out = JSONObject(tools().execute(
             call("set_automation_enabled", """{"name":"","enabled":true}""")))
-        assertEquals("не указано имя", out.getString("error"))
+        assertEquals("nie podano nazwy", out.getString("error"))
         coVerify(exactly = 0) { ruleDao.setEnabled(any(), any()) }
     }
 
     // --- create_automation ---
 
     private fun createArgs(
-        name: String = "Ночной свет",
+        name: String = "Nocne światło",
         trigger: String = """{"kind":"param","param":"SOC","operator":"<","value":"20"}""",
         actions: String = """[{"kind":"param","command_id":"windows_close_all"}]""",
         cooldown: String = "",
@@ -204,11 +207,11 @@ class AgentToolsAutomationTest {
         val out = JSONObject(tools().execute(call("create_automation", createArgs())))
 
         assertTrue(out.getBoolean("ok"))
-        assertEquals("Ночной свет", out.getString("name"))
-        assertTrue(out.getString("hint").contains("Ночной свет"))
+        assertEquals("Nocne światło", out.getString("name"))
+        assertTrue(out.getString("hint").contains("Nocne światło"))
 
         val saved = slot.captured
-        assertEquals("Ночной свет", saved.name)
+        assertEquals("Nocne światło", saved.name)
         assertTrue(saved.enabled)
         assertEquals(60, saved.cooldownSeconds)
         val triggers = TriggerDef.listFromJson(saved.triggers)
@@ -230,10 +233,10 @@ class AgentToolsAutomationTest {
         val out = JSONObject(tools().execute(call("create_automation", createArgs())))
 
         val summary = out.getString("rule")
-        assertTrue(summary, summary.contains("Ночной свет"))
+        assertTrue(summary, summary.contains("Nocne światło"))
         assertTrue(summary, summary.contains("SOC"))
         assertTrue(summary, summary.contains("20"))
-        assertTrue(summary, summary.contains("окна", ignoreCase = true))
+        assertTrue(summary, summary.contains("zamknij wszystkie okna", ignoreCase = true))
     }
 
     @Test fun create_automation_accepts_go_home_and_youtube_actions() = runTest {
@@ -242,14 +245,14 @@ class AgentToolsAutomationTest {
         coEvery { ruleDao.insert(capture(slot)) } returns 1L
 
         val out = JSONObject(tools().execute(call("create_automation", createArgs(
-            actions = """[{"kind":"go_home"},{"kind":"youtube","query":"джаз"}]"""))))
+            actions = """[{"kind":"go_home"},{"kind":"youtube","query":"jazz"}]"""))))
 
         assertTrue(out.toString(), out.getBoolean("ok"))
         val actions = ActionDef.listFromJson(slot.captured.actions)
         assertEquals("go_home", actions[0].kind)
         assertEquals("youtube", actions[1].kind)
         val payload = JSONObject(actions[1].payload!!)
-        assertEquals("джаз", payload.getString("query"))
+        assertEquals("jazz", payload.getString("query"))
         assertEquals("play", payload.getString("mode"))
     }
 
@@ -262,17 +265,17 @@ class AgentToolsAutomationTest {
 
     @Test fun create_automation_place_trigger_found_sets_place_id_and_name() = runTest {
         coEvery { ruleDao.getAllList() } returns emptyList()
-        coEvery { places.getAllSnapshot() } returns listOf(PlaceEntity(id = 3, name = "Дом", lat = 55.0, lon = 37.0))
+        coEvery { places.getAllSnapshot() } returns listOf(PlaceEntity(id = 3, name = "Dom", lat = 55.0, lon = 37.0))
         val slot = slot<RuleEntity>()
         coEvery { ruleDao.insert(capture(slot)) } returns 1L
 
         val out = JSONObject(tools().execute(call("create_automation", createArgs(
-            trigger = """{"kind":"place_enter","place_name":"дом"}"""))))
+            trigger = """{"kind":"place_enter","place_name":"dom"}"""))))
 
         assertTrue(out.getBoolean("ok"))
         val trigger = TriggerDef.listFromJson(slot.captured.triggers).first()
         assertEquals(3L, trigger.placeId)
-        assertEquals("Дом", trigger.placeName)
+        assertEquals("Dom", trigger.placeName)
         assertEquals("place_enter", trigger.kind)
     }
 
@@ -281,9 +284,9 @@ class AgentToolsAutomationTest {
         coEvery { places.getAllSnapshot() } returns emptyList()
 
         val out = JSONObject(tools().execute(call("create_automation", createArgs(
-            trigger = """{"kind":"place_exit","place_name":"Дача"}"""))))
+            trigger = """{"kind":"place_exit","place_name":"Działka"}"""))))
 
-        assertEquals("место не найдено: Дача", out.getString("error"))
+        assertEquals("nie znaleziono miejsca: Działka", out.getString("error"))
         coVerify(exactly = 0) { ruleDao.insert(any()) }
     }
 
@@ -295,14 +298,14 @@ class AgentToolsAutomationTest {
         val out = JSONObject(tools().execute(call("create_automation", createArgs(
             trigger = """{"kind":"foo"}"""))))
 
-        assertTrue(out.getString("error").contains("недопустимый тип триггера"))
+        assertTrue(out.getString("error").contains("niedozwolony typ wyzwalacza"))
         coVerify(exactly = 0) { ruleDao.insert(any()) }
     }
 
     @Test fun create_automation_duplicate_name_reports_error() = runTest {
-        coEvery { ruleDao.getAllList() } returns listOf(rule(1, "ночной свет", enabled = true))
+        coEvery { ruleDao.getAllList() } returns listOf(rule(1, "nocne światło", enabled = true))
 
-        val out = JSONObject(tools().execute(call("create_automation", createArgs(name = "Ночной свет"))))
+        val out = JSONObject(tools().execute(call("create_automation", createArgs(name = "Nocne światło"))))
 
         assertTrue(out.has("error"))
         coVerify(exactly = 0) { ruleDao.insert(any()) }
@@ -397,7 +400,7 @@ class AgentToolsAutomationTest {
         val out = JSONObject(tools().execute(call("create_automation", createArgs(
             actions = """[{"kind":"media_volume","op":"loud"}]"""))))
 
-        assertEquals("не указан уровень громкости (действие 1)", out.getString("error"))
+        assertEquals("nie podano poziomu głośności (działanie 1)", out.getString("error"))
         coVerify(exactly = 0) { ruleDao.insert(any()) }
     }
 
@@ -407,7 +410,7 @@ class AgentToolsAutomationTest {
         val out = JSONObject(tools().execute(call("create_automation", createArgs(
             actions = """[{"kind":"delay"}]"""))))
 
-        assertEquals("не указана длительность паузы (мс, 0..60000)", out.getString("error"))
+        assertEquals("nie podano czasu pauzy (ms, 0..60000)", out.getString("error"))
         coVerify(exactly = 0) { ruleDao.insert(any()) }
     }
 
@@ -417,7 +420,7 @@ class AgentToolsAutomationTest {
         val out = JSONObject(tools().execute(call("create_automation", createArgs(
             actions = """[{"kind":"navigate","lat":55.7}]"""))))
 
-        assertEquals("не указаны координаты lat/lon", out.getString("error"))
+        assertEquals("nie podano współrzędnych lat/lon", out.getString("error"))
         coVerify(exactly = 0) { ruleDao.insert(any()) }
     }
 
@@ -427,7 +430,7 @@ class AgentToolsAutomationTest {
         val out = JSONObject(tools().execute(call("create_automation", createArgs(
             actions = """[{"kind":"yandex_music"}]"""))))
 
-        assertEquals("не указан режим Я.Музыки", out.getString("error"))
+        assertEquals("nie podano trybu Yandex Muzyki", out.getString("error"))
         coVerify(exactly = 0) { ruleDao.insert(any()) }
     }
 
@@ -437,7 +440,7 @@ class AgentToolsAutomationTest {
         val out = JSONObject(tools().execute(call("create_automation", createArgs(
             actions = """[{"kind":"sentry"}]"""))))
 
-        assertEquals("не указано состояние охранного режима", out.getString("error"))
+        assertEquals("nie podano stanu ochrony", out.getString("error"))
         coVerify(exactly = 0) { ruleDao.insert(any()) }
     }
 
@@ -448,13 +451,13 @@ class AgentToolsAutomationTest {
         val saved = slot<RuleEntity>()
         coEvery { ruleDao.insert(capture(saved)) } returns 1L
         val out = JSONObject(tools().execute(call("create_automation",
-            createArgs(trigger = """{"kind":"voice","phrase":"тёплый приём"}"""))))
+            createArgs(trigger = """{"kind":"voice","phrase":"ciepłe powitanie"}"""))))
         assertTrue(out.getBoolean("ok"))
         val t = TriggerDef.listFromJson(saved.captured.triggers).single()
         assertEquals("voice", t.kind)
         assertEquals("Voice", t.param)
-        assertEquals("тёплый приём", t.value)
-        assertEquals("тёплый приём", t.displayName)
+        assertEquals("ciepłe powitanie", t.value)
+        assertEquals("ciepłe powitanie", t.displayName)
     }
 
     @Test fun `voice trigger with empty phrase is rejected`() = runTest {
@@ -469,33 +472,53 @@ class AgentToolsAutomationTest {
         coEvery { ruleDao.getAllList() } returns emptyList()
         coEvery { ruleDao.insert(any()) } returns 1L
         val out = JSONObject(tools().execute(call("create_automation",
-            createArgs(trigger = """{"kind":"voice","phrase":"открой окна"}"""))))
+            createArgs(trigger = """{"kind":"voice","phrase":"otwórz szyby"}"""))))
         assertTrue(out.toString(), out.getBoolean("ok"))
     }
 
     @Test fun `voice trigger taken by another rule is rejected`() = runTest {
         val voiceTrigger = TriggerDef(param = "Voice", chineseName = "语音", operator = "==",
-            value = "тёплый приём", displayName = "тёплый приём", kind = "voice")
+            value = "ciepłe powitanie", displayName = "ciepłe powitanie", kind = "voice")
         coEvery { ruleDao.getAllList() } returns listOf(rule(id = 7L, name = "Voice rule", enabled = true).copy(
             triggers = TriggerDef.listToJson(listOf(voiceTrigger))))
         val out = JSONObject(tools().execute(call("create_automation",
-            createArgs(trigger = """{"kind":"voice","phrase":"Тёплый приём!"}"""))))
-        assertTrue(out.getString("error").contains("уже использ"))
+            createArgs(trigger = """{"kind":"voice","phrase":"Ciepłe powitanie!"}"""))))
+        assertTrue(out.getString("error").contains("używa już automatyzacja «Voice rule»"))
     }
 
     @Test fun `voice trigger taken by a user phrase of a built-in command is rejected`() = runTest {
         coEvery { ruleDao.getAllList() } returns emptyList()
         coEvery { ruleDao.insert(any()) } returns 1L
-        val phrases = VoiceUserPhrases().apply { add("windows_close_all", "задраить трюм") }
-        val command = VoiceUserPhrases.COMMANDS.first { it.id == "windows_close_all" }.name
+        val phrases = VoiceUserPhrases().apply { add("windows_close_all", "zamknij iluminatory") }
         val tools = tools().apply { injectUserPhrases(phrases) }
 
         val out = JSONObject(tools.execute(call("create_automation",
-            createArgs(trigger = """{"kind":"voice","phrase":"Задраить трюм!"}"""))))
+            createArgs(trigger = """{"kind":"voice","phrase":"Zamknij iluminatory!"}"""))))
 
         assertFalse(out.toString(), out.optBoolean("ok"))
-        assertTrue(out.toString(), out.getString("error").contains("уже используется"))
-        assertTrue(out.toString(), out.getString("error").contains(command))
+        assertTrue(out.toString(), out.getString("error").contains("tej frazy używa już wbudowane polecenie"))
+        assertTrue(out.toString(), out.getString("error").contains("zamknij wszystkie okna"))
+        coVerify(exactly = 0) { ruleDao.insert(any()) }
+    }
+
+    @Test fun `voice trigger taken by a destination alias is rejected even when its rule is disabled`() = runTest {
+        val voiceTrigger = TriggerDef(param = "Voice", chineseName = "语音", operator = "==",
+            value = "stary tekst", displayName = "stary tekst", kind = "voice")
+        coEvery { ruleDao.getAllList() } returns listOf(rule(id = 7L, name = "Off", enabled = false).copy(
+            triggers = TriggerDef.listToJson(listOf(voiceTrigger))))
+        coEvery { ruleDao.insert(any()) } returns 1L
+        val phrases = VoiceUserPhrases()
+        assertEquals(SaveResult.Saved, phrases.saveAlias(AliasTarget.NavigateQuery("Rynek"), "jedź na rynek"))
+        val tools = tools().apply { injectUserPhrases(phrases) }
+
+        val alias = JSONObject(tools.execute(call("create_automation",
+            createArgs(trigger = """{"kind":"voice","phrase":"Jedź na rynek!"}"""))))
+        val disabled = JSONObject(tools.execute(call("create_automation",
+            createArgs(trigger = """{"kind":"voice","phrase":"Stary tekst"}"""))))
+
+        assertFalse(alias.toString(), alias.optBoolean("ok"))
+        assertTrue(alias.toString(), alias.getString("error").contains("Nawiguj do: Rynek"))
+        assertTrue(disabled.toString(), disabled.getString("error").contains("«Off»"))
         coVerify(exactly = 0) { ruleDao.insert(any()) }
     }
 
@@ -529,24 +552,24 @@ class AgentToolsAutomationTest {
         val saved = slot<RuleEntity>()
         coEvery { ruleDao.insert(capture(saved)) } returns 1L
         val t = tools()
-        t.launcherAppsProvider = { listOf("Шахматы" to "com.example.chess", "Радио" to "com.example.radio") }
+        t.launcherAppsProvider = { listOf("Szachy" to "com.example.chess", "Radio" to "com.example.radio") }
         val out = JSONObject(t.execute(call("create_automation",
-            createArgs(actions = """[{"kind":"app_launch","app":"шахматы"}]"""))))
+            createArgs(actions = """[{"kind":"app_launch","app":"szachy"}]"""))))
         assertTrue(out.getBoolean("ok"))
         val a = ActionDef.listFromJson(saved.captured.actions).single()
         assertEquals("app_launch", a.kind)
         val payload = JSONObject(a.payload!!)
         assertEquals("com.example.chess", payload.getString("packageName"))
-        assertEquals("Шахматы", payload.getString("appLabel"))
+        assertEquals("Szachy", payload.getString("appLabel"))
     }
 
     @Test fun `app_launch action with unknown app is rejected`() = runTest {
         coEvery { ruleDao.getAllList() } returns emptyList()
         val t = tools()
-        t.launcherAppsProvider = { listOf("Шахматы" to "com.example.chess") }
+        t.launcherAppsProvider = { listOf("Szachy" to "com.example.chess") }
         val out = JSONObject(t.execute(call("create_automation",
-            createArgs(actions = """[{"kind":"app_launch","app":"тетрис"}]"""))))
-        assertTrue(out.getString("error").contains("не найдено"))
+            createArgs(actions = """[{"kind":"app_launch","app":"tetris"}]"""))))
+        assertTrue(out.getString("error").contains("nie znaleziono"))
     }
 
     @Test fun `app_launch action without app field is rejected`() = runTest {
@@ -591,7 +614,7 @@ class AgentToolsAutomationTest {
         val saved = slot<RuleEntity>()
         coEvery { ruleDao.insert(capture(saved)) } returns 1L
         val out = JSONObject(tools().execute(AgentToolCall("1", "create_automation",
-            """{"name":"тестзвук","trigger":{"kind":"voice","phrase":"тест"},"actions":[{"kind":"notification_sound","title":"Привет","text":"мир"}],"play_sound":true}""")))
+            """{"name":"dźwięk testowy","trigger":{"kind":"voice","phrase":"test"},"actions":[{"kind":"notification_sound","title":"Cześć","text":"świecie"}],"play_sound":true}""")))
         assertTrue(out.optBoolean("ok"))
         val actions = ActionDef.listFromJson(saved.captured.actions)
         assertEquals("notification", actions[0].kind)
@@ -679,11 +702,11 @@ class AgentToolsAutomationTest {
         coEvery { ruleDao.insert(capture(slot)) } returns 1L
 
         tools().execute(call("create_automation",
-            createArgs(actions = """[{"kind":"speak","text":"привет"}]""")))
+            createArgs(actions = """[{"kind":"speak","text":"cześć"}]""")))
 
         val action = ActionDef.listFromJson(slot.captured.actions).first()
         assertEquals("speak", action.kind)
-        assertEquals("привет", JSONObject(action.payload!!).getString("text"))
+        assertEquals("cześć", JSONObject(action.payload!!).getString("text"))
     }
 
     @Test fun create_automation_speak_empty_text_reports_error_no_insert() = runTest {
@@ -702,11 +725,11 @@ class AgentToolsAutomationTest {
         coEvery { ruleDao.insert(capture(slot)) } returns 1L
 
         tools().execute(call("create_automation",
-            createArgs(actions = """[{"kind":"agent_query","prompt":"какой заряд"}]""")))
+            createArgs(actions = """[{"kind":"agent_query","prompt":"jaki jest poziom baterii"}]""")))
 
         val action = ActionDef.listFromJson(slot.captured.actions).first()
         assertEquals("agent_query", action.kind)
-        assertEquals("какой заряд", JSONObject(action.payload!!).getString("prompt"))
+        assertEquals("jaki jest poziom baterii", JSONObject(action.payload!!).getString("prompt"))
     }
 
     @Test fun create_automation_agent_query_empty_prompt_reports_error_no_insert() = runTest {
@@ -719,7 +742,7 @@ class AgentToolsAutomationTest {
         coVerify(exactly = 0) { ruleDao.insert(any()) }
     }
 
-    // --- create_automation: П7 confirm-gate dangerous actions ---
+// --- create_automation: P7 confirm-gate dangerous actions ---
 
     @Test fun create_automation_call_action_sets_confirm_before_execute_true() = runTest {
         coEvery { ruleDao.getAllList() } returns emptyList()

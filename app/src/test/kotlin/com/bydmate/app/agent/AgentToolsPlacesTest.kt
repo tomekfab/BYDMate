@@ -64,12 +64,12 @@ class AgentToolsPlacesTest {
 
     @Test fun list_places_returns_names_coords_radius() = runTest {
         coEvery { places.getAllSnapshot() } returns listOf(
-            PlaceEntity(id = 1, name = "Дом", lat = 55.75, lon = 37.61, radiusM = 100),
+            PlaceEntity(id = 1, name = "Dom", lat = 55.75, lon = 37.61, radiusM = 100),
         )
         val out = JSONObject(tools().execute(AgentToolCall("1", "list_places", "{}")))
         val arr = out.getJSONArray("places")
         assertEquals(1, arr.length())
-        assertEquals("Дом", arr.getJSONObject(0).getString("name"))
+        assertEquals("Dom", arr.getJSONObject(0).getString("name"))
         assertEquals(100, arr.getJSONObject(0).getInt("radius_m"))
         assertEquals(55.75, arr.getJSONObject(0).getDouble("lat"), 1e-6)
     }
@@ -86,9 +86,9 @@ class AgentToolsPlacesTest {
         coEvery { places.insert(capture(saved)) } returns 1L
         val t = tools()
         t.locationProvider = { 55.75 to 37.61 }
-        val out = JSONObject(t.execute(AgentToolCall("1", "create_place", """{"name":"Работа"}""")))
+        val out = JSONObject(t.execute(AgentToolCall("1", "create_place", """{"name":"Praca"}""")))
         assertTrue(out.getBoolean("ok"))
-        assertEquals("Работа", saved.captured.name)
+        assertEquals("Praca", saved.captured.name)
         assertEquals(55.75, saved.captured.lat, 1e-6)
         assertEquals(37.61, saved.captured.lon, 1e-6)
         assertEquals(100, saved.captured.radiusM)
@@ -101,7 +101,7 @@ class AgentToolsPlacesTest {
         val t = tools()
         t.locationProvider = { null }
         val out = JSONObject(t.execute(AgentToolCall("1", "create_place",
-            """{"name":"Дача","lat":56.1,"lon":38.2,"radius_m":5000}""")))
+            """{"name":"Działka","lat":56.1,"lon":38.2,"radius_m":5000}""")))
         assertTrue(out.getBoolean("ok"))
         assertEquals(56.1, saved.captured.lat, 1e-6)
         assertEquals(500, saved.captured.radiusM)
@@ -111,18 +111,18 @@ class AgentToolsPlacesTest {
         coEvery { places.getAllSnapshot() } returns emptyList()
         val t = tools()
         t.locationProvider = { null }
-        val out = JSONObject(t.execute(AgentToolCall("1", "create_place", """{"name":"Дом"}""")))
+        val out = JSONObject(t.execute(AgentToolCall("1", "create_place", """{"name":"Dom"}""")))
         assertTrue(out.has("error"))
     }
 
     @Test fun create_place_duplicate_name_errors() = runTest {
         coEvery { places.getAllSnapshot() } returns listOf(
-            PlaceEntity(id = 1, name = "Дом", lat = 1.0, lon = 2.0, radiusM = 50),
+            PlaceEntity(id = 1, name = "Dom", lat = 1.0, lon = 2.0, radiusM = 50),
         )
         val t = tools()
         t.locationProvider = { 55.75 to 37.61 }
-        val out = JSONObject(t.execute(AgentToolCall("1", "create_place", """{"name":"дом"}""")))
-        assertEquals("место с именем «дом» уже существует", out.getString("error"))
+        val out = JSONObject(t.execute(AgentToolCall("1", "create_place", """{"name":"dom"}""")))
+        assertEquals("miejsce o nazwie «dom» już istnieje", out.getString("error"))
     }
 
     @Test fun create_place_radius_below_minimum_is_clamped() = runTest {
@@ -132,27 +132,27 @@ class AgentToolsPlacesTest {
         val t = tools()
         t.locationProvider = { null }
         val out = JSONObject(t.execute(AgentToolCall("1", "create_place",
-            """{"name":"Дача","lat":56.1,"lon":38.2,"radius_m":5}""")))
+            """{"name":"Działka","lat":56.1,"lon":38.2,"radius_m":5}""")))
         assertTrue(out.getBoolean("ok"))
         assertEquals(20, saved.captured.radiusM)
     }
 
     @Test fun create_place_at_limit_errors() = runTest {
         val existing = (1..50).map {
-            PlaceEntity(id = it.toLong(), name = "Место $it", lat = 0.0, lon = 0.0, radiusM = 100)
+            PlaceEntity(id = it.toLong(), name = "Miejsce $it", lat = 0.0, lon = 0.0, radiusM = 100)
         }
         coEvery { places.getAllSnapshot() } returns existing
         val t = tools()
         t.locationProvider = { 55.75 to 37.61 }
-        val out = JSONObject(t.execute(AgentToolCall("1", "create_place", """{"name":"Новое"}""")))
-        assertEquals("достигнут предел в 50 мест", out.getString("error"))
+        val out = JSONObject(t.execute(AgentToolCall("1", "create_place", """{"name":"Nowe"}""")))
+        assertEquals("osiągnięto limit w 50 miejsc", out.getString("error"))
     }
 
     @Test fun create_place_only_one_coord_errors() = runTest {
         coEvery { places.getAllSnapshot() } returns emptyList()
         val t = tools()
         t.locationProvider = { 55.75 to 37.61 }
-        val out = JSONObject(t.execute(AgentToolCall("1", "create_place", """{"name":"Дом","lat":56.1}""")))
+        val out = JSONObject(t.execute(AgentToolCall("1", "create_place", """{"name":"Dom","lat":56.1}""")))
         assertTrue(out.has("error"))
     }
 
@@ -181,14 +181,14 @@ class AgentToolsPlacesTest {
         val captured = slot<ActionDef>()
         coEvery { dispatcher.dispatch(capture(captured), any()) } returns DispatchResult(true)
         coEvery { places.getAllSnapshot() } returns emptyList()
-        coEvery { weather.geocode("Тьмутаракань") } returns
-            Result.failure(RuntimeException("город не найден"))
+        coEvery { weather.geocode("Tmutarakań") } returns
+            Result.failure(RuntimeException("nie znaleziono miasta"))
         val out = JSONObject(tools().execute(
-            AgentToolCall("1", "navigate_to", """{"destination":"Тьмутаракань"}""")))
+            AgentToolCall("1", "navigate_to", """{"destination":"Tmutarakań"}""")))
         assertTrue(out.getBoolean("ok"))
         assertEquals("search", out.getString("mode"))
         val payload = JSONObject(captured.captured.payload!!)
-        assertEquals("Тьмутаракань", payload.getString("query"))
+        assertEquals("Tmutarakań", payload.getString("query"))
     }
 
     // (c) geocode throws instead of returning a Result -> not propagated, falls back to search.
@@ -198,11 +198,11 @@ class AgentToolsPlacesTest {
         coEvery { places.getAllSnapshot() } returns emptyList()
         coEvery { weather.geocode(any()) } throws RuntimeException("network down")
         val out = JSONObject(tools().execute(
-            AgentToolCall("1", "navigate_to", """{"destination":"Тьмутаракань"}""")))
+            AgentToolCall("1", "navigate_to", """{"destination":"Tmutarakań"}""")))
         assertTrue(out.getBoolean("ok"))
         assertEquals("search", out.getString("mode"))
         val payload = JSONObject(captured.captured.payload!!)
-        assertEquals("Тьмутаракань", payload.getString("query"))
+        assertEquals("Tmutarakań", payload.getString("query"))
     }
 
     // (d) regression: a saved Place still routes by its own lat/lon; geocode is never called.
@@ -210,13 +210,13 @@ class AgentToolsPlacesTest {
         val captured = slot<ActionDef>()
         coEvery { dispatcher.dispatch(capture(captured), any()) } returns DispatchResult(true)
         coEvery { places.getAllSnapshot() } returns listOf(
-            PlaceEntity(name = "Дом", lat = 55.75, lon = 37.61, radiusM = 100),
+            PlaceEntity(name = "Dom", lat = 55.75, lon = 37.61, radiusM = 100),
         )
         val out = JSONObject(tools().execute(
-            AgentToolCall("1", "navigate_to", """{"destination":"дом"}""")))
+            AgentToolCall("1", "navigate_to", """{"destination":"dom"}""")))
         assertTrue(out.getBoolean("ok"))
         assertEquals("route", out.getString("mode"))
-        assertEquals("Дом", out.getString("place"))
+        assertEquals("Dom", out.getString("place"))
         val payload = JSONObject(captured.captured.payload!!)
         assertEquals(55.75, payload.getDouble("lat"), 1e-6)
         assertEquals(37.61, payload.getDouble("lon"), 1e-6)

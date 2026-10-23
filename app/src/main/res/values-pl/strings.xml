@@ -706,6 +706,8 @@
     <string name="widget_voltage_value">%1$.1f V</string>
     <!-- Long-press toast -->
     <string name="widget_toast_hidden">Widżet ukryty. Otwórz BYDMate - wróci.</string>
+    <string name="widget_cd_warning">Ostrzeżenie</string>
+    <string name="widget_cd_critical">Stan krytyczny</string>
     <string name="widget_button_no_rules">Brak reguł dla przycisku %1$d</string>
     <!-- Trash zone labels -->
     <string name="widget_trash_release">puść - widżet ukryty</string>
@@ -723,6 +725,8 @@
     <string name="dashboard_unit_kwh">kWh</string>
     <string name="dashboard_range_label">szacowany zasięg</string>
     <!-- Trip 1/2 dashboard counters -->
+    <string name="dashboard_trip1_label" translatable="false">TRIP 1</string>
+    <string name="dashboard_trip2_label" translatable="false">TRIP 2</string>
     <string name="dashboard_trip_since">od %1$s · %2$d dni</string>
     <string name="dashboard_trip_since_all_time">od początku</string>
     <string name="dashboard_trip_count_label">Przejazdów</string>
@@ -740,6 +744,8 @@
     <string name="dashboard_trip_auto_reset_label">Zeruj po ładowaniu</string>
     <string name="dashboard_trip_auto_reset_off">Nie</string>
     <string name="dashboard_trip_auto_reset_any">Każde</string>
+    <string name="dashboard_trip_auto_reset_ac" translatable="false">AC</string>
+    <string name="dashboard_trip_auto_reset_dc" translatable="false">DC</string>
     <string name="dashboard_trip_auto_reset_full">Do 100%</string>
 
     <!-- Battery card -->
@@ -1139,6 +1145,8 @@
     <string name="auto_enum_on">Wł.</string>
     <string name="auto_enum_open_f">Otwarta</string>
     <string name="auto_enum_open_m">Otwarty</string>
+    <string name="auto_enum_open_doors">Otwarte</string>
+    <string name="auto_enum_closed_doors">Zamknięte</string>
     <string name="auto_enum_recirc">Powietrze z wnętrza</string>
     <string name="auto_enum_turn_off">Wyłączony</string>
     <string name="auto_enum_turn_left">Lewy</string>
@@ -1399,13 +1407,41 @@
     <string name="settings_voice_journal_entry_title">Dziennik głosu</string>
     <string name="settings_voice_journal_entry_description">Ostatnie 50 sesji głosowych</string>
     <string name="settings_voice_user_phrases_title">Własne frazy komend</string>
-    <string name="settings_voice_user_phrases_description">Własne słowa dla wbudowanych komend offline</string>
+    <string name="settings_voice_user_phrases_description">Własne frazy dla komend auta i nawigacji</string>
     <string name="settings_voice_user_phrases_button">Otwórz</string>
     <string name="voice_user_phrases_hint">Twoja fraza działa tylko wtedy, gdy zostanie wypowiedziana w całości, i wtedy ma pierwszeństwo przed wbudowaną komendą.</string>
     <string name="voice_user_phrases_add">Dodaj</string>
     <string name="voice_user_phrases_field">Fraza</string>
     <string name="voice_user_phrases_too_long">Maksymalnie %1$d znaków</string>
-    <string name="voice_user_phrases_too_many">Maksymalnie %1$d fraz na komendę</string>
+    <string name="voice_user_phrases_too_many">Maksymalnie %1$d fraz dla jednego celu</string>
+    <string name="voice_alias_add_button">Nowy alias</string>
+    <string name="voice_alias_empty">Brak aliasów</string>
+    <string name="voice_alias_kind_vehicle">Komenda auta</string>
+    <string name="voice_alias_kind_destination">Cel nawigacji</string>
+    <string name="voice_alias_destination_home">Do domu</string>
+    <string name="voice_alias_destination_work">Do pracy</string>
+    <string name="voice_alias_destination_place">Miejsce lub adres</string>
+    <string name="voice_alias_action_field">Komenda</string>
+    <string name="voice_alias_value_field">Wartość (%1$d–%2$d)</string>
+    <string name="voice_alias_value_invalid">Wartość poza zakresem</string>
+    <string name="voice_alias_target_required">Wybierz komendę lub cel</string>
+    <string name="voice_alias_target_unavailable">Ten cel nie jest już dostępny</string>
+    <string name="voice_alias_save_failed">Nie udało się zapisać aliasu</string>
+    <string name="voice_alias_unavailable_badge">Niedostępny</string>
+    <string name="voice_alias_unavailable_note">Ta wersja aplikacji nie potrafi wykonać tego celu, więc alias nie zadziała. Możesz go zmienić lub usunąć.</string>
+    <string name="voice_alias_run_button">Uruchom</string>
+    <string name="voice_alias_run_refused">Teraz nie można uruchomić tego aliasu</string>
+    <string name="voice_alias_edit_button">Edytuj</string>
+    <string name="voice_alias_delete_title">Usunąć alias?</string>
+    <string name="voice_alias_delete_message">Fraza «%1$s» przestanie działać.</string>
+    <string name="voice_alias_delete_confirm">Usuń</string>
+    <string name="voice_alias_shadow_warning">Wbudowana gramatyka już rozumie tę frazę. Twój alias będzie miał pierwszeństwo.</string>
+    <string name="voice_alias_shadow_save">Zapisz mimo to</string>
+    <string name="voice_alias_never_runs_warning">Ta fraza jest zaprzeczeniem, cytatem albo częściowo rozpoznanym poleceniem złożonym. Zabezpieczenia zatrzymają ją, więc wypowiedziany alias nie uruchomi się.</string>
+    <string name="voice_alias_proposal_title">Asystent proponuje alias</string>
+    <string name="voice_alias_proposal_body">Fraza «%1$s» uruchomi: %2$s</string>
+    <string name="voice_alias_proposal_save">Zapisz alias</string>
+    <string name="voice_alias_proposal_dismiss">Odrzuć</string>
     <string name="voice_journal_route_nlu">Komenda</string>
     <string name="voice_journal_route_automation">Automatyzacja</string>
     <string name="voice_journal_route_agent">Agent</string>
@@ -2159,4 +2195,60 @@
     <string name="tech_card_fuel">Paliwo</string>
     <string name="settings_fuel_price_label">Cena litra</string>
     <string name="settings_fuel_price_hint">za litr, dla podróży od tej daty</string>
+    <string name="settings_remote_diagnostics_title">Zdalna diagnostyka na Mac mini</string>
+    <string name="settings_remote_diagnostics_disclosure">Wysyłane są tylko zatwierdzone, typowane stany głosu i połączeń, czas wykonania, przyczyna, status HTTP i klasa wyjątku oraz stałe informacje o urządzeniu i kompilacji. Nie są wysyłane nagrania audio, transkrypcje, dowolne logi, zapisane pliki logów, komunikaty wyjątków, treści odpowiedzi dostawców, tokeny ani lokalizacja.</string>
+    <string name="settings_remote_diagnostics_auto">Wysyłaj diagnostykę automatycznie</string>
+    <string name="settings_remote_diagnostics_import">Importuj konfigurację</string>
+    <string name="settings_remote_diagnostics_send">Wyślij diagnostykę teraz</string>
+    <string name="settings_remote_diagnostics_import_failed">Import konfiguracji nie powiódł się. Wybierz prawidłowy dokument diagnostyki Mac mini.</string>
+    <string name="settings_remote_diagnostics_imported">Konfiguracja zaimportowana. Tymczasowy plik źródłowy usunięty.</string>
+    <string name="settings_remote_diagnostics_imported_source_retained">Konfiguracja zaimportowana. Usuń tymczasowy plik źródłowy ręcznie; dostawca dokumentów nie zezwolił na usunięcie.</string>
+    <string name="settings_remote_diagnostics_queue">W kolejce: %1$d pakietów, %2$d bajtów</string>
+    <string name="settings_remote_diagnostics_configured">Konfiguracja zaimportowana</string>
+    <string name="settings_remote_diagnostics_unconfigured">Wymagana konfiguracja dostępu</string>
+    <string name="settings_remote_diagnostics_never">Brak zarejestrowanej udanej wysyłki</string>
+    <string name="settings_remote_diagnostics_success">Ostatnia udana wysyłka: %1$s</string>
+    <string name="settings_remote_diagnostics_queued">W kolejce</string>
+    <string name="settings_remote_diagnostics_sending">Wysyłanie</string>
+    <string name="settings_remote_diagnostics_retrying">Ponowna próba po połączeniu</string>
+    <string name="settings_remote_diagnostics_blocked">Zablokowano: zaimportuj konfigurację lub zastąp unieważnione dane uwierzytelniające</string>
+    <string name="settings_remote_diagnostics_terminal">Błąd: odpowiedź końcowa; dane pozostają do wygaśnięcia lub osiągnięcia limitu kolejki</string>
+    <string name="settings_remote_diagnostics_expiry">Pakiety są usuwane najpóźniej po siedmiu dniach. Limity kolejki mogą usunąć je wcześniej; historia wygaśnięcia nie jest przechowywana.</string>
+    <string name="settings_remote_diagnostics_logs_show">Pokaż zapisane logi</string>
+    <string name="settings_remote_diagnostics_logs_title">Zapisane logi diagnostyczne</string>
+    <string name="settings_remote_diagnostics_logs_close">Zamknij</string>
+    <string name="settings_remote_diagnostics_logs_empty">Brak zapisanych pakietów. Włącz automatyczną diagnostykę; nowe pakiety pojawią się tutaj po błędzie głosu lub połączenia.</string>
+    <string name="settings_remote_diagnostics_logs_removed">Ten pakiet nie jest już zapisany. Został wysłany, wygasł lub usunął go limit kolejki.</string>
+    <string name="settings_remote_diagnostics_logs_help">Pakiety zostają na tym urządzeniu, dopóki Mac mini ich nie potwierdzi. Gdy jest niedostępny, pakiety czekają w kolejce, a wysyłka jest ponawiana później. Wysyłka wymaga zaimportowanego dostępu. Zbieranie wymaga włączonej automatycznej diagnostyki. Potwierdzone pakiety znikają. Limity: 7 dni, 96 pakietów, 6 MiB.</string>
+    <string name="settings_remote_diagnostics_logs_batch">Wszystkie pakiety</string>
+    <string name="settings_remote_diagnostics_logs_events">Zdarzenia: %1$d</string>
+    <string name="settings_remote_diagnostics_logs_logcat">Wpisy logcat: %1$d</string>
+    <string name="settings_remote_diagnostics_logs_counters">Odrzucone przez zbieranie: %1$d, przez kolejkę: %2$d; błędy zapisu: %3$d</string>
+    <string name="settings_remote_diagnostics_logs_dropped">Odrzucone nierozpoznane linie logu: %1$d</string>
+    <string name="settings_remote_diagnostics_logs_truncated">Skrócone zdarzenia logu: %1$d</string>
+    <string name="nav_capture_title">Przechwytywanie nawigacji (tylko debug)</string>
+    <string name="nav_capture_disclosure">Przechwycenie może zawierać dane trasy i nazwy ulic. Pozostają prywatne w pamięci aplikacji, dopóki nie wybierzesz Zapisz.</string>
+    <string name="nav_capture_app">Aplikacja: %1$s</string>
+    <string name="nav_capture_events">Zdarzenia: %1$d; w kolejce: %2$d; pominięte: %3$d; pozostało: %4$ds</string>
+    <string name="nav_capture_state">Dodaj znacznik stanu do aktywnego przechwytywania.</string>
+    <string name="nav_capture_marker_guiding">Prowadzenie</string>
+    <string name="nav_capture_marker_foreground">Pierwszy plan</string>
+    <string name="nav_capture_marker_background">Tło</string>
+    <string name="nav_capture_marker_turn">Skręt</string>
+    <string name="nav_capture_marker_reroute">Zmiana trasy</string>
+    <string name="nav_capture_marker_arrived">Cel</string>
+    <string name="nav_capture_marker_cancel">Anulowanie</string>
+    <string name="nav_capture_start">Rozpocznij</string>
+    <string name="nav_capture_stop">Zatrzymaj</string>
+    <string name="nav_capture_delete">Usuń</string>
+    <string name="nav_capture_save">Zapisz lokalne przechwycenie</string>
+    <string name="nav_capture_stopped">Zatrzymano: %1$s</string>
+    <string name="nav_capture_reason_time">limit czasu</string>
+    <string name="nav_capture_reason_file">limit pliku</string>
+    <string name="nav_capture_reason_record">zbyt duży rekord</string>
+    <string name="nav_capture_reason_stop">zatrzymane przez użytkownika</string>
+    <string name="nav_capture_reason_delete">usunięte przez użytkownika</string>
+    <string name="settings_nav_capture_title">Przechwytywanie nawigacji (debug)</string>
+    <string name="settings_nav_capture_desc">Prywatne dane z Google Maps lub Waze. Dane trasy i ulic pozostają na tym urządzeniu do chwili zapisu.</string>
+    <string name="settings_nav_capture_open">Otwórz</string>
 </resources>

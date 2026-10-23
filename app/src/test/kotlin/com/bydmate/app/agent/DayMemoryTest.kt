@@ -7,7 +7,7 @@ import org.junit.Test
 import java.util.Calendar
 
 /**
- * Wave 5: the driver comes back to the car an hour later and says "а сколько там до дома было?".
+* Wave 5: the driver returns to the car an hour later and asks about the earlier distance home.
  * The five-minute conversation history is long gone, so today's exchanges have to carry it —
  * and only today's.
  */
@@ -25,45 +25,45 @@ class DayMemoryTest {
 
     @Test fun an_exchange_from_today_reaches_the_prompt() {
         val m = memory()
-        m.record("сколько до дома", "Сто двадцать километров", at(9))
+        m.record("ile do domu", "Sto dwadzieścia kilometrów", at(9))
         val block = m.promptBlock(at(18))
-        assertTrue(block, block.contains("сколько до дома"))
-        assertTrue(block, block.contains("Сто двадцать километров"))
+        assertTrue(block, block.contains("ile do domu"))
+        assertTrue(block, block.contains("Sto dwadzieścia kilometrów"))
     }
 
     @Test fun yesterdays_exchange_is_not_context_for_today() {
         val m = memory()
-        m.record("поехали домой", "Маршрут построен", at(20, dayOffset = -1))
+        m.record("jedźmy do domu", "Trasa wyznaczona", at(20, dayOffset = -1))
         assertEquals("", m.promptBlock(at(9)))
     }
 
     @Test fun only_the_last_few_exchanges_are_kept() {
         val m = memory()
-        repeat(DayMemory.MAX_EXCHANGES + 3) { i -> m.record("вопрос $i", "ответ $i", at(9)) }
+        repeat(DayMemory.MAX_EXCHANGES + 3) { i -> m.record("pytanie $i", "odpowiedź $i", at(9)) }
         assertEquals(DayMemory.MAX_EXCHANGES, m.facts().size)
         val block = m.promptBlock(at(9))
-        assertFalse(block, block.contains("вопрос 0"))
-        assertTrue(block, block.contains("вопрос ${DayMemory.MAX_EXCHANGES + 2}"))
+        assertFalse(block, block.contains("pytanie 0"))
+        assertTrue(block, block.contains("pytanie ${DayMemory.MAX_EXCHANGES + 2}"))
     }
 
     @Test fun the_block_stays_within_its_budget() {
         val m = memory()
-        repeat(DayMemory.MAX_EXCHANGES) { i -> m.record("в".repeat(200) + i, "о".repeat(200) + i, at(9)) }
+        repeat(DayMemory.MAX_EXCHANGES) { i -> m.record("p".repeat(200) + i, "o".repeat(200) + i, at(9)) }
         val block = m.promptBlock(at(9))
         assertTrue("${block.length} chars", block.length <= DayMemory.MAX_BLOCK_CHARS + HEADER_SLACK)
         // The newest exchange is the one worth keeping when the budget forces a choice.
-        assertTrue(block, block.contains("о".repeat(20) ))
+        assertTrue(block, block.contains("o".repeat(20) ))
     }
 
     @Test fun an_empty_answer_is_not_worth_remembering() {
         val m = memory()
-        m.record("привет", "   ", at(9))
+        m.record("cześć", "   ", at(9))
         assertEquals("", m.promptBlock(at(9)))
     }
 
     @Test fun forget_all_clears_the_day() {
         val m = memory()
-        m.record("сколько до дома", "Сто двадцать", at(9))
+        m.record("ile do domu", "Sto dwadzieścia", at(9))
         m.forgetAll()
         assertEquals("", m.promptBlock(at(9)))
     }

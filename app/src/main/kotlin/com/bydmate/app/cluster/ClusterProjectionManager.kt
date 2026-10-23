@@ -467,7 +467,7 @@ object ClusterProjectionManager {
     }
 
     /**
-     * Steering-wheel toggle: flip projection приборка ↔ центр. Reads [currentMode] (success-honest —
+     * Steering-wheel toggle: flip projection zestaw wskaźników ↔ centrum. Reads [currentMode] (success-honest —
      * a failed FULLSCREEN stays OFF, so the next press retries) and drives [setMode] to the other
      * state. Safe from the a11y key thread: setMode hops to [scope] and serializes under [mutex].
      */
@@ -1025,7 +1025,7 @@ object ClusterProjectionManager {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         // #85/#62: no marker = we never powered the compositor up (e.g. projection aborted
         // on a car with no cluster display) - sending the down sequence would be a fresh
-        // ИПЦ write to a cluster we never touched.
+        // IPC write to a cluster we never touched.
         if (!shouldPowerDownCompositor(prefs.getBoolean(KEY_COMPOSITOR_POWERED, false))) return
         val off = runCatching { helper.setClusterContainerMode(false) }.getOrDefault(false)
         if (off) {
@@ -1263,7 +1263,7 @@ object ClusterProjectionManager {
                 "enable_freeform_support",
                 freeformFlagValue(directTransport, splitPreferences.isFeatureEnabled()))
         }
-        // #85/#62: resolve the display BEFORE any compositor ИПЦ write. Song family /
+        // #85/#62: resolve the display BEFORE any compositor IPC write. Song family /
         // DiLink 3-4 expose no projection display; powering the compositor up there painted
         // a black rectangle on the cluster that survived until reboot. Local read-only
         // DisplayManager query - hoisting it does not reorder any daemon call on cars

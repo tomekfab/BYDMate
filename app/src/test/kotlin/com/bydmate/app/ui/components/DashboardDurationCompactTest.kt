@@ -3,7 +3,7 @@ package com.bydmate.app.ui.components
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-/** The fallback a Главная trip row shows when the worded duration does not fit on one line. */
+/** The fallback a Dashboard trip row shows when the worded duration does not fit on one line. */
 class DashboardDurationCompactTest {
 
     private val start = 1_700_000_000_000L

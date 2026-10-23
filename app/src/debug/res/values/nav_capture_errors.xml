@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_capture_error_delete">Nie udało się usunąć przechwycenia. Dane mogą nadal znajdować się w pamięci aplikacji. Spróbuj usunąć je ponownie.</string>
+    <string name="nav_capture_error_reset">Nie udało się wyczyścić poprzedniego przechwycenia. Nagrywanie nie zostało rozpoczęte. Usuń przechwycenie i spróbuj ponownie.</string>
+    <string name="nav_capture_error_export">Nie udało się zapisać przechwycenia. Plik docelowy może być niepełny. Wybierz plik i spróbuj ponownie.</string>
+    <string name="nav_capture_error_write">Błąd zapisu. Nagrywanie zostało zatrzymane. Usuń niepełne przechwycenie i rozpocznij nowe.</string>
+</resources>

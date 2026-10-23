@@ -8,6 +8,7 @@ import com.bydmate.app.data.automation.DispatchResult
 import com.bydmate.app.data.local.dao.ChargeDao
 import com.bydmate.app.data.local.dao.RuleDao
 import com.bydmate.app.data.local.dao.TripDao
+import com.bydmate.app.data.local.entity.ActionDef
 import com.bydmate.app.data.local.entity.PlaceEntity
 import com.bydmate.app.data.remote.InsightsManager
 import com.bydmate.app.data.remote.OpenRouterClient
@@ -19,6 +20,7 @@ import com.bydmate.app.voice.VoiceGate
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.test.runTest
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
@@ -61,12 +63,12 @@ class AgentToolsHomeWorkTest {
 
     private fun call(name: String, args: String) = AgentToolCall("1", name, args)
 
-    @Test fun `домой prefers BYDMate place over navigator shortcut`() = runTest {
+@Test fun `home prefers BYDMate place over navigator shortcut`() = runTest {
         coEvery { places.getAllSnapshot() } returns listOf(
-            PlaceEntity(name = "Дом", lat = 55.7, lon = 37.6, radiusM = 100))
+            PlaceEntity(name = "Dom", lat = 55.7, lon = 37.6, radiusM = 100))
         coEvery { dispatcher.dispatch(any(), any()) } returns DispatchResult(true)
 
-        val out = JSONObject(tools.execute(call("navigate_to", """{"destination":"домой"}""")))
+        val out = JSONObject(tools.execute(call("navigate_to", """{"destination":"dom"}""")))
 
         assertTrue(out.getBoolean("ok"))
         assertEquals("route", out.getString("mode"))
@@ -75,11 +77,11 @@ class AgentToolsHomeWorkTest {
         }, null) }
     }
 
-    @Test fun `домой falls back to navigator home shortcut when no place`() = runTest {
+@Test fun `home falls back to navigator home shortcut when no place`() = runTest {
         coEvery { places.getAllSnapshot() } returns emptyList()
         coEvery { dispatcher.dispatch(any(), any()) } returns DispatchResult(true)
 
-        val out = JSONObject(tools.execute(call("navigate_to", """{"destination":"Дом"}""")))
+        val out = JSONObject(tools.execute(call("navigate_to", """{"destination":"Dom"}""")))
 
         assertTrue(out.getBoolean("ok"))
         assertEquals("route", out.getString("mode"))
@@ -88,36 +90,70 @@ class AgentToolsHomeWorkTest {
         }, null) }
     }
 
-    @Test fun `на работу uses work shortcut`() = runTest {
+    @Test fun `Polish home aliases use the navigator shortcut when no place is saved`() = runTest {
         coEvery { places.getAllSnapshot() } returns emptyList()
         coEvery { dispatcher.dispatch(any(), any()) } returns DispatchResult(true)
 
-        tools.execute(call("navigate_to", """{"destination":"на работу"}"""))
+        for (destination in listOf("Dom", "do domu", "mój dom")) {
+            val out = JSONObject(tools.execute(call("navigate_to", """{"destination":"$destination"}""")))
+
+            assertTrue(destination, out.getBoolean("ok"))
+            assertEquals(destination, "route", out.getString("mode"))
+            assertEquals(destination, "Dom", out.getString("target"))
+        }
+        coVerify(exactly = 3) { dispatcher.dispatch(match {
+            it.kind == "navigate" && JSONObject(it.payload!!).getString("shortcut") == "home"
+        }, null) }
+    }
+
+    @Test fun `Polish home request resolves a historical saved home by coordinates`() = runTest {
+        coEvery { places.getAllSnapshot() } returns listOf(
+            PlaceEntity(name = "Дом", lat = 52.2297, lon = 21.0122, radiusM = 100),
+        )
+        val captured = slot<ActionDef>()
+        coEvery { dispatcher.dispatch(capture(captured), any()) } returns DispatchResult(true)
+
+        val out = JSONObject(tools.execute(call("navigate_to", """{"destination":"Dom"}""")))
+
+        assertTrue(out.getBoolean("ok"))
+        assertEquals("route", out.getString("mode"))
+        assertEquals("Дом", out.getString("place"))
+        val payload = JSONObject(captured.captured.payload!!)
+        assertEquals(52.2297, payload.getDouble("lat"), 0.0001)
+        assertEquals(21.0122, payload.getDouble("lon"), 0.0001)
+        assertTrue(!payload.has("shortcut"))
+    }
+
+@Test fun `work uses work shortcut`() = runTest {
+        coEvery { places.getAllSnapshot() } returns emptyList()
+        coEvery { dispatcher.dispatch(any(), any()) } returns DispatchResult(true)
+
+        tools.execute(call("navigate_to", """{"destination":"do pracy"}"""))
 
         coVerify { dispatcher.dispatch(match {
             JSONObject(it.payload!!).getString("shortcut") == "work"
         }, null) }
     }
 
-    @Test fun `домой with nothing anywhere returns actionable error`() = runTest {
+@Test fun `home with nothing anywhere returns actionable error`() = runTest {
         coEvery { places.getAllSnapshot() } returns emptyList()
         coEvery { dispatcher.dispatch(any(), any()) } returns
-            DispatchResult(false, "Нет приложения для обработки")
+            DispatchResult(false, "Brak aplikacji do obsługi")
 
-        val out = JSONObject(tools.execute(call("navigate_to", """{"destination":"домой"}""")))
+        val out = JSONObject(tools.execute(call("navigate_to", """{"destination":"dom"}""")))
 
-        // dispatcher failure reason is now preferred over the hardcoded "адрес не найден" message
+// The dispatcher failure reason is preferred over the hardcoded address-not-found message.
         assertTrue(out.has("error"))
-        assertTrue(out.getString("error").contains("Нет приложения для обработки"))
+        assertTrue(out.getString("error").contains("Brak aplikacji do obsługi"))
     }
 
     @Test fun `ordinary destination does not trigger home logic`() = runTest {
         coEvery { places.getAllSnapshot() } returns emptyList()
-        coEvery { weather.geocode("Тверь") } returns Result.success(
-            WeatherClient.GeoPoint(lat = 56.86, lon = 35.9, name = "Тверь"))
+        coEvery { weather.geocode("Twer") } returns Result.success(
+            WeatherClient.GeoPoint(lat = 56.86, lon = 35.9, name = "Twer"))
         coEvery { dispatcher.dispatch(any(), any()) } returns DispatchResult(true)
 
-        tools.execute(call("navigate_to", """{"destination":"Тверь"}"""))
+        tools.execute(call("navigate_to", """{"destination":"Twer"}"""))
 
         coVerify { dispatcher.dispatch(match {
             val p = JSONObject(it.payload!!)

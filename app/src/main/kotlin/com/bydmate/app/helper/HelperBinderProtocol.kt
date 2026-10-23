@@ -455,7 +455,7 @@ object HelperBinderProtocol {
      * An arm also lets the daemon deliver the reports still pending from earlier power-offs.
      *
      * Request: [String id, String token, long chatId, String text with `{{time}}`,
-     *   String lateMark with `{{time}}` (the «(записано в HH:MM)» line of a pending delivery)]
+     *   String lateMark with `{{time}}` (the «(zapisano w HH:MM)» line of a pending delivery)]
      * Reply:   [int status (0 = armed, -1 = refused / failed)]
      * An old daemon without this handler makes transact return false → the client returns false,
      * and the app, finding the daemon alive, logs it as outdated.

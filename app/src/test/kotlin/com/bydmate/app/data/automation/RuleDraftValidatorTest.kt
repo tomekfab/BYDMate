@@ -23,7 +23,7 @@ class RuleDraftValidatorTest {
     @Test fun telegram_report_with_only_own_text_is_valid() {
         assertNull(RuleDraftValidator.validateActions(listOf(
             ActionDef(command = "telegram_report", displayName = "x", kind = "telegram_report",
-                payload = """{"fields":[],"text":"Я выехал"}"""))))
+                payload = """{"fields":[],"text":"Wyjechałem"}"""))))
     }
 
     @Test fun empty_actions_list_is_valid() {
@@ -202,7 +202,7 @@ class RuleDraftValidatorTest {
     @Test fun speak_action_with_text_is_valid() {
         assertNull(RuleDraftValidator.validateActions(listOf(
             ActionDef(command = "", displayName = "x", kind = "speak",
-                payload = """{"text":"Добро пожаловать"}"""))))
+                payload = """{"text":"Witamy"}"""))))
     }
 
     @Test fun agent_query_action_blank_prompt_is_invalid() {
@@ -215,7 +215,7 @@ class RuleDraftValidatorTest {
     @Test fun agent_query_action_with_prompt_is_valid() {
         assertNull(RuleDraftValidator.validateActions(listOf(
             ActionDef(command = "", displayName = "x", kind = "agent_query",
-                payload = """{"prompt":"Какой заряд?"}"""))))
+                payload = """{"prompt":"Jaki jest poziom naładowania?"}"""))))
     }
 
     @Test fun second_action_failing_reports_index_2() {
@@ -247,33 +247,33 @@ class RuleDraftValidatorTest {
 
     @Test fun phrase_the_builtin_parser_understands_is_valid() {
         // Automations resolve before built-in commands, so the rule takes the phrase over.
-        val triggers = listOf(TriggerDef(param = "Voice", chineseName = "语音", operator = "==", value = "открой окна", displayName = "x", kind = "voice"))
+        val triggers = listOf(TriggerDef(param = "Voice", chineseName = "语音", operator = "==", value = "otwórz okna", displayName = "x", kind = "voice"))
         assertNull(RuleDraftValidator.validateTriggers(triggers, -1L, emptyList()))
     }
 
     @Test fun user_phrase_of_a_builtin_command_is_invalid_and_names_the_command() {
-        val triggers = listOf(TriggerDef(param = "Voice", chineseName = "语音", operator = "==", value = "Проветрить!", displayName = "x", kind = "voice"))
-        val userPhrases = mapOf(com.bydmate.app.voice.VoicePhrase.normalize("проветрить") to "все окна на проветривание")
+        val triggers = listOf(TriggerDef(param = "Voice", chineseName = "语音", operator = "==", value = "Przewietrz!", displayName = "x", kind = "voice"))
+        val userPhrases = mapOf(com.bydmate.app.voice.VoicePhrase.normalize("przewietrz") to "wszystkie okna do wietrzenia")
         assertEquals(
-            TriggerValidationError.VoicePhraseBuiltin("все окна на проветривание"),
+            TriggerValidationError.VoicePhraseBuiltin("wszystkie okna do wietrzenia"),
             RuleDraftValidator.validateTriggers(triggers, -1L, emptyList(), userPhrases),
         )
     }
 
     @Test fun voice_phrase_taken_by_other_rule_is_invalid_and_names_the_rule() {
-        val triggers = listOf(TriggerDef(param = "Voice", chineseName = "语音", operator = "==", value = "навигатор", displayName = "x", kind = "voice"))
-        val existing = listOf(ruleWithVoice(id = 2, phrase = "навигатор"))
+        val triggers = listOf(TriggerDef(param = "Voice", chineseName = "语音", operator = "==", value = "nawigacja", displayName = "x", kind = "voice"))
+        val existing = listOf(ruleWithVoice(id = 2, phrase = "nawigacja"))
         assertEquals(TriggerValidationError.VoicePhraseTaken("r2"), RuleDraftValidator.validateTriggers(triggers, -1L, existing))
     }
 
     @Test fun voice_phrase_taken_by_the_rule_being_edited_is_not_a_collision() {
-        val triggers = listOf(TriggerDef(param = "Voice", chineseName = "语音", operator = "==", value = "навигатор", displayName = "x", kind = "voice"))
-        val existing = listOf(ruleWithVoice(id = 7, phrase = "навигатор"))
+        val triggers = listOf(TriggerDef(param = "Voice", chineseName = "语音", operator = "==", value = "nawigacja", displayName = "x", kind = "voice"))
+        val existing = listOf(ruleWithVoice(id = 7, phrase = "nawigacja"))
         assertNull(RuleDraftValidator.validateTriggers(triggers, editingId = 7L, existingRules = existing))
     }
 
     @Test fun fresh_unique_voice_phrase_is_valid() {
-        val triggers = listOf(TriggerDef(param = "Voice", chineseName = "语音", operator = "==", value = "поехали", displayName = "x", kind = "voice"))
+        val triggers = listOf(TriggerDef(param = "Voice", chineseName = "语音", operator = "==", value = "jedziemy", displayName = "x", kind = "voice"))
         assertNull(RuleDraftValidator.validateTriggers(triggers, -1L, emptyList()))
     }
 }

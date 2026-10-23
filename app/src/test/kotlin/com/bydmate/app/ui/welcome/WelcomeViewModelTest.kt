@@ -135,6 +135,15 @@ class WelcomeViewModelTest {
     }
 
     @Test
+    fun `initial missing language resolves to Polish`() {
+        ctx.getSharedPreferences(LocalePreferences.FILE, Context.MODE_PRIVATE).edit()
+            .remove(LocalePreferences.KEY_LANG)
+            .commit()
+
+        assertEquals("pl", viewModel().uiState.value.language)
+    }
+
+    @Test
     fun `setLanguage persists app_language and updates state`() {
         val vm = viewModel()
         vm.setLanguage("pl")

@@ -31,7 +31,7 @@ data class SeatCommand(val group: SeatGroup, val level: Int)
  * dev=1023 SETTING_PRESELECTED_DRIVING_MODE_SET carve-out, not the banned dev=1006 energy
  * fid (accepted and ignored on Leopard 3). VehicleApiImpl routes them through
  * DriveModeChannel (support flag, flotation refusal, target readback); the >15 km/h gate
- * for terrain modes lives in ActionDispatcher. The starter rule «Эко при низком заряде»
+ * for terrain modes lives in ActionDispatcher. The starter rule "Eco at low charge"
  * ships again with ECO模式 (#253).
  *
  * Values for competitor-sourced entries verified against competitor-actions.json
@@ -39,6 +39,13 @@ data class SeatCommand(val group: SeatGroup, val level: Int)
  */
 object CommandTranslator {
     data class Resolved(val actionName: String, val value: Int)
+
+    /**
+     * Commands reachable only from the local Polish dictionary. They are never in
+     * AgentCommandCatalog, VoiceCatalog, ActionRegistry or saved phrases, and the agent's
+     * raw-string path refuses them.
+     */
+    val LOCAL_VOICE_ONLY: Set<String> = setOf("主驾座椅按摩打开", "主驾座椅按摩关闭")
 
     private val table: Map<String, Resolved> = mapOf(
         // ── Windows (full open / full close) ── dedicated open/close fids ─────
@@ -139,7 +146,7 @@ object CommandTranslator {
         "氛围灯打开" to Resolved("ambient_light_on",   5),
         "氛围灯关闭" to Resolved("ambient_light_off",  1),  // raw +1 shift: 1 = off (lvl0)
 
-        // ── DRL (ДХО) ── LIVE_VALIDATED (dev=1004 carve-out) ──────────────────
+        // ── DRL (daytime running lights) ── LIVE_VALIDATED (dev=1004 carve-out) ──
         "打开日行灯" to Resolved("drl_on",  1),
         "关闭日行灯" to Resolved("drl_off", 2),
 
@@ -180,6 +187,11 @@ object CommandTranslator {
         "山地模式" to Resolved("drive_mode_mountain", 7),
         "岩石模式" to Resolved("drive_mode_rock",     8),
         "智能模式" to Resolved("drive_mode_smart",    21),
+
+        // ── Seat massage ── driver mode fid, dev=1023 carve-out, local voice only ──
+        // 2 = pulse, 1 = off (SET_MAIN_DRIVER_SEAT_MASSAGE_WORKING_MODE_SET); unvalidated on a car.
+        "主驾座椅按摩打开" to Resolved("driver_massage_pulse", 2),
+        "主驾座椅按摩关闭" to Resolved("driver_massage_off",   1),
     )
 
     /** Fridge temperature presets fan out to [fridge_mode, fridge_temp_*]. Cooling raw

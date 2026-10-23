@@ -28,9 +28,9 @@ class LlmAgentBackendPrefixTest {
         LlmConnection(id, id, "https://$id/v1", "key-$id", "model-$id", extraJson)
 
     private val messages = listOf(
-        AgentMessage.System("СТАТИКА"),
-        AgentMessage.System("динамика"),
-        AgentMessage.User("какой заряд"),
+        AgentMessage.System("STATYCZNE"),
+        AgentMessage.System("dynamiczne"),
+        AgentMessage.User("jaki jest poziom naładowania"),
     )
 
     private suspend fun wireFor(id: String): JSONArray {
@@ -38,7 +38,7 @@ class LlmAgentBackendPrefixTest {
         coEvery { resolver.fallback() } returns null
         val captured = slot<JSONArray>()
         coEvery { client.chatRaw(any(), any(), any(), capture(captured), any(), any()) } returns
-            Result.success(JSONObject("""{"content":"ок"}"""))
+            Result.success(JSONObject("""{"content":"ok"}"""))
         backend.chat(messages, null)
         return captured.captured
     }
@@ -46,10 +46,10 @@ class LlmAgentBackendPrefixTest {
     @Test fun openrouter_marks_only_the_static_system_block() = runTest {
         val wire = wireFor(LlmConnectionResolver.ID_OPENROUTER)
         val static = wire.getJSONObject(0).getJSONArray("content").getJSONObject(0)
-        assertEquals("СТАТИКА", static.getString("text"))
+        assertEquals("STATYCZNE", static.getString("text"))
         assertEquals("ephemeral", static.getJSONObject("cache_control").getString("type"))
         // The moving block sits after the breakpoint and stays a plain string.
-        assertEquals("динамика", wire.getJSONObject(1).getString("content"))
+        assertEquals("dynamiczne", wire.getJSONObject(1).getString("content"))
     }
 
     // A 400 can come from the cache breakpoint itself, not only from the provider extras:
@@ -60,13 +60,13 @@ class LlmAgentBackendPrefixTest {
         val bodies = mutableListOf<JSONArray>()
         coEvery { client.chatRaw(any(), any(), any(), capture(bodies), any(), any()) } returnsMany listOf(
             Result.failure(LlmHttpException(400)),
-            Result.success(JSONObject("""{"content":"ок"}""")),
+            Result.success(JSONObject("""{"content":"ok"}""")),
         )
         assertTrue(backend.chat(messages, null).isSuccess)
         assertEquals(2, bodies.size)
         // First attempt carries the breakpoint, the retry sends the same system block plain.
         assertTrue(bodies[0].getJSONObject(0).get("content") is JSONArray)
-        assertEquals("СТАТИКА", bodies[1].getJSONObject(0).getString("content"))
+        assertEquals("STATYCZNE", bodies[1].getJSONObject(0).getString("content"))
     }
 
     // On Gemini the breakpoint makes OpenRouter write the cache inside the request (+1.3 s to the
@@ -78,14 +78,14 @@ class LlmAgentBackendPrefixTest {
         coEvery { resolver.fallback() } returns null
         val captured = slot<JSONArray>()
         coEvery { client.chatRaw(any(), any(), any(), capture(captured), any(), any()) } returns
-            Result.success(JSONObject("""{"content":"ок"}"""))
+            Result.success(JSONObject("""{"content":"ok"}"""))
         backend.chat(messages, null)
-        assertEquals("СТАТИКА", captured.captured.getJSONObject(0).getString("content"))
+        assertEquals("STATYCZNE", captured.captured.getJSONObject(0).getString("content"))
     }
 
     @Test fun other_endpoints_get_plain_string_content() = runTest {
         val wire = wireFor(LlmConnectionResolver.ID_CUSTOM)
-        assertEquals("СТАТИКА", wire.getJSONObject(0).getString("content"))
+        assertEquals("STATYCZNE", wire.getJSONObject(0).getString("content"))
     }
 
     @Test fun openrouter_sorts_providers_by_latency() {

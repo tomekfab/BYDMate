@@ -120,7 +120,7 @@ class TechPanelViewModelTest {
     // --- null mapping -------------------------------------------------------
 
     /** A firmware that answers nothing leaves every card hidden, which is what drives the
-     *  «Машина не отдаёт эти данные» placeholder. */
+*  car-does-not-report-this-data placeholder. */
     @Test
     fun `without any live value every card is hidden`() = runTest {
         val vm = buildViewModel()
@@ -510,7 +510,7 @@ class TechPanelViewModelTest {
         assertEquals(72.9, vm.uiState.value.nominalCapacityKwh, 1e-9)
     }
 
-    /** The row moved into «Батарея · история», so a car whose only number is the logged sum
+/** The row moved into Battery · history, so a car whose only number is the logged sum
      *  must still open that card — otherwise the cycles would disappear with it. */
     @Test
     fun `logged charges alone open the history card`() = runTest {

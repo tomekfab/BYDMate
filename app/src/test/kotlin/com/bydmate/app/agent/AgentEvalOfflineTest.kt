@@ -110,7 +110,7 @@ class AgentEvalOfflineTest {
             val backend = FakeBackend(listOf(
                 Result.success(AgentReply(null, listOf(
                     AgentToolCall("c1", case.tool!!, """{"command":"${case.args.firstOrNull() ?: ""}"}""")))),
-                Result.success(AgentReply("Готово", emptyList())),
+                Result.success(AgentReply("Gotowe", emptyList())),
             ))
             val result = AgentOrchestrator(backend, tools, repo).ask(case.utterance)
             assertTrue(case.utterance, result is AgentResult.Answer)
@@ -124,9 +124,9 @@ class AgentEvalOfflineTest {
         val tools = mockk<AgentTools>()
         coEvery { tools.schemas() } returns JSONArray()
         for (case in AgentEvalCases.NO_ACT) {
-            val backend = FakeBackend(listOf(Result.success(AgentReply("Понял", emptyList()))))
+            val backend = FakeBackend(listOf(Result.success(AgentReply("Rozumiem", emptyList()))))
             val result = AgentOrchestrator(backend, tools, repo).ask(case.utterance)
-            assertEquals(case.utterance, "Понял", (result as AgentResult.Answer).text)
+            assertEquals(case.utterance, "Rozumiem", (result as AgentResult.Answer).text)
         }
         // tools.execute is not stubbed at all: any call would fail the test with a mockk error.
     }

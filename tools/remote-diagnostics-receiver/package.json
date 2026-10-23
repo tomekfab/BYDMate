@@ -1,0 +1,7 @@
+{
+  "name": "bydmate-remote-diagnostics-receiver",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": { "test": "node --test test/receiver.test.mjs", "start": "node src/server.mjs", "provision": "node src/provision-install.mjs" }
+}

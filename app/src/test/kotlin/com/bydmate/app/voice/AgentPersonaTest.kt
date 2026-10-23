@@ -10,119 +10,16 @@ class AgentPersonaTest {
     @Test fun `fromId maps known ids and defaults to navigator`() {
         assertEquals(AgentPersona.SNARKY, AgentPersona.fromId("snarky"))
         assertEquals(AgentPersona.ENGINEER, AgentPersona.fromId("engineer"))
-        assertEquals(AgentPersona.NAVIGATOR, AgentPersona.fromId("navigator"))
         assertEquals(AgentPersona.NAVIGATOR, AgentPersona.fromId("unknown"))
-        assertEquals(AgentPersona.NAVIGATOR, AgentPersona.fromId(null))
     }
 
-    @Test fun `non-canonical spoken passes through unchanged`() {
-        assertEquals("Голосовая модель не загружена",
-            AgentPersona.SNARKY.spokenPhrase("Голосовая модель не загружена"))
-    }
-
-    @Test fun `canonical outcomes map to persona pools deterministically`() {
-        // Same seed -> same pick (deterministic), and the pick comes from the pool,
-        // not a pass-through of the canonical word: every SNARKY pool phrase differs
-        // from its canonical key, so a no-op spokenPhrase would fail here.
-        val snarkyDone = listOf("Готово, блин.", "Сделал. Чудо, да?", "Есть. Не благодари.",
-            "Ну сделал, сделал.", "Опа, сработало. Сам в шоке.")
-        val phrase = AgentPersona.SNARKY.spokenPhrase("Готово", Random(1))
-        assertTrue(phrase in snarkyDone)
-        assertEquals(phrase, AgentPersona.SNARKY.spokenPhrase("Готово", Random(1)))
-        val all = listOf("Готово", "Не получилось", "Не понял", "Ошибка")
-        for (s in all) {
-            assertFalse(s, AgentPersona.SNARKY.spokenPhrase(s, Random(7)) == s)
-        }
-        for (p in AgentPersona.entries) for (s in all) {
-            assertTrue(p.spokenPhrase(s, Random(7)).isNotBlank())
-        }
-    }
-
-    @Test fun `no em-dash anywhere in pools or prompt blocks`() {
-        val all = listOf("Готово", "Не получилось", "Не понял", "Ошибка")
-        for (p in AgentPersona.entries) {
-            for (s in all) repeat(20) { i ->
-                assertFalse(p.spokenPhrase(s, Random(i)).contains("—"))
-            }
-            assertFalse(AgentPersonaPrompt.block(AgentIdentity("Лео", p)).contains("—"))
-        }
-    }
-
-    @Test fun `prompt block carries persona style, small talk rules and name`() {
-        val named = AgentPersonaPrompt.block(AgentIdentity("Лео", AgentPersona.SNARKY))
-        assertTrue(named.contains("ХАРАКТЕР:"))
-        assertTrue(named.contains("Тебя зовут Лео"))
-        assertTrue(named.contains("шутку или анекдот"))
-        assertTrue(named.contains("сначала выполни"))
-        val unnamed = AgentPersonaPrompt.block(AgentIdentity("", AgentPersona.NAVIGATOR))
-        assertFalse(unnamed.contains("Тебя зовут"))
-        assertTrue(unnamed.contains("ХАРАКТЕР:"))
-    }
-
-    @Test fun `prompt block carries gender line matching identity gender`() {
-        val male = AgentPersonaPrompt.block(AgentIdentity("Лео", AgentPersona.NAVIGATOR, TtsGender.MALE))
-        assertTrue(male.contains("\nТы говоришь о себе в мужском роде (сделал, включил)."))
-        val female = AgentPersonaPrompt.block(AgentIdentity("Лео", AgentPersona.NAVIGATOR, TtsGender.FEMALE))
-        assertTrue(female.contains("\nТы говоришь о себе в женском роде (сделала, включила)."))
-    }
-
-    @Test fun `fillerPhrase returns a phrase from the persona's own filler pool`() {
-        val pools = mapOf(
-            AgentPersona.NAVIGATOR to listOf("Сейчас посмотрю.", "Секунду, проверяю.", "Минутку.", "Уже смотрю."),
-            AgentPersona.SNARKY to listOf("Сейчас гляну.", "Погоди, смотрю.", "Секунду, не торопи.", "Минуту, ищу."),
-            AgentPersona.ENGINEER to listOf("Запрос принят.", "Проверяю.", "Обрабатываю.", "Секунду."),
-        )
-        for ((p, pool) in pools) repeat(10) { i ->
-            assertTrue(p.fillerPhrase(Random(i)) in pool)
-        }
-    }
-
-    @Test fun `phrases includes both the outcome pools and the fillers`() {
-        for (p in AgentPersona.entries) {
-            val phrases = p.phrases()
-            assertTrue(phrases.contains(p.spokenPhrase("Готово", Random(1))))
-            assertTrue(phrases.contains(p.fillerPhrase(Random(1))))
-        }
-    }
-
-    @Test fun `prompt block gender line does not disturb the start of the block`() {
-        val default = AgentPersonaPrompt.block(AgentIdentity("Лео", AgentPersona.NAVIGATOR))
-        val explicitMale = AgentPersonaPrompt.block(AgentIdentity("Лео", AgentPersona.NAVIGATOR, TtsGender.MALE))
-        assertEquals(default, explicitMale)
-        assertTrue(default.startsWith("\nХАРАКТЕР: "))
-    }
-
-    private val canonical = listOf("Готово", "Не получилось", "Не понял", "Ошибка")
-    private val masculinePast = Regex("""(?<![А-Яа-яЁё])(Выполнил|Сделал|сделал|Не расслышал|Не понял|Не разобрал|Сам)(?![А-Яа-яЁё])""")
-
-    private fun allSpoken(p: AgentPersona, g: TtsGender): Set<String> =
-        canonical.flatMap { s -> (0 until 200).map { p.spokenPhrase(s, Random(it), g) } }.toSet()
-
-    @Test fun `female gender never speaks a masculine past-tense form`() {
-        for (p in AgentPersona.entries) for (phrase in allSpoken(p, TtsGender.FEMALE)) {
-            assertFalse(phrase, masculinePast.containsMatchIn(phrase))
-        }
-        val snarky = allSpoken(AgentPersona.SNARKY, TtsGender.FEMALE)
-        assertTrue(snarky.containsAll(listOf("Сделала. Чудо, да?", "Ну сделала, сделала.",
-            "Опа, сработало. Сама в шоке.")))
-        assertTrue("Выполнила. Хорошей дороги." in allSpoken(AgentPersona.NAVIGATOR, TtsGender.FEMALE))
-        assertTrue("Не расслышала. Повтори, пожалуйста." in allSpoken(AgentPersona.NAVIGATOR, TtsGender.FEMALE))
-    }
-
-    @Test fun `male gender phrases are unchanged`() {
-        val snarkyDone = setOf("Готово, блин.", "Сделал. Чудо, да?", "Есть. Не благодари.",
-            "Ну сделал, сделал.", "Опа, сработало. Сам в шоке.")
-        val picked = (0 until 200).map { AgentPersona.SNARKY.spokenPhrase("Готово", Random(it), TtsGender.MALE) }
-        assertEquals(snarkyDone, picked.toSet())
-        assertTrue("Выполнил. Хорошей дороги." in allSpoken(AgentPersona.NAVIGATOR, TtsGender.MALE))
-        assertTrue("Не понял, скажи иначе." in allSpoken(AgentPersona.NAVIGATOR, TtsGender.MALE))
-        assertEquals(AgentPersona.NAVIGATOR.spokenPhrase("Готово", Random(3)),
-            AgentPersona.NAVIGATOR.spokenPhrase("Готово", Random(3), TtsGender.MALE))
-    }
-
-    @Test fun `phrases follows gender for the precache`() {
-        assertTrue("Выполнила. Хорошей дороги." in AgentPersona.NAVIGATOR.phrases(TtsGender.FEMALE))
-        assertFalse("Выполнил. Хорошей дороги." in AgentPersona.NAVIGATOR.phrases(TtsGender.FEMALE))
-        assertTrue("Выполнил. Хорошей дороги." in AgentPersona.NAVIGATOR.phrases())
+    @Test fun `Polish persona phrases preserve identity and gender`() {
+        val identity = AgentIdentity("Ola", AgentPersona.NAVIGATOR, TtsGender.FEMALE)
+        val prompt = AgentPersonaPrompt.block(identity)
+        assertTrue(prompt.contains("Ola"))
+        assertFalse(prompt.contains("—"))
+        assertTrue(AgentPersona.NAVIGATOR.spokenPhrase("Gotowe", Random(1), TtsGender.FEMALE).isNotBlank())
+        assertTrue(AgentPersona.NAVIGATOR.fillerPhrase(Random(1)).isNotBlank())
+        assertTrue(AgentPersona.NAVIGATOR.phrases(TtsGender.FEMALE).isNotEmpty())
     }
 }

@@ -396,6 +396,46 @@ class WriteAllowlistTest {
         assertEquals(setOf(1324617774 to 1, 1324617774 to 2), values)
     }
 
+    // ── Driver seat massage: dev 1023 carve-out for the mode fid, values 1 and 2 only ──
+    @Test fun `seat massage mode fid is the only massage carve-out`() {
+        assertFalse(WriteAllowlist.isBanned(1023, 1276190752))
+        assertTrue(WriteAllowlist.isBanned(1023, 1276190736))
+        assertTrue(WriteAllowlist.isBanned(1023, 1276190739))
+        assertTrue(WriteAllowlist.isBanned(1023, 1276190756))
+    }
+
+    @Test fun `driver massage entries are dev 1023, unvalidated, 1 off and 2 pulse`() {
+        val al = WriteAllowlist.loadProduction { "{}" }
+        for ((name, value) in listOf("driver_massage_off" to 1, "driver_massage_pulse" to 2)) {
+            val e = al.find(name) ?: error("missing $name")
+            assertEquals(1023, e.dev)
+            assertEquals(1276190752, e.writeFid)
+            assertNull("$name has no read fid", e.readbackFid)
+            assertFalse("$name must be unvalidated", e.validated)
+            assertEquals("seats", e.category)
+            assertEquals(value, e.valueMin); assertEquals(value, e.valueMax)
+        }
+    }
+
+    @Test fun `no other massage action opens up, whatever the source`() {
+        val names = productionWithAsset().allEntries()
+            .filter { it.actionName.contains("massage") }.map { it.actionName }.toSet()
+        assertEquals(setOf("driver_massage_off", "driver_massage_pulse"), names)
+
+        val fixture = """
+            {
+              "massage_any":   { "featureId": 1276190752, "deviceType": 1023 },
+              "massage_three": { "featureId": 1276190752, "deviceType": 1023, "value": 3 },
+              "massage_lvl":   { "featureId": 1276190736, "deviceType": 1023, "value": 1 },
+              "massage_pass":  { "featureId": 1276190756, "deviceType": 1023, "value": 2 }
+            }
+        """.trimIndent()
+        val al = WriteAllowlist.loadProduction { fixture }
+        for (n in listOf("massage_any", "massage_three", "massage_lvl", "massage_pass")) assertNull(n, al.find(n))
+        val values = al.allEntries().filter { it.dev == 1023 && it.writeFid == 1276190752 }.map { it.valueMin }.toSet()
+        assertEquals(setOf(1, 2), values)
+    }
+
     // ── Task 4: competitor dev=1001 fallback seat entries in CANDIDATE_UNVALIDATED ──
     @Test fun `seat fallback entries are dev 1001 range 1 to 6 unvalidated`() {
         val al = WriteAllowlist(
@@ -486,7 +526,7 @@ class WriteAllowlistTest {
         assertTrue(WriteAllowlist.isBanned(1006, 734003229))
         assertTrue(WriteAllowlist.isBanned(1006, 555745294))
         val dev1023 = WriteAllowlist.BANNED_DEV_FID_EXCEPTIONS.filter { it.first == 1023 }.map { it.second }.toSet()
-        assertEquals(setOf(1330643002, 1069547536, 850427920, 850427928, 944767029, 1276260400, 1276174371), dev1023)
+        assertEquals(setOf(1330643002, 1069547536, 850427920, 850427928, 944767029, 1276260400, 1276174371, 1276190752), dev1023)
     }
 
     @Test fun `drive mode entries are single allowed values, rock unvalidated`() {

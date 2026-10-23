@@ -104,4 +104,11 @@ class RouteNavigatorUrisTest {
             RouteNavigatorUris.search("waze", "кафе у дома"),
         )
     }
+
+    @Test fun `waze search percent encodes the Polish address once`() {
+        assertEquals(
+            "waze://?q=ulic%C4%99%20Janowskiego%2082",
+            RouteNavigatorUris.search(RouteNavigatorUris.WAZE, "ulicę Janowskiego 82"),
+        )
+    }
 }

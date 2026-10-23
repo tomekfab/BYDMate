@@ -89,11 +89,11 @@ class AgentToolsSearchTest {
     // (1) Exa key present, Exa succeeds -> Exa result, zai/openrouter never called.
     @Test fun execute_web_search_exa_success_short_circuits_native_fallback() = runTest {
         coEvery { settingsRepository.getString(SettingsRepository.KEY_EXA_API_KEY, "") } returns "exa-key-123"
-        coEvery { exa.search("exa-key-123", "погода в Москве") } returns Result.success("""{"results":[]}""")
+        coEvery { exa.search("exa-key-123", "pogoda w Warszawie") } returns Result.success("""{"results":[]}""")
         val out = JSONObject(tools().execute(
-            AgentToolCall("1", "web_search", """{"query":"погода в Москве"}""")))
+            AgentToolCall("1", "web_search", """{"query":"pogoda w Warszawie"}""")))
         assertTrue(out.has("results"))
-        coVerify(exactly = 1) { exa.search("exa-key-123", "погода в Москве") }
+        coVerify(exactly = 1) { exa.search("exa-key-123", "pogoda w Warszawie") }
         coVerify(exactly = 0) { zaiSearchClient.search(any(), any()) }
         coVerify(exactly = 0) { openRouterClient.chatRaw(any(), any(), any(), any(), any()) }
     }
@@ -121,12 +121,12 @@ class AgentToolsSearchTest {
             LlmConnectionResolver.ID_ZAI, "z.ai", LlmConnectionResolver.ZAI_BASE_URL, "zk", LlmConnectionResolver.ZAI_MODEL,
         )
         coEvery { llmConnections.primary() } returns conn
-        coEvery { zaiSearchClient.search("zk", "погода в Минске") } returns Result.success("""{"results":[]}""")
+        coEvery { zaiSearchClient.search("zk", "pogoda w Mińsku") } returns Result.success("""{"results":[]}""")
         val out = JSONObject(
-            tools().execute(AgentToolCall("1", "web_search", """{"query":"погода в Минске"}""")),
+            tools().execute(AgentToolCall("1", "web_search", """{"query":"pogoda w Mińsku"}""")),
         )
         assertTrue(out.has("results"))
-        coVerify(exactly = 1) { zaiSearchClient.search("zk", "погода в Минске") }
+        coVerify(exactly = 1) { zaiSearchClient.search("zk", "pogoda w Mińsku") }
     }
 
     // (4) No Exa key, primary = openrouter -> chatRaw called with the openrouter:web_search
@@ -137,7 +137,7 @@ class AgentToolsSearchTest {
             LlmConnectionResolver.ID_OPENROUTER, "OpenRouter", LlmConnectionResolver.OPENROUTER_BASE_URL, "or-key", "m",
         )
         coEvery { llmConnections.primary() } returns conn
-        val message = JSONObject().put("content", "в Москве +20")
+        val message = JSONObject().put("content", "w Warszawie +20")
         coEvery {
             openRouterClient.chatRaw(
                 LlmConnectionResolver.OPENROUTER_BASE_URL, "or-key", "m", any(),
@@ -146,17 +146,17 @@ class AgentToolsSearchTest {
                 },
             )
         } returns Result.success(message)
-        val out = tools().execute(AgentToolCall("1", "web_search", """{"query":"погода в Москве"}"""))
-        assertEquals("в Москве +20", out)
+        val out = tools().execute(AgentToolCall("1", "web_search", """{"query":"pogoda w Warszawie"}"""))
+        assertEquals("w Warszawie +20", out)
     }
 
     // (5) No Exa key, primary = custom -> fixed error (custom connections have no native search).
     @Test fun execute_web_search_without_exa_primary_custom_reports_fixed_error() = runTest {
         coEvery { settingsRepository.getString(SettingsRepository.KEY_EXA_API_KEY, "") } returns ""
-        val conn = LlmConnection(LlmConnectionResolver.ID_CUSTOM, "Своё", "https://example.com/v1", "ck", "custom-model")
+        val conn = LlmConnection(LlmConnectionResolver.ID_CUSTOM, "Własne", "https://example.com/v1", "ck", "custom-model")
         coEvery { llmConnections.primary() } returns conn
         val out = JSONObject(tools().execute(AgentToolCall("1", "web_search", """{"query":"x"}""")))
-        assertEquals("поиск недоступен", out.getString("error"))
+        assertEquals("wyszukiwanie jest niedostępne", out.getString("error"))
         coVerify(exactly = 0) { zaiSearchClient.search(any(), any()) }
         coVerify(exactly = 0) { openRouterClient.chatRaw(any(), any(), any(), any(), any()) }
     }
@@ -166,6 +166,6 @@ class AgentToolsSearchTest {
         coEvery { settingsRepository.getString(SettingsRepository.KEY_EXA_API_KEY, "") } returns ""
         coEvery { llmConnections.primary() } returns null
         val out = JSONObject(tools().execute(AgentToolCall("1", "web_search", """{"query":"x"}""")))
-        assertEquals("поиск недоступен", out.getString("error"))
+        assertEquals("wyszukiwanie jest niedostępne", out.getString("error"))
     }
 }

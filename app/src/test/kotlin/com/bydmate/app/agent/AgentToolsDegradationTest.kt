@@ -66,25 +66,54 @@ class AgentToolsDegradationTest {
 
     private fun call(name: String, args: String) = AgentToolCall("1", name, args)
 
+    @Test fun stats_without_metrics_reports_polish_error_and_diagnostic_code() = runTest {
+        val insights = mockk<InsightsManager>()
+        coEvery { insights.dynamicsFor(7) } returns emptyList()
+        val tools = AgentTools(
+            gate, battery, range, tripDao, chargeDao, dispatcher, ruleDao, engine, places, weather,
+            exa, openRouterClient, settingsRepository, contactLookup, context,
+            mockk<ClusterVoiceControl>(relaxed = true),
+            mockk<ChargerSearchClient>(relaxed = true), insights,
+            mockk<ZaiSearchClient>(relaxed = true), mockk<LlmConnectionResolver>(relaxed = true),
+        )
+        val raw = tools.execute(call("get_stats_summary", "{}"))
+        assertEquals("za mało danych za ten okres", JSONObject(raw).getString("error"))
+        assertEquals("not_enough_data", AgentToolErrorCode.of(raw))
+    }
+
+    @Test fun automation_read_failure_reports_polish_error_and_diagnostic_code() = runTest {
+        coEvery { ruleDao.getAllList() } throws RuntimeException("private database failure")
+        val raw = tools().execute(call("list_automations", "{}"))
+        assertEquals("nie udało się odczytać automatyzacji", JSONObject(raw).getString("error"))
+        assertEquals("failed", AgentToolErrorCode.of(raw))
+    }
+
+    @Test fun places_read_failure_reports_polish_error_and_diagnostic_code() = runTest {
+        coEvery { places.getAllSnapshot() } throws RuntimeException("private database failure")
+        val raw = tools().execute(call("list_places", "{}"))
+        assertEquals("nie udało się odczytać miejsc", JSONObject(raw).getString("error"))
+        assertEquals("failed", AgentToolErrorCode.of(raw))
+    }
+
     // --- (a) get_weather: generic (non-UserError) geocode failure ---
 
     // Pin: a plain Throwable from geocode() (HTTP error, parse error) must collapse to the
-    // same fixed Russian string as forecast() failures, never leak its English message.
-    @Test fun get_weather_geocode_generic_failure_reports_fixed_russian_error() = runTest {
+    // same fixed Polish string as forecast() failures, never leak its English message.
+    @Test fun get_weather_geocode_generic_failure_reports_fixed_polish_error() = runTest {
         val t = tools()
         t.locationProvider = { 55.0 to 37.0 }
-        coEvery { weather.geocode("Атлантида") } returns Result.failure(RuntimeException("HTTP 500"))
-        val out = JSONObject(t.execute(call("get_weather", """{"city":"Атлантида"}""")))
-        assertEquals("погода недоступна", out.getString("error"))
+        coEvery { weather.geocode("Atlantyda") } returns Result.failure(RuntimeException("HTTP 500"))
+        val out = JSONObject(t.execute(call("get_weather", """{"city":"Atlantyda"}""")))
+        assertEquals("pogoda jest niedostępna", out.getString("error"))
     }
 
     // --- (a) web_search: SettingsRepository throwing must not escape execute() ---
 
-    @Test fun web_search_settings_failure_reports_fixed_russian_error() = runTest {
+    @Test fun web_search_settings_failure_reports_fixed_polish_error() = runTest {
         coEvery { settingsRepository.getString(SettingsRepository.KEY_EXA_API_KEY, "") } throws
             RuntimeException("prefs corrupt")
         val out = JSONObject(tools().execute(call("web_search", """{"query":"x"}""")))
-        assertEquals("поиск недоступен", out.getString("error"))
+        assertEquals("wyszukiwanie jest niedostępne", out.getString("error"))
     }
 
     // --- (a) create_automation: RuleDao throwing on both read paths ---
@@ -153,31 +182,31 @@ class AgentToolsDegradationTest {
     @Test fun create_automation_trigger_is_array_not_object_reports_error() = runTest {
         coEvery { ruleDao.getAllList() } returns emptyList()
         val out = JSONObject(tools().execute(call("create_automation",
-            """{"name":"Х","trigger":[1,2,3],"actions":[{"kind":"param","command_id":"windows_close_all"}]}""")))
-        assertEquals("не указан триггер", out.getString("error"))
+            """{"name":"X","trigger":[1,2,3],"actions":[{"kind":"param","command_id":"windows_close_all"}]}""")))
+        assertEquals("nie podano wyzwalacza", out.getString("error"))
         coVerify(exactly = 0) { ruleDao.insert(any()) }
     }
 
     @Test fun create_automation_actions_is_object_not_array_reports_error() = runTest {
         coEvery { ruleDao.getAllList() } returns emptyList()
         val out = JSONObject(tools().execute(call("create_automation",
-            """{"name":"Х","trigger":{"kind":"service_start"},"actions":{"kind":"param"}}""")))
-        assertEquals("не указаны действия", out.getString("error"))
+            """{"name":"X","trigger":{"kind":"service_start"},"actions":{"kind":"param"}}""")))
+        assertEquals("nie podano działań", out.getString("error"))
         coVerify(exactly = 0) { ruleDao.insert(any()) }
     }
 
     @Test fun create_automation_action_item_is_string_not_object_reports_error() = runTest {
         coEvery { ruleDao.getAllList() } returns emptyList()
         val out = JSONObject(tools().execute(call("create_automation",
-            """{"name":"Х","trigger":{"kind":"service_start"},"actions":["не объект"]}""")))
-        assertEquals("некорректное описание действия", out.getString("error"))
+            """{"name":"X","trigger":{"kind":"service_start"},"actions":["nie obiekt"]}""")))
+        assertEquals("nieprawidłowy opis działania", out.getString("error"))
         coVerify(exactly = 0) { ruleDao.insert(any()) }
     }
 
     @Test fun create_automation_empty_trigger_object_reports_error() = runTest {
         coEvery { ruleDao.getAllList() } returns emptyList()
         val out = JSONObject(tools().execute(call("create_automation",
-            """{"name":"Х","trigger":{},"actions":[{"kind":"param","command_id":"windows_close_all"}]}""")))
+            """{"name":"X","trigger":{},"actions":[{"kind":"param","command_id":"windows_close_all"}]}""")))
         assertTrue(out.has("error"))
         coVerify(exactly = 0) { ruleDao.insert(any()) }
     }
@@ -185,7 +214,7 @@ class AgentToolsDegradationTest {
     @Test fun create_automation_empty_action_object_reports_error() = runTest {
         coEvery { ruleDao.getAllList() } returns emptyList()
         val out = JSONObject(tools().execute(call("create_automation",
-            """{"name":"Х","trigger":{"kind":"service_start"},"actions":[{}]}""")))
+            """{"name":"X","trigger":{"kind":"service_start"},"actions":[{}]}""")))
         assertTrue(out.has("error"))
         coVerify(exactly = 0) { ruleDao.insert(any()) }
     }
@@ -193,7 +222,7 @@ class AgentToolsDegradationTest {
     @Test fun create_automation_nested_object_action_reports_error() = runTest {
         coEvery { ruleDao.getAllList() } returns emptyList()
         val out = JSONObject(tools().execute(call("create_automation",
-            """{"name":"Х","trigger":{"kind":"service_start"},
+            """{"name":"X","trigger":{"kind":"service_start"},
                 "actions":[{"kind":{"nested":"nonsense"}}]}""")))
         assertTrue(out.has("error"))
         coVerify(exactly = 0) { ruleDao.insert(any()) }
@@ -206,7 +235,7 @@ class AgentToolsDegradationTest {
     @Test fun execute_unexpected_exception_reports_internal_error() = runTest {
         every { gate.vehicleSnapshot() } throws RuntimeException("boom")
         val out = JSONObject(tools().execute(call("get_vehicle_state", "{}")))
-        assertEquals("внутренняя ошибка инструмента", out.getString("error"))
+        assertEquals("błąd wewnętrzny narzędzia", out.getString("error"))
     }
 
     // Pin: CancellationException must be rethrown, never swallowed into the internal-error
@@ -226,7 +255,7 @@ class AgentToolsDegradationTest {
     fun call_contact_findByName_cancellation_propagates_not_swallowed() = runTest {
         coEvery { contactLookup.hasPermission() } returns true
         coEvery { contactLookup.findByName(any()) } throws CancellationException("session stopped")
-        tools().execute(call("call_contact", """{"name":"Мама"}"""))
+        tools().execute(call("call_contact", """{"name":"Mama"}"""))
     }
 
     // Pin: runCatchingCancellable must keep runCatching's Throwable scope. A device-only Error
@@ -235,8 +264,8 @@ class AgentToolsDegradationTest {
     @Test fun call_contact_findByName_error_throwable_maps_to_site_error() = runTest {
         coEvery { contactLookup.hasPermission() } returns true
         coEvery { contactLookup.findByName(any()) } throws NoSuchMethodError("device-only")
-        val raw = tools().execute(call("call_contact", """{"name":"Мама"}"""))
-        assertEquals("не удалось прочитать контакты", JSONObject(raw).getString("error"))
+        val raw = tools().execute(call("call_contact", """{"name":"Mama"}"""))
+        assertEquals("nie udało się odczytać kontaktów", JSONObject(raw).getString("error"))
     }
 
     // --- FIX 2: call action displayName must never carry the phone number ---
@@ -249,7 +278,7 @@ class AgentToolsDegradationTest {
         val slot = slot<RuleEntity>()
         coEvery { ruleDao.insert(capture(slot)) } returns 1L
         tools().execute(call("create_automation",
-            """{"name":"Позвони маме","trigger":{"kind":"service_start"},
+            """{"name":"Zadzwoń do mamy","trigger":{"kind":"service_start"},
                 "actions":[{"kind":"call","phone":"+79161234567"}]}"""))
 
         coEvery { ruleDao.getAllList() } returns listOf(slot.captured)
@@ -258,26 +287,38 @@ class AgentToolsDegradationTest {
         assertFalse(Regex("[0-9]{4,}").containsMatchIn(raw))
     }
 
-    // --- FIX 3: dispatchJson() Cyrillic whitelist ---
+    // --- dispatchJson(): trusted safety reason versus raw internal exception ---
 
     @Test fun vehicle_control_dispatch_failure_english_reason_collapses_to_fixed_error() = runTest {
         every { gate.vehicleSnapshot() } returns null
         coEvery { dispatcher.dispatch(any(), any()) } returns
             DispatchResult(false, "Activity not found: tel:12345")
         val out = JSONObject(tools().execute(call("vehicle_control", """{"command":"关闭空调"}""")))
-        assertEquals("не выполнено", out.getString("error"))
+        assertEquals("nie wykonano", out.getString("error"))
     }
 
-    @Test fun vehicle_control_dispatch_failure_russian_reason_passes_through() = runTest {
+    @Test fun vehicle_control_dispatch_failure_polish_safety_reason_passes_through() = runTest {
         every { gate.vehicleSnapshot() } returns null
         coEvery { dispatcher.dispatch(any(), any()) } returns
-            DispatchResult(false, "Заблокировано скоростью")
+            DispatchResult(
+                false,
+                "Otwieranie szyberdachu zablokowane przy 100 km/h (>80)",
+                trustedLocalizedReason = true,
+            )
         val out = JSONObject(tools().execute(call("vehicle_control", """{"command":"关闭空调"}""")))
-        assertEquals("Заблокировано скоростью", out.getString("error"))
+        assertEquals("Otwieranie szyberdachu zablokowane przy 100 km/h (>80)", out.getString("error"))
+    }
+
+    @Test fun vehicle_control_dispatch_failure_unmarked_polish_reason_collapses_to_fixed_error() = runTest {
+        every { gate.vehicleSnapshot() } returns null
+        coEvery { dispatcher.dispatch(any(), any()) } returns
+            DispatchResult(false, "Otwieranie szyberdachu zablokowane przy 100 km/h (>80)")
+        val out = JSONObject(tools().execute(call("vehicle_control", """{"command":"关闭空调"}""")))
+        assertEquals("nie wykonano", out.getString("error"))
     }
 
     private companion object {
-        const val CREATE_ARGS = """{"name":"Ночной свет","trigger":{"kind":"param","param":"SOC",
+        const val CREATE_ARGS = """{"name":"Nocne światło","trigger":{"kind":"param","param":"SOC",
             "operator":"<","value":"20"},"actions":[{"kind":"param","command_id":"windows_close_all"}]}"""
     }
 }

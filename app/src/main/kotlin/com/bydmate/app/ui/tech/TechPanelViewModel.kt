@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * Live state of the «Техника» screen. Everything vehicle-side rides the poller that already
+ * Live state of the technical panel. Everything vehicle-side rides the poller that already
  * feeds the Dashboard (TrackingService.lastData) — this screen adds no second loop. A null
  * value is rendered as «—»; a card whose every value is null is not drawn at all, which is
  * what firmwares outside Leopard 3 will mostly produce.
@@ -32,7 +32,7 @@ data class TechPanelUiState(
     val cardOrder: List<TechCard> = TechCardOrder.DEFAULT,
     /** Shown until the driver drags a card for the first time. */
     val showOrderHint: Boolean = false,
-    // Батарея · сейчас
+    // Battery · current
     val soc: Int? = null,
     /** Energy left in the pack as the BMS reports it, kWh — not derived from SoC. */
     val remainKwh: Double? = null,
@@ -44,13 +44,13 @@ data class TechPanelUiState(
     val batteryCapacityKwh: Double? = null,
     val voltage12v: Double? = null,
     val insulationKohm: Int? = null,
-    // Лимиты BMS + Ячейки
+    // BMS limits and cells
     val bmsMaxChargeKw: Double? = null,
     val bmsMaxDischargeAllowKw: Double? = null,
     val bmsMaxDischargeKw: Int? = null,
     val cellMin: Double? = null,
     val cellMax: Double? = null,
-    // Моторы и инверторы
+    // Motors and inverters
     val motorTempFront: Int? = null,
     val motorTempRear: Int? = null,
     val inverterTempFront: Int? = null,
@@ -61,12 +61,12 @@ data class TechPanelUiState(
     val motorCurrentRear: Float? = null,
     val pedalAccel: Int? = null,
     val pedalBrake: Int? = null,
-    // Климат
+    // Climate
     val compressorW: Int? = null,
     val acStatus: Int? = null,
     val insideTemp: Int? = null,
     val exteriorTemp: Int? = null,
-    // Шины
+    // Tires
     val tirePressFL: Int? = null,
     val tirePressFR: Int? = null,
     val tirePressRL: Int? = null,
@@ -75,7 +75,7 @@ data class TechPanelUiState(
     val tyreTempFR: Int? = null,
     val tyreTempRL: Int? = null,
     val tyreTempRR: Int? = null,
-    // Батарея · история
+    // Battery · history
     val lifetimeKm: Float? = null,
     val lifetimeKwh: Float? = null,
     val avgSocSinceCharge: Int? = null,
@@ -137,7 +137,7 @@ data class TechPanelUiState(
     val showHistory: Boolean
         get() = anyOf(
             lifetimeKm, lifetimeKwh, avgSocSinceCharge, avgSocAllTime,
-            // The «Полных циклов» row lives here; a car that logged charges but answers no
+            // The «Pełnych cykli» row lives here; a car that logged charges but answers no
             // lifetime counter still has a number to show. A zero sum has nothing to divide.
             lifetimeChargedKwh?.takeIf { it > 0.0 },
         )
@@ -313,7 +313,7 @@ class TechPanelViewModel @Inject constructor(
     }
 
     /**
-     * Lifetime charged kWh for the «Полных циклов» row — the app's own sum of logged sessions,
+     * Lifetime charged kWh for the «Pełnych cykli» row — the app's own sum of logged sessions,
      * read once on open. Only the fallback divisor: a car that reports a BMS lifetime counter
      * uses that instead, and one with neither keeps the dash.
      */

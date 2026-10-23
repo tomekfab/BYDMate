@@ -22,7 +22,7 @@ class AgentTraceTest {
             tools: JSONArray?,
             onDelta: ((String) -> Unit)?,
         ): Result<AgentReply> {
-            onDelta?.invoke("Готово")
+            onDelta?.invoke("Gotowe")
             return replies.removeFirstOrNull() ?: Result.failure(IllegalStateException("no reply"))
         }
     }
@@ -40,10 +40,10 @@ class AgentTraceTest {
     // the trace must name it and the shown answer must end with a visible cut.
     @Test fun a_reply_cut_by_max_tokens_is_traced_and_marked() = runTest {
         val backend = FakeBackend(ArrayDeque(listOf(
-            Result.success(AgentReply("Маршрут проходит через", emptyList(), finishReason = "length")),
+            Result.success(AgentReply("Trasa prowadzi przez", emptyList(), finishReason = "length")),
         )))
         val lines = mutableListOf<String>()
-        val result = orchestrator(backend, lines).ask("расскажи про маршрут") { }
+        val result = orchestrator(backend, lines).ask("opowiedz o trasie") { }
 
         assertTrue(result is AgentResult.Answer)
         val answer = (result as AgentResult.Answer).text
@@ -61,10 +61,10 @@ class AgentTraceTest {
         val backend = FakeBackend(ArrayDeque(listOf(
             Result.success(AgentReply(null, listOf(
                 AgentToolCall("c1", "vehicle_control", """{"command":"windows_close_all"}""")))),
-            Result.success(AgentReply("Окна закрыты", emptyList())),
+            Result.success(AgentReply("Okna są zamknięte", emptyList())),
         )))
         val lines = mutableListOf<String>()
-        orchestrator(backend, lines).ask("закрой окна") { }
+        orchestrator(backend, lines).ask("zamknij okna") { }
 
         assertTrue("no tool line in $lines", lines.any {
             it.startsWith("tool vehicle_control") && it.contains("windows_close_all") && it.contains("-> ok")
@@ -78,13 +78,13 @@ class AgentTraceTest {
     }
 
     @Test fun failing_tool_is_traced_as_error() = runTest {
-        coEvery { tools.execute(any(), any()) } returns """{"error":"нет данных"}"""
+        coEvery { tools.execute(any(), any()) } returns """{"error":"brak danych"}"""
         val backend = FakeBackend(ArrayDeque(listOf(
             Result.success(AgentReply(null, listOf(AgentToolCall("c1", "get_vehicle_state", "{}")))),
-            Result.success(AgentReply("Нет данных", emptyList())),
+            Result.success(AgentReply("Brak danych", emptyList())),
         )))
         val lines = mutableListOf<String>()
-        orchestrator(backend, lines).ask("какой заряд")
+        orchestrator(backend, lines).ask("jaki jest poziom naładowania")
 
         assertTrue("no failed tool line in $lines", lines.any {
             it.startsWith("tool get_vehicle_state") && it.contains("-> error")
@@ -94,7 +94,7 @@ class AgentTraceTest {
     @Test fun backend_failure_ends_the_turn_with_an_error_outcome() = runTest {
         val backend = FakeBackend(ArrayDeque(listOf(Result.failure(RuntimeException("HTTP 500")))))
         val lines = mutableListOf<String>()
-        orchestrator(backend, lines).ask("привет")
+        orchestrator(backend, lines).ask("cześć")
 
         assertTrue("no failed reply line in $lines", lines.any { it.startsWith("reply failed") })
         assertTrue("no turn line in $lines", lines.any {
@@ -114,10 +114,10 @@ class AgentTraceTest {
         coEvery { tools.execute(any(), any()) } returns settlementResult
         val backend = FakeBackend(ArrayDeque(listOf(
             Result.success(AgentReply(null, listOf(AgentToolCall("c1", "where_am_i", "{}")))),
-            Result.success(AgentReply("Рядом Северная", emptyList())),
+            Result.success(AgentReply("W pobliżu jest Северная", emptyList())),
         )))
         val lines = mutableListOf<String>()
-        orchestrator(backend, lines).ask("где мы")
+        orchestrator(backend, lines).ask("gdzie jesteśmy")
 
         // Model answers keep their own text (out of scope, AgentTrace.reply): only the tool
         // line must not carry the raw settlement result.
@@ -134,10 +134,10 @@ class AgentTraceTest {
         coEvery { tools.execute(any(), any()) } returns chargersResult
         val backend = FakeBackend(ArrayDeque(listOf(
             Result.success(AgentReply(null, listOf(AgentToolCall("c1", "find_chargers", """{"where":"ahead"}""")))),
-            Result.success(AgentReply("Рядом ТЦ Dana Mall", emptyList())),
+            Result.success(AgentReply("W pobliżu jest ТЦ Dana Mall", emptyList())),
         )))
         val lines = mutableListOf<String>()
-        orchestrator(backend, lines).ask("найди зарядку")
+        orchestrator(backend, lines).ask("znajdź ładowarkę")
 
         val toolLine = lines.single { it.startsWith("tool find_chargers") }
         assertTrue("result content leaked in tool line: $toolLine", !toolLine.contains("Мстиславца"))
@@ -146,19 +146,19 @@ class AgentTraceTest {
         assertTrue("arguments missing in tool line: $toolLine", toolLine.contains("""args={"where":"ahead"}"""))
     }
 
-    // Field log 28.09: "где мы" failed and the trace said only "<N chars, redacted>". where_am_i's
+// Field log 28.09: a where-are-we request failed and the trace said only "<N chars, redacted>". where_am_i's
     // error answers are fixed texts with no place in them, so an error is traced in full.
     @Test fun where_am_i_error_is_traced_in_full() = runTest {
-        coEvery { tools.execute(any(), any()) } returns """{"error":"сервис карт недоступен, не могу определить, где мы"}"""
+        coEvery { tools.execute(any(), any()) } returns """{"error":"usługa map jest niedostępna, nie mogę ustalić, gdzie jesteśmy"}"""
         val backend = FakeBackend(ArrayDeque(listOf(
             Result.success(AgentReply(null, listOf(AgentToolCall("c1", "where_am_i", "{}")))),
-            Result.success(AgentReply("Не могу определить", emptyList())),
+            Result.success(AgentReply("Nie mogę ustalić", emptyList())),
         )))
         val lines = mutableListOf<String>()
-        orchestrator(backend, lines).ask("где мы")
+        orchestrator(backend, lines).ask("gdzie jesteśmy")
 
         val toolLine = lines.single { it.startsWith("tool where_am_i") }
         assertTrue("error text missing in tool line: $toolLine",
-            toolLine.contains("-> error") && toolLine.contains("сервис карт недоступен"))
+            toolLine.contains("-> error") && toolLine.contains("usługa map jest niedostępna"))
     }
 }

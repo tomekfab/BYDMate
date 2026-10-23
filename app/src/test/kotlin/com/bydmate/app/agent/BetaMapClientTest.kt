@@ -55,7 +55,7 @@ class BetaMapClientTest {
         assertEquals("BYN", gbt.currency)
     }
 
-    // The real payload carries escaped quotes inside names: "ООО Волдан" in the fixture.
+// The real payload carries escaped quotes inside a provider name in the fixture.
     @Test fun escaped_quotes_inside_a_name_are_unescaped() {
         assertTrue(parse(fixture).any { it.name == "ул. Навуковая, 2 (\"ООО Волдан\")" })
     }

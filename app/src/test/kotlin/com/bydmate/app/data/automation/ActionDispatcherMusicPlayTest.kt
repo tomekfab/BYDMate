@@ -44,9 +44,9 @@ class ActionDispatcherMusicPlayTest {
         }
         dispatcher.activeMediaControllers = { listOf(controller) }
         val action = ActionDef(command = "", displayName = "music", kind = "yandex_music",
-            payload = """{"mode":"play","query":"группа кино"}""")
+            payload = """{"mode":"play","query":"zespół Kino"}""")
         val result = dispatcher.dispatch(action, null)
         assertTrue(result.success)
-        verify { controls.playFromSearch("группа кино", any()) }
+        verify { controls.playFromSearch("zespół Kino", any()) }
     }
 }

@@ -40,7 +40,7 @@ class ActionDispatcherVoiceActionsTest {
 
     // Factory for the cluster_projection tests below: same shape, but takes the
     // ClusterVoiceControl mock directly so tests can verify apply(on). The failure reasons
-    // come from AppStrings, stubbed with their Russian texts.
+    // come from AppStrings, stubbed with their Polish texts.
     private fun makeDispatcherWithCluster(clusterVoiceControl: ClusterVoiceControl): ActionDispatcher {
         val vehicleApi = mockk<VehicleApi>(relaxed = true)
         val helper = mockk<HelperClient>(relaxed = true)
@@ -49,8 +49,8 @@ class ActionDispatcherVoiceActionsTest {
         every { context.getSystemService(Context.NOTIFICATION_SERVICE) } returns notificationManager
         val voiceActions = mockk<VoiceAutomationActions>(relaxed = true)
         val strings = mockk<com.bydmate.app.util.AppStrings>(relaxed = true)
-        every { strings.get(R.string.dispatch_cluster_not_on) } returns "проекция на приборку не включилась"
-        every { strings.get(R.string.dispatch_cluster_daemon_restarting) } returns "служебный процесс перезапускается"
+        every { strings.get(R.string.dispatch_cluster_not_on) } returns "wyświetlanie na wskaźnikach nie włączyło się"
+        every { strings.get(R.string.dispatch_cluster_daemon_restarting) } returns "proces usługi uruchamia się ponownie"
         return ActionDispatcher(vehicleApi, helper, context, dagger.Lazy { voiceActions }, clusterVoiceControl,
             mockk<com.bydmate.app.voice.AudioCapture>(relaxed = true),
             mockk<com.bydmate.app.split.SplitSessionManager>(relaxed = true),
@@ -59,20 +59,20 @@ class ActionDispatcherVoiceActionsTest {
 
     @Test fun `speak action routes payload text to the coordinator`() = runTest {
         val voice = mockk<VoiceAutomationActions>()
-        coEvery { voice.speak("Позвони жене") } returns DispatchResult(true)
+        coEvery { voice.speak("Zadzwoń do żony") } returns DispatchResult(true)
         val d = makeDispatcher(voice)
-        val r = d.dispatch(ActionDef(command = "", displayName = "Озвучить текст",
-            kind = "speak", payload = """{"text":"Позвони жене"}"""), data = null)
+        val r = d.dispatch(ActionDef(command = "", displayName = "Odczytaj tekst",
+            kind = "speak", payload = """{"text":"Zadzwoń do żony"}"""), data = null)
         assertTrue(r.success)
-        coVerify(exactly = 1) { voice.speak("Позвони жене") }
+        coVerify(exactly = 1) { voice.speak("Zadzwoń do żony") }
     }
 
     @Test fun `agent_query action routes payload prompt to the coordinator`() = runTest {
         val voice = mockk<VoiceAutomationActions>()
-        coEvery { voice.agentQuery("расскажи сводку погоды") } returns DispatchResult(true)
+        coEvery { voice.agentQuery("podaj prognozę pogody") } returns DispatchResult(true)
         val d = makeDispatcher(voice)
-        val r = d.dispatch(ActionDef(command = "", displayName = "Запрос агенту",
-            kind = "agent_query", payload = """{"prompt":"расскажи сводку погоды"}"""), data = null)
+        val r = d.dispatch(ActionDef(command = "", displayName = "Zapytaj agenta",
+            kind = "agent_query", payload = """{"prompt":"podaj prognozę pogody"}"""), data = null)
         assertTrue(r.success)
     }
 
@@ -87,17 +87,17 @@ class ActionDispatcherVoiceActionsTest {
 
     @Test fun `coordinator failure reason propagates to the rule journal result`() = runTest {
         val voice = mockk<VoiceAutomationActions>()
-        coEvery { voice.speak(any()) } returns DispatchResult(false, "озвучка выключена в настройках")
+        coEvery { voice.speak(any()) } returns DispatchResult(false, "odczyt głosowy jest wyłączony w ustawieniach")
         val d = makeDispatcher(voice)
-        val r = d.dispatch(ActionDef("", "x", kind = "speak", payload = """{"text":"т"}"""), null)
+        val r = d.dispatch(ActionDef("", "x", kind = "speak", payload = """{"text":"t"}"""), null)
         assertFalse(r.success)
-        assertEquals("озвучка выключена в настройках", r.reason)
+        assertEquals("odczyt głosowy jest wyłączony w ustawieniach", r.reason)
     }
 
     // --- cluster_projection (mirrors ActionDispatcherSentryTest: payload "1"/"0" -> on/off) ---
 
     private fun clusterAction(payload: String?) = ActionDef(
-        command = "cluster_projection", displayName = "Проекция на приборку",
+        command = "cluster_projection", displayName = "Wyświetlanie na wskaźnikach",
         kind = "cluster_projection", payload = payload)
 
     @Test fun `cluster_projection with payload 1 turns projection on`() = runTest {
@@ -127,7 +127,7 @@ class ActionDispatcherVoiceActionsTest {
         val d = makeDispatcherWithCluster(cluster).also { it.clusterPollIntervalMs = 1L }
         val r = d.dispatch(clusterAction("1"), data = null)
         assertFalse(r.success)
-        assertEquals("проекция на приборку не включилась", r.reason)
+        assertEquals("wyświetlanie na wskaźnikach nie włączyło się", r.reason)
         assertFalse(r.daemonRestarting)
     }
 
@@ -138,7 +138,7 @@ class ActionDispatcherVoiceActionsTest {
         val d = makeDispatcherWithCluster(cluster).also { it.clusterPollIntervalMs = 1L }
         val r = d.dispatch(clusterAction("1"), data = null)
         assertFalse(r.success)
-        assertEquals("служебный процесс перезапускается", r.reason)
+        assertEquals("proces usługi uruchamia się ponownie", r.reason)
         assertTrue(r.daemonRestarting)
     }
 
@@ -173,7 +173,7 @@ class ActionDispatcherVoiceActionsTest {
         val d = makeDispatcherWithCluster(cluster)
         val r = d.dispatch(clusterAction("1"), data = null)
         assertFalse(r.success)
-        assertEquals("проекция на приборку не включилась", r.reason)
+        assertEquals("wyświetlanie na wskaźnikach nie włączyło się", r.reason)
         assertEquals(15_000L, testScheduler.currentTime)
     }
 
