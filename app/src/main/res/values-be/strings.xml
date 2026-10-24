@@ -1614,6 +1614,8 @@
     <string name="settings_hud_desc">Падказкі Яндэкс Навігатара на праекцыйным дысплеі: манеўр, дыстанцыя, вуліца, прыбыццё</string>
     <string name="settings_hud_speed_sign_title">Знак хуткасці пад стрэлкай</string>
     <string name="settings_hud_speed_sign_desc">Чырвоны знак абмежавання хуткасці ў ніжнім слоце HUD</string>
+    <string name="settings_hud_waze_title">Навігацыя Waze (эксперыментальна)</string>
+    <string name="settings_hud_waze_desc">Паказвае адлегласць і наступную вуліцу з Waze, пакуль акно Waze наперадзе. Без стрэлкі. HUD гасне, калі адлегласць не змяняецца 10 с. Патрабуе службы спецыяльных магчымасцей BYDMate.</string>
     <string name="settings_hud_status_unsupported">Шына SOME/IP не знойдзена: на гэтай машыне вывад на HUD недаступны</string>
     <string name="settings_hud_status_connecting">Падключэнне да шыны…</string>
     <string name="settings_hud_status_on">Перадача на HUD актыўная</string>

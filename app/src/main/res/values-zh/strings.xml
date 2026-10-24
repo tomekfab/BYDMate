@@ -1576,6 +1576,8 @@
     <string name="settings_hud_desc">将 Yandex 导航提示投射到抬头显示：转向、距离、街道、到达时间</string>
     <string name="settings_hud_speed_sign_title">箭头下方的限速标志</string>
     <string name="settings_hud_speed_sign_desc">在 HUD 下方槽位显示红色限速标志</string>
+    <string name="settings_hud_waze_title">Waze 导航（实验性）</string>
+    <string name="settings_hud_waze_desc">Waze 窗口位于前台时，显示 Waze 的距离和下一条街道。无箭头。距离 10 秒不变时 HUD 会熄灭。需要开启 BYDMate 无障碍服务。</string>
     <string name="settings_hud_status_unsupported">未找到 SOME/IP 总线：此车辆不支持 HUD 输出</string>
     <string name="settings_hud_status_connecting">正在连接总线…</string>
     <string name="settings_hud_status_on">正在向 HUD 传输</string>

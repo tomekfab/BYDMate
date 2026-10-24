@@ -1381,6 +1381,9 @@ private fun DisplaySection() {
                 SettingHint(text = stringResource(R.string.settings_hud_mode_pick_hint))
                 SettingDivider()
             }
+            // Outside the cluster-only condition: a gateway-less car carries Waze to the cluster card too.
+            WazeHudSettingsRow(hudController)
+            SettingDivider()
             SettingStatusRow(
                 title = when (hudStatus) {
                     HudController.Status.ON -> stringResource(R.string.settings_hud_status_on)

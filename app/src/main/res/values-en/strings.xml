@@ -1461,6 +1461,8 @@
     <string name="settings_hud_desc">Yandex Navigator guidance on the head-up display: maneuver, distance, street, arrival</string>
     <string name="settings_hud_speed_sign_title">Speed sign under the arrow</string>
     <string name="settings_hud_speed_sign_desc">Red speed-limit sign in the lower HUD slot</string>
+    <string name="settings_hud_waze_title">Waze guidance (experimental)</string>
+    <string name="settings_hud_waze_desc">Shows the Waze distance and next street while the Waze window is in front. No arrow. The HUD clears if the distance does not change for 10 s. Needs the BYDMate accessibility service.</string>
     <string name="settings_hud_status_unsupported">SOME/IP bus not found: HUD output is unavailable on this car</string>
     <string name="settings_hud_status_connecting">Connecting to the bus…</string>
     <string name="settings_hud_status_on">Streaming to the HUD</string>

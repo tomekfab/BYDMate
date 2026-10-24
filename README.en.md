@@ -315,6 +315,8 @@ Enable it in **Settings → Display**, section "HUD (head-up display)": the "Nav
 
 **Which navigator.** The maneuver arrow comes from Yandex Navigator 31.0.2 or newer. Older versions (24.5.1) give only the distance and the street, without the arrow. Yandex Maps gives the arrow intermittently, so use Navigator for the HUD and the cluster.
 
+**Experimental Waze feed.** A separate HUD setting, off by default, reads distance and the next street while Waze is the active window. It shows no arrow and clears after 10 seconds without a changed reading. Replay tests cover one recorded route with a Polish interface and metric units; the next-street meaning is inferred. Cancel, reroute, arrival, background use, a stationary car, miles, other languages, and HUD ways 2 and 3 are not car-tested. This feed does not supply the voice assistant. Google Maps is not supported.
+
 ---
 
 ## Blind-Spot Cameras

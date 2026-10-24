@@ -1458,6 +1458,8 @@
     <string name="settings_hud_desc">Dicas do Yandex Navigator no head-up display: manobra, distância, rua, chegada</string>
     <string name="settings_hud_speed_sign_title">Placa de velocidade sob a seta</string>
     <string name="settings_hud_speed_sign_desc">Placa vermelha de limite de velocidade no slot inferior do HUD</string>
+    <string name="settings_hud_waze_title">Navegação Waze (experimental)</string>
+    <string name="settings_hud_waze_desc">Mostra a distância e a próxima rua do Waze enquanto a janela do Waze está à frente. Sem seta. O HUD apaga se a distância não mudar por 10 s. Requer o serviço de acessibilidade do BYDMate.</string>
     <string name="settings_hud_status_unsupported">Barramento SOME/IP não encontrado: saída HUD indisponível neste carro</string>
     <string name="settings_hud_status_connecting">Conectando ao barramento…</string>
     <string name="settings_hud_status_on">Transmissão para o HUD ativa</string>

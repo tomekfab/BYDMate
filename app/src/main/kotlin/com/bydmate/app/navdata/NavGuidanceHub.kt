@@ -73,7 +73,13 @@ object NavGuidanceHub {
         val maneuverRaw: String = "",
         /** Owner is appended so existing positional constructors stay source-compatible. */
         val owner: NavAppId = NavAppId.NONE,
-    )
+    ) {
+        /** Whether the output draws guidance: [active], except a Waze route whose details expired (or
+         *  that was rerouted). Waze publishes never carry both a maneuver and a distance at zero, so that
+         *  state means "nothing to show" and must not reach the glass as an 11 m floor with a stale road.
+         *  GOOGLE_MAPS is left out until it has an adapter; Yandex keeps its meaning. */
+        fun showsGuidance(): Boolean = active && !(owner == NavAppId.WAZE && maneuverGaode <= 0 && distanceMeters <= 0)
+    }
 
     /** Rich notification payload (donor listener merge). applyCamera=false is the
      *  extras fallback - extras carry no camera info, previous camera state persists. */
@@ -216,10 +222,15 @@ object NavGuidanceHub {
                 read.totalDistMeters, read.speedLimit), Source.A11Y, nowMs)
             return
         }
-        if (read.maneuverGaode <= 0 && read.distanceMeters <= 0) return
+        admitNonYandex(owner, read, nowMs)
+    }
+
+    /** The non-Yandex admission of [publish]: false at each drop, true once the state is replaced. */
+    private fun admitNonYandex(owner: NavAppId, read: NavRead, nowMs: Long): Boolean {
+        if (read.maneuverGaode <= 0 && read.distanceMeters <= 0) return false
         if (foreignOwnerLive(owner, nowMs)) {
             countForeignDrop(owner, nowMs)
-            return
+            return false
         }
         val old = current
         val handover = old.active && old.owner != owner
@@ -240,6 +251,16 @@ object NavGuidanceHub {
         maneuverExpiryArmed = false
         nextStreet = ""
         distanceSource = null
+        return true
+    }
+
+    /** [publish] for a non-Yandex owner that says whether the hub took the read: the accept decision and
+     *  the state write are one critical section, so a caller never infers acceptance from a later
+     *  snapshot. `NONE` and `YANDEX` return false and touch nothing (Yandex has its own entry points). */
+    @Synchronized
+    fun publishAccepted(owner: NavAppId, read: NavRead, nowMs: Long = System.currentTimeMillis()): Boolean {
+        if (owner == NavAppId.NONE || owner == NavAppId.YANDEX) return false
+        return admitNonYandex(owner, read, nowMs)
     }
 
     /** A parser's explicit reroute clears the old maneuver immediately, but not route ownership. */

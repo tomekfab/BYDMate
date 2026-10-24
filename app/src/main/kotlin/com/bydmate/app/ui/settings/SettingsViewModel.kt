@@ -2158,6 +2158,7 @@ class SettingsViewModel @Inject @Suppress("LongParameterList") internal construc
                     com.bydmate.app.hud.HudSomeIpBridge.isServicePresent(appContext.packageManager)
                 appendLine("someip_gateway: " + if (gatewayPresent) "present" else "absent")
                 appendLine("speed_sign: ${hudPrefs.getBoolean(com.bydmate.app.hud.HudController.KEY_SPEED_SIGN, true)}")
+                appendLine("waze_hud: ${hudPrefs.getBoolean(com.bydmate.app.hud.HudController.KEY_WAZE, false)}")
                 // The way to the glass (1..3, «Sposób wyświetlania na szybę»).
                 appendLine("mode: ${hudController.mode()}")
                 // Frame/RC counters from HudPushLoop via HudController.diag().

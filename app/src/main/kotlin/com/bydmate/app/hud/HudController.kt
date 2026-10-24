@@ -8,6 +8,7 @@ import com.bydmate.app.diagnostics.Trace
 import com.bydmate.app.diagnostics.TraceArea
 import com.bydmate.app.navdata.NavA11yFeed
 import com.bydmate.app.navdata.NavGuidanceHub
+import com.bydmate.app.navdata.waze.WazeHudFeed
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -65,6 +66,7 @@ class HudController @Inject constructor(
         const val KEY_SUPPORTED = "hud_supported"
         const val KEY_SPEED_SIGN = "hud_speed_sign"
         const val KEY_MODE = "hud_mode"
+        const val KEY_WAZE = "hud_waze"
 
         /** The way hints go to the glass («Sposób wyświetlania na szybę»). Way 1 (default, 3.19.0): the
          *  frames alone, the car's navigation status is never raised. Way 2 (3.19.1 + CAN): [HudArming]
@@ -100,6 +102,16 @@ class HudController @Inject constructor(
     internal var bridgeFactory: (Context, () -> Unit) -> HudSomeIpBridge =
         { ctx, onLost -> HudSomeIpBridge(ctx, onLost) }
     internal var leftoverRetryMs = HudArming.CHECK_PERIOD_MS
+    /** Test seam: suspends [stopSequence] before it takes [mutex], so a test can sit in the window where the
+     *  output is stopped for the user but its teardown is still queued. Production leaves it null. */
+    internal var teardownGateForTest: (suspend () -> Unit)? = null
+
+    /** Guards [wazeEpoch], [wazeAuthorized] and every [WazeHudFeed.setEnabled] call made here. A plain monitor
+     *  held for a few field writes and one setEnabled; never across a suspension, join, launch, runBlocking,
+     *  delay or an attempt to take [mutex] or [ownerLock]. Order: wazeAuth, the feed's gate, the hub's monitor. */
+    private val wazeAuth = Any()
+    private var wazeEpoch = 0L
+    private var wazeAuthorized = false
 
     private val mutex = Mutex()
     // One owner of the car's navigation values at a time: a leftover put-back step and the
@@ -141,6 +153,50 @@ class HudController @Inject constructor(
 
     fun setSpeedSignEnabled(on: Boolean) {
         prefs().edit().putBoolean(KEY_SPEED_SIGN, on).apply()
+    }
+
+    fun isWazeEnabled(): Boolean = prefs().getBoolean(KEY_WAZE, false)
+
+    /** Writes the pref. Turning it off ends the Waze feed at once (eager, under [wazeAuth]); turning it on
+     *  only queues a sync with the epoch captured HERE on the caller's thread, so a stop that follows
+     *  (which revokes) leaves that sync with a stale epoch. */
+    fun setWazeEnabled(on: Boolean) {
+        prefs().edit().putBoolean(KEY_WAZE, on).apply()
+        if (!on) synchronized(wazeAuth) { WazeHudFeed.setEnabled(false) }
+        val epoch = synchronized(wazeAuth) { if (wazeAuthorized) wazeEpoch else -1L }
+        scope.launch { mutex.withLock { syncWaze(epoch) } }
+    }
+
+    /** Called only from the two synchronous start requests, on the caller's thread, before the launch.
+     *  Idempotent while authorized, so a repeated start keeps one epoch. */
+    private fun authorizeWazeStart(): Long = synchronized(wazeAuth) {
+        if (!wazeAuthorized) {
+            wazeAuthorized = true
+            wazeEpoch++
+        }
+        wazeEpoch
+    }
+
+    /** Synchronous, on the caller's thread, at the three sites that clear [NavA11yFeed.enabled] eagerly (HUD
+     *  disable, service stop, binding loss); never from queued work, which could cancel an authorization a
+     *  later start granted while a teardown waited in the lane. The epoch only rises, so a queued sync or
+     *  start callback holding an older one can never match again. The feed ends the Waze route itself. */
+    private fun revokeWaze() {
+        synchronized(wazeAuth) {
+            wazeAuthorized = false
+            wazeEpoch++
+            WazeHudFeed.setEnabled(false)
+        }
+    }
+
+    /** The only path that can enable the feed: authorized, the epoch the caller captured, the pref on and an
+     *  output reference present. Queued work only compares, it never grants. */
+    private fun syncWaze(epoch: Long) {
+        synchronized(wazeAuth) {
+            WazeHudFeed.setEnabled(
+                wazeAuthorized && epoch == wazeEpoch && isWazeEnabled() && (loop != null || amapCluster != null),
+            )
+        }
     }
 
     fun mode(): Int = prefs().getInt(KEY_MODE, MODE_GLASS_ONLY)
@@ -259,9 +315,11 @@ class HudController @Inject constructor(
     fun setEnabled(on: Boolean) {
         prefs().edit().putBoolean(KEY_ENABLED, on).apply()
         if (on) {
-            scope.launch { startSequence() }
+            val epoch = authorizeWazeStart()
+            scope.launch { startSequence(epoch) }
         } else {
             NavA11yFeed.enabled = false   // stop tree reads immediately; teardown is async
+            revokeWaze()
             scope.launch { stopSequence(HudArming.REASON_HUD_OFF) }
         }
     }
@@ -269,7 +327,8 @@ class HudController @Inject constructor(
     /** TrackingService.onCreate hook. */
     fun startIfEnabled() {
         if (isEnabled()) {
-            scope.launch { startSequence() }
+            val epoch = authorizeWazeStart()
+            scope.launch { startSequence(epoch) }
         } else {
             if (prefs().contains(HudAmapClusterLoop.KEY_AMAP_CLUSTER_LEFT)) scope.launch { dropClusterLeftover() }
             if (putBackJob?.isActive != true) putBackJob = scope.launch { putBackLeftover() }
@@ -294,10 +353,11 @@ class HudController @Inject constructor(
     /** TrackingService.onDestroy hook. */
     fun stop() {
         NavA11yFeed.enabled = false
+        revokeWaze()
         scope.launch { stopSequence(HudArming.REASON_SERVICE_STOP) }
     }
 
-    private suspend fun startSequence() = mutex.withLock {
+    private suspend fun startSequence(epoch: Long) = mutex.withLock {
         if (!isEnabled()) return
         if (startJob?.isActive == true || bridge != null) return
         // The output's own leftover handling takes over; the HUD-off put-back must not race it.
@@ -306,7 +366,7 @@ class HudController @Inject constructor(
         // Probe BEFORE any helper-daemon work: unsupported cars must see zero side effects.
         if (!HudSomeIpBridge.isServicePresent(context.packageManager)) {
             prefs().edit().putBoolean(KEY_SUPPORTED, false).apply()
-            startWithoutGateway()
+            startWithoutGateway(epoch)
             return
         }
         prefs().edit().putBoolean(KEY_SUPPORTED, true).apply()
@@ -343,6 +403,7 @@ class HudController @Inject constructor(
                         amap = HudAmapBroadcaster(context),
                         maneuvers = HudManeuverJournal(prefs()))
                         .also { it.start(scope) }
+                    syncWaze(epoch)
                     // Mode 2: the car's navigation status, only while a route is guided; own
                     // coroutine, so a slow or refused write never delays a frame.
                     if (armsNaviStatus()) {
@@ -363,12 +424,13 @@ class HudController @Inject constructor(
 
     /** No gateway: with the stock Amap adapter the hints go to the cluster's navigation card (#301),
      *  without it the output stays unloaded. Neither touches the helper daemon. */
-    private suspend fun startWithoutGateway() {
+    private suspend fun startWithoutGateway(epoch: Long) {
         // A running cluster loop stays as it is: a repeated start's probe must not flip its status.
         if (amapCluster != null) return
         // Fail closed: a probe that failed for any reason but "not installed" may hide a working gateway.
         if (clusterPathAvailable()) {
             amapCluster = HudAmapClusterLoop(context, prefs()).also { it.start(scope) }
+            syncWaze(epoch)
             NavGuidanceHub.hudWay = NavGuidanceHub.WAY_AMAP_CLUSTER
             setStatus(Status.CLUSTER_ONLY)
             Log.i(TAG, "SOME/IP gateway absent; hints go to the cluster card via the Amap adapter")
@@ -423,6 +485,7 @@ class HudController @Inject constructor(
      *  into a dead binder (final-review fix 1). */
     private fun onBindingLost() {
         NavA11yFeed.enabled = false
+        revokeWaze()
         scope.launch {
             mutex.withLock {
                 loop?.stop()
@@ -444,6 +507,7 @@ class HudController @Inject constructor(
     /** [reason]: why the output stops (HUD off or service stop), for the disarm line. */
     private suspend fun stopSequence(reason: String) {
         NavA11yFeed.enabled = false
+        teardownGateForTest?.invoke()
         mutex.withLock {
             startJob?.let { it.cancel(); it.join() }
             startJob = null

@@ -68,7 +68,7 @@ class HudPushLoop(
     /** One tick; returns whether guidance was active (input for the next tick). */
     internal fun tick(wasActive: Boolean): Boolean {
         val s = NavGuidanceHub.snapshot(nowMsProvider())
-        if (!s.active) {
+        if (!s.showsGuidance()) {
             if (wasActive) {
                 sink.fireEvent(HudSomeIpBridge.TOPIC_NAVI, HudProtobufBuilder.buildClearFrame(counter++))
                 Log.i(TAG, "guidance ended, clear frame sent")

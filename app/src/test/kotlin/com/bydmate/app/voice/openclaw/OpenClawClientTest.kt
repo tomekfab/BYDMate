@@ -1210,7 +1210,6 @@ class OpenClawClientTest {
             ctx.ack(req, run)
             if (sends.incrementAndGet() == 1) {
                 ctx.chat(run, 1, "delta", content = ChatContent(deltaText = "Za"))
-                streaming.countDown()
             } else {
                 // A stale final of the aborted first run arrives during the second turn.
                 ctx.chat("run-1", 9, "final", content = ChatContent(text = "STARA ODPOWIEDŹ"))
@@ -1223,7 +1222,14 @@ class OpenClawClientTest {
         }
         val client = client()
         val deltas = CopyOnWriteArrayList<String>()
-        val first = scope.async { client.ask("Opowiedz długą historię") { deltas.add(it) } }
+        // Release the barrier when the client receives the delta, not when the server sends it:
+        // the frame is delivered on a network thread, so cancelling earlier could race ahead of it.
+        val first = scope.async {
+            client.ask("Opowiedz długą historię") {
+                deltas.add(it)
+                streaming.countDown()
+            }
+        }
         assertTrue(streaming.await(10, TimeUnit.SECONDS))
 
         run { client.cancel() }

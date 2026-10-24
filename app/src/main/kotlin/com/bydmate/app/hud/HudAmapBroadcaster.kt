@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import com.bydmate.app.navdata.NavAppId
 import com.bydmate.app.navdata.NavGuidanceHub
 import java.util.Locale
 
@@ -83,8 +84,11 @@ class HudAmapBroadcaster(private val context: Context) {
     /** Called on every push-loop tick with the current guidance snapshot (null = ended).
      *  Sends a guide broadcast when s != null, a stop broadcast once when transitioning
      *  from guiding to null, and nothing on repeated null calls. */
-    fun onSnapshot(s: NavGuidanceHub.Snapshot?) {
+    fun onSnapshot(snapshot: NavGuidanceHub.Snapshot?) {
         if (!capable) return
+        // A Waze route carries no arrow and a no-arrow encoding on this channel is unproven: it is
+        // handled as "no guidance" (one stop when this channel was guiding, else nothing).
+        val s = snapshot?.takeUnless { it.owner == NavAppId.WAZE }
         if (s == null) {
             if (guiding) sendStop()
             return

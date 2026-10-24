@@ -121,7 +121,7 @@ class HudAmapClusterLoop(
      *  TYPE 0; the first one since the last KILL writes the leftover key, only once it went out. */
     internal fun tick() {
         val s = NavGuidanceHub.snapshot(nowMsProvider())
-        if (!s.active) {
+        if (!s.showsGuidance()) {
             if (sentSinceKill) kill()
             return
         }

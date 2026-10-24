@@ -17,6 +17,8 @@ import com.bydmate.app.media.KnobPlayPause
 import com.bydmate.app.navdata.NavA11yFeed
 import com.bydmate.app.navdata.NavCaptureBridge
 import com.bydmate.app.navdata.NavCaptureA11yCallbacks
+import com.bydmate.app.navdata.waze.WazeHudFeed
+import com.bydmate.app.navdata.waze.WazeNavBarReader
 import com.bydmate.app.service.TrackingService
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -223,6 +225,11 @@ class SteeringWheelKeyService : AccessibilityService() {
         return findRootForPackages(com.bydmate.app.navdata.NavPackages.GUIDANCE_SOURCES)
     }
 
+    /** Root of the Waze window only while it is the ACTIVE window (never the window list, so a Waze
+     *  window behind another app is not read). Caller must recycle the returned node. */
+    fun findActiveWazeRoot(): android.view.accessibility.AccessibilityNodeInfo? =
+        WazeNavBarReader.activeRoot(runCatching { rootInActiveWindow }.getOrNull())
+
     /** Capture is scoped to the user-selected Google Maps or Waze package, never the HUD source set. */
     fun findCaptureRoot(packageName: String): android.view.accessibility.AccessibilityNodeInfo? =
         findRootForPackages(setOf(packageName))
@@ -274,6 +281,7 @@ class SteeringWheelKeyService : AccessibilityService() {
             }
         }
         NavA11yFeed.onEvent(this, event)
+        WazeHudFeed.onEvent(event)
         // Whoever just took the MAIN screen, reported the moment it happens: the blind-spot
         // window has to be gone before the native 360 view is drawn, and the UsageStats poll is
         // half a second behind. Events from the cluster are dropped by the filter, and the poll

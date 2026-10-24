@@ -1618,6 +1618,8 @@
     <string name="settings_hud_desc">Wskazówki Yandex Nawigatora na wyświetlaczu przeziernym: manewr, dystans, ulica, przyjazd</string>
     <string name="settings_hud_speed_sign_title">Znak prędkości pod strzałką</string>
     <string name="settings_hud_speed_sign_desc">Czerwony znak ograniczenia prędkości w dolnym polu HUD</string>
+    <string name="settings_hud_waze_title">Prowadzenie Waze (eksperyment)</string>
+    <string name="settings_hud_waze_desc">Pokazuje odległość i następną ulicę z Waze, gdy okno Waze jest na wierzchu. Bez strzałki. HUD gaśnie, gdy odległość nie zmienia się przez 10 s. Wymaga włączonej dostępności BYDMate.</string>
     <string name="settings_hud_status_unsupported">Nie znaleziono magistrali SOME/IP: w tym aucie wyświetlanie na HUD jest niedostępne</string>
     <string name="settings_hud_status_connecting">Łączenie z magistralą…</string>
     <string name="settings_hud_status_on">Przesyłanie na HUD aktywne</string>

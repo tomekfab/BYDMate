@@ -8,6 +8,9 @@ Full releases with APKs: <https://github.com/AndyShaman/BYDMate/releases>.
 
 ## [Unreleased]
 
+### Added
+- Experimental Waze HUD feed, off by default: distance and street from the active Waze window, without an arrow. Unchanged readings expire after 10 seconds. Replay-tested on one Polish, metric route; physical-car behavior remains unverified.
+
 ## [4.0.1] - 2026-10-14
 
 ### Added
