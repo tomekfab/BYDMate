@@ -16,7 +16,9 @@ import com.bydmate.app.voice.openclaw.AssistantActionResult
 import com.bydmate.app.voice.openclaw.NoAssistantActions
 import com.bydmate.app.voice.openclaw.ParsedEnvelope
 import com.bydmate.app.voice.openclaw.ProposalInput
+import com.bydmate.app.agent.ActionConfirmer
 import com.bydmate.app.agent.ActionExecutor
+import com.bydmate.app.agent.ConfirmResult
 import com.bydmate.app.agent.ActionOrigin
 import com.bydmate.app.agent.ActionOutcome
 import com.bydmate.app.agent.ActionRegistry
@@ -115,6 +117,8 @@ class PolishVoiceControllerTest {
         agentName: String = "",
         ttsEnabled: Boolean = false,
         aliasResult: AliasRunResult = AliasRunResult.Executed(ActionOutcome.Done),
+        contacts: VoiceContacts = NoVoiceContacts,
+        confirmer: ActionConfirmer = NoCallConfirmer,
     ): Rig {
         val gate = mockk<VoiceGate> {
             every { isEnabled() } returns true
@@ -153,6 +157,8 @@ class PolishVoiceControllerTest {
             userPhrases = userPhrases,
             assistant = assistant,
             assistantActions = assistantActions,
+            contacts = contacts,
+            confirmer = confirmer,
         )
         return Rig(controller, asr, engine, assistant, journal, tts, assistantActions, aliasCoordinator, aliasRuns).also { r ->
             coEvery { dispatcher.dispatch(any<ActionDef>(), any()) } answers {
@@ -927,5 +933,73 @@ class PolishVoiceControllerTest {
 
         assertEquals(VoiceJournalEntry.Outcome.ERROR, entry.outcome)
         assertTrue(listOfNotNull(entry.reason, entry.refusal).none { "secret internal detail" in it })
+    }
+
+    private fun phoneBook(vararg names: String) = object : VoiceContacts {
+        override fun hasPermission(): Boolean = true
+        override suspend fun all(): List<VoiceContact> = names.mapIndexed { i, n -> VoiceContact(n, "+4860000000$i") }
+    }
+
+    private class RecordingConfirmer(private val answer: ConfirmResult) : ActionConfirmer {
+        val asked: MutableList<String> = Collections.synchronizedList(mutableListOf())
+        override suspend fun confirm(title: String, summary: String): ConfirmResult {
+            asked += summary
+            return answer
+        }
+    }
+
+    @Test fun a_misheard_contact_name_is_called_offline_without_confirmation() {
+        val confirmer = RecordingConfirmer(ConfirmResult.DECLINED)
+        val rig = rig(null, VoiceUserPhrases(), contacts = phoneBook("Jan Kowalski", "Jola Gil"), confirmer = confirmer)
+        val entry = rig.say("zadzwon do Yola Gil")
+        awaitTrue { rig.dispatched.isNotEmpty() }
+        val call = rig.dispatched.single()
+        assertEquals("call", call.kind)
+        assertEquals("+48600000001", JSONObject(call.payload!!).getString("phone"))
+        assertEquals(true, JSONObject(call.payload!!).getBoolean("autoDial"))
+        assertEquals(VoiceJournalEntry.Outcome.OK, entry.outcome)
+        assertEquals(false, entry.toString().contains("+48600000001"))
+        assertEquals(emptyList<String>(), confirmer.asked.toList())
+        coVerify(exactly = 0) { rig.assistant.ask(any(), any()) }
+    }
+
+    @Test fun a_loose_contact_match_is_confirmed_before_the_call() {
+        val confirmer = RecordingConfirmer(ConfirmResult.CONFIRMED)
+        val rig = rig(null, VoiceUserPhrases(), contacts = phoneBook("Jola Gil"), confirmer = confirmer)
+        rig.say("zadzwoń do Jolanta Gil")
+        awaitTrue { rig.dispatched.isNotEmpty() }
+        assertEquals(listOf("Zadzwonić do Jola Gil?"), confirmer.asked.toList())
+        assertEquals("+48600000000", JSONObject(rig.dispatched.single().payload!!).getString("phone"))
+        coVerify(exactly = 0) { rig.assistant.ask(any(), any()) }
+    }
+
+    @Test fun a_declined_or_unavailable_confirmation_never_calls() {
+        for (answer in listOf(ConfirmResult.DECLINED, ConfirmResult.TIMED_OUT, ConfirmResult.UNAVAILABLE)) {
+            val confirmer = RecordingConfirmer(answer)
+            val rig = rig(null, VoiceUserPhrases(), contacts = phoneBook("Jola Gil"), confirmer = confirmer)
+            val entry = rig.say("zadzwoń do Jolanta Gil")
+            assertEquals(answer.name, VoiceJournalEntry.Outcome.BLOCKED, entry.outcome)
+            assertEquals(answer.name, 1, confirmer.asked.size)
+            rig.assertNothingRan("zadzwoń do Jolanta Gil")
+        }
+    }
+
+    @Test fun an_unknown_contact_or_missing_permission_is_answered_locally() {
+        val unknown = rig(null, VoiceUserPhrases(), contacts = phoneBook("Mama"))
+        val entry = unknown.say("zadzwoń do Zbigniewa Brzęczyszczykiewicza")
+        assertEquals(VoiceRefusal.gate("contact_not_found"), entry.refusal)
+        unknown.assertNothingRan("unknown")
+
+        val noPermission = rig(null, VoiceUserPhrases())
+        val denied = noPermission.say("zadzwoń do mamy")
+        assertEquals(VoiceRefusal.gate("contacts_permission"), denied.refusal)
+        noPermission.assertNothingRan("no permission")
+    }
+
+    @Test fun a_negated_call_never_dials_or_reaches_the_assistant() {
+        val rig = rig(null, VoiceUserPhrases(), contacts = phoneBook("Mama"))
+        val entry = rig.say("nie dzwoń do mamy")
+        assertEquals(NluRefusal.NEGATED, entry.refusal)
+        rig.assertNothingRan("nie dzwoń do mamy")
     }
 }

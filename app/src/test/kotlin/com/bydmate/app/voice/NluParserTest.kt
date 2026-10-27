@@ -150,6 +150,32 @@ class NluParserTest {
         }
     }
 
+    @Test fun call_phrases_keep_the_raw_contact_name() {
+        for ((text, name) in listOf(
+            "zadzwoń do Jola Gil" to "Jola Gil",
+            "zadzwon do Yola Gil" to "Yola Gil",
+            "Zadzwoń do mamy." to "mamy",
+            "dzwoń do Tomka" to "Tomka",
+            "zadzwoń proszę do Kasi" to "Kasi",
+            "połącz się z Kasią" to "Kasią",
+            "połącz z Jolą Gil" to "Jolą Gil",
+        )) {
+            assertEquals(text, ParseResult.CallContact(name), NluParser.parse(text, VoiceLanguage.PL))
+        }
+    }
+
+    @Test fun call_phrases_cannot_bypass_negation_or_quotation_and_need_a_name() {
+        for ((text, reason) in listOf(
+            "nie dzwoń do mamy" to NluRefusal.NEGATED,
+            "nie zadzwoń do Jola Gil" to NluRefusal.NEGATED,
+            "powiedział zadzwoń do mamy" to NluRefusal.QUOTED,
+            "zadzwoń do" to NluRefusal.CALL_INCOMPLETE,
+            "zadzwoń do." to NluRefusal.CALL_INCOMPLETE,
+        )) {
+            assertEquals(text, NluVerdict.Refused(reason), NluParser.classify(text, VoiceLanguage.PL))
+        }
+    }
+
     @Test fun destination_navigation_cannot_bypass_negation_or_quotation() {
         for ((text, reason) in listOf(
             "nawiguj do Janowskiego 82, niejedź tam" to NluRefusal.NEGATED,

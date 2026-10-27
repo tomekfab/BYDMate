@@ -39,6 +39,7 @@ object PolishGoldenCorpus {
         ParseResult.NavigateHome -> "NAVIGATE_HOME"
         ParseResult.NavigateWork -> "NAVIGATE_WORK"
         is ParseResult.NavigateDestination -> "NAVIGATE_DESTINATION:" + result.destination
+        is ParseResult.CallContact -> "CALL:" + result.name
         ParseResult.Unrecognized -> "UNRECOGNIZED"
     }
 

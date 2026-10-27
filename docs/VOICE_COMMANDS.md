@@ -215,6 +215,20 @@ The front trunk is not in the offline list. The assistant can open it only while
 | Enable daytime running lights | `włącz światła dzienne`, `włącz DRL` |
 | Disable daytime running lights | `wyłącz światła dzienne`, `wyłącz DRL` |
 
+## Phone calls
+
+| Result | How to say it |
+| --- | --- |
+| Call a contact | `zadzwoń do Jola Gil`, `zadzwoń do mamy`, `dzwoń do Tomka`, `połącz się z Kasią` |
+
+The name is matched against the phone book on the head unit; nothing is sent to the assistant. BYDMate needs the contacts permission (**Settings → Voice agent**).
+
+- Case, diacritics, and punctuation do not count. Polish case endings are read back to the name: `do Marka` finds `Marek`, `do Joli` finds `Jola`.
+- If the name is at most 2 letters off and no other contact is nearly as close, BYDMate calls at once. `zadzwon do Yola Gil` calls `Jola Gil`. Short names allow fewer letters: one letter per four, so `Ela` never calls `Ola` without asking.
+- Otherwise BYDMate says `Zadzwonić do <name>?` and shows a confirmation on the screen. Tap to call. It also asks when two contacts are equally close.
+- If no contact is close, BYDMate says that it did not find the contact.
+- `nie dzwoń do …` is refused and calls nobody.
+
 ## Safety
 
 The same limits apply as to the assistant and automations: windows do not open above 120 km/h, the sunroof does not open above 80 km/h, and doors do not unlock above 30 km/h.

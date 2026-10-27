@@ -78,4 +78,22 @@ class ContactLookupTest {
         assertEquals(1, matches.size)
         assertEquals("Mama", matches[0].name)
     }
+
+    @Test fun phone_book_keeps_same_named_contacts_apart_and_one_number_per_contact() {
+        val lookup = ContactLookup(context)
+        val book = lookup.uniquePerContact(listOf(
+            ContactLookup.PhoneRow(1L, "Jan Kowalski", "+48 111"),
+            ContactLookup.PhoneRow(1L, "Jan Kowalski", "+48 222"), // second number of the same contact
+            ContactLookup.PhoneRow(2L, "Jan Kowalski", "+48 333"), // another person, same name
+            ContactLookup.PhoneRow(3L, null, "+48 444"),
+            ContactLookup.PhoneRow(4L, "Mama", " "),
+        ))
+        assertEquals(
+            listOf(
+                com.bydmate.app.voice.VoiceContact("Jan Kowalski", "+48 111"),
+                com.bydmate.app.voice.VoiceContact("Jan Kowalski", "+48 333"),
+            ),
+            book,
+        )
+    }
 }

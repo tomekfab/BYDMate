@@ -169,8 +169,12 @@ object PolishVoiceTextRules : VoiceTextRules {
         "zmień", "zmien", "aktywuj", "dezaktywuj", "złóż", "zloz", "rozłóż", "rozloz", "zapal", "puść", "pusc", "zagraj", "nawiguj",
         "obniż", "obniz", "zasłoń", "zasłon", "zaslon", "odsłoń", "odsłon", "odslon", "podwyższ", "podwyzsz",
     )
-    // Whole words only: "jedz" as a prefix would take "jedzenie".
-    private val VERB_WORDS = setOf("prowadź", "prowadz", "jedź", "jedz", "jedźmy", "jedzmy")
+    // Whole words only: "jedz" as a prefix would take "jedzenie", "połącz" would take "połączenie".
+    // The call verbs are here so "nie dzwoń do mamy" is refused, never handed to the assistant.
+    private val VERB_WORDS = setOf(
+        "prowadź", "prowadz", "jedź", "jedz", "jedźmy", "jedzmy",
+        "zadzwoń", "zadzwon", "zadzwonić", "zadzwonic", "dzwoń", "dzwon", "połącz", "polacz",
+    )
 
     private val TERM_STEMS = listOf(
         "okn", "okien", "szyb", "szyberdach", "werdach", "dach", "rolet", "zasłon", "zaslon", "klim", "temperatur", "stopn", "stopie", "siedzen", "siedzeń",
