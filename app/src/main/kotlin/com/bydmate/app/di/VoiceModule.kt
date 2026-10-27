@@ -6,6 +6,7 @@ import com.bydmate.app.agent.ActionConfirmer
 import com.bydmate.app.agent.ActionExecutor
 import com.bydmate.app.agent.ActionRegistry
 import com.bydmate.app.agent.ActionValidating
+import com.bydmate.app.agent.ContactLookup
 import com.bydmate.app.agent.DispatcherActionExecutor
 import com.bydmate.app.agent.OverlayActionConfirmer
 import com.bydmate.app.agent.RegistryActionValidator
@@ -115,6 +116,9 @@ object VoiceModule {
     @Provides @Singleton
     fun provideActionLedger(@ApplicationContext ctx: Context, identity: OpenClawIdentityStore) =
         ActionLedger(File(ctx.noBackupFilesDir, OpenClawIdentityStore.DIRECTORY_NAME), { identity.identity()?.deviceId })
+
+    @Provides
+    fun provideVoiceContacts(lookup: ContactLookup): VoiceContacts = lookup
 
     @Provides @Singleton
     fun provideActionConfirmer(@ApplicationContext ctx: Context): ActionConfirmer = OverlayActionConfirmer(ctx)

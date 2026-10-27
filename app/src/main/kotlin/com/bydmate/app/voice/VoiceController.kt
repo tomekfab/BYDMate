@@ -17,7 +17,9 @@ import com.bydmate.app.R
 import com.bydmate.app.data.local.entity.ActionDef
 import com.bydmate.app.diagnostics.Trace
 import com.bydmate.app.diagnostics.TraceArea
+import com.bydmate.app.agent.ActionConfirmer
 import com.bydmate.app.agent.ActionOutcome
+import com.bydmate.app.agent.ConfirmResult
 import com.bydmate.app.ui.overlay.ListeningOverlay
 import com.bydmate.app.util.AppStrings
 import com.bydmate.app.util.appLocalizedContext
@@ -81,6 +83,10 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
     private val assistant: VoiceAssistant = NoAssistant,
     /** Validates, confirms and runs what the assistant proposes; its lines are the only ones spoken for a proposal. */
     private val assistantActions: AssistantActionHandler = NoAssistantActions,
+    /** The phone book of the offline call command; read only when a call phrase is heard. */
+    private val contacts: VoiceContacts = NoVoiceContacts,
+    /** Confirms a call whose name matched only loosely (the on-screen overlay in production). */
+    private val confirmer: ActionConfirmer = NoCallConfirmer,
 ) {
     // Process-lifetime scope (@Singleton): intentionally never cancelled.
     private val scope = CoroutineScope(SupervisorJob())
@@ -824,6 +830,7 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
             )
             NavDestinationCheck.Invalid -> Resolution.Reject(NluRefusal.UNSUPPORTED)
         }
+        is ParseResult.CallContact -> Resolution.Call(r.name)
         // A value the car does not report goes to the agent, never a made-up answer; so does
         // every question while the snapshot is not live: it is never cleared on transport
         // loss, and the range, kept elsewhere, would be just as old.
@@ -848,6 +855,7 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
             Resolution.Music -> dispatchMusic(transcript, decodeMs)
             is Resolution.Navigate -> dispatchNavigate(res.shortcut, transcript, decodeMs)
             is Resolution.NavigateDestination -> dispatchNavigateDestination(res.action, transcript, decodeMs)
+            is Resolution.Call -> dispatchCall(res.name, transcript, decodeMs)
             is Resolution.Answer -> answer(res, transcript, decodeMs)
             is Resolution.Auto -> fireAutomation(res.match, transcript, decodeMs)
             is Resolution.Reject -> rejectLocally(res.reason, transcript, decodeMs)
@@ -1119,6 +1127,84 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
     private suspend fun dispatchNavigateDestination(action: ActionDef, transcript: String, decodeMs: Long?) {
         if (dispatchMedia(action, "navigate", transcript, decodeMs)) {
             scheduleSessionClose("navigate", waitForSpeech = true)
+        }
+    }
+
+    /**
+     * "zadzwoń do <name>": the spoken name is matched against the phone book on the device
+     * ([ContactNameMatcher]). A close, unique match is dialed at once; a loose one is said and
+     * shown for confirmation first. Nothing goes to the assistant. The phone number is never
+     * logged, journaled, shown or said: only the contact's name.
+     */
+    // Cancellation propagates; an unreadable phone book becomes a fixed local reply without exception data.
+    @Suppress("TooGenericExceptionCaught", "SwallowedException")
+    private suspend fun dispatchCall(spokenName: String, transcript: String, decodeMs: Long?) {
+        suspend fun stopped(reason: String, refusal: String) {
+            earcon.fail()
+            _state.value = VoiceUiState.Blocked(reason)
+            statusTurn()?.finish(VoiceStage.REFUSED)
+            record(nluEntry(transcript, decodeMs, CALL_LABEL, VoiceJournalEntry.Outcome.BLOCKED)
+                .copy(reason = reason, refusal = refusal), "NLU call stopped: refusal=$refusal transcript=\"$transcript\"")
+            announce("Głos", lines.refused(transcript, reason), reason)
+        }
+        if (!runCatching { contacts.hasPermission() }.getOrDefault(false)) {
+            return stopped(CALL_NO_PERMISSION, VoiceRefusal.gate("contacts_permission"))
+        }
+        statusTurn()?.running()
+        val book = try {
+            contacts.all()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            return stopped(CALL_UNREADABLE, VoiceRefusal.gate("contacts_unreadable"))
+        }
+        when (val match = ContactNameMatcher.match(spokenName, book)) {
+            ContactMatch.NotFound ->
+                stopped(callNotFound(spokenName), VoiceRefusal.gate("contact_not_found"))
+            is ContactMatch.Direct -> placeCall(match.contact, transcript, decodeMs)
+            is ContactMatch.Confirm -> {
+                val question = callQuestion(match.contact.name)
+                Log.i(TAG, "NLU call confirming: transcript=\"$transcript\"")
+                statusTurn()?.finish(VoiceStage.CONFIRM_ON_SCREEN)
+                announce("Głos", question, question)
+                when (confirmer.confirm(CALL_CONFIRM_TITLE, question)) {
+                    ConfirmResult.CONFIRMED -> placeCall(match.contact, transcript, decodeMs)
+                    ConfirmResult.DECLINED ->
+                        stopped(PolishActionText.DECLINED, VoiceRefusal.gate("confirm_declined"))
+                    ConfirmResult.TIMED_OUT ->
+                        stopped(PolishActionText.TIMED_OUT, VoiceRefusal.gate("confirm_timed_out"))
+                    ConfirmResult.UNAVAILABLE ->
+                        stopped(PolishActionText.NO_OVERLAY, VoiceRefusal.gate("confirm_unavailable"))
+                }
+            }
+        }
+    }
+
+    /** Dials [contact] through the dispatcher's `call` action (dial screen, then the BT dial key), and
+     *  closes the session after the reply so the microphone is not open during the call. */
+    private suspend fun placeCall(contact: VoiceContact, transcript: String, decodeMs: Long?) {
+        statusTurn()?.running()
+        val action = ActionDef(command = "", displayName = contact.name, kind = "call",
+            payload = JSONObject().put("phone", contact.phone).put("autoDial", true).toString())
+        val result = actionDispatcher.dispatch(action, data = gate.vehicleSnapshot())
+        if (result.success) {
+            val text = callingText(contact.name)
+            earcon.ok()
+            _state.value = VoiceUiState.Done(transcript)
+            statusTurn()?.finish(VoiceStage.DONE)
+            record(nluEntry(transcript, decodeMs, CALL_LABEL, VoiceJournalEntry.Outcome.OK).copy(answer = text),
+                "NLU dispatched: cmd=call transcript=\"$transcript\"")
+            announce("Głos", text, text, done = true)
+            scheduleSessionClose(CALL_LABEL, waitForSpeech = true)
+        } else {
+            val reason = result.reason ?: transcript
+            earcon.fail()
+            _state.value = VoiceUiState.Blocked(reason)
+            statusTurn()?.finish(VoiceStage.REFUSED)
+            record(nluEntry(transcript, decodeMs, CALL_LABEL, VoiceJournalEntry.Outcome.BLOCKED)
+                .copy(reason = reason, refusal = VoiceRefusal.DISPATCH_FAILED),
+                "NLU blocked: cmd=call transcript=\"$transcript\" reason=$reason")
+            announce("Głos", lines.refused(transcript, reason), "Nie udało się")
         }
     }
 
@@ -1573,6 +1659,8 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
         /** [shortcut] is the navigate payload's `shortcut`: [NAVIGATE_HOME] or [NAVIGATE_WORK]. */
         data class Navigate(val shortcut: String) : Resolution
         data class NavigateDestination(val action: ActionDef) : Resolution
+        /** A phone call; [name] is the raw spoken name, matched against the phone book when applied. */
+        data class Call(val name: String) : Resolution
         data object Music : Resolution
         /** A dictionary question with the value known: [text] is said, nothing is dispatched. */
         data class Answer(val question: VehicleQuestion, val text: String) : Resolution {
@@ -1590,7 +1678,7 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
         val route: String get() = when (this) {
             is Cmd -> if (label.startsWith("phrase:")) "phrase" else "nlu"
             is Alias -> "phrase"
-            is RelTemp, is Vol, Music, is Navigate, is NavigateDestination, is Answer -> "nlu"
+            is RelTemp, is Vol, Music, is Navigate, is NavigateDestination, is Call, is Answer -> "nlu"
             is Auto -> "automation"
             is Reject, is Unavailable -> "nlu"
             is None -> "agent"
@@ -1604,6 +1692,14 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
 
     companion object {
         private const val TAG = "VoiceController"
+
+        private const val CALL_LABEL = "call"
+        private const val CALL_CONFIRM_TITLE = "Połączenie"
+        private const val CALL_NO_PERMISSION = "Brak dostępu do kontaktów. Włącz go w ustawieniach."
+        private const val CALL_UNREADABLE = "Nie udało się odczytać kontaktów."
+        private fun callNotFound(name: String) = "Nie znalazłem kontaktu $name."
+        private fun callQuestion(name: String) = "Zadzwonić do $name?"
+        private fun callingText(name: String) = "Dzwonię: $name"
 
         private const val NAVIGATE_HOME = "home"
         private const val NAVIGATE_WORK = "work"

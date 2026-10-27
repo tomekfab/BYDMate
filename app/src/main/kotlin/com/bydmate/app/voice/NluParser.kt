@@ -20,6 +20,8 @@ sealed interface ParseResult {
     data object NavigateWork : ParseResult
     /** A local Polish destination query, retained exactly for the selected navigation app. */
     data class NavigateDestination(val destination: String) : ParseResult
+    /** A phone call to a contact; [name] is the raw spoken name, matched against the phone book later. */
+    data class CallContact(val name: String) : ParseResult
     data object Music : ParseResult
     data object Unrecognized : ParseResult
 }
@@ -38,6 +40,8 @@ object NluRefusal {
     const val UNSUPPORTED = "command_unsupported"
     /** A supported local-navigation prefix ended after its required preposition. */
     const val NAV_INCOMPLETE = "command_nav_incomplete"
+    /** A call prefix ("zadzwoń do") with no name after it. */
+    const val CALL_INCOMPLETE = "command_call_incomplete"
 }
 
 /** What the dictionary made of one utterance. */
@@ -150,6 +154,7 @@ object NluParser {
         if (refusal == NluRefusal.NEGATED || refusal == NluRefusal.QUOTED) {
             return NluVerdict.Refused(refusal)
         }
+        recognizePolishCall(text, rules, compound)?.let { return it }
         recognizePolishDestination(text, rules, compound)?.let { return it }
         Log.i(TAG, "no match: words=${words.joinToString(" ").take(80)}")
         if (!rules.refusesRejectedCommands) return NluVerdict.Unknown
@@ -207,6 +212,18 @@ object NluParser {
         }
     }
 
+    /** "zadzwoń do <name>": like a destination, the name stays raw for the phone-book match. */
+    private fun recognizePolishCall(text: String, rules: VoiceTextRules, compound: Compound): NluVerdict? {
+        if (rules.language != VoiceLanguage.PL || compound.hasConnector) return null
+        val match = POLISH_CALL.matchEntire(text.trim()) ?: return null
+        val name = (match.groups[1] ?: match.groups[2])?.value.orEmpty().trim(*NAME_PUNCTUATION).trim()
+        return if (name.isEmpty()) {
+            NluVerdict.Refused(NluRefusal.CALL_INCOMPLETE)
+        } else {
+            NluVerdict.Match(ParseResult.CallContact(name))
+        }
+    }
+
     /** A run of at least two words inside [words] that is a complete action phrase of the dictionary:
      *  a familiar command with something else around it. It is refused, not extracted. Questions
      *  and the "it is cold" statements do not count: those stay harmless without a verb. */
@@ -242,6 +259,16 @@ object NluParser {
             hasConnector = true,
         )
     }
+
+    private val NAME_PUNCTUATION = charArrayOf('.', ',', '!', '?', '…', ' ')
+
+    private val POLISH_CALL = Regex(
+        "(?:(?:hej|słuchaj|sluchaj)[,\\s]+)?" +
+            "(?:(?:zadzwoń|zadzwon|zadzwonić|zadzwonic|dzwoń|dzwon)(?:[,\\s]+(?:proszę|prosze))?[,\\s]+do(?:\\s+(.*))?" +
+            "|(?:połącz|polacz)(?:\\s+(?:się|sie))?(?:[,\\s]+(?:proszę|prosze))?\\s+z(?:\\s+(.*))?)" +
+            "[.!?…]?",
+        RegexOption.IGNORE_CASE,
+    )
 
     private val POLISH_DESTINATION = Regex(
         "(?:nawiguj|prowadź|prowadz|jedź|jedz|jedźmy|jedzmy|(?:włącz|wlacz|uruchom)\\s+nawigacj(?:ę|e))\\s+(?:do|na)(?:\\s+(.*))?",
