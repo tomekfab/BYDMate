@@ -56,6 +56,7 @@ class OpenClawConnectionCoordinatorTest {
         private val tailscaleResult: TailscaleStartup.ConnectionRequestResult =
             TailscaleStartup.ConnectionRequestResult(receiverSupported = true, sent = true),
         statusSource: (StateFlow<OpenClawStatus>) -> StateFlow<OpenClawStatus> = { it },
+        now: (() -> Long)? = null,
     ) {
         val status = MutableStateFlow(OpenClawStatus(true, "wss://gateway.example.ts.net/", true, OpenClawLinkState.Disconnected))
         val edges = MutableStateFlow(0L)
@@ -102,6 +103,7 @@ class OpenClawConnectionCoordinatorTest {
                 tailscaleResult
             },
             retryDelay = { ms -> delays += ms; delay(ms) },
+            now = now ?: { 0L },
             diagnostic = { what, fields ->
                 if (traceSinkThrows) error("sink down")
                 eventsAtTrace += events.toList()
@@ -178,6 +180,39 @@ class OpenClawConnectionCoordinatorTest {
 
         assertEquals(7, rig.automaticCalls)
         assertEquals(1, rig.tailscaleCalls)
+    }
+
+    @Test fun `a long outage asks Tailscale again from the timer at most every five minutes`() = runTest {
+        val rig = Rig(backgroundScope, automatic = { attempt(failNetwork) }, now = { testScheduler.currentTime })
+
+        rig.start(context)
+        runCurrent()
+        // Retries land at 5, 15, 35, 75, 135 s and then every 60 s: the hint repeats on the first
+        // retry at least five minutes after the last one (315 s, then 615 s), never in between.
+        advanceTimeBy(11 * 60_000L)
+        runCurrent()
+
+        assertEquals(3, rig.tailscaleCalls)
+        assertEquals(
+            listOf("start", "timer", "timer"),
+            rig.traces.map { it.second }.filter { it["hint"] == "requested" }.map { it["origin"] },
+        )
+    }
+
+    @Test fun `a hint from a service event restarts the five minute wait`() = runTest {
+        val rig = Rig(backgroundScope, automatic = { attempt(failNetwork) }, now = { testScheduler.currentTime })
+
+        rig.start(context)
+        runCurrent()
+        advanceTimeBy(4 * 60_000L)
+        runCurrent()
+        rig.coordinator.onWake()
+        runCurrent()
+        // Without the wake the timer would repeat the hint at 315 s; after it the next is due at 9 min.
+        advanceTimeBy(4 * 60_000L)
+        runCurrent()
+
+        assertEquals(2, rig.tailscaleCalls)
     }
 
     @Test fun `Ready resets the retry delay and a wake sends the next Tailscale hint`() = runTest {

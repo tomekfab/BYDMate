@@ -1,6 +1,7 @@
 package com.bydmate.app.voice.openclaw
 
 import android.content.Context
+import android.os.SystemClock
 import com.bydmate.app.diagnostics.Trace
 import com.bydmate.app.diagnostics.TraceArea
 import com.bydmate.app.service.TailscaleStartup
@@ -28,13 +29,18 @@ internal data class TailscaleHintDiagnostic(
 )
 
 /** Coordinates one service-owned automatic OpenClaw recovery session. */
-@Suppress("TooManyFunctions") // One service-owned recovery session keeps admission, retries and cancellation under its monitor.
+@Suppress(
+    "TooManyFunctions", // One service-owned recovery session keeps admission, retries and cancellation under its monitor.
+    "LongParameterList", // Three of the parameters are test seams with production defaults.
+)
 internal class OpenClawConnectionCoordinator(
     private val assistantStatus: StateFlow<OpenClawStatus>,
     private val reconnectIfEligible: suspend (onAdmitted: () -> Unit) -> AutomaticReconnectResult,
     private val reconnectManually: suspend () -> OpenClawLinkState,
     private val requestTailscale: (Context) -> TailscaleStartup.ConnectionRequestResult,
     private val retryDelay: suspend (Long) -> Unit = { delay(it) },
+    // Monotonic clock for spacing repeated Tailscale requests. A test seam.
+    private val now: () -> Long = { SystemClock.elapsedRealtime() },
     // Records automatic decisions with fixed codes only. A test seam; a failure never affects recovery.
     @Suppress("SpreadOperator") // at most five fields per decision
     private val diagnostic: (String, List<Pair<String, String>>) -> Unit = { what, fields ->
@@ -59,6 +65,8 @@ internal class OpenClawConnectionCoordinator(
     private var pendingManual = false
     private var pendingTailscaleHint = false
     private var staleSkips = 0
+    // When the last Tailscale request went out (null: none yet in this session).
+    private var lastHintAtMs: Long? = null
 
     /** Starts a session that is owned by exactly one foreground service instance. */
     fun start(serviceContext: Context, serviceScope: CoroutineScope, reachableNetworkEdges: Flow<Long>) {
@@ -69,6 +77,7 @@ internal class OpenClawConnectionCoordinator(
             pendingManual = false
             pendingTailscaleHint = false
             staleSkips = 0
+            lastHintAtMs = null
             mutableRecovery.value = OpenClawRecoveryState.Idle
             mutableTailscaleHint.value = null
             Session(serviceContext, serviceScope).also { session = it }
@@ -153,7 +162,11 @@ internal class OpenClawConnectionCoordinator(
         startManualLocked(activeSession)
     }
 
-    private fun startAutomaticLocked(activeSession: Session, origin: TriggerOrigin, tailscaleHint: Boolean) {
+    private fun startAutomaticLocked(activeSession: Session, origin: TriggerOrigin, serviceHint: Boolean) {
+        // A service event always asks Tailscale. A retry asks again only once the last request is
+        // [TAILSCALE_REPEAT_MS] old: a request can be lost (Tailscale stopped, or no service event
+        // fired when the car started), and the retries would otherwise never bring the VPN back.
+        val tailscaleHint = serviceHint || (origin.repeatsHint && hintDueLocked())
         attemptJob = activeSession.scope.launch {
             val self = coroutineContext[Job]
             val result = reconnectIfEligible { onAdmitted(activeSession, self, origin, tailscaleHint) }
@@ -172,6 +185,7 @@ internal class OpenClawConnectionCoordinator(
         }.getOrNull() else null
         synchronized(monitor) {
             if (session !== activeSession || attemptJob !== self) return
+            if (tailscaleHint) lastHintAtMs = now()
             if (hint != null) mutableTailscaleHint.value = hint
             mutableRecovery.value = OpenClawRecoveryState.Connecting(hint)
             val outcome = when {
@@ -186,6 +200,8 @@ internal class OpenClawConnectionCoordinator(
             recordLocked(origin, "admitted", outcome)
         }
     }
+
+    private fun hintDueLocked(): Boolean = lastHintAtMs?.let { now() - it >= TAILSCALE_REPEAT_MS } ?: false
 
     private fun isCurrentAttempt(activeSession: Session, self: Job?): Boolean =
         synchronized(monitor) { session === activeSession && attemptJob === self }
@@ -276,7 +292,7 @@ internal class OpenClawConnectionCoordinator(
                 // The assistant skipped, yet the latest status is eligible: the settings changed while the
                 // attempt ran. Evaluate once more now (no hint: nothing was admitted), then use the timer so
                 // a persistent mismatch cannot spin.
-                if (staleSkips++ == 0) startAutomaticLocked(activeSession, TriggerOrigin.Stale, tailscaleHint = false)
+                if (staleSkips++ == 0) startAutomaticLocked(activeSession, TriggerOrigin.Stale, serviceHint = false)
                 else scheduleRetryLocked(activeSession, null)
             }
             returnedReady -> {
@@ -317,8 +333,8 @@ internal class OpenClawConnectionCoordinator(
             synchronized(monitor) {
                 if (session !== activeSession || retryJob !== coroutineContext[Job]) return@launch
                 retryJob = null
-                // A timer retries OpenClaw only. Tailscale hints are reserved for service events.
-                startAutomaticLocked(activeSession, TriggerOrigin.Timer, tailscaleHint = false)
+                // A timer retry repeats the Tailscale hint only once the last one is old enough.
+                startAutomaticLocked(activeSession, TriggerOrigin.Timer, serviceHint = false)
             }
         }
     }
@@ -368,13 +384,16 @@ internal class OpenClawConnectionCoordinator(
         }
     }
 
-    /** What started an automatic attempt. Only service events may request a Tailscale hint. */
-    private enum class TriggerOrigin(val code: String, val tailscaleHint: Boolean) {
+    /**
+     * What started an automatic attempt. Service events always request a Tailscale hint; a timer or
+     * status retry repeats it at most every [TAILSCALE_REPEAT_MS]; a stale re-evaluation never does.
+     */
+    private enum class TriggerOrigin(val code: String, val tailscaleHint: Boolean, val repeatsHint: Boolean = false) {
         Start("start", tailscaleHint = true),
         Wake("wake", tailscaleHint = true),
         Network("network", tailscaleHint = true),
-        Timer("timer", tailscaleHint = false),
-        Status("status", tailscaleHint = false),
+        Timer("timer", tailscaleHint = false, repeatsHint = true),
+        Status("status", tailscaleHint = false, repeatsHint = true),
         Stale("stale", tailscaleHint = false),
     }
 
@@ -397,5 +416,6 @@ internal class OpenClawConnectionCoordinator(
         val RETRY_DELAYS_MS = longArrayOf(5_000, 10_000, 20_000, 40_000, 60_000)
         const val TRACE_EVENT = "openclaw_auto"
         const val FIELD_HINT = "hint"
+        const val TAILSCALE_REPEAT_MS = 5 * 60_000L
     }
 }

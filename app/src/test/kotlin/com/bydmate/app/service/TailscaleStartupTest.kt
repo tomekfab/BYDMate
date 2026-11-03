@@ -31,6 +31,16 @@ class TailscaleStartupTest {
         assertTrue(result.sent)
     }
 
+    @Test fun `the request also reaches a force-stopped Tailscale and is delivered promptly`() {
+        TailscaleStartup.requestConnection(context)
+
+        val request = shadowOf(context as android.app.Application).broadcastIntents
+            .single { it.action == "com.tailscale.ipn.CONNECT_VPN" }
+        // Without it Android drops the broadcast for a stopped app, and nothing says so.
+        assertTrue(request.flags and Intent.FLAG_INCLUDE_STOPPED_PACKAGES != 0)
+        assertTrue(request.flags and Intent.FLAG_RECEIVER_FOREGROUND != 0)
+    }
+
     @Test fun `missing Tailscale receiver is unsupported but the request is sent`() {
         assertTrue(context.packageManager.queryBroadcastReceivers(
             Intent("com.tailscale.ipn.CONNECT_VPN").setClassName(

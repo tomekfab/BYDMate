@@ -18,6 +18,9 @@ internal object TailscaleStartup {
     fun requestConnection(context: Context): ConnectionRequestResult {
         val request = Intent("com.tailscale.ipn.CONNECT_VPN")
             .setClassName("com.tailscale.ipn", "com.tailscale.ipn.IPNReceiver")
+            // A Tailscale that the head unit force-stopped is in the stopped state, and Android
+            // silently drops broadcasts to it unless asked; foreground skips the slow queue.
+            .addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES or Intent.FLAG_RECEIVER_FOREGROUND)
         val receiverSupported = try {
             context.packageManager.queryBroadcastReceivers(request, 0).isNotEmpty()
         } catch (failure: RuntimeException) {

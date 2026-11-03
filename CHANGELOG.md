@@ -13,6 +13,9 @@ Full releases with APKs: <https://github.com/AndyShaman/BYDMate/releases>.
 - BYD cloud over Wi-Fi now checks the cloud link every 5 minutes and restarts it if it dropped. While the server keeps refusing the car, the wait doubles up to 60 minutes.
 - Experimental Waze HUD feed, off by default: distance and street from the active Waze window, without an arrow. Unchanged readings expire after 10 seconds. Replay-tested on one Polish, metric route; physical-car behavior remains unverified.
 
+### Fixed
+- Tailscale for the OpenClaw assistant: the connect request now also reaches a Tailscale app that the head unit force-stopped (Android dropped it silently before), and while the assistant keeps failing to connect, BYDMate asks Tailscale to connect again at most every 5 minutes instead of only at service start, screen wake or a new network.
+
 ## [4.0.1] - 2026-10-14
 
 ### Added
