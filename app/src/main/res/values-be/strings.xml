@@ -100,6 +100,8 @@
     <string name="settings_adb_restore_status_unsupported">Недаступна на Android 10. Калі ADB знік пасля перазагрузкі, уключыце яго зноў па інструкцыі на GitHub, раздзел «Активация ADB».</string>
     <string name="settings_cloud_wifi_title">Воблака BYD праз Wi-Fi</string>
     <string name="settings_cloud_wifi_desc">Праграма BYD на тэлефоне бачыць машыну, калі яна ў Wi-Fi. На новых серверах BYD патрэбны кітайскі VPN.</string>
+    <string name="settings_cloud_wifi_keep_title">Воблака BYD і на стаянцы</string>
+    <string name="settings_cloud_wifi_keep_desc">Wi-Fi галаўной прылады застаецца ўключаным пасля закрыцця машыны, таму праграма BYD бачыць машыну і на стаянцы. Крыху расходуе акумулятар 12 В.</string>
     <string name="settings_cloud_wifi_help_title">Як працуе воблака BYD праз Wi-Fi</string>
     <string name="settings_cloud_wifi_help_body">Без сувязі з воблакам BYD не прыходзяць абнаўленні па паветры, не працуюць NFC-ключ і кіраванне машынай з праграмы BYD на тэлефоне.\n\nЗ гэтай наладай BYDMate падключае машыну да воблака праз Wi-Fi: хатні, раздачу з тэлефона ці любы іншы з інтэрнэтам.\n\nУмовы:\n\n1. Машынам на новых серверах BYD патрэбны кітайскі VPN: сервер пускае толькі з кітайскага адраса. Надзейней за ўсё VPN на роўтары, да якога падключана машына: ён не залежыць ад магнітолы. VPN-праграма на самой магнітоле працуе, толькі пакуль яна ўключана.\n\n2. Калі ў машыны ўжо ёсць свая мабільная сувязь, нічога не мяняецца: воблака і так працуе.\n\nКалі вы выключаеце наладу, праграма вяртае ранейшыя налады сувязі машыны.</string>
     <string name="settings_cloud_wifi_status_connected">Падключана да воблака BYD</string>

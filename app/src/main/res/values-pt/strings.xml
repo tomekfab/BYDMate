@@ -97,6 +97,8 @@
     <string name="settings_adb_restore_status_unsupported">Indisponível no Android 10. Se o ADB sumiu após reiniciar, ative-o de novo seguindo o guia no GitHub, seção “Enable ADB”.</string>
     <string name="settings_cloud_wifi_title">Nuvem BYD via Wi-Fi</string>
     <string name="settings_cloud_wifi_desc">O app BYD no telefone vê o carro quando ele está no Wi-Fi. Carros nos novos servidores BYD precisam de uma VPN chinesa.</string>
+    <string name="settings_cloud_wifi_keep_title">Nuvem BYD com o carro estacionado</string>
+    <string name="settings_cloud_wifi_keep_desc">A central mantém o Wi-Fi ligado depois de trancar o carro, então o app BYD continua vendo o carro estacionado. Usa um pouco da bateria de 12 V.</string>
     <string name="settings_cloud_wifi_help_title">Como funciona a nuvem BYD via Wi-Fi</string>
     <string name="settings_cloud_wifi_help_body">Sem ligação à nuvem BYD não chegam atualizações pelo ar, não funcionam a chave NFC nem o controle do carro pelo app BYD no telefone.\n\nCom esta opção o BYDMate liga o carro à nuvem via Wi-Fi: a rede de casa, o hotspot do telefone ou qualquer outra rede com internet.\n\nCondições:\n\n1. Carros nos novos servidores BYD precisam de uma VPN chinesa: o servidor só aceita ligações de um endereço chinês. O mais fiável é uma VPN no roteador a que o carro se liga, porque não depende da central multimídia. Um app de VPN na própria central só funciona enquanto ela está ligada.\n\n2. Se o carro já tem dados móveis próprios, nada muda: a nuvem já funciona.\n\nAo desligar a opção, o app devolve as configurações de ligação anteriores do carro.</string>
     <string name="settings_cloud_wifi_status_connected">Ligado à nuvem BYD</string>

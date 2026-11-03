@@ -100,6 +100,8 @@
     <string name="settings_adb_restore_status_unsupported">Niedostępne na Androidzie 10. Jeśli ADB zniknęło po ponownym uruchomieniu, włącz je ponownie według instrukcji na GitHubie, sekcja „Enable ADB”.</string>
     <string name="settings_cloud_wifi_title">Chmura BYD przez Wi-Fi</string>
     <string name="settings_cloud_wifi_desc">Aplikacja BYD na telefonie widzi auto, gdy jest w sieci Wi-Fi. Auta na nowych serwerach BYD potrzebują chińskiego VPN.</string>
+    <string name="settings_cloud_wifi_keep_title">Chmura BYD także na postoju</string>
+    <string name="settings_cloud_wifi_keep_desc">Wi-Fi radia zostaje włączone po zamknięciu auta, więc aplikacja BYD widzi auto także na parkingu. Zużywa trochę prądu z akumulatora 12 V.</string>
     <string name="settings_cloud_wifi_help_title">Jak działa chmura BYD przez Wi-Fi</string>
     <string name="settings_cloud_wifi_help_body">Bez połączenia z chmurą BYD nie przychodzą aktualizacje przez internet, nie działają klucz NFC i sterowanie autem z aplikacji BYD na telefonie.\n\nZ tym ustawieniem BYDMate łączy auto z chmurą przez Wi-Fi: domową sieć, hotspot z telefonu lub dowolną inną sieć z internetem.\n\nWarunki:\n\n1. Auta na nowych serwerach BYD potrzebują chińskiego VPN: serwer wpuszcza tylko połączenia z chińskiego adresu. Najpewniejszy jest VPN na routerze, do którego podłączone jest auto, bo nie zależy od radia. Aplikacja VPN na samym radiu działa tylko wtedy, gdy radio jest włączone.\n\n2. Jeśli auto ma już własną transmisję danych, nic się nie zmienia: chmura i tak działa.\n\nPo wyłączeniu ustawienia aplikacja przywraca poprzednie ustawienia łączności auta.</string>
     <string name="settings_cloud_wifi_status_connected">Połączono z chmurą BYD</string>

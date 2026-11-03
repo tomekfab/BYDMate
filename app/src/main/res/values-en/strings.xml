@@ -96,6 +96,8 @@
     <string name="settings_adb_restore_status_unsupported">Not available on Android 10. If ADB is gone after a reboot, turn it on again following the guide on GitHub, section “Enable ADB”.</string>
     <string name="settings_cloud_wifi_title">BYD cloud over Wi-Fi</string>
     <string name="settings_cloud_wifi_desc">The BYD phone app sees the car while it is on Wi-Fi. Cars on the new BYD servers need a Chinese VPN.</string>
+    <string name="settings_cloud_wifi_keep_title">BYD cloud while parked</string>
+    <string name="settings_cloud_wifi_keep_desc">The head unit keeps Wi-Fi on after you lock the car, so the BYD app still sees it when parked. Uses a little 12 V battery power.</string>
     <string name="settings_cloud_wifi_help_title">How the BYD cloud over Wi-Fi works</string>
     <string name="settings_cloud_wifi_help_body">Without a link to the BYD cloud there are no over-the-air updates, no NFC key and no control from the BYD phone app.\n\nWith this setting BYDMate connects the car to the cloud over Wi-Fi: your home network, a phone hotspot or any other network with internet.\n\nConditions:\n\n1. Cars on the new BYD servers need a Chinese VPN: the server only lets in connections from a Chinese address. A VPN on the router the car connects to is the most reliable, because it does not depend on the head unit. A VPN app on the head unit itself works only while the head unit is on.\n\n2. If the car already has its own mobile data, nothing changes: the cloud works anyway.\n\nWhen you switch the setting off, the app returns the car\'s previous connection settings.</string>
     <string name="settings_cloud_wifi_status_connected">Connected to the BYD cloud</string>

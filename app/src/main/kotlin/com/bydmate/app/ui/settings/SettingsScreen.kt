@@ -2249,6 +2249,7 @@ private fun ServiceSection(
     // BYD cloud over Wi-Fi (#310), same card. Every step goes through ADB to ourselves.
     val cloudOverWifi = remember { clusterEntryPoint.cloudOverWifiManager() }
     var cloudOverWifiEnabled by remember { mutableStateOf(cloudOverWifi.isEnabled()) }
+    var keepWifiAsleep by remember { mutableStateOf(cloudOverWifi.isKeepWifiAsleep()) }
     var cloudOverWifiHelpOpen by remember { mutableStateOf(false) }
     val cloudOverWifiState by cloudOverWifi.state.collectAsStateWithLifecycle()
     val cloudAdbReady = adbVerdict == AdbVerdict.OK || adbVerdict == AdbVerdict.HELPER_DOWN
@@ -2325,6 +2326,19 @@ private fun ServiceSection(
                 cloudOverWifiStatusText(cloudOverWifiState)
             }
             cloudStatus?.let { SettingHint(text = it) }
+            SettingDivider()
+            SettingToggleRow(
+                title = stringResource(R.string.settings_cloud_wifi_keep_title),
+                traceId = "cloud_keep_wifi_asleep",
+                description = stringResource(R.string.settings_cloud_wifi_keep_desc),
+                checked = keepWifiAsleep,
+                onCheckedChange = { enabled ->
+                    keepWifiAsleep = enabled
+                    cloudOverWifi.setKeepWifiAsleep(enabled)
+                },
+                // Acts only together with the cloud toggle; switching off stays possible.
+                enabled = cloudOverWifiEnabled || keepWifiAsleep,
+            )
         }
     }
     val dialogVerdict = adbVerdict

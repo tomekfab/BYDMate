@@ -22,12 +22,20 @@ import java.io.IOException
 @OptIn(ExperimentalCoroutinesApi::class)
 class CloudOverWifiManagerTest {
 
-    private class FakePrefs(private var enabled: Boolean = true) : CloudOverWifiPreferences {
+    private class FakePrefs(
+        private var enabled: Boolean = true,
+        var keepWifi: Boolean = false,
+    ) : CloudOverWifiPreferences {
         var saved: String? = null
+        var savedSwitch: String? = null
         override fun isEnabled(): Boolean = enabled
         override fun setEnabled(enabled: Boolean) { this.enabled = enabled }
         override fun savedProfile(): String? = saved
         override fun setSavedProfile(profile: String?) { saved = profile }
+        override fun isKeepWifiAsleep(): Boolean = keepWifi
+        override fun setKeepWifiAsleep(enabled: Boolean) { keepWifi = enabled }
+        override fun savedOffWifiSwitch(): String? = savedSwitch
+        override fun setSavedOffWifiSwitch(value: String?) { savedSwitch = value }
     }
 
     private class FakeSystem : CloudOverWifiSystem {
@@ -38,6 +46,18 @@ class CloudOverWifiManagerTest {
             return wifiInternet
         }
         override suspend fun sleep(ms: Long) = delay(ms)
+
+        /** The car's `byd_off_wifi_switch` global setting; null = never set. */
+        var offWifiSwitch: String? = null
+        var switchWritable = true
+        val switchWrites = mutableListOf<String?>()
+        override fun readOffWifiSwitch(): String? = offWifiSwitch
+        override fun writeOffWifiSwitch(value: String?): Boolean {
+            if (!switchWritable) return false
+            switchWrites += value
+            offWifiSwitch = value
+            return true
+        }
     }
 
     /**
@@ -641,6 +661,215 @@ class CloudOverWifiManagerTest {
         assertEquals(CloudOverWifiState.Disabled, m.state.value)
     }
 
+    // --- Keep Wi-Fi on while the car sleeps (`byd_off_wifi_switch`) ---
+
+    @Test
+    fun `keep wifi with the cloud on sets the switch and remembers it was never set`() = runTest {
+        val system = FakeSystem()
+        val prefs = FakePrefs()
+        val m = manager(prefs, nativeSimCar(), system)
+
+        m.setKeepWifiAsleep(true)
+        settle()
+
+        assertEquals("1", system.offWifiSwitch)
+        assertEquals(CloudOverWifiManager.OFF_WIFI_ABSENT, prefs.savedSwitch)
+    }
+
+    @Test
+    fun `switching keep wifi off returns the previous value`() = runTest {
+        val system = FakeSystem().apply { offWifiSwitch = "0" }
+        val prefs = FakePrefs()
+        val m = manager(prefs, nativeSimCar(), system)
+
+        m.setKeepWifiAsleep(true)
+        settle()
+        assertEquals("1", system.offWifiSwitch)
+        m.setKeepWifiAsleep(false)
+        settle()
+
+        assertEquals("0", system.offWifiSwitch)
+        assertNull(prefs.savedSwitch)
+    }
+
+    @Test
+    fun `a switch that was never set is cleared again on the way back`() = runTest {
+        val system = FakeSystem()
+        val prefs = FakePrefs(keepWifi = true).apply { savedSwitch = CloudOverWifiManager.OFF_WIFI_ABSENT }
+        system.offWifiSwitch = "1"
+        val m = manager(prefs, nativeSimCar(), system)
+
+        m.setKeepWifiAsleep(false)
+        settle()
+
+        assertNull(system.offWifiSwitch)
+        assertEquals(listOf<String?>(null), system.switchWrites)
+        assertNull(prefs.savedSwitch)
+    }
+
+    @Test
+    fun `turning the cloud off also returns the switch`() = runTest {
+        val system = FakeSystem().apply { offWifiSwitch = "0" }
+        val prefs = FakePrefs(keepWifi = true)
+        val m = manager(prefs, nativeSimCar(), system)
+        m.attemptIfNeeded("test")
+        assertEquals("1", system.offWifiSwitch)
+
+        m.setEnabled(false)
+        settle()
+
+        assertEquals("0", system.offWifiSwitch)
+        assertNull(prefs.savedSwitch)
+        assertTrue(prefs.keepWifi) // the sub-switch keeps its choice for next time
+    }
+
+    @Test
+    fun `keep wifi without the cloud toggle touches nothing`() = runTest {
+        val system = FakeSystem().apply { offWifiSwitch = "0" }
+        val prefs = FakePrefs(enabled = false)
+        val m = manager(prefs, nativeSimCar(), system)
+
+        m.setKeepWifiAsleep(true)
+        settle()
+
+        assertTrue(system.switchWrites.isEmpty())
+        assertNull(prefs.savedSwitch)
+    }
+
+    @Test
+    fun `a switch the owner had already set stays set after keep wifi goes off`() = runTest {
+        val system = FakeSystem().apply { offWifiSwitch = "1" }
+        val prefs = FakePrefs()
+        val m = manager(prefs, nativeSimCar(), system)
+
+        m.setKeepWifiAsleep(true)
+        settle()
+        m.setKeepWifiAsleep(false)
+        settle()
+
+        assertEquals("1", system.offWifiSwitch)
+        assertNull(prefs.savedSwitch)
+    }
+
+    @Test
+    fun `a failed return keeps the saved value for the next attempt`() = runTest {
+        val system = FakeSystem().apply { offWifiSwitch = "1"; switchWritable = false }
+        val prefs = FakePrefs().apply { savedSwitch = "0" }
+        val m = manager(prefs, nativeSimCar(), system)
+
+        m.setKeepWifiAsleep(false)
+        settle()
+        assertEquals("0", prefs.savedSwitch)
+
+        system.switchWritable = true
+        m.attemptIfNeeded("test")
+
+        assertEquals("0", system.offWifiSwitch)
+        assertNull(prefs.savedSwitch)
+    }
+
+    @Test
+    fun `every attempt sets the switch again if the car reset it`() = runTest {
+        val system = FakeSystem()
+        val prefs = FakePrefs(keepWifi = true)
+        val m = manager(prefs, nativeSimCar(), system)
+        m.attemptIfNeeded("test")
+        system.offWifiSwitch = "0"
+
+        m.attemptIfNeeded("test")
+
+        assertEquals("1", system.offWifiSwitch)
+        assertEquals(CloudOverWifiManager.OFF_WIFI_ABSENT, prefs.savedSwitch)
+    }
+
+    // --- Watchdog ---
+
+    @Test
+    fun `watchdog restarts a cloud that dropped while parked`() = runTest {
+        val adb = nativeSimCar()
+        val m = manager(FakePrefs(), adb)
+        m.attemptIfNeeded("test")
+        assertEquals(CloudOverWifiState.Connected, m.state.value)
+        adb.cloud7 = CLOUD_OFF
+        adb.execs.clear()
+
+        m.startWatchdog()
+        advanceTimeBy(CloudOverWifiManager.WATCHDOG_BASE_MS + 1_000)
+        runCurrent()
+        advanceTimeBy(CLOUD_VERDICT_MARGIN_MS)
+        runCurrent()
+
+        assertTrue(adb.execs.contains(CLOUD_START))
+        assertEquals(CloudOverWifiState.Connected, m.state.value)
+        assertEquals("watchdog", m.lastTrigger)
+    }
+
+    @Test
+    fun `watchdog only reads the status while the cloud is up`() = runTest {
+        val adb = nativeSimCar()
+        val m = manager(FakePrefs(), adb)
+        m.attemptIfNeeded("test")
+        adb.execs.clear()
+
+        m.startWatchdog()
+        advanceTimeBy(3 * CloudOverWifiManager.WATCHDOG_BASE_MS + 1_000)
+        runCurrent()
+
+        assertEquals(3, adb.execs.count { it == "service call cloudmanager 7" })
+        assertTrue(adb.changing().isEmpty())
+    }
+
+    @Test
+    fun `watchdog backs off while the server keeps refusing the car`() = runTest {
+        val adb = nativeSimCar().apply {
+            cloudComesUp = false
+            props[TCP_STEP] = "5"
+        }
+        val m = manager(FakePrefs(), adb)
+        m.startWatchdog()
+
+        // Waits of 5, 10, 20, 40, 60 and 60 minutes, each after a ~35 s failed attempt: six
+        // attempts by minute 200 (the seventh would come near minute 258), not 39 at a fixed 5.
+        advanceTimeBy(200 * 60_000L)
+        runCurrent()
+
+        assertEquals(6, adb.execs.count { it == CLOUD_START })
+        assertEquals(CloudOverWifiState.ServerRefused, m.state.value)
+    }
+
+    @Test
+    fun `watchdog sends nothing while the toggle is off or there is no wifi`() = runTest {
+        val adb = nativeSimCar()
+        val prefs = FakePrefs(enabled = false)
+        val system = FakeSystem()
+        val m = manager(prefs, adb, system)
+        m.startWatchdog()
+
+        advanceTimeBy(2 * CloudOverWifiManager.WATCHDOG_BASE_MS + 1_000)
+        runCurrent()
+        prefs.setEnabled(true)
+        system.wifiInternet = false
+        advanceTimeBy(2 * CloudOverWifiManager.WATCHDOG_BASE_MS)
+        runCurrent()
+
+        assertTrue(adb.execs.isEmpty())
+    }
+
+    @Test
+    fun `starting the watchdog twice keeps a single loop`() = runTest {
+        val adb = nativeSimCar()
+        val m = manager(FakePrefs(), adb)
+        m.attemptIfNeeded("test")
+        adb.execs.clear()
+
+        m.startWatchdog()
+        m.startWatchdog()
+        advanceTimeBy(CloudOverWifiManager.WATCHDOG_BASE_MS + 1_000)
+        runCurrent()
+
+        assertEquals(1, adb.execs.count { it == "service call cloudmanager 7" })
+    }
+
     private companion object {
         const val CLOUD_START = "service call cloudmanager 1 i32 4"
         const val CLOUD_STOP = "service call cloudmanager 1 i32 -5"
@@ -656,5 +885,8 @@ class CloudOverWifiManagerTest {
         const val REG_ERRCODE = "sys.tcp_reg_errcode"
         const val CLOUD_ON = "Result: Parcel(00000000 00000001   '........')"
         const val CLOUD_OFF = "Result: Parcel(00000000 00000000   '........')"
+
+        // Settle waits of one attempt after the watchdog fires: profile and cloud polls.
+        const val CLOUD_VERDICT_MARGIN_MS = 40_000L
     }
 }

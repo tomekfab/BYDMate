@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.provider.Settings
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
@@ -28,6 +29,17 @@ interface CloudOverWifiPreferences {
     fun savedProfile(): String?
 
     fun setSavedProfile(profile: String?)
+
+    /** The sub-switch: keep the head unit's Wi-Fi up while the car sleeps. Acts only with [isEnabled]. */
+    fun isKeepWifiAsleep(): Boolean
+    fun setKeepWifiAsleep(enabled: Boolean)
+
+    /**
+     * The car's `byd_off_wifi_switch` from before we set it, [CloudOverWifiManager.OFF_WIFI_ABSENT]
+     * when it was never set; null when we changed nothing.
+     */
+    fun savedOffWifiSwitch(): String?
+    fun setSavedOffWifiSwitch(value: String?)
 }
 
 /** SharedPreferences-backed production implementation, file "cloud_over_wifi". */
@@ -50,10 +62,25 @@ class CloudOverWifiPreferencesImpl(context: Context) : CloudOverWifiPreferences 
         prefs.edit().putString(KEY_SAVED_PROFILE, profile).commit()
     }
 
+    override fun isKeepWifiAsleep(): Boolean = prefs.getBoolean(KEY_KEEP_WIFI, false)
+
+    override fun setKeepWifiAsleep(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_KEEP_WIFI, enabled).apply()
+    }
+
+    override fun savedOffWifiSwitch(): String? = prefs.getString(KEY_SAVED_OFF_WIFI_SWITCH, null)
+
+    // commit for the same reason as the profile: the value to return to is on disk before we write.
+    override fun setSavedOffWifiSwitch(value: String?) {
+        prefs.edit().putString(KEY_SAVED_OFF_WIFI_SWITCH, value).commit()
+    }
+
     companion object {
         const val PREFS_NAME = "cloud_over_wifi"
         const val KEY_ENABLED = "enabled"
         const val KEY_SAVED_PROFILE = "saved_profile"
+        const val KEY_KEEP_WIFI = "keep_wifi_asleep"
+        const val KEY_SAVED_OFF_WIFI_SWITCH = "saved_off_wifi_switch"
     }
 }
 
@@ -63,6 +90,12 @@ interface CloudOverWifiSystem {
     fun hasValidatedWifi(): Boolean
 
     suspend fun sleep(ms: Long)
+
+    /** The BYD global setting that keeps Wi-Fi up with the car off; null when never set. */
+    fun readOffWifiSwitch(): String?
+
+    /** Writes it (null clears it); false when the write was refused. */
+    fun writeOffWifiSwitch(value: String?): Boolean
 }
 
 /** Production wiring of [CloudOverWifiSystem] against the head unit. */
@@ -82,6 +115,20 @@ class AndroidCloudOverWifiSystem @Inject constructor(
     }.getOrDefault(false)
 
     override suspend fun sleep(ms: Long) = delay(ms)
+
+    override fun readOffWifiSwitch(): String? =
+        runCatching { Settings.Global.getString(context.contentResolver, OFF_WIFI_SWITCH) }.getOrNull()
+
+    // Needs WRITE_SECURE_SETTINGS, which the service grants itself over ADB at start.
+    override fun writeOffWifiSwitch(value: String?): Boolean =
+        runCatching { Settings.Global.putString(context.contentResolver, OFF_WIFI_SWITCH, value) }
+            .onFailure { Log.w("CloudOverWifi", "write $OFF_WIFI_SWITCH=$value failed: ${it.message}") }
+            .getOrDefault(false)
+
+    private companion object {
+        // BYD's own switch: with 1 the head unit keeps Wi-Fi up after the car is switched off.
+        const val OFF_WIFI_SWITCH = "byd_off_wifi_switch"
+    }
 }
 
 /** What the cloud-over-Wi-Fi feature is doing; rendered as the status line under its toggle. */
@@ -127,8 +174,13 @@ sealed class CloudOverWifiState {
  * the toggle off returns the profile we changed, and only if we changed it.
  *
  * Triggers: the toggle, service start, and Wi-Fi with validated internet appearing (settled for
- * [WIFI_SETTLE_MS], repeated events coalesce). Concurrent attempts are coalesced into one rerun,
- * the same way as [AdbRestoreManager]. There is no periodic watchdog.
+ * [WIFI_SETTLE_MS], repeated events coalesce), and a watchdog every [WATCHDOG_BASE_MS] that backs
+ * off to [WATCHDOG_MAX_MS] while the cloud stays down. Concurrent attempts are coalesced into one
+ * rerun, the same way as [AdbRestoreManager].
+ *
+ * The keep-Wi-Fi sub-switch sets BYD's `byd_off_wifi_switch` so the head unit keeps Wi-Fi, and so
+ * the cloud link, up while the car is locked. Every attempt re-applies it; switching either toggle
+ * off returns the car's own value.
  */
 @Suppress("TooManyFunctions") // the attempt steps, the return of the profile and the shell reads
 @Singleton
@@ -161,6 +213,8 @@ class CloudOverWifiManager @Inject constructor(
     // The pending Wi-Fi attempt; a newer Wi-Fi event restarts its settle wait.
     private var wifiJob: Job? = null
 
+    private var watchdogJob: Job? = null
+
     fun isEnabled(): Boolean = prefs.isEnabled()
 
     /** Persists the toggle. Switching off runs the return of whatever we changed. */
@@ -170,6 +224,42 @@ class CloudOverWifiManager @Inject constructor(
         if (!enabled) {
             transition(CloudOverWifiState.Disabled, "toggle off")
             requestAttempt(TRIGGER_TOGGLE_OFF)
+        }
+    }
+
+    fun isKeepWifiAsleep(): Boolean = prefs.isKeepWifiAsleep()
+
+    /** Persists the sub-switch and applies or returns `byd_off_wifi_switch` right away. */
+    fun setKeepWifiAsleep(enabled: Boolean) {
+        prefs.setKeepWifiAsleep(enabled)
+        Log.i(TAG, "keep wifi asleep=$enabled")
+        requestAttempt(TRIGGER_KEEP_WIFI)
+    }
+
+    /**
+     * Checks the cloud every [WATCHDOG_BASE_MS] while the toggle is on and Wi-Fi has internet, and
+     * restarts it when it dropped. While the cloud stays down the wait doubles up to
+     * [WATCHDOG_MAX_MS], so a server that refuses the car is not hammered. A second call replaces
+     * the running loop.
+     */
+    @Synchronized
+    fun startWatchdog() {
+        watchdogJob?.cancel()
+        watchdogJob = scope.launch {
+            var wait = WATCHDOG_BASE_MS
+            while (true) {
+                system.sleep(wait)
+                if (!prefs.isEnabled() || !system.hasValidatedWifi()) {
+                    wait = WATCHDOG_BASE_MS
+                    continue
+                }
+                runCatching { attemptIfNeeded(TRIGGER_WATCHDOG) }
+                    .onFailure {
+                        if (it is CancellationException) throw it
+                        Log.w(TAG, "attempt from $TRIGGER_WATCHDOG failed: ${it.message}")
+                    }
+                wait = nextWatchdogWait(wait, _state.value)
+            }
         }
     }
 
@@ -233,11 +323,40 @@ class CloudOverWifiManager @Inject constructor(
         lastTrigger = trigger
         Log.i(TAG, "attempt start trigger=$trigger enabled=${prefs.isEnabled()}")
         try {
+            applyKeepWifi()
             attemptLocked()
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             Log.w(TAG, "attempt failed: ${e.message}")
+        }
+    }
+
+    /**
+     * Sets `byd_off_wifi_switch` to 1 while both toggles are on, remembering the car's own value
+     * first, and writes that value back once either is off. The saved value is dropped only after
+     * a successful write; a refused one is retried by the next attempt.
+     */
+    private fun applyKeepWifi() {
+        val wanted = prefs.isEnabled() && prefs.isKeepWifiAsleep()
+        val saved = prefs.savedOffWifiSwitch()
+        if (wanted) {
+            val current = system.readOffWifiSwitch()
+            if (saved == null) prefs.setSavedOffWifiSwitch(current ?: OFF_WIFI_ABSENT)
+            if (current != OFF_WIFI_ON && !system.writeOffWifiSwitch(OFF_WIFI_ON)) {
+                Log.w(TAG, "byd_off_wifi_switch not set: write refused")
+            } else if (current != OFF_WIFI_ON) {
+                Log.i(TAG, "byd_off_wifi_switch set to 1, was $current")
+            }
+            return
+        }
+        if (saved == null) return
+        val back = saved.takeUnless { it == OFF_WIFI_ABSENT }
+        if (system.readOffWifiSwitch() == back || system.writeOffWifiSwitch(back)) {
+            prefs.setSavedOffWifiSwitch(null)
+            Log.i(TAG, "byd_off_wifi_switch returned to $back")
+        } else {
+            Log.w(TAG, "byd_off_wifi_switch return to $back refused, kept for the next attempt")
         }
     }
 
@@ -436,7 +555,8 @@ class CloudOverWifiManager @Inject constructor(
     /** One diagnostics line; read-only. */
     suspend fun dumpLine(): String {
         val head = "cloud_over_wifi=${prefs.isEnabled()}/${_state.value} trigger=$lastTrigger " +
-            "saved=${prefs.savedProfile()}"
+            "saved=${prefs.savedProfile()} keep_wifi=${prefs.isKeepWifiAsleep()} " +
+            "off_wifi_switch=${system.readOffWifiSwitch()} saved_switch=${prefs.savedOffWifiSwitch()}"
         if (adb.connect().isFailure) return "$head adb=unavailable"
         val p = readProfile() ?: return "$head adb=no_answer"
         val cloud = parseCloudConnected(adb.exec(CMD_CLOUD_STATUS))
@@ -457,6 +577,22 @@ class CloudOverWifiManager @Inject constructor(
 
         const val TRIGGER_TOGGLE_OFF = "toggle_off"
         const val TRIGGER_WIFI = "wifi_validated"
+        const val TRIGGER_KEEP_WIFI = "keep_wifi"
+        const val TRIGGER_WATCHDOG = "watchdog"
+
+        /** Saved in place of the car's `byd_off_wifi_switch` when it was never set. */
+        const val OFF_WIFI_ABSENT = "<absent>"
+        private const val OFF_WIFI_ON = "1"
+
+        const val WATCHDOG_BASE_MS = 5 * 60_000L
+        const val WATCHDOG_MAX_MS = 60 * 60_000L
+
+        /** Back to the base wait unless the cloud stayed down, then double it up to the cap. */
+        fun nextWatchdogWait(current: Long, state: CloudOverWifiState): Long = when (state) {
+            CloudOverWifiState.CloudSilent, CloudOverWifiState.ServerRefused ->
+                (current * 2).coerceAtMost(WATCHDOG_MAX_MS)
+            else -> WATCHDOG_BASE_MS
+        }
 
         const val DOUBLE_APN = "double_apn"
         const val PROFILE_SETTLE_MS = 3_000L

@@ -832,6 +832,8 @@
     <string name="settings_adb_restore_status_unsupported">Android 10 上不可用。如果重启后 ADB 消失，请按照 GitHub 上的说明重新开启，见“激活 ADB”一节。</string>
     <string name="settings_cloud_wifi_title">通过 Wi-Fi 连接 BYD 云</string>
     <string name="settings_cloud_wifi_desc">车辆连上 Wi-Fi 时，手机上的 BYD 应用即可看到车辆。使用新版 BYD 服务器的车辆需要中国 VPN。</string>
+    <string name="settings_cloud_wifi_keep_title">停车时保持 BYD 云连接</string>
+    <string name="settings_cloud_wifi_keep_desc">锁车后车机保持 Wi-Fi 开启，停车时手机上的 BYD 应用仍可看到车辆。会消耗少量 12V 电瓶电量。</string>
     <string name="settings_cloud_wifi_help_title">通过 Wi-Fi 连接 BYD 云的工作方式</string>
     <string name="settings_cloud_wifi_help_body">没有连接 BYD 云时，收不到 OTA 升级，NFC 钥匙和手机 BYD 应用远程控制都无法使用。\n\n开启此设置后，BYDMate 会通过 Wi-Fi 把车辆连接到云：家里的网络、手机热点或任何能上网的网络都可以。\n\n条件：\n\n1. 使用新版 BYD 服务器的车辆需要中国 VPN：服务器只接受来自中国 IP 的连接。最可靠的是在车辆连接的路由器上设置 VPN，它不依赖车机。车机上的 VPN 应用只在车机开启时工作。\n\n2. 如果车辆已有自己的移动网络，则不会做任何改动：云本来就能正常工作。\n\n关闭此设置后，应用会恢复车辆原来的网络设置。</string>
     <string name="settings_cloud_wifi_status_connected">已连接 BYD 云</string>

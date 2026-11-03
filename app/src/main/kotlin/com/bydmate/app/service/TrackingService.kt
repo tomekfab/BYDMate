@@ -1892,6 +1892,8 @@ class TrackingService : Service(), LocationListener {
             }
             // Cloud over Wi-Fi (#310): the manager gates itself on its toggle.
             cloudOverWifiManager.requestAttempt("service_start")
+            // Its watchdog restarts a cloud that dropped, above all while the car is parked.
+            cloudOverWifiManager.startWatchdog()
         }
         cameraStateMonitor.start()
         serviceScope.launch {

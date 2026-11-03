@@ -9,6 +9,8 @@ Full releases with APKs: <https://github.com/AndyShaman/BYDMate/releases>.
 ## [Unreleased]
 
 ### Added
+- BYD cloud while parked: a new switch under “Chmura BYD przez Wi-Fi” keeps the head unit's Wi-Fi on after the car is locked, so the BYD phone app keeps seeing the parked car. It sets BYD's `byd_off_wifi_switch` and returns the car's own value when switched off. Off by default; uses a little 12 V battery power.
+- BYD cloud over Wi-Fi now checks the cloud link every 5 minutes and restarts it if it dropped. While the server keeps refusing the car, the wait doubles up to 60 minutes.
 - Experimental Waze HUD feed, off by default: distance and street from the active Waze window, without an arrow. Unchanged readings expire after 10 seconds. Replay-tested on one Polish, metric route; physical-car behavior remains unverified.
 
 ## [4.0.1] - 2026-10-14
