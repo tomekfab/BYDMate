@@ -1,6 +1,6 @@
 # Voice capture and independent requests
 
-Status: design approved by the user on 2026-11-18 after independent review. Four review findings incorporated below. Implementation plan pending approval.
+Status: design approved by the user on 2026-11-18 after independent review. Four review findings incorporated below. Implementation plan approved and implemented; implementation and local verification complete; independent review findings and the two baseline detekt findings fixed.
 
 Human view: [design overview](/private/var/folders/x9/gtfrvfxj7xj6hmdfj89rdhv40000gn/T/agent-plan-voice-p8nw2jbj/design.html). Temporary review progress: [plan.html](/private/var/folders/x9/gtfrvfxj7xj6hmdfj89rdhv40000gn/T/agent-plan-voice-p8nw2jbj/plan.html).
 
@@ -69,7 +69,7 @@ flowchart LR
 - `voice/AudioCapture.kt`: ownership-aware media mute/restore, independent capture and reply owners; audit `SherpaTtsEngine.kt` call sites before changing the shared helper contract.
 - `voice/PolishVoiceNormalizer.kt`, `resources/voice/pl_commands.txt`, and `voice/NluParser.kt` only if needed: narrow aliases, exact heating phrases, unchanged refusal ordering.
 - Write failing tests first in the existing controller, media and Polish parser suites. Required cases: no mic capture while waiting or speaking; off/on with A pending accepts B without cancelling A; FIFO send and reply order; reply after off; reply during capture deferred; no duplicate send from late callbacks; off during warm-up; failed capture/reply/request restores media; overlapping owners and explicit volume changes that remain muted until release; automation exclusion while the button is off with pending work or playback; two fast replies and local acknowledgement behind a remote answer play fully exactly once; stale auto-close cannot close a newer capture or lose its accepted request; automatic resume only when intent permits it; negated/quoted/partial alias and heating phrases never execute.
-- Focused checks use `./gradlew :app:testDebugUnitTest --tests '*PolishVoiceControllerTest' --tests '*AudioCaptureDuckTest' --tests '*NaturalPolishCommandsTest' --tests '*PolishCommandSafetyTest' --tests '*PolishCommandGoldenTest'`. Add new suite filters when new suites are created. Broader verification: `./gradlew :app:testDebugUnitTest :app:assembleDebug :app:lintDebug :app:detekt`. Report actual output and any baseline failure separately. No tests have been run for this proposal.
+- Focused checks use `./gradlew :app:testDebugUnitTest --tests '*PolishVoiceControllerTest' --tests '*AudioCaptureDuckTest' --tests '*NaturalPolishCommandsTest' --tests '*PolishCommandSafetyTest' --tests '*PolishCommandGoldenTest'`. Add new suite filters when new suites are created. Broader verification: `./gradlew :app:testDebugUnitTest :app:assembleDebug :app:lintDebug :app:detekt`. Report actual output and any baseline failure separately. See the implementation verification below for actual checks and their limits.
 
 ## Risks and scope limits
 
@@ -91,3 +91,32 @@ All four findings were verified against the named code and accepted into this de
 | Explicit volume writes could break capture mute | Store the requested restore target while strongest suppression remains effective |
 
 Review was a targeted code review. No tests or physical-device checks were run.
+
+## Implementation verification (2026-11-18)
+
+The implementation separates microphone intent, accepted FIFO work and owned reply playback in `VoiceController.kt`. `AudioCapture.kt` uses one suppression registry for capture, reply and legacy automation owners. No OpenClaw transport or action-ledger contract changed.
+
+- The full unit run completed **9,655 tests, 0 failures, 0 errors, 4 skipped**. `:app:assembleDebug` and `:app:lintDebug` passed. Lint reported 0 errors, 276 warnings and 8 informational items. The combined command exited 1 because detekt found two pre-existing parser issues and a new heating-rule complexity issue; the new issue was corrected in final verification.
+- After integration fixes for the waiting overlay and speech-start timeout, the affected voice/Polish suite completed **2,306 tests, 0 failures, 0 errors, 0 skipped**. Both added integration regressions failed before those fixes. The initial lifecycle red run demonstrated capture remaining open during a pending request; not every later lifecycle test received a separate old-code red run.
+- `:app:detekt` against an archived approved-design commit `5af920c0` reproduced `CyclomaticComplexMethod` at `NluParser.kt:132` and `SpreadOperator` at `NluParser.kt:219`. That baseline command exited 1 with `BUILD FAILED in 22s`, two weighted issues. The parser file is unchanged by this work.
+- A source review applied `interface-review`, `better-accessibility`, `better-layout`, `better-writing`, `better-typography`, `better-colors` and `better-ui`. It found and fixed the stale listening-overlay label. No physical-car, rendered-contrast or screen-reader claims are made.
+
+Exact commands and logs are in the temporary HTML task plan linked above. Durable physical-car checks are in [car-test-checklist.md](car-test-checklist.md). The car checks remain unrun; a successful dispatch does not establish physical heater state.
+
+Final helper-only parser verification completed 23 tests with 0 failures/errors/skips. `:app:assembleDebug` and `:app:lintDebug` passed again. The combined command exited 1 with `BUILD FAILED in 3m 36s` solely because detekt retained the same two unchanged parser findings; no new detekt findings remain. A temporary 4 GB Gradle daemon heap was used after the first broad run reported memory pressure. No repository memory settings changed.
+
+### Independent review and final fixes
+
+One autoreview pass reported three P2 findings. All were accepted and fixed: explicit volume targets now commit only after the suppressed write succeeds; rejected sentences, failed queue completion and playback timeouts cannot count as a fully spoken reply; and playback exceptions are contained without replacing an already-settled request outcome. Cancellation still propagates and releases playback ownership.
+
+A related media-owner audit fixed recovery markers being overwritten by a new mute cycle after a failed restore. A successful explicit quiet-volume choice clears that old recovery marker. The review-fix regressions were observed red (4 failures in one run, then one rejected-sentence failure and one explicit-marker failure in separate runs) before the fixes.
+
+Final affected verification: **122 tests, 0 failures, 0 errors, 0 skipped**. APK build and lint passed. The combined command exited 1 with `BUILD FAILED in 2m 19s` solely because detekt retained the same two baseline parser findings. `git diff --check` passed. The earlier full-suite result (9,655 tests with 4 skipped) predates these final review fixes; the affected suites were rerun afterwards. Autoreview was not repeated, following its one-pass workflow.
+
+At the initial handoff, the implementation was complete but detekt still reported the two baseline findings. The PR preflight below resolves that limitation. No physical-car installation or checks were performed. Use the parked-car checklist before treating microphone release, BYD audio routing or heater state as verified on the car.
+
+### PR preflight
+
+After the user requested PR creation and merge, the two existing parser detekt failures were removed with behavior-preserving refactors: the duplicate safety-refusal check now uses one helper, and punctuation trimming uses a predicate instead of a spread-array copy. This is exempt from a new failing behavior test; the existing parser corpus is the behavior check.
+
+The final parser preflight completed 2190 tests with 0 failures/errors/skips, and `:app:detekt` passed. Actual output: `BUILD SUCCESSFUL in 4m 33s`, 39 actionable tasks (12 executed, 27 up-to-date). Exact command: `./gradlew -Dorg.gradle.jvmargs=-Xmx4g -I <temporary-test-heap4g.init.gradle> :app:testDebugUnitTest --tests '*NluParserTest' --tests '*NaturalPolishCommandsTest' --tests '*PolishCommandSafetyTest' --tests '*PolishCommandGoldenTest' :app:detekt --continue` with JDK 17 and ANDROID_HOME set. `git diff --check` passed. GitHub CI will verify the published head; physical-car checks remain pending.

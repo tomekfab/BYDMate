@@ -72,6 +72,11 @@ class VoiceAutomationActions @Inject @Suppress("LongParameterList") constructor(
         if (!ownBusy.compareAndSet(false, true)) {
             return DispatchResult(false, strings.get(R.string.dispatch_voice_busy))
         }
+        val controller = voiceController.get()
+        if (!controller.tryBeginAutomationSpeech()) {
+            ownBusy.set(false)
+            return DispatchResult(false, strings.get(R.string.dispatch_voice_session_active))
+        }
         try {
             // Show the orb only if nobody else owns it; then never hide someone else's orb.
             // Rethrow CancellationException so it is never silently swallowed by runCatching
@@ -112,6 +117,7 @@ class VoiceAutomationActions @Inject @Suppress("LongParameterList") constructor(
                 else -> DispatchResult(false, strings.get(R.string.dispatch_voice_speak_failed))
             }
         } finally {
+            controller.endAutomationSpeech()
             ownBusy.set(false)
         }
     }

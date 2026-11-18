@@ -36,9 +36,10 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import java.io.File
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 import io.mockk.slot
 import io.mockk.verify
 import io.mockk.coEvery
@@ -64,16 +65,32 @@ import java.util.Collections
 @Suppress("LargeClass") // Routing, refusal and cancellation scenarios share the Polish voice-session fixture.
 class PolishVoiceControllerTest {
 
-    private class FakeContinuousAsr : ContinuousAsr {
+    internal class FakeContinuousAsr : ContinuousAsr {
         val events = MutableSharedFlow<ContinuousAsrEvent>(extraBufferCapacity = 16)
-        override fun isReady(): Boolean = true
-        override fun transcribe(pcm: Flow<ShortArray>): Flow<ContinuousAsrEvent> = events
+        val captureOpen = AtomicBoolean(false)
+        val captureMarks = Collections.synchronizedList(mutableListOf<(ShortArray) -> Any?>())
+        var beforeFrame: suspend () -> Unit = {}
+        var ready = true
+        var requiresWarm = false
+        var warmAction: () -> Unit = {}
+        override fun isReady(): Boolean = ready
+        override fun requiresWarmBeforeListening(): Boolean = requiresWarm
+        override fun isWarm(): Boolean = !requiresWarm
+        override fun warmUp() = warmAction()
+        override fun transcribe(pcm: Flow<ShortArray>): Flow<ContinuousAsrEvent> = flow {
+            coroutineScope {
+                val capture = launch { pcm.collect {} }
+                try { events.collect { emit(it) } } finally { capture.cancel() }
+            }
+        }
     }
 
     // Explicit fixture collaborators let scenarios inspect each routing and speech boundary.
-    private class Rig @Suppress("LongParameterList") constructor(
+    internal class Rig @Suppress("LongParameterList") constructor(
         val controller: VoiceController,
         val asr: FakeContinuousAsr,
+        val audioCapture: AudioCapture,
+        val gate: VoiceGate,
         val engine: AutomationEngine,
         val assistant: VoiceAssistant,
         val journal: VoiceJournal,
@@ -85,7 +102,7 @@ class PolishVoiceControllerTest {
         val dispatched: MutableList<ActionDef> = Collections.synchronizedList(mutableListOf())
     }
 
-    private fun awaitTrue(timeoutMs: Long = 2_000L, condition: () -> Boolean) {
+    internal fun awaitTrue(timeoutMs: Long = 2_000L, condition: () -> Boolean) {
         val deadline = System.currentTimeMillis() + timeoutMs
         while (System.currentTimeMillis() < deadline) {
             if (condition()) return
@@ -104,8 +121,8 @@ class PolishVoiceControllerTest {
 
     /** [snapshot] and its [ageMs] are what the gate reports; [failCommand] makes the dispatcher
      *  refuse that one command, like a blocked or failed write. */
-    @Suppress("LongParameterList") // Named arguments expose independent scenario inputs without changing the shared fixture.
-    private fun rig(
+    @Suppress("LongParameterList", "LongMethod") // The shared fixture exposes independent scenario inputs.
+    internal fun rig(
         automationPhrase: String?,
         userPhrases: VoiceUserPhrases,
         snapshot: DiParsData? = null,
@@ -128,7 +145,20 @@ class PolishVoiceControllerTest {
             every { ttsEnabled() } returns ttsEnabled
         }
         val audioCapture = mockk<AudioCapture>(relaxed = true)
-        every { audioCapture.captureSession(any(), any<(ShortArray) -> Any?>()) } returns flow { }
+        val asr = FakeContinuousAsr()
+        every { audioCapture.captureSession(any(), any<(ShortArray) -> Any?>()) } answers {
+            val mark = secondArg<(ShortArray) -> Any?>()
+            asr.captureMarks += mark
+            flow {
+                asr.captureOpen.set(true)
+                try {
+                    asr.beforeFrame()
+                    val samples = shortArrayOf(0)
+                    emit(MicFrame(samples, mark(samples)))
+                    awaitCancellation()
+                } finally { asr.captureOpen.set(false) }
+            }
+        }
         val rules = listOfNotNull(automationPhrase?.let(::voiceRule))
         val resolver = VoiceAutomationResolver(mockk<RuleDao> { coEvery { getEnabled() } returns rules })
         val engine = mockk<AutomationEngine>(relaxed = true)
@@ -143,7 +173,6 @@ class PolishVoiceControllerTest {
             coEvery { ask(any(), any()) } returns assistantReply
             coEvery { cancel() } returns Unit
         }
-        val asr = FakeContinuousAsr()
         val journal = VoiceJournal()
         val aliasRuns = Collections.synchronizedList(mutableListOf<VoiceAlias>())
         val aliasCoordinator = mockk<VoiceAliasCoordinator>()
@@ -160,7 +189,7 @@ class PolishVoiceControllerTest {
             contacts = contacts,
             confirmer = confirmer,
         )
-        return Rig(controller, asr, engine, assistant, journal, tts, assistantActions, aliasCoordinator, aliasRuns).also { r ->
+        return Rig(controller, asr, audioCapture, gate, engine, assistant, journal, tts, assistantActions, aliasCoordinator, aliasRuns).also { r ->
             coEvery { dispatcher.dispatch(any<ActionDef>(), any()) } answers {
                 val action = firstArg<ActionDef>()
                 r.dispatched += action
@@ -594,6 +623,69 @@ class PolishVoiceControllerTest {
 
     @get:Rule val tmp = TemporaryFolder()
 
+    @Test fun accepted_request_releases_capture_and_survives_mic_off() {
+        val r = rig(null, VoiceUserPhrases())
+        val release = CompletableDeferred<AssistantReply>()
+        coEvery { r.assistant.ask(any(), any()) } coAnswers { release.await() }
+        r.controller.onPttPressed()
+        awaitTrue { r.asr.captureOpen.get() && r.asr.events.subscriptionCount.value > 0 }
+        r.asr.events.tryEmit(ContinuousAsrEvent.Utterance(unsupportedPhrase))
+        awaitTrue { r.controller.routingJobForTest()?.isActive == true }
+        awaitTrue { !r.asr.captureOpen.get() }
+        r.controller.onPttPressed()
+        assertTrue(r.controller.sessionActive())
+        release.complete(AssistantReply.Answer("odpowiedź"))
+        awaitTrue { r.journal.entries.value.any { it.route == VoiceJournalEntry.Route.AGENT } }
+        coVerify(exactly = 1) { r.assistant.ask(any(), any()) }
+    }
+
+    @Test fun mic_off_does_not_cancel_an_accepted_assistant_request() {
+        val r = rig(null, VoiceUserPhrases())
+        val release = CompletableDeferred<AssistantReply>()
+        val started = CompletableDeferred<Unit>()
+        coEvery { r.assistant.ask(any(), any()) } coAnswers {
+            started.complete(Unit)
+            release.await()
+        }
+        r.controller.onPttPressed()
+        awaitTrue { r.asr.captureOpen.get() && r.asr.events.subscriptionCount.value > 0 }
+        r.asr.events.tryEmit(ContinuousAsrEvent.Utterance(unsupportedPhrase))
+        awaitTrue { started.isCompleted }
+        r.controller.onPttPressed()
+        assertTrue(r.controller.sessionActive())
+        release.complete(AssistantReply.Answer("odpowiedź"))
+        awaitTrue { r.journal.entries.value.any { it.route == VoiceJournalEntry.Route.AGENT && it.answer == "odpowiedź" } }
+        coVerify(exactly = 1) { r.assistant.ask(any(), any()) }
+    }
+
+    @Test fun off_on_accepts_a_second_request_and_preserves_fifo_order() {
+        val r = rig(null, VoiceUserPhrases())
+        val first = CompletableDeferred<AssistantReply>()
+        val sent = Collections.synchronizedList(mutableListOf<String>())
+        coEvery { r.assistant.ask(any(), any()) } coAnswers {
+            val text = firstArg<String>()
+            sent += text
+            if (sent.size == 1) first.await() else AssistantReply.Answer("druga odpowiedź")
+        }
+        r.controller.onPttPressed()
+        awaitTrue { r.asr.captureOpen.get() && r.asr.events.subscriptionCount.value > 0 }
+        r.asr.events.tryEmit(ContinuousAsrEvent.Utterance(unsupportedPhrase))
+        awaitTrue { sent.size == 1 && !r.asr.captureOpen.get() }
+        r.controller.onPttPressed()
+        r.controller.onPttPressed()
+        awaitTrue { r.asr.captureOpen.get() && r.asr.events.subscriptionCount.value > 0 }
+        val second = "jak się masz"
+        r.asr.events.tryEmit(ContinuousAsrEvent.Utterance(second))
+        awaitTrue { !r.asr.captureOpen.get() }
+        assertEquals(listOf(unsupportedPhrase), sent.toList())
+        first.complete(AssistantReply.Answer("pierwsza odpowiedź"))
+        awaitTrue { sent.size == 2 }
+        awaitTrue { r.journal.entries.value.count { it.route == VoiceJournalEntry.Route.AGENT } == 2 }
+        assertEquals(listOf(unsupportedPhrase, second), sent.toList())
+        val answers = r.journal.entries.value.filter { it.route == VoiceJournalEntry.Route.AGENT }.map { it.answer }
+        assertEquals(listOf("druga odpowiedź", "pierwsza odpowiedź"), answers)
+    }
+
     @Test fun an_unsupported_request_with_ai_on_goes_to_the_assistant_once_and_a_massage_proposal_runs_nothing() {
         assertEquals(NluVerdict.Refused(NluRefusal.UNSUPPORTED), NluParser.classify(unsupportedPhrase, VoiceLanguage.PL))
         val registry = ActionRegistry(allowlist = allowlist)
@@ -727,73 +819,119 @@ class PolishVoiceControllerTest {
         assertTrue(spoken.single(), prose !in spoken.single())
     }
 
-    @Test fun a_name_barge_in_while_the_handler_waits_cancels_the_turn_without_speech() {
-        val entered = CompletableDeferred<Unit>()
-        val handler = mockk<AssistantActionHandler>(relaxed = true)
-        coEvery { handler.handle(any()) } coAnswers { entered.complete(Unit); awaitCancellation() }
-        val r = rig(null, VoiceUserPhrases(), assistantActions = handler, assistantReply = proposal(),
-            agentName = "Bob", ttsEnabled = true)
-        r.controller.onPttPressed()
-        awaitTrue { r.controller.listening.value }
-        awaitTrue { r.asr.events.subscriptionCount.value >= 1 }
-        r.asr.events.tryEmit(ContinuousAsrEvent.Utterance(unsupportedPhrase))
-        awaitTrue { entered.isCompleted }
-
-        r.asr.events.tryEmit(ContinuousAsrEvent.Utterance("Bob"))
-        awaitTrue { r.journal.entries.value.any { it.route == VoiceJournalEntry.Route.AGENT && it.outcome == VoiceJournalEntry.Outcome.ERROR } }
-
-        val cancelled = r.journal.entries.value.first { it.outcome == VoiceJournalEntry.Outcome.ERROR }
-        assertEquals(VoiceRefusal.BARGE_IN, cancelled.refusal)
-        assertEquals(emptyList<String>(), spokenLines(r))
-        assertEquals(emptyList<ActionDef>(), r.dispatched.toList())
-    }
-
-    @Suppress("SwallowedException") // The handler fixture deliberately finishes after cancellation to return the true write result.
-    @Test fun a_turn_cancelled_after_dispatch_journals_the_true_outcome_and_stays_silent() {
+    @Test fun a_pending_proposal_is_not_cancelled_when_the_mic_is_turned_off() {
         val entered = CompletableDeferred<Unit>()
         val release = CompletableDeferred<Unit>()
         val handler = mockk<AssistantActionHandler>(relaxed = true)
-        // Like the real handler: a caller that goes away after the write still gets the settled result.
         coEvery { handler.handle(any()) } coAnswers {
             entered.complete(Unit)
-            try { awaitCancellation() } catch (e: kotlinx.coroutines.CancellationException) { withContext(NonCancellable) { release.await() } }
-            AssistantActionResult.Spoken("Wykonano: ustaw temperaturę 22", VoiceJournalEntry.Outcome.OK, "openclaw:ac_set_temp")
+            release.await()
+            AssistantActionResult.Spoken("Wykonano", VoiceJournalEntry.Outcome.OK, "openclaw:action")
         }
-        val r = rig(null, VoiceUserPhrases(), assistantActions = handler, assistantReply = proposal(),
-            agentName = "Bob", ttsEnabled = true)
+        val r = rig(null, VoiceUserPhrases(), assistantActions = handler, assistantReply = proposal(), agentName = "Bob")
         r.controller.onPttPressed()
-        awaitTrue { r.controller.listening.value }
-        awaitTrue { r.asr.events.subscriptionCount.value >= 1 }
+        awaitTrue { r.asr.captureOpen.get() && r.asr.events.subscriptionCount.value > 0 }
         r.asr.events.tryEmit(ContinuousAsrEvent.Utterance(unsupportedPhrase))
-        awaitTrue { entered.isCompleted }
-        r.asr.events.tryEmit(ContinuousAsrEvent.Utterance("Bob"))
-        awaitTrue { r.journal.entries.value.any { it.refusal == VoiceRefusal.BARGE_IN } }
+        awaitTrue { entered.isCompleted && !r.asr.captureOpen.get() }
+        r.controller.onPttPressed()
+        assertTrue(r.controller.sessionActive())
         release.complete(Unit)
-        awaitTrue { r.journal.entries.value.any { it.command == "openclaw:ac_set_temp" } }
-
-        val done = r.journal.entries.value.first { it.command == "openclaw:ac_set_temp" }
-        assertEquals(VoiceJournalEntry.Outcome.OK, done.outcome)
-        assertEquals(emptyList<String>(), spokenLines(r))
+        awaitTrue { r.journal.entries.value.any { it.command == "openclaw:action" } }
+        assertEquals(VoiceJournalEntry.Outcome.OK, r.journal.entries.value.first { it.command == "openclaw:action" }.outcome)
+        coVerify(exactly = 1) { handler.handle(any()) }
+        coVerify(exactly = 1) { r.assistant.ask(any(), any()) }
     }
 
-    @Test fun a_local_phrase_during_a_pending_proposal_takes_priority_and_runs() {
+    @Test fun a_settled_proposal_is_journalled_after_mic_toggles() {
         val entered = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
         val handler = mockk<AssistantActionHandler>(relaxed = true)
-        coEvery { handler.handle(any()) } coAnswers { entered.complete(Unit); awaitCancellation() }
-        val r = rig(null, VoiceUserPhrases(), assistantActions = handler, assistantReply = proposal(), ttsEnabled = true)
+        coEvery { handler.handle(any()) } coAnswers {
+            entered.complete(Unit)
+            release.await()
+            AssistantActionResult.Spoken("Wykonano: ustaw temperaturę 22", VoiceJournalEntry.Outcome.OK, "openclaw:ac_set_temp")
+        }
+        val r = rig(null, VoiceUserPhrases(), assistantActions = handler, assistantReply = proposal())
         r.controller.onPttPressed()
-        awaitTrue { r.controller.listening.value }
-        awaitTrue { r.asr.events.subscriptionCount.value >= 1 }
+        awaitTrue { r.asr.captureOpen.get() && r.asr.events.subscriptionCount.value > 0 }
         r.asr.events.tryEmit(ContinuousAsrEvent.Utterance(unsupportedPhrase))
-        awaitTrue { entered.isCompleted }
-
-        r.asr.events.tryEmit(ContinuousAsrEvent.Utterance("Nawiguj do domu"))
-        awaitTrue { r.dispatched.isNotEmpty() }
-
-        assertEquals(listOf("home"), r.dispatched.map { JSONObject(it.payload).getString("shortcut") })
-        assertTrue(r.journal.entries.value.any { it.refusal == VoiceRefusal.LOCAL_PRIORITY && it.outcome == VoiceJournalEntry.Outcome.ERROR })
+        awaitTrue { entered.isCompleted && !r.asr.captureOpen.get() }
+        r.controller.onPttPressed()
+        r.controller.onPttPressed()
+        awaitTrue { r.asr.captureOpen.get() }
+        r.controller.onPttPressed()
+        awaitTrue { !r.asr.captureOpen.get() }
+        release.complete(Unit)
+        awaitTrue { r.journal.entries.value.any { it.command == "openclaw:ac_set_temp" } }
+        assertEquals(VoiceJournalEntry.Outcome.OK, r.journal.entries.value.first { it.command == "openclaw:ac_set_temp" }.outcome)
         coVerify(exactly = 1) { handler.handle(any()) }
-        assertTrue(spokenLines(r).none { prose in it })
+    }
+
+    @Test fun a_local_phrase_waits_behind_a_pending_proposal() {
+        val entered = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        val handler = mockk<AssistantActionHandler>(relaxed = true)
+        coEvery { handler.handle(any()) } coAnswers {
+            entered.complete(Unit)
+            release.await()
+            AssistantActionResult.Spoken("Wykonano", VoiceJournalEntry.Outcome.OK, "openclaw:action")
+        }
+        val r = rig(null, VoiceUserPhrases(), assistantActions = handler, assistantReply = proposal())
+        r.controller.onPttPressed()
+        awaitTrue { r.asr.captureOpen.get() && r.asr.events.subscriptionCount.value > 0 }
+        r.asr.events.tryEmit(ContinuousAsrEvent.Utterance(unsupportedPhrase))
+        awaitTrue { entered.isCompleted && !r.asr.captureOpen.get() }
+        r.controller.onPttPressed()
+        r.controller.onPttPressed()
+        awaitTrue { r.asr.captureOpen.get() && r.asr.events.subscriptionCount.value > 0 }
+        r.asr.events.tryEmit(ContinuousAsrEvent.Utterance("Nawiguj do domu"))
+        awaitTrue { !r.asr.captureOpen.get() }
+        assertEquals(emptyList<ActionDef>(), r.dispatched.toList())
+        release.complete(Unit)
+        awaitTrue { r.dispatched.isNotEmpty() }
+        assertEquals(listOf("home"), r.dispatched.map { JSONObject(it.payload).getString("shortcut") })
+        assertTrue(r.journal.entries.value.any { it.command == "openclaw:action" })
+        coVerify(exactly = 1) { handler.handle(any()) }
+    }
+
+    @Test fun replies_wait_for_capture_and_physical_playback_before_the_next_request() {
+        val r = rig(null, VoiceUserPhrases(), ttsEnabled = true)
+        val firstReply = CompletableDeferred<AssistantReply>()
+        val sent = Collections.synchronizedList(mutableListOf<String>())
+        val spoken = Collections.synchronizedList(mutableListOf<String>())
+        val physicalSpeaking = MutableStateFlow(false)
+        every { r.tts.speaking } returns physicalSpeaking
+        every { r.tts.speak(any()) } answers { spoken += firstArg<String>(); true }
+        coEvery { r.assistant.ask(any(), any()) } coAnswers {
+            sent += firstArg<String>()
+            if (sent.size == 1) firstReply.await() else AssistantReply.Answer("druga odpowiedź")
+        }
+        r.controller.onPttPressed()
+        awaitTrue { r.asr.captureOpen.get() && r.asr.events.subscriptionCount.value > 0 }
+        r.asr.events.tryEmit(ContinuousAsrEvent.Utterance(unsupportedPhrase))
+        awaitTrue { sent.size == 1 && !r.asr.captureOpen.get() }
+        r.controller.onPttPressed()
+        r.controller.onPttPressed()
+        awaitTrue { r.asr.captureOpen.get() && r.asr.events.subscriptionCount.value > 0 }
+        firstReply.complete(AssistantReply.Answer("pierwsza odpowiedź"))
+        Thread.sleep(100)
+        assertEquals(emptyList<String>(), spoken.toList())
+        r.asr.events.tryEmit(ContinuousAsrEvent.Utterance("jak się masz"))
+        awaitTrue { !r.asr.captureOpen.get() && spoken.size == 1 }
+        r.controller.onPttPressed()
+        assertTrue(r.controller.sessionActive())
+        assertEquals(1, sent.size)
+        physicalSpeaking.value = true
+        Thread.sleep(100)
+        assertEquals(1, sent.size)
+        physicalSpeaking.value = false
+        awaitTrue { spoken.size == 2 }
+        assertEquals(listOf("pierwsza odpowiedź", "druga odpowiedź"), spoken.toList())
+        assertEquals(2, sent.size)
+        assertTrue(!r.asr.captureOpen.get())
+        physicalSpeaking.value = true
+        Thread.sleep(100)
+        physicalSpeaking.value = false
     }
 
     // --- controls: the same saved-phrase path still works for an ordinary exact phrase ---
