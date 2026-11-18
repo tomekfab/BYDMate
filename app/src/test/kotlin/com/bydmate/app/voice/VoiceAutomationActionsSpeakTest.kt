@@ -53,6 +53,8 @@ class VoiceAutomationActionsSpeakTest {
         every { gate.isEnabled() } returns voiceEnabled
         every { gate.ttsEnabled() } returns ttsEnabled
         val controller = mockk<VoiceController>()
+        every { controller.tryBeginAutomationSpeech() } returns true
+        every { controller.endAutomationSpeech() } returns Unit
         every { controller.listening } returns MutableStateFlow(listening)
         every { controller.sessionActive() } returns listening
         val actions = VoiceAutomationActions(
@@ -119,6 +121,8 @@ class VoiceAutomationActionsSpeakTest {
         every { gate.isEnabled() } returns true
         every { gate.ttsEnabled() } returns true
         val controller = mockk<VoiceController>()
+        every { controller.tryBeginAutomationSpeech() } returns true
+        every { controller.endAutomationSpeech() } returns Unit
         every { controller.listening } returns MutableStateFlow(false) // continuous session NOT active
         every { controller.sessionActive() } returns true              // legacy busy IS active
         val tts = mockk<TtsEngine>(relaxed = true) {

@@ -172,7 +172,7 @@ object PolishVoiceTextRules : VoiceTextRules {
     // Whole words only: "jedz" as a prefix would take "jedzenie", "połącz" would take "połączenie".
     // The call verbs are here so "nie dzwoń do mamy" is refused, never handed to the assistant.
     private val VERB_WORDS = setOf(
-        "prowadź", "prowadz", "jedź", "jedz", "jedźmy", "jedzmy",
+        "prowadź", "prowadz", "jedź", "jedz", "jedźmy", "jedzmy", "łącz", "lacz",
         "zadzwoń", "zadzwon", "zadzwonić", "zadzwonic", "dzwoń", "dzwon", "połącz", "polacz",
     )
 
@@ -199,8 +199,11 @@ object PolishVoiceTextRules : VoiceTextRules {
 
     override fun commandLikeRefusal(text: String): String? {
         val tokens = PolishVoiceNormalizer.tokens(text)
-        val verb = tokens.any { isVerb(it) || isGluedNegation(it) }
-        val term = tokens.any { isTerm(it) }
+        val (verb, term) = if (isHeatingShortcut(tokens)) {
+            true to true
+        } else {
+            tokens.any { isVerb(it) || isGluedNegation(it) } to tokens.any { isTerm(it) }
+        }
         if (!verb && !term) return null
         return when {
             isQuoted(text) || tokens.any { it in PolishVoiceNormalizer.QUOTE_WORDS } -> NluRefusal.QUOTED
@@ -211,3 +214,7 @@ object PolishVoiceTextRules : VoiceTextRules {
         }
     }
 }
+
+/** Shortcut words identify a command for refusal checks; only the dictionary can execute it. */
+private fun isHeatingShortcut(tokens: List<String>): Boolean =
+    "dawaj" in tokens && tokens.any { it == "ciepełko" || it == "ciepelko" }

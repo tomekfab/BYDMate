@@ -27,6 +27,12 @@ class NaturalPolishCommandsTest {
         "Okno pasażera do połowy otwórz" to "副驾半开",
         "Szyberdach zamknij" to "天窗打开0",
         "Do połowy otwórz szyberdach" to "天窗打开50",
+        "Łącz klimatyzację" to "自动空调",
+        "Lacz grzanie fotela" to "主驾座椅加热1档",
+        "Dawaj ciepełko" to "主驾座椅加热1档+方向盘加热",
+        "Dawaj ciepelko" to "主驾座椅加热1档+方向盘加热",
+        "Dawaj ciepełko oba fotele" to "主驾座椅加热1档+副驾座椅加热1档+方向盘加热",
+        "Dawaj ciepelko oba fotele" to "主驾座椅加热1档+副驾座椅加热1档+方向盘加热",
         // Seats.
         "Podgrzej fotel kierowcy" to "主驾座椅加热1档",
         "Podgrzej fotel pasażera na 2" to "副驾座椅加热2档",

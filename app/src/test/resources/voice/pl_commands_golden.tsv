@@ -709,3 +709,9 @@ włącz masaż siedzenia	REFUSED:command_unsupported	unsupported
 włącz masaż	REFUSED:command_unsupported	unsupported	
 wyłącz masaż	REFUSED:command_unsupported	unsupported	
 włącz masaż fotela kierowcy i podgrzej fotel kierowcy	主驾座椅按摩打开+主驾座椅加热1档	compound	
+łącz klimatyzację	自动空调	aliases
+lacz grzanie fotela	主驾座椅加热1档	aliases
+dawaj ciepełko	主驾座椅加热1档+方向盘加热	natural
+dawaj ciepelko	主驾座椅加热1档+方向盘加热	natural
+dawaj ciepełko oba fotele	主驾座椅加热1档+副驾座椅加热1档+方向盘加热	natural
+dawaj ciepelko oba fotele	主驾座椅加热1档+副驾座椅加热1档+方向盘加热	natural

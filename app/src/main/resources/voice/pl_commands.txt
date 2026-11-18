@@ -36,7 +36,7 @@ rule close_lid: zamknij|zamknąć|zamknac|zamknijcie|zamykaj
 rule ajar: uchyl|uchylić|uchylic|uchylcie
 rule air: przewietrz|przewietrzyć|przewietrzyc|wywietrz|wywietrzyć|wywietrzyc
 rule set: ustaw|ustawić|ustawic|<make>
-rule on: włącz|wlacz|włączyć|wlaczyc|włączcie|wlaczcie|włączaj|wlaczaj
+rule on: łącz|lacz|włącz|wlacz|włączyć|wlaczyc|włączcie|wlaczcie|włączaj|wlaczaj
 rule off: wyłącz|wylacz|wyłączyć|wylaczyc|wyłączcie|wylaczcie|wyłączaj|wylaczaj|zgaś|zgas|zgasić|zgasic
 
 # ---- How far an opening goes ---------------------------------------------------------------
@@ -245,6 +245,9 @@ solo <blow> {seat} {lvl} => {seat}座椅通风{lvl}档
 <on> (silną|silna|mocną|mocna) <blow> {seat} => {seat}座椅通风3档
 solo (silną|silna|mocną|mocna) <blow> {seat} => {seat}座椅通风3档
 <off> <blow> {seat} => {seat}座椅通风关闭
+
+dawaj (ciepełko|ciepelko) => 主驾座椅加热1档 + 方向盘加热
+dawaj (ciepełko|ciepelko) oba fotele => 主驾座椅加热1档 + 副驾座椅加热1档 + 方向盘加热
 
 # Driver seat massage: local-only (CommandTranslator.LOCAL_VOICE_ONLY). Driver seat, on/off only.
 rule massage: masaż|masaz

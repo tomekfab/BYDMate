@@ -67,6 +67,21 @@ class PolishCommandSafetyTest {
         }
     }
 
+    @Test fun new_aliases_and_heating_shortcuts_keep_safety_boundaries() {
+        for (text in listOf("łącz klimatyzację", "lacz klimatyzację", "dawaj ciepełko", "dawaj ciepelko oba fotele")) {
+            assertRefused(NluRefusal.NEGATED, "nie $text")
+            assertRefused(NluRefusal.QUOTED, "\"$text\"")
+        }
+        for (text in listOf("dawaj ciepełko i", "dawaj ciepełko i otwórz maskę", "dawaj ciepelko oba fotele i coś jeszcze")) {
+            assertRefused(NluRefusal.PARTIAL, text)
+        }
+        assertEquals(ParseResult.Unrecognized, NluParser.parse("dawaj ciepełko oba", VoiceLanguage.PL))
+        assertEquals(NluVerdict.Refused(NluRefusal.UNSUPPORTED), verdict("łącz grzanie fotela teraz"))
+        assertEquals(ParseResult.CallContact("Łącz"), NluParser.parse("zadzwoń do Łącz", VoiceLanguage.PL))
+        assertEquals(ParseResult.NavigateDestination("Łącz"), NluParser.parse("nawiguj do Łącz", VoiceLanguage.PL))
+        assertEquals(NluVerdict.Unknown, verdict("co znaczy łącz w tym zdaniu"))
+    }
+
     @Test fun harmless_requests_remain_unknown() {
         for (text in listOf(
             "jaka będzie pogoda jutro", "opowiedz mi dowcip", "włącz muzykę", "otwórz plik", "",

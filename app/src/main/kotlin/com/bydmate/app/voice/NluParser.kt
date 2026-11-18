@@ -151,9 +151,7 @@ object NluParser {
         val refusal = if (rules.refusesRejectedCommands) rules.commandLikeRefusal(text) else null
         // Glued negations are not reserved tokens. Honor safety refusals before accepting a raw
         // destination, while generic unsupported and ambiguous requests keep their fallback order.
-        if (refusal == NluRefusal.NEGATED || refusal == NluRefusal.QUOTED) {
-            return NluVerdict.Refused(refusal)
-        }
+        safetyRefusal(refusal)?.let { return it }
         recognizePolishCall(text, rules, compound)?.let { return it }
         recognizePolishDestination(text, rules, compound)?.let { return it }
         Log.i(TAG, "no match: words=${words.joinToString(" ").take(80)}")
@@ -179,12 +177,14 @@ object NluParser {
         rules: VoiceTextRules,
     ): NluVerdict.Refused? {
         if (rules.refusesRejectedCommands && words.any { it in dict.rules.reservedWords }) {
-            val reason = rules.commandLikeRefusal(text)
-            if (reason == NluRefusal.NEGATED || reason == NluRefusal.QUOTED) {
-                return NluVerdict.Refused(reason)
-            }
+            return safetyRefusal(rules.commandLikeRefusal(text))
         }
         return null
+    }
+
+    private fun safetyRefusal(reason: String?): NluVerdict.Refused? = when (reason) {
+        NluRefusal.NEGATED, NluRefusal.QUOTED -> NluVerdict.Refused(reason)
+        else -> null
     }
 
     private fun refusalOrUnknown(reason: String?): NluVerdict =
@@ -216,7 +216,7 @@ object NluParser {
     private fun recognizePolishCall(text: String, rules: VoiceTextRules, compound: Compound): NluVerdict? {
         if (rules.language != VoiceLanguage.PL || compound.hasConnector) return null
         val match = POLISH_CALL.matchEntire(text.trim()) ?: return null
-        val name = (match.groups[1] ?: match.groups[2])?.value.orEmpty().trim(*NAME_PUNCTUATION).trim()
+        val name = (match.groups[1] ?: match.groups[2])?.value.orEmpty().trim { it in NAME_PUNCTUATION }.trim()
         return if (name.isEmpty()) {
             NluVerdict.Refused(NluRefusal.CALL_INCOMPLETE)
         } else {

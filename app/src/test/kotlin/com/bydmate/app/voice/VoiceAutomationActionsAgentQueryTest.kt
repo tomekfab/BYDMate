@@ -55,6 +55,8 @@ class VoiceAutomationActionsAgentQueryTest {
         every { gate.isEnabled() } returns voiceEnabled
         every { gate.ttsEnabled() } returns ttsEnabled
         val controller = mockk<VoiceController>()
+        every { controller.tryBeginAutomationSpeech() } returns true
+        every { controller.endAutomationSpeech() } returns Unit
         every { controller.listening } returns MutableStateFlow(listening)
         every { controller.sessionActive() } returns listening
         val actions = VoiceAutomationActions(
@@ -155,6 +157,8 @@ class VoiceAutomationActionsAgentQueryTest {
         every { gate.isEnabled() } returns true
         every { gate.ttsEnabled() } returns true
         val controller = mockk<VoiceController>()
+        every { controller.tryBeginAutomationSpeech() } returns true
+        every { controller.endAutomationSpeech() } returns Unit
         every { controller.listening } returns listeningFlow
         // sessionActive() must mirror the dynamic listeningFlow state for the race-condition check.
         every { controller.sessionActive() } answers { listeningFlow.value }

@@ -30,6 +30,8 @@ import com.bydmate.app.voice.openclaw.PolishActionText
 import com.bydmate.app.voice.openclaw.ProposalInput
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -55,7 +57,6 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 
 @Singleton
 @Suppress("LargeClass") // the whole voice session: capture marks, ASR events, routing, agent turns
@@ -102,7 +103,7 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
     /** The widget handle of one utterance's turn travels in the routing coroutine's context, never
      *  in a shared field: [turn] below is global, a late callback of a cancelled turn would read the
      *  next turn's handle from it. */
-    private class StatusTurnElement(val turn: VoiceStatusTracker.Turn) : AbstractCoroutineContextElement(Key) {
+    private class StatusTurnElement(@Volatile var turn: VoiceStatusTracker.Turn?) : AbstractCoroutineContextElement(Key) {
         companion object Key : CoroutineContext.Key<StatusTurnElement>
     }
 
@@ -111,12 +112,87 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
     private val _state = MutableStateFlow<VoiceUiState>(VoiceUiState.Idle)
     val state: StateFlow<VoiceUiState> = _state.asStateFlow()
 
-    // Continuous session indicator (Wave B), consumed by the listening-widget UI. Distinct from
-    // [state], which flashes each utterance's terminal outcome and resets independently.
+    // True only after the open capture produces audio, until that capture is released.
+    // The widget uses this to draw its listening indicator.
     private val _listening = MutableStateFlow(false)
     val listening: StateFlow<Boolean> = _listening.asStateFlow()
 
     private val busy = AtomicBoolean(false)
+    private val lifecycleLock = Any()
+    private val captureIdle = MutableStateFlow(true)
+    private val speechIdle = MutableStateFlow(true)
+    private var listeningIntent = false
+    private var explicitCapturePending = false
+    private var intentGeneration = 0L
+    private var intentCause = 0L
+    private val acceptedCount = AtomicInteger(0)
+    private data class AcceptedRequest(
+        val text: String, val decodeMs: Long, val profile: VoiceSessionProfile,
+        val generation: Long, val traceId: Long, val captureClosed: CompletableDeferred<Unit>,
+    )
+    private val requests = Channel<AcceptedRequest>(Channel.UNLIMITED)
+    private var activeStatus: StatusTurnElement? = null
+    private var activeRequestText: String = ""
+    private class RequestGeneration(val value: Long, val traceId: Long) : AbstractCoroutineContextElement(Key) {
+        companion object Key : CoroutineContext.Key<RequestGeneration>
+    }
+
+    init {
+        scope.launch {
+            for (request in requests) {
+                request.captureClosed.await()
+                language = request.profile.language
+                sessionTraceId = request.traceId
+                val holder = synchronized(lifecycleLock) {
+                    val widgetTurn = if (captureIdle.value) {
+                        val widget = statusTracker.openSession(language, preparing = true)
+                        statusSession = widget
+                        widget.openTurn().also { it.processing(request.text) }
+                    } else null
+                    StatusTurnElement(widgetTurn).also {
+                        activeStatus = it
+                        activeRequestText = request.text
+                    }
+                }
+                val context = RequestGeneration(request.generation, request.traceId) + holder
+                val job = scope.launch(context, start = CoroutineStart.LAZY) {
+                    try {
+                        routeUtterance(request.text, request.decodeMs)
+                    } catch (t: CancellationException) {
+                        throw t
+                    } catch (t: Throwable) {
+                        earcon.fail()
+                        _state.value = VoiceUiState.NotUnderstood(request.text)
+                        statusTurn()?.finish(VoiceStage.FAILED)
+                        record(VoiceJournalEntry(transcript = request.text, route = VoiceJournalEntry.Route.REFUSED,
+                            detail = withDecodeMs(request.text, request.decodeMs), outcome = VoiceJournalEntry.Outcome.ERROR,
+                            reason = t.message, refusal = VoiceRefusal.INTERNAL_ERROR, asrMs = request.decodeMs),
+                            "Continuous session utterance failed: ${t.message}")
+                        announce("Głos", lines.internalError(t.message), "Błąd")
+                    }
+                }
+                routingJob = job
+                job.start()
+                job.join()
+                synchronized(lifecycleLock) {
+                    if (activeStatus === holder) activeStatus = null
+                    routingJob = null
+                }
+                if (acceptedCount.decrementAndGet() == 0) {
+                    synchronized(lifecycleLock) {
+                        if (!listeningIntent && captureIdle.value && acceptedCount.get() == 0) {
+                            statusSession?.close(lingerTerminal = true)
+                            statusSession = null
+                            runCatching { hideListeningOverlay() }
+                            scheduleIdleReset()
+                        }
+                    }
+                    scheduleCaptureIfNeeded()
+                }
+            }
+        }
+    }
+
 
     /** The language of the running (or just starting) session, captured from [sessionProfile] when
      *  the session starts. Everything the session says, matches and routes follows it. */
@@ -124,18 +200,9 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
     private val polish: Boolean get() = language == VoiceLanguage.PL
     private val lines: VoiceSessionText get() = VoiceSessionText(language)
 
-    // Why the running ask is being cancelled, so its journal entry says so (name barge-in when null).
-    @Volatile private var askCancelReason: String? = null
-
     @Volatile private var sessionJob: Job? = null
-    // Android 10 head units: the press is waiting for the ASR warm-up (startContinuousSessionWhenWarm).
     @Volatile private var warmupJob: Job? = null
     @Volatile private var routingJob: Job? = null
-    @Volatile private var cancellableAskJob: Job? = null
-    // Busy drops are Log.i-only by contract (no journal/earcon/state change), so tests have no
-    // observable signal that the sequential collect consumed a dropped utterance; this counter
-    // is that signal. @Volatile: written by the collect coroutine, read from the test thread.
-    @Volatile private var droppedWhileBusy = 0
 
     /** The utterance being routed: when routing started (dispatch latency in the journal) and,
      *  once no local resolver claimed it, why it went to the agent. Routing is sequential (one
@@ -148,26 +215,11 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
     @Volatile private var sessionTraceId = 0L
     @Volatile private var stopReason: String? = null
 
-    /**
-     * Returns true when any voice session is active: the continuous GigaAM session (sets both
-     * _listening and busy for its whole duration), or the brief window the "model not ready"
-     * branch of onPttPressed() holds busy while it journals and announces the failure.
-     * Used by VoiceAutomationActions to gate speak/agent_query actions.
-     */
-    fun sessionActive(): Boolean = listening.value || busy.get()
+    /** Includes accepted work and playback so automation cannot take over an outstanding reply. */
+    fun sessionActive(): Boolean = synchronized(lifecycleLock) { listeningIntent || busy.get() || acceptedCount.get() > 0 || !speechIdle.value }
 
-    /** Test seams, same rationale as [lastSpeakingSeenMs]: deterministic await conditions
-     *  instead of fixed sleeps, no public API surface added. */
     internal fun routingJobForTest(): Job? = routingJob
-    internal fun droppedWhileBusyForTest(): Int = droppedWhileBusy
     internal fun warmupJobForTest(): Job? = warmupJob
-    // Hard-stop contract: orb press (stopContinuousSession) cancels routingJob immediately.
-    // A vehicle-write unit that has already started runs to completion regardless — VehicleApiImpl
-    // wraps composite (window fan-out, fridge preset) and seat (switch+level) write sequences in
-    // withContext(NonCancellable), so a cancellation mid-sequence can never leave the car
-    // half-commanded. processingUtterance is retained as a flag for the barge-in / busy-drop path.
-    @Volatile private var processingUtterance = false
-    private val stopRequested = AtomicBoolean(false)
     // Playback window of the continuous session: while our own TTS is audible and for
     // TTS_ECHO_GRACE_MS after it, the mic hears the agent's voice too, and the car has no working
     // echo cancellation. Frames captured in the window never reach the recognizer: the echo would
@@ -230,14 +282,93 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
     internal var showAnswerHook: (String) -> Unit = { text -> ListeningOverlay.showAnswer(text) }
     internal var clearDialogHook: () -> Unit = { ListeningOverlay.clearDialog() }
 
+    /** Reserves playback before enqueueing so a capture cannot start between enqueue and drain. */
+    private suspend fun speakOwned(text: String, sentences: List<String> = emptyList()): Boolean {
+        while (true) {
+            captureIdle.first { it }
+            speechIdle.first { it }
+            val reserved = synchronized(lifecycleLock) {
+                if (captureIdle.value && speechIdle.value) { speechIdle.value = false; true } else false
+            }
+            if (reserved) break
+        }
+        val lease = runCatching { audioCapture.acquireSuppression(AudioCapture.DUCK_VOLUME_INDEX) }.getOrNull()
+        val status = statusSession
+        val speakingObserver = scope.launch { ttsEngine.speaking.collect { status?.setSpeaking(it) } }
+        try {
+            return speakQueued(text, sentences) ?: speakDirect(text)
+        } catch (t: Throwable) {
+            runCatching { ttsEngine.stop() }
+            if (t is CancellationException) throw t
+            Log.w(TAG, "Reply playback failed; the settled request outcome is unchanged", t)
+            return false
+        } finally {
+            speakingObserver.cancel()
+            status?.setSpeaking(false)
+            runCatching { lease?.close() }
+            val resumeExplicit = synchronized(lifecycleLock) {
+                speechIdle.value = true
+                listeningIntent && explicitCapturePending
+            }
+            if (resumeExplicit) scheduleCaptureIfNeeded(explicit = true)
+        }
+    }
+
+    /** Null means no queued speech was accepted, so the plain engine path may be tried. */
+    internal suspend fun speakQueued(text: String, sentences: List<String>): Boolean? {
+        val queue = runCatching { ttsEngine.startQueue(language) }.getOrNull() ?: return null
+        var queued = false
+        var rejected = false
+        for (sentence in sentences.ifEmpty { listOf(text) }) {
+            if (!runCatching { queue.enqueue(sentence) }.getOrDefault(false)) {
+                rejected = true
+                break
+            }
+            queued = true
+        }
+        val finished = runCatching { queue.finish() }.isSuccess
+        if (rejected || !finished) {
+            runCatching { ttsEngine.stop() }
+            return if (queued) false else null
+        }
+        if (!queued) return null
+        noteOwnSpeech(text)
+        if (withTimeoutOrNull(PLAYBACK_TIMEOUT_MS) { queue.awaitPlayed(); true } == null) {
+            ttsEngine.stop()
+            return false
+        }
+        return true
+    }
+
+    private suspend fun speakDirect(text: String): Boolean {
+        if (!runCatching { ttsEngine.speak(text, language) }.getOrDefault(false)) return false
+        noteOwnSpeech(text)
+        val completed = withTimeoutOrNull(PLAYBACK_TIMEOUT_MS) {
+            val started = withTimeoutOrNull(SPEAK_START_GRACE_MS) { ttsEngine.speaking.first { it }; true }
+            if (started != true) return@withTimeoutOrNull false
+            ttsEngine.speaking.first { !it }
+            true
+        }
+        if (completed != true) ttsEngine.stop()
+        return completed == true
+    }
+
+    internal fun tryBeginAutomationSpeech(): Boolean = synchronized(lifecycleLock) {
+        if (listeningIntent || busy.get()) return@synchronized false
+        if (acceptedCount.get() > 0 || !speechIdle.value) return@synchronized false
+        speechIdle.value = false
+        true
+    }
+
+    internal fun endAutomationSpeech() {
+        synchronized(lifecycleLock) { speechIdle.value = true }
+        scheduleCaptureIfNeeded(explicit = true)
+    }
+
     /** Speak a short phrase for every session outcome (not only agent answers).
      *  Overlay text stays detailed; the spoken phrase is terse for the road. */
     private suspend fun announce(title: String, overlay: String, spoken: String, done: Boolean = false) {
-        // Hard stop gate: never start a new announcement after the orb went off — the callers'
-        // runCatching wrappers swallow the cancellation that would otherwise stop this path.
-        // coroutineContext.isActive is the per-turn mark: a cancelled routing turn stays
-        // cancelled even after a following session has reset the global stopRequested flag.
-        if (stopRequested.get() || !currentCoroutineContext().isActive) return
+        if (!currentCoroutineContext().isActive) return
         var didSpeak = false
         if (gate.ttsEnabled()) {
             // Stamp at the moment we ourselves start TTS, not only from the mic filter's
@@ -247,8 +378,7 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
             // stamp when speak() actually enqueued playback -- see lastSpeakingSeenMs above.
             val identity = agentIdentity()
             val phrase = identity.persona.spokenPhrase(spoken, gender = identity.gender)
-            if (runCatching { ttsEngine.speak(phrase, language) }.getOrDefault(false)) {
-                noteOwnSpeech(phrase)
+            if (speakOwned(phrase)) {
                 didSpeak = true
             }
         }
@@ -290,86 +420,94 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
             by = if (e.asrMs != null) turn.heardId else null)
     }
 
-    /** PTT toggle (Wave B): no session running -> start one (continuous GigaAM session when the
-     *  model is ready, whatever the app language: voice is always Russian), else report the
-     *  missing model without starting a session (#87); a continuous session already listening
-     *  -> stop it immediately (barge-in stops TTS too). */
+    /** Toggle listening intent without cancelling accepted requests or their replies. */
     fun onPttPressed() {
+        if (!gate.isEnabled()) return
         val ptt = Trace.event(TraceArea.USER, "ptt", "listening" to _listening.value)
-        if (!gate.isEnabled()) {
-            Trace.event(TraceArea.VOICE, "ptt-ignored", "reason" to "voice-off", by = ptt)
-            return
-        }
-        // Android 10 head units: the warm-up job starts the session off the main thread. Until it
-        // is done a press is dropped: the session may already be listening while its job is not
-        // assigned yet, and a stop would miss it.
-        if (warmupJob?.isActive == true) {
-            Trace.event(TraceArea.VOICE, "ptt-ignored", "reason" to "warming", by = ptt)
-            return
-        }
-        if (_listening.value) {
-            stopContinuousSession("ptt")
-            return
-        }
-        val profile = sessionProfile()
-        language = profile.language
-        if (continuousAsr.isReady(profile)) {
-            if (continuousAsr.requiresWarmBeforeListening(profile) && !continuousAsr.isWarm(profile)) {
-                startContinuousSessionWhenWarm(ptt, profile)
-            } else {
-                startContinuousSession(ptt, profile)
+        val generation = synchronized(lifecycleLock) {
+            intentCause = ptt
+            intentGeneration++
+            listeningIntent = !listeningIntent
+            explicitCapturePending = listeningIntent
+            if (!listeningIntent) {
+                warmupJob?.cancel()
+                sessionJob?.cancel()
             }
-        } else {
-            // GigaAM model missing: preserve the degraded UX the legacy path produced —
-            // overlay + journal ERROR.
-            if (!busy.compareAndSet(false, true)) return
-            // A prior continuous-session hard stop (stopContinuousSession()) leaves stopRequested
-            // set; only startContinuousSession() used to clear it. Without this reset, announce()
-            // below would silently suppress this branch's overlay+speech forever for a user who
-            // can never start a continuous session again to reset the flag (I-1).
-            stopRequested.set(false)
-            val msg = if (polish) PolishVoiceReplies.problem(PolishVoiceReplies.Problem.MODEL_MISSING)
-            else appStrings.get(R.string.voice_error_model_missing)
-            _state.value = VoiceUiState.NotUnderstood("")
-            statusTracker.showFailure(language)
-            record(
-                VoiceJournalEntry(transcript = "", route = VoiceJournalEntry.Route.REFUSED, detail = "",
-                    outcome = VoiceJournalEntry.Outcome.ERROR, reason = msg, refusal = VoiceRefusal.MODEL_MISSING),
-                "GigaAM model not ready"
-            )
-            busy.set(false)
-            scheduleIdleReset()
-            scope.launch { announce("Głos", msg, msg) }
+            intentGeneration
+        }
+        if (synchronized(lifecycleLock) { listeningIntent }) scheduleCaptureIfNeeded(explicit = true, generation = generation)
+    }
+
+    /** A newer explicit toggle invalidates every pending warm-up and delayed capture start. */
+    private fun scheduleCaptureIfNeeded(explicit: Boolean = false, generation: Long = synchronized(lifecycleLock) { intentGeneration }) {
+        scope.launch {
+            captureIdle.first { it }
+            speechIdle.first { it }
+            ttsEngine.speaking.first { !it }
+            synchronized(lifecycleLock) {
+                if (!canStartCapture(explicit, generation)) return@synchronized
+                val profile = sessionProfile()
+                when {
+                    !continuousAsr.isReady(profile) -> reportMissingModel(profile)
+                    continuousAsr.requiresWarmBeforeListening(profile) && !continuousAsr.isWarm(profile) ->
+                        warmBeforeCapture(profile, generation)
+                    else -> startContinuousSession(intentCause, profile, generation)
+                }
+            }
         }
     }
 
-    /** Android 10 head units (see [ContinuousAsr.requiresWarmBeforeListening]): the start cue and
-     *  the mic wait until the recognizer and the VAD are built, or the driver's first words go
-     *  to a mic that is not open yet. The pill answers the press at once in its "Myślę" look.
-     *  A warm-up that could not finish still starts the session: its own build then either
-     *  works or reports the failure the usual way. */
-    private fun startContinuousSessionWhenWarm(cause: Long, profile: VoiceSessionProfile) {
-        // Before the launch: the job may finish (and decline to start) before this thread goes on.
-        val preparing = statusTracker.openSession(language, preparing = true)
+    /** Called with lifecycleLock held. */
+    private fun canStartCapture(explicit: Boolean, generation: Long): Boolean {
+        if (!listeningIntent || generation != intentGeneration) return false
+        if (!captureIdle.value || !speechIdle.value || warmupJob?.isActive == true) return false
+        return explicit || acceptedCount.get() == 0
+    }
+
+    private fun reportMissingModel(profile: VoiceSessionProfile) {
+        listeningIntent = false
+        explicitCapturePending = false
+        language = profile.language
+        val msg = if (polish) PolishVoiceReplies.problem(PolishVoiceReplies.Problem.MODEL_MISSING)
+            else appStrings.get(R.string.voice_error_model_missing)
+        _state.value = VoiceUiState.NotUnderstood("")
+        statusTracker.showFailure(profile.language)
+        record(VoiceJournalEntry(transcript = "", route = VoiceJournalEntry.Route.REFUSED, detail = "",
+            outcome = VoiceJournalEntry.Outcome.ERROR, reason = msg, refusal = VoiceRefusal.MODEL_MISSING),
+            "GigaAM model not ready")
+        scheduleIdleReset()
+        scope.launch { announce("Głos", msg, msg) }
+    }
+
+    private fun warmBeforeCapture(profile: VoiceSessionProfile, generation: Long) {
+        val preparing = statusTracker.openSession(profile.language, preparing = true)
         statusSession = preparing
         warmupJob = scope.launch(Dispatchers.IO) {
-            runCatching { showListeningOverlay(thinkingText()) }
-            val startedMs = System.currentTimeMillis()
-            runCatching { continuousAsr.warmUp(profile) }
-            val waitedMs = System.currentTimeMillis() - startedMs
-            val warm = continuousAsr.isWarm(profile)
-            Log.i(TAG, "warm-up before listening: ${waitedMs}ms warm=$warm")
-            Trace.event(TraceArea.VOICE, "warm-wait", "ms" to waitedMs, "warm" to warm, by = cause)
-            if (gate.isEnabled()) {
-                runCatching { updateListeningOverlay(listeningText()) }
-                // Declined (busy: the previous session is still releasing): nothing will ever
-                // leave PREPARING, so close it. Not keyed on sessionJob, which is nulled before busy.
-                if (!startContinuousSession(cause, profile)) closePreparing(preparing)
-            } else {
-                runCatching { hideListeningOverlay() }
-                closePreparing(preparing)
+            try {
+                try {
+                    continuousAsr.warmUp(profile)
+                } catch (t: Throwable) {
+                    if (t is CancellationException) throw t
+                    Log.w(TAG, "ASR warm-up failed; capture will report a failure if it cannot start", t)
+                }
+                synchronized(lifecycleLock) {
+                    if (canFinishWarmup(generation)) startContinuousSession(intentCause, profile, generation)
+                }
+            } finally {
+                synchronized(lifecycleLock) {
+                    warmupJob = null
+                    if (sessionJob == null) closePreparing(preparing)
+                }
+                if (synchronized(lifecycleLock) { listeningIntent && generation != intentGeneration }) {
+                    scheduleCaptureIfNeeded(explicit = true)
+                }
             }
         }
+    }
+
+    private fun canFinishWarmup(generation: Long): Boolean {
+        if (!listeningIntent || intentGeneration != generation) return false
+        return captureIdle.value && speechIdle.value
     }
 
     private fun closePreparing(preparing: VoiceStatusTracker.Session) {
@@ -377,11 +515,9 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
         if (statusSession === preparing) statusSession = null
     }
 
-    /** Continuous PTT-toggled session (Wave B): one long-lived mic capture feeds VAD-segmented
-     *  utterances into the shared NLU/agent router (routeUtterance), so a follow-up question from
-     *  the agent keeps listening for free — the loop just collects again. Auto-stops after
-     *  SILENCE_AUTOSTOP_MS of continuous silence (Wave P: no session cap). */
-    private fun startContinuousSession(cause: Long, profile: VoiceSessionProfile): Boolean {
+    /** One capture window ends after an accepted utterance or its silence timeout.
+     *  Accepted work outlives this window; current listening intent controls later capture. */
+    private fun startContinuousSession(cause: Long, profile: VoiceSessionProfile, generation: Long): Boolean {
         if (!busy.compareAndSet(false, true)) {
             Trace.event(TraceArea.VOICE, "ptt-ignored", "reason" to "busy", by = cause)
             return false
@@ -389,68 +525,67 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
         // The profile was captured at the PTT edge. Do not read the active profile again after
         // an asynchronous warm-up: a settings switch must either reject this stale start in the
         // profile-aware ASR or keep every session concern on this one profile.
-        language = profile.language
+        if (acceptedCount.get() == 0) language = profile.language
         if (!continuousAsr.isReady(profile)) {
             busy.set(false)
             return false
         }
+        explicitCapturePending = false
         DiagnosticEmitters.lifecycle("preparing")
         val traceId = Trace.event(TraceArea.VOICE, "session-start", by = cause)
         sessionTraceId = traceId
         stopReason = null
-        // Barge-in: kill any ongoing TTS so it neither talks over the user nor bleeds into capture.
-        runCatching { ttsEngine.stop() }
         lastSpeakingSeenMs = 0L
-        processingUtterance = false
-        routingJob = null
-        cancellableAskJob = null
-        stopRequested.set(false)
-        _state.value = VoiceUiState.Listening
-        _listening.value = true
-        // The warm-up path hands over its PREPARING session: the tracker returns that same handle.
-        val widget = statusTracker.openSession(language, preparing = false)
+        captureIdle.value = false
+        // LISTENING means that capture has produced a frame, not merely that preparation started.
+        val widget = statusTracker.openSession(profile.language, preparing = true)
         statusSession = widget
-        earcon.ok()
-        // Duck the music the instant the orb appears -- captureSession's own duck fires only after
-        // the GigaAM recognizer is constructed (~1.3 s, field defect APK 337). duckMusic() is
-        // idempotent (volume already at the duck target returns null), so the inner call becomes
-        // a no-op and this early saved volume is the one restored at session teardown.
-        val earlyDuck = runCatching { audioCapture.duckMusic() }.getOrNull()
+        val earlyDuck = runCatching { audioCapture.acquireSuppression(0) }.getOrNull()
         // Warm the model and online-voice connections while the driver is still speaking: a cold
         // turn otherwise pays DNS + TLS on both hosts inside the reply latency.
         runCatching { if (gate.ttsEnabled()) ttsEngine.prewarmNetwork() }
         // The Russian agent's provider connection is warmed only for a Russian session: a Polish
         // session never talks to it.
-        sessionJob = scope.launch { ContinuousSession(widget, earlyDuck, traceId, profile).run() }
+        val closed = CompletableDeferred<Unit>()
+        val job = scope.launch(start = CoroutineStart.LAZY) { ContinuousSession(widget, earlyDuck, traceId, profile, generation, closed).run() }
+        sessionJob = job
+        job.invokeOnCompletion {
+            synchronized(lifecycleLock) {
+                if (!closed.isCompleted) {
+                    runCatching { earlyDuck?.close() }
+                    if (statusSession === widget) statusSession = null
+                    widget.close(lingerTerminal = false)
+                    _listening.value = false
+                    sessionJob = null
+                    busy.set(false)
+                    captureIdle.value = true
+                    closed.complete(Unit)
+                }
+            }
+        }
+        job.start()
         return true
     }
 
     /** State local to one capture/ASR collection; frame state is used only by capture. */
     private inner class ContinuousSession(
         private val widget: VoiceStatusTracker.Session,
-        private val earlyDuck: Int?,
+        private val earlyDuck: MediaSuppressionLease?,
         private val traceId: Long,
         private val profile: VoiceSessionProfile,
+        private val generation: Long,
+        private val closed: CompletableDeferred<Unit>,
     ) {
-        private var session: Job? = null
-        private lateinit var sessionScope: CoroutineScope
         private var lastEventMs = 0L
         private var wasAudible = false   // capture thread only
         private var micGated = false     // capture thread only
         private val echoTail = EchoTailMeter() // capture thread only
-        // Silence for the auto-stop: the agent's turn does not count (routing here, playback
-        // never reaches the recognizer at all), and the countdown starts over once the turn
-        // is over, so neither a long thinking phase nor a long answer eats the driver's
-        // waiting time after it. Derived from GigaAM's cumulative SilenceTick, which restarts
-        // at every SpeechStart.
+        // Silence is measured only within this capture window.
         private var silentMs = 0L
         private var lastTickSilentMs = 0L
-        private var inAgentTurn = false
 
         suspend fun run() {
-            sessionScope = currentCoroutineContext().let { CoroutineScope(it) }
-            session = currentCoroutineContext()[Job]
-            runCatching { showListeningOverlay(listeningText()) }
+            runCatching { showListeningOverlay(thinkingText()) }
             lastEventMs = System.currentTimeMillis()
             try {
                 runCatching {
@@ -462,10 +597,6 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
                         gateFrame(samples)
                     }
                         .filter { frame ->
-                            // Once a stop has been requested (see stopContinuousSession()) no further
-                            // frames are forwarded to the recognizer, even while an in-flight utterance
-                            // started before the stop is still being routed.
-                            if (stopRequested.get()) return@filter false
                             !frame.mark
                         }
                         .map { it.pcm }
@@ -474,7 +605,11 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
                     }
                 }.onFailure { failure ->
                     when (failure) {
-                        is StopSession -> stopReason = "silence"
+                        is StopSession -> synchronized(lifecycleLock) {
+                            if (intentGeneration == generation) { listeningIntent = false; explicitCapturePending = false; intentGeneration++ }
+                            stopReason = "silence"
+                        }
+                        is StopAccepted -> Unit
                         is CancellationException -> throw failure
                         else -> failed(failure)
                     }
@@ -485,6 +620,15 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
         }
 
         private fun gateFrame(samples: ShortArray): Boolean {
+            synchronized(lifecycleLock) {
+                if (!_listening.value && ownsCapture()) {
+                    _listening.value = true
+                    _state.value = VoiceUiState.Listening
+                    widget.listening()
+                    earcon.ok()
+                    runCatching { updateListeningOverlay(listeningText()) }
+                }
+            }
             // Read the real, physical playback signal each frame (see
             // lastSpeakingSeenMs above for why not a collect()-based watcher):
             // audible(), not the logical speaking flag, which is deliberately held
@@ -517,34 +661,25 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
             return gated
         }
 
+        /** Called with lifecycleLock held. */
+        private fun ownsCapture(): Boolean =
+            generation == intentGeneration && listeningIntent && !closed.isCompleted
+
         private suspend fun onEvent(ev: ContinuousAsrEvent) {
+            if (synchronized(lifecycleLock) { !ownsCapture() || !_listening.value }) return
             when (ev) {
                 is ContinuousAsrEvent.SpeechStart -> {
                     lastEventMs = System.currentTimeMillis()
                     lastTickSilentMs = 0L
                     silentMs = 0L
-                    // The live VAD now detects speech while a routing child is in
-                    // flight; clobbering Thinking here would violate the busy-drop
-                    // contract (no state change while an utterance is being routed).
-                    if (!processingUtterance) _state.value = VoiceUiState.Listening
+                    _state.value = VoiceUiState.Listening
                 }
                 is ContinuousAsrEvent.SilenceTick -> {
                     lastEventMs = System.currentTimeMillis()
                     val tickMs = if (ev.silentMs >= lastTickSilentMs) ev.silentMs - lastTickSilentMs else ev.silentMs
                     lastTickSilentMs = ev.silentMs
-                    // Never auto-stop while the agent is still working on the answer.
-                    val agentTurn = processingUtterance
-                    if (agentTurn) {
-                        inAgentTurn = true
-                    } else {
-                        if (inAgentTurn) {
-                            inAgentTurn = false
-                            silentMs = 0L
-                            Log.i(TAG, "Silence auto-stop countdown restarted: the agent's turn is over")
-                        }
-                        silentMs += tickMs
-                    }
-                    if (silentMs >= SILENCE_AUTOSTOP_MS && !agentTurn) throw StopSession
+                    silentMs += tickMs
+                    if (silentMs >= SILENCE_AUTOSTOP_MS) throw StopSession
                 }
                 is ContinuousAsrEvent.Utterance -> {
                     onUtterance(ev)
@@ -554,75 +689,13 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
 
         private suspend fun onUtterance(ev: ContinuousAsrEvent.Utterance) {
             val decodeMs = System.currentTimeMillis() - lastEventMs
-            if (processingUtterance) {
-                if (AgentNameMatcher.matches(ev.text, agentIdentity().name)) {
-                    cancellableAskJob?.takeIf { it.isActive }?.let { ask ->
-                        Log.i(TAG, "Barge-in by name")
-                        Trace.event(TraceArea.USER, "barge-in", by = turn.heardId)
-                        ask.cancel()
-                        bargeIn(ev.text, "Barge-in by name")
-                    } ?: run {
-                        Log.i(TAG, "Barge-in by name ignored: no cancellable ask")
-                        Trace.event(TraceArea.VOICE, "dropped", "reason" to "name-no-ask", by = turn.heardId)
-                    }
-                    return
-                }
-                // A Polish assistant turn can last a long time. A local command, question or
-                // refusal is never made to wait for it: the turn is cancelled and the
-                // phrase is routed as usual. Unknown speech still waits (busy drop below).
-                if (polish && cancellableAskJob?.isActive == true && localTakesPriority(ev.text)) {
-                    Log.i(TAG, "Local phrase during a remote turn: cancelling the turn")
-                    Trace.event(TraceArea.USER, "local-priority", by = turn.heardId)
-                    cancelRemoteTurnFor(VoiceRefusal.LOCAL_PRIORITY)
-                    routingJob?.join()
-                    // fall through: routed like any idle-time phrase
-                } else {
-                    Log.i(TAG, busyDropLine(ev.text))
-                    Trace.event(TraceArea.VOICE, "dropped", "reason" to "busy", by = turn.heardId)
-                    droppedWhileBusy++
-                    return
-                }
+            synchronized(lifecycleLock) {
+                if (generation != intentGeneration || !listeningIntent || closed.isCompleted) return
+                stopReason = "accepted"
+                acceptedCount.incrementAndGet()
+                requests.trySend(AcceptedRequest(ev.text, decodeMs, profile, generation, traceId, closed))
             }
-            processingUtterance = true
-            val widgetTurn = statusSession?.openTurn()
-            val job = route(ev, decodeMs, widgetTurn)
-            routingJob = job
-            job.start()
-            lastEventMs = System.currentTimeMillis()
-        }
-
-        private fun route(
-            ev: ContinuousAsrEvent.Utterance,
-            decodeMs: Long,
-            widgetTurn: VoiceStatusTracker.Turn?,
-        ): Job {
-            return sessionScope.launch(widgetTurn?.let { StatusTurnElement(it) } ?: EmptyCoroutineContext,
-                start = CoroutineStart.LAZY) {
-                runCatching { updateListeningOverlay(thinkingText()) }
-                try {
-                    runCatching {
-                        routeUtterance(ev.text, decodeMs)
-                    }.onFailure { t ->
-                        // A single utterance's routing crashed. Only capture/ASR failures
-                        // (caught below) tear the session down -- this one just gets
-                        // journaled as an error, and the session keeps listening.
-                        if (t is CancellationException) throw t
-                        earcon.fail()
-                        _state.value = VoiceUiState.NotUnderstood(ev.text)
-                        widgetTurn?.finish(VoiceStage.FAILED)
-                        record(VoiceJournalEntry(transcript = ev.text, route = VoiceJournalEntry.Route.REFUSED,
-                            detail = withDecodeMs(ev.text, decodeMs), outcome = VoiceJournalEntry.Outcome.ERROR,
-                            reason = t.message, refusal = VoiceRefusal.INTERNAL_ERROR, asrMs = decodeMs),
-                            "Continuous session utterance failed: decodeMs=$decodeMs ${t.message}")
-                        announce("Głos", lines.internalError(t.message), "Błąd")
-                    }
-                } finally {
-                    routingJob = null
-                    processingUtterance = false
-                    runCatching { updateListeningOverlay(listeningText()) }
-                    if (stopRequested.get()) session?.cancel()
-                }
-            }
+            throw StopAccepted
         }
 
         private suspend fun failed(t: Throwable) {
@@ -633,75 +706,57 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
             record(VoiceJournalEntry(transcript = "", route = VoiceJournalEntry.Route.REFUSED, detail = "",
                 outcome = VoiceJournalEntry.Outcome.ERROR, reason = t.message, refusal = VoiceRefusal.ASR_FAILED),
                 "Continuous session failed: ${t.message}")
-            announce("Głos", lines.internalError(t.message), "Błąd")
+            synchronized(lifecycleLock) {
+                if (intentGeneration == generation) { listeningIntent = false; explicitCapturePending = false; intentGeneration++ }
+            }
+            scope.launch {
+                closed.await()
+                announce("Głos", lines.internalError(t.message), "Błąd")
+            }
         }
 
         private fun finish() {
-            routingJob?.cancel()
-            routingJob = null
-            cancellableAskJob = null
-            processingUtterance = false
-            // Before `listening` goes false: a press after that starts a new session whose handle
-            // this teardown must not close. Only these ends keep a terminal status on screen: the
-            // session closing itself after a reply, and a failure. A press, silence and a bare
-            // cancellation give IDLE at once.
-            val ending = statusSession
-            statusSession = null
-            val reason = stopReason
-            ending?.close(lingerTerminal = reason != null && (reason in LINGER_REASONS || reason.startsWith("error:")))
-            runCatching { audioCapture.restoreMusic(earlyDuck) }
-            _listening.value = false
-            _state.value = VoiceUiState.Idle
-            // Distinct off-cue so the driver can tell session start (ok) and stop apart by ear.
-            earcon.off()
-            runCatching { hideListeningOverlay() }
-            sessionJob = null
-            // Before busy is released: a new session resets the reason.
-            DiagnosticEmitters.lifecycle("stopped")
-            Trace.event(TraceArea.VOICE, "session-stop", "reason" to (stopReason ?: "cancel"), by = traceId)
-            busy.set(false)
+            synchronized(lifecycleLock) {
+                val ending = widget
+                if (statusSession === ending) statusSession = null
+                ending.close(lingerTerminal = false)
+                runCatching { earlyDuck?.close() }
+                _listening.value = false
+                sessionJob = null
+                busy.set(false)
+                if (acceptedCount.get() > 0) runCatching { updateListeningOverlay(thinkingText()) }
+                captureIdle.value = true
+                val holder = activeStatus
+                if (holder != null && acceptedCount.get() > 0) {
+                    val pending = statusTracker.openSession(language, preparing = true)
+                    statusSession = pending
+                    holder.turn = pending.openTurn().also {
+                        it.processing(activeRequestText)
+                        it.waitingAssistant()
+                    }
+                }
+                closed.complete(Unit)
+                DiagnosticEmitters.lifecycle("stopped")
+                Trace.event(TraceArea.VOICE, "session-stop", "reason" to (stopReason ?: "cancel"), by = traceId)
+                if (!listeningIntent && acceptedCount.get() == 0) {
+                    _state.value = VoiceUiState.Idle
+                    earcon.off()
+                    runCatching { hideListeningOverlay() }
+                }
+            }
         }
     }
 
-    /** Name barge-in: silence the agent and hand the turn back to the driver. The caller has
-     *  already cancelled the in-flight ask. */
-    private fun bargeIn(transcript: String, logMsg: String) {
-        // Before stop(): the session auto-close resumes on the very speaking=false it causes.
-        pendingClose?.takeIf { it.job.isActive }?.let {
-            it.job.cancel()
-            Log.i(TAG, "${it.reason} auto-close cancelled by barge-in: the driver stays in the dialog")
-        }
-        runCatching { ttsEngine.stop() }
-        earcon.ok()
-        _state.value = VoiceUiState.Listening
-        statusSession?.listening() // also drops the cancelled turn's words
-        runCatching { updateListeningOverlay(listeningText()) }
-        record(VoiceJournalEntry(transcript = transcript, route = VoiceJournalEntry.Route.AGENT,
-            detail = "Przerwano po wykryciu imienia", outcome = VoiceJournalEntry.Outcome.OK,
-            refusal = VoiceRefusal.BARGE_IN), logMsg)
-    }
-
-    /** User contract: orb button is a hard OFF switch. Cancels everything immediately, regardless
-     *  of whether an utterance is mid-routing. Order: (1) set stop flag FIRST so every
-     *  continuation path (pcm filter, routing finally, ask callback) sees it before any job is
-     *  cancelled; (2) stop TTS; (3) cancel ask job; (4) cancel routing job; (5) cancel session.
-     *
-     *  Vehicle-write safety: a single binder.transact() is a blocking native call that completes
-     *  even when the coroutine is cancelled mid-call, but compound commands (seat switch→level,
-     *  fridge mode→temp, composite sequences) issue several writes. VehicleApiImpl wraps one
-     *  command's write unit in withContext(NonCancellable), so a started sequence always runs to
-     *  completion and cancellation lands between commands; dispatch wrappers rethrow
-     *  CancellationException so a cancelled turn is never announced as a failure. */
+    /** Close only the capture owned by the current listening intent. */
     private fun stopContinuousSession(reason: String) {
-        stopReason = reason
-        stopRequested.set(true)   // (1) gate every continuation before cancelling anything
-        runCatching { ttsEngine.stop() }
-        Log.i(TAG, "stopContinuousSession: hard stop; askActive=${cancellableAskJob?.isActive} routingActive=${routingJob?.isActive}")
-        cancellableAskJob?.cancel()  // (2) cancel pending agent ask / follow-up
-        routingJob?.cancel()         // (3) cancel in-flight routing (NLU dispatch or agent path)
-        sessionJob?.cancel()         // (4) full teardown; routing finally also cancels session
-                                     //     via stopRequested, but we do it here too so idle-
-                                     //     session stops are instant and not deferred to finally
+        synchronized(lifecycleLock) {
+            stopReason = reason
+            listeningIntent = false
+            explicitCapturePending = false
+            intentGeneration++
+            warmupJob?.cancel()
+            sessionJob?.cancel()
+        }
     }
 
     /** Routes one continuous-session utterance through the exact same NLU-resolve -> apply /
@@ -759,9 +814,9 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
     }
 
     /** Trace event of the phrase: where it went (never what was said); the cause of the turn. */
-    private fun heard(decodeMs: Long, route: String, why: String? = null) {
+    private suspend fun heard(decodeMs: Long, route: String, why: String? = null) {
         val id = Trace.event(TraceArea.VOICE, "heard", "route" to route, "why" to why, "asr_ms" to decodeMs,
-            by = sessionTraceId)
+            by = currentCoroutineContext()[RequestGeneration]?.traceId ?: sessionTraceId)
         turn = turn.copy(heardId = id)
     }
 
@@ -799,11 +854,6 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
         }
         return parse(text)
     }
-
-    /** True when [raw] is claimed by a local resolver (command, question, saved phrase, refusal):
-     *  everything but harmless unknown speech. Side-effect free. */
-    private suspend fun localTakesPriority(raw: String): Boolean =
-        resolve(AgentNameMatcher.stripLeadingName(raw, agentIdentity().name)) !is Resolution.None
 
     private fun parse(text: String): Resolution = when (val o = NluOutcome.of(NluParser.classify(text, language))) {
         is NluOutcome.Refused -> Resolution.None(o.reason)
@@ -872,7 +922,7 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
         resetJob?.cancel()
         resetJob = scope.launch {
             delay(idleResetDelayMs)
-            if (resetGen.get() == gen && !busy.get()) {
+            if (resetGen.get() == gen && !sessionActive()) {
                 _state.value = VoiceUiState.Idle
             }
         }
@@ -907,46 +957,25 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
     /** Close-after-command toggle: a done command or a final agent answer closes the session once
      *  the reply is heard, or, when nothing was said aloud, once the text had time to be read.
      *  The gate read is guarded: a failed settings read keeps the session open, as before. */
-    private fun closeAfterCommand(text: String, spoken: Boolean, reply: TtsEngine.SpeechQueue? = null) {
-        if (sessionJob == null || !runCatching { gate.closeAfterCommand() }.getOrDefault(false)) return
-        scheduleSessionClose("auto-close", waitForSpeech = spoken, dwellMs = readingDwellMs(text, spoken = false), reply = reply)
+    private suspend fun closeAfterCommand(text: String, spoken: Boolean, reply: TtsEngine.SpeechQueue? = null) {
+        if (!runCatching { gate.closeAfterCommand() }.getOrDefault(false)) return
+        scheduleSessionClose("auto-close", spoken, readingDwellMs(text, spoken = false), reply)
     }
 
-    /** Closes the running session after the reply: with [waitForSpeech] once playback began and
-     *  ended (the whole [reply] queue when the reply was queued), else after [dwellMs]. [reason]
-     *  goes to the session-stop trace. A newer close replaces a pending one. */
-    private fun scheduleSessionClose(
+    private suspend fun scheduleSessionClose(
         reason: String,
         waitForSpeech: Boolean,
         dwellMs: Long = 0L,
         reply: TtsEngine.SpeechQueue? = null,
     ) {
-        val closingJob = sessionJob ?: return
-        Log.i(TAG, "$reason auto-close armed: waitForSpeech=$waitForSpeech queued=${reply != null} dwellMs=$dwellMs")
+        val generation = currentCoroutineContext()[RequestGeneration]?.value ?: return
         pendingClose?.job?.cancel()
         val job = scope.launch(start = CoroutineStart.LAZY) {
-            if (waitForSpeech) {
-                if (reply != null) {
-                    // speaking dips false between two queued sentences (online voices report it
-                    // per sentence), so the queue itself tells when the last one was handed out.
-                    reply.awaitPlayed()
-                } else {
-                    // speak()/enqueue() returns before the TTS worker flips speaking=true, so
-                    // waiting for !speaking alone completes immediately and would cut the reply
-                    // before it starts. Wait (bounded) for playback to begin, then for it to
-                    // end; if it never begins (TTS off, synth failed), the grace elapses and
-                    // the session still closes.
-                    withTimeoutOrNull(SPEAK_START_GRACE_MS) { ttsEngine.speaking.first { it } }
-                }
-                ttsEngine.speaking.first { !it }   // let the agent finish its own reply first
-            } else {
-                delay(dwellMs)
+            if (reply != null && waitForSpeech) withTimeoutOrNull(PLAYBACK_TIMEOUT_MS) { reply.awaitPlayed() }
+            if (!waitForSpeech) delay(dwellMs)
+            synchronized(lifecycleLock) {
+                if (intentGeneration == generation) stopContinuousSession(reason)
             }
-            ensureActive()   // a cancel that landed right as the wait ended still wins
-            // PTT restarting a session stops TTS -- the very signal this coroutine
-            // waits for -- so only close the session this reply belongs to, never a
-            // newer one the user has already started.
-            if (sessionJob === closingJob) stopContinuousSession(reason)
         }
         pendingClose = PendingClose(reason, job)
         job.start()
@@ -1268,15 +1297,6 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
         announce("Głos", res.text, res.text, done = true)
     }
 
-    /** Cancels the running assistant turn on behalf of a local phrase and silences its playback.
-     *  Ownership: this controller owns the waiting coroutine ([cancellableAskJob]); cancelling it
-     *  makes the assistant abort the turn on its side, and a late answer is then dropped there. */
-    private fun cancelRemoteTurnFor(reason: String) {
-        askCancelReason = reason
-        runCatching { ttsEngine.stop() }
-        cancellableAskJob?.cancel()
-    }
-
     private suspend fun fireAutomation(match: VoiceAutomationMatch, transcript: String, decodeMs: Long? = null) {
         val ruleId = match.ruleId
         fun entry(outcome: VoiceJournalEntry.Outcome, reason: String? = null, refusal: String? = null) =
@@ -1356,62 +1376,23 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
             return
         }
         if (polish) return assistantFallback(transcript, decodeMs, why)
-        val queue = if (gate.ttsEnabled()) runCatching { ttsEngine.startQueue(language) }.getOrNull() else null
-        val streamed = StringBuilder()
-        var queuedAny = false
-        // Whether the filler alone reached the TTS queue. Audible, but not an answer sentence:
-        // must not suppress the earcon+legacy-speak fallback below (queuedAny gates that), or the
-        // driver hears only the filler when the real answer fails to enqueue. Still counts toward
-        // "something was said aloud" for the dialog dwell timer (didSpeak below).
-        var fillerQueued = false
+        val streamed = mutableListOf<String>()
         var r: AgentResult? = null
         coroutineScope {
-            // LAZY so the body cannot run before askJob is assigned: the callback below gates
-            // on askJob.isCancelled — a PER-TURN cancellation mark. The global stopRequested
-            // flag alone is not enough: a following session (continuous or legacy) resets it,
-            // which would un-mute late callbacks from this already-hard-stopped turn.
             lateinit var askJob: Job
             askJob = launch(Trace.causedBy(turn.heardId), start = CoroutineStart.LAZY) {
-                r = agentOrchestrator.ask(
-                    transcript,
-                    // The filler is speech only: queued for TTS, never shown in the orb's answer
-                    // row. With TTS off (no queue) there is no filler at all.
-                    onFiller = queue?.let { q ->
-                        { phrase ->
-                            // Same hard stop gate as the sentence callback below.
-                            if (!stopRequested.get() && !askJob.isCancelled &&
-                                runCatching { q.enqueue(phrase) }.getOrDefault(false)
-                            ) {
-                                noteOwnSpeech(phrase)
-                                fillerQueued = true
-                            }
-                        }
-                    },
-                ) { sentence ->
-                    // Hard stop gate: the SSE loop can emit one more sentence between the ask
-                    // job's cancellation and its next suspension point; this callback is
-                    // non-suspend, so it must check for itself (the TTS queue is already
-                    // superseded by tts.stop(), but the orb dialog repaint is not).
-                    if (stopRequested.get() || askJob.isCancelled) return@ask
-                    if (queue != null && runCatching { queue.enqueue(sentence) }.getOrDefault(false)) {
-                        noteOwnSpeech(sentence)
-                        queuedAny = true
+                r = agentOrchestrator.ask(transcript, onFiller = null) { sentence ->
+                    if (!askJob.isCancelled) {
+                        streamed += sentence
+                        showAnswerHook(streamed.joinToString(" "))
                     }
-                    if (streamed.isNotEmpty()) streamed.append(' ')
-                    streamed.append(sentence)
-                    showAnswerHook(streamed.toString())
                 }
             }
-            cancellableAskJob = askJob
             statusTurn()?.waitingAssistant()
             askJob.start()
-            try {
-                askJob.join()
-            } finally {
-                cancellableAskJob = null
-            }
+            askJob.join()
         }
-        runCatching { queue?.finish() }
+        captureIdle.first { it }
         val result = r ?: run {
         // Barge-in: the streamed half-sentence in the "Asystent: …" row belongs to an answer
             // that will never finish. Drop it so the driver is not left reading a stub while
@@ -1422,24 +1403,9 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
                 refusal = VoiceRefusal.BARGE_IN, asrMs = decodeMs), "Agent ask cancelled by name barge-in")
             return
         }
-        // Hard stop gate: if the orb went off between ask.join() returning and this point,
-        // the answer must not resurrect state, TTS, or the orb dialog (the path below has
-        // no suspension point that would deliver the cancellation).
-        if (stopRequested.get()) {
-            record(VoiceJournalEntry(transcript = transcript, route = VoiceJournalEntry.Route.AGENT,
-                detail = withDecodeMs(transcript, decodeMs), outcome = VoiceJournalEntry.Outcome.ERROR,
-                refusal = VoiceRefusal.HARD_STOP, asrMs = decodeMs), "Agent answer suppressed: hard stop")
-            return
-        }
         when (result) {
             is AgentResult.Answer -> {
-                // Gated on queuedAny (an actual successful enqueue), not "sentences arrived": the
-                // queue can fail to start or to enqueue (TTS toggle on but voice model not ready /
-                // native exception), and that turn must still fall through to the legacy
-                // earcon+speak below instead of going completely silent. When queuedAny is true,
-                // the reply was already spoken sentence-by-sentence via the queue above -- the
-                // earcon and a second full-text speak() would be noise on top of live audio.
-                if (!queuedAny) earcon.ok()
+                earcon.ok()
                 _state.value = VoiceUiState.AgentAnswer(result.text)
                 statusTurn()?.finish(VoiceStage.ANSWERED)
                 // Tool outcomes make the turn auditable from the journal screen: the
@@ -1450,26 +1416,15 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
                     detail = withDecodeMs(result.text + toolsNote, decodeMs), outcome = VoiceJournalEntry.Outcome.OK,
                     tools = result.tools, answer = result.text, refusal = why, asrMs = decodeMs),
                     "Agent answered: transcript=\"$transcript\" tools=${result.tools.size}")
-                var didSpeak = queuedAny || fillerQueued
-                if (!queuedAny && gate.ttsEnabled()) {
-                    // See announce() for why this is stamped at call time, not only per-frame,
-                    // and only when speak() actually enqueued playback.
-                    if (runCatching { ttsEngine.speak(result.text, language) }.getOrDefault(false)) {
-                        noteOwnSpeech(result.text)
-                        didSpeak = true
-                    }
-                }
+                val didSpeak = gate.ttsEnabled() && speakOwned(result.text, streamed)
                 // Orb dialog: this branch does not go through announce(), so feed the orb here.
                 showAnswerHook(result.text)
                 scheduleClear(result.text, didSpeak)
                 // Wave P: a successful play_music closes the whole session after the reply -- the orb's
-                // presence ducks the very music the agent just started. end_conversation is the driver
-                // asking the agent to close; any other final answer (not a question, no failed tool:
-                // the driver will rephrase) closes only with the close-after-command toggle on. Gated
-                // on sessionJob so the legacy single-shot path (which has no session to close) is
-                // untouched.
-                val reply = queue.takeIf { queuedAny }
-                if (sessionJob != null) when {
+                // presence ducks the very music the agent just started. Other successful answers
+                // close only when the close-after-command toggle is on.
+                val reply: TtsEngine.SpeechQueue? = null
+                when {
                     result.tools.any { it.name == "play_music" && it.ok } ->
                         scheduleSessionClose(REASON_PLAY_MUSIC, waitForSpeech = true, reply = reply)
                     result.tools.any { it.name == "end_conversation" && it.ok } ->
@@ -1517,22 +1472,21 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
                 announce("Głos", text, text)
             return
         }
-        askCancelReason = null
         val turnResult = awaitAssistantReply(transcript)
+        captureIdle.first { it }
         val result = turnResult.reply
         val action = turnResult.action
         // A proposal the handler settled is journalled even when the turn was cancelled meanwhile: a dispatch
         // already made is never undone, so its true outcome must be on record. Speech is skipped if cancelled.
         if (action != null) {
-            proposalResult(action, transcript, decodeMs, why, silent = turnResult.cancelled || stopRequested.get())
+            proposalResult(action, transcript, decodeMs, why, silent = turnResult.cancelled)
             return
         }
-        // Cancelled (local phrase, name barge-in or hard stop): nothing is said, a late answer is dropped. A
-        // proposal without a handler result was cancelled before dispatch.
+        // A proposal without a handler result was cancelled before dispatch.
         val noReply = result == null || result is AssistantReply.Aborted
-        if (noReply || result is AssistantReply.Proposal || stopRequested.get()) {
+        if (noReply || result is AssistantReply.Proposal) {
             runCatching { clearDialogHook() }
-            val refusal = if (stopRequested.get()) VoiceRefusal.HARD_STOP else askCancelReason ?: VoiceRefusal.BARGE_IN
+            val refusal = VoiceRefusal.BARGE_IN
             record(VoiceJournalEntry(transcript = transcript, route = VoiceJournalEntry.Route.AGENT,
                 detail = withDecodeMs(transcript, decodeMs), outcome = VoiceJournalEntry.Outcome.ERROR,
                 refusal = refusal, asrMs = decodeMs), "Assistant turn cancelled: reason=$refusal")
@@ -1550,7 +1504,7 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
                     asrMs = decodeMs), "Assistant failed: problem=${result.problem} uncertain=${result.uncertain}")
                 announce("Głos", spoken, spoken)
             }
-            null, is AssistantReply.Proposal, AssistantReply.Aborted -> Unit // handled above
+            is AssistantReply.Proposal, AssistantReply.Aborted -> Unit // handled above
         }
     }
 
@@ -1562,8 +1516,7 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
             answer = result.text, refusal = why, command = ASSISTANT_LABEL, asrMs = decodeMs),
             "Assistant answered: transcript=\"$transcript\"")
         var didSpeak = false
-        if (gate.ttsEnabled() && runCatching { ttsEngine.speak(result.text, language) }.getOrDefault(false)) {
-            noteOwnSpeech(result.text)
+        if (gate.ttsEnabled() && speakOwned(result.text)) {
             didSpeak = true
         } else {
             earcon.ok()
@@ -1634,15 +1587,10 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
                     )
                 }
             }
-            cancellableAskJob = askJob
             statusTurn()?.waitingAssistant()
             askJob.start()
-            try {
-                askJob.join()
-                cancelled = askJob.isCancelled
-            } finally {
-                cancellableAskJob = null
-            }
+            askJob.join()
+            cancelled = askJob.isCancelled
         }
         return AssistantTurn(reply, action, cancelled)
     }
@@ -1756,13 +1704,10 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
         // begin (speaking=false -> true) before giving up and closing anyway. Covers offline
         // synth latency and the online 2 s per-sentence timeout with margin.
         private const val SPEAK_START_GRACE_MS = 5_000L
+        private const val PLAYBACK_TIMEOUT_MS = 120_000L
 
         // Session-stop reason of the play_music close; a new phrase never cancels that one.
         private const val REASON_PLAY_MUSIC = "play_music"
-
-        // Session-stop reasons that keep the last terminal status on the widget for its dwell: the
-        // session closing itself after a reply. A failure (reason "error:...") does too.
-        private val LINGER_REASONS = setOf("auto-close", "user-stop", REASON_PLAY_MUSIC)
 
         // Playback window grace period after our own audio was last audible (or enqueued): the
         // tail of the agent's voice can still reach the mic (see lastSpeakingSeenMs). Not measured
@@ -1780,3 +1725,4 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
 /** Control-flow signal to auto-stop the continuous session on prolonged silence. A
  *  CancellationException so it tears down the collect chain (mic, VAD, recognizer) cleanly. */
 private object StopSession : CancellationException("voice-session-silence-timeout")
+private object StopAccepted : CancellationException("voice-utterance-accepted")
