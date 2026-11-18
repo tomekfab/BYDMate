@@ -5,27 +5,32 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
-* The smallest SocGauge on Dashboard must keep “100” and “SOC %” (and the bolt while charging)
- * inside the arc. Rows here model the real text at 1 px per dp: a 22 sp theme line height,
- * monospace digits 0.6 em wide with ink 0.73 em above the baseline, baseline 0.35 em below the
- * row centre (the 32 sp glyphs overflow their 22 sp row).
+ * The smallest SocGauge on Dashboard must keep “100” and “SOC %” (and the bolt while charging)
+ * inside the arc. Rows model sans-serif text at 1 px per dp using the production stroke,
+ * font sizes and explicit line heights. Digits use a conservative 0.6 em advance; ink reaches
+ * 0.73 em above the baseline, with the baseline 0.35 em below the row centre.
  */
 class SocGaugeFontScaleTest {
 
-    private val stroke = 14f
+    private val stroke = SocGaugeStroke.value
 
-    private fun textRow(scale: Float, fontSp: Float, chars: Int, advanceEm: Float): GaugeContentRow {
+    private fun textRow(scale: Float, fontSp: Float, lineHeightSp: Float, chars: Int, advanceEm: Float): GaugeContentRow {
         val em = fontSp * scale
-        val height = 22f * scale
+        val height = lineHeightSp * scale
         val baseline = height / 2f + 0.35f * em
         return GaugeContentRow(height, baseline - 0.73f * em, baseline + 0.02f * em, chars * advanceEm * em)
     }
 
     private fun minSize(scale: Float, charging: Boolean): Float {
         val rows = buildList {
-            if (charging) add(GaugeContentRow(18f, 0f, 18f, 18f))
-            add(textRow(scale, 32f, chars = 3, advanceEm = 0.6f))  // «100»
-            add(textRow(scale, 12f, chars = 5, advanceEm = 0.55f)) // «SOC %»
+            if (charging) {
+                val icon = SocGaugeIconSize.value
+                add(GaugeContentRow(icon, 0f, icon, icon))
+            }
+            add(textRow(scale, SocGaugeNumberSize.value, SocGaugeNumberLineHeight.value,
+                chars = 3, advanceEm = 0.6f)) // «100»
+            add(textRow(scale, SocGaugeLabelSize.value, SocGaugeLabelLineHeight.value,
+                chars = 5, advanceEm = 0.55f)) // «SOC %»
         }
         return socGaugeMinSizePx(rows, stroke)
     }

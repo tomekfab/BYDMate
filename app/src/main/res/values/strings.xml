@@ -351,7 +351,11 @@
     <string name="trips_col_time">czas</string>
     <string name="trips_col_duration">dług.</string>
     <string name="trips_col_km">km</string>
-    <string name="trips_col_soc">SOC</string>
+    <string name="trips_col_consumption">Zużycie</string>
+    <string name="trips_unit_kwh_per_100km">kWh/100 km</string>
+    <string name="trips_unit_liters_per_100km">l/100 km</string>
+    <string name="trips_scroll_columns_hint">Przewiń w poziomie, aby zobaczyć wszystkie kolumny ↔</string>
+    <string name="trips_col_soc">Naładowanie (%)</string>
     <string name="trips_col_kwh">kWh</string>
     <string name="trips_chart_kwh_chip">kWh</string>
     <string name="trips_chart_no_data">Brak danych</string>
@@ -2255,4 +2259,17 @@
     <string name="settings_nav_capture_title">Przechwytywanie nawigacji (debug)</string>
     <string name="settings_nav_capture_desc">Prywatne dane z Google Maps lub Waze. Dane trasy i ulic pozostają na tym urządzeniu do chwili zapisu.</string>
     <string name="settings_nav_capture_open">Otwórz</string>
+
+    <!-- Manual trip reset and battery summary -->
+    <string name="dashboard_trip_reset_action">Wyzeruj licznik przejazdu</string>
+    <string name="dashboard_trip_reset_title">Wyzerować %1$s?</string>
+    <string name="dashboard_trip_reset_body">Sumy licznika zaczną się od zera. Zapisane przejazdy pozostaną.</string>
+    <string name="dashboard_trip_reset_cancel">Anuluj</string>
+    <string name="dashboard_battery_status_critical">Akumulator: ostrzeżenie krytyczne</string>
+    <string name="dashboard_battery_status_warning">Akumulator: ostrzeżenie</string>
+    <string name="dashboard_battery_status_unavailable">Dane akumulatora niedostępne</string>
+    <string name="dashboard_battery_status_partial">Brak zgłoszonych ostrzeżeń · dane częściowe</string>
+    <string name="dashboard_battery_status_clear">Brak zgłoszonych ostrzeżeń</string>
+    <string name="dashboard_view_trips">Zobacz przejazdy</string>
+    <string name="dashboard_current_trip">Bieżący przejazd</string>
 </resources>

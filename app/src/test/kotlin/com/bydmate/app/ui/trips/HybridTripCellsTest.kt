@@ -79,4 +79,52 @@ class HybridTripCellsTest {
             1e-9,
         )
     }
+
+    @Test
+    fun `Trips electric-only reading includes its complete unit`() {
+        assertEquals(Per100Cell("${f(15.0)} kWh/100 km", true), tripsPer100Cell(15.0, null, 20.0, "kWh/100 km", "L/100 km"))
+    }
+
+    @Test
+    fun `Trips fuel-only reading includes its complete fuel unit`() {
+        assertEquals(Per100Cell("${f(5.0)} L/100 km", false), tripsPer100Cell(null, 1.0, 20.0, "kWh/100 km", "L/100 km"))
+    }
+
+    @Test
+    fun `Trips mixed reading keeps the fuel value and matching unit`() {
+        assertEquals(Per100Cell("${f(5.0)} L/100 km", false), tripsPer100Cell(15.0, 1.0, 20.0, "kWh/100 km", "L/100 km"))
+    }
+
+    @Test
+    fun `Trips zero distance fallback carries only its electric unit`() {
+        assertEquals(Per100Cell("${f(15.0)} kWh/100 km", true), tripsPer100Cell(15.0, 1.0, 0.0, "kWh/100 km", "L/100 km"))
+        assertEquals(Per100Cell("—", false), tripsPer100Cell(null, 1.0, 0.0, "kWh/100 km", "L/100 km"))
+    }
+
+    @Test
+    fun `Trips unavailable reading remains a dash without an invented unit`() {
+        assertEquals(Per100Cell("—", false), tripsPer100Cell(null, null, null, "kWh/100 km", "L/100 km"))
+    }
+
+    @Test
+    fun `narrow Trips table keeps measured columns and both insets scrollable`() {
+        assertEquals(600f, tripsTableContentWidthDp(320f, 120f, listOf(60f, 60f, 72f, 60f, 120f, 60f)), 0f)
+    }
+
+    @Test
+    fun `enlarged Trips text keeps measured columns instead of shrinking them`() {
+        assertEquals(1152f, tripsTableContentWidthDp(500f, 240f, listOf(120f, 120f, 144f, 120f, 240f, 120f)), 0f)
+        assertEquals(1400f, tripsTableContentWidthDp(1400f, 240f, listOf(120f, 120f, 144f, 120f, 240f, 120f)), 0f)
+    }
+
+    @Test
+    fun `Trips panels stack when the chart cannot retain its minimum scaled width`() {
+        assertEquals(true, tripsPanelsStacked(600f, 1f))
+        assertEquals(false, tripsPanelsStacked(1200f, 1f))
+        assertEquals(true, tripsPanelsStacked(1200f, 2f))
+        assertEquals(true, tripsPanelsStacked(800f, 1f))
+        assertEquals(false, tripsPanelsStacked(812f, 1f))
+    }
+
+
 }

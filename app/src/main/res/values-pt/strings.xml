@@ -324,7 +324,11 @@
     <string name="trips_col_time">tempo</string>
     <string name="trips_col_duration">dur.</string>
     <string name="trips_col_km">km</string>
-    <string name="trips_col_soc">SOC</string>
+    <string name="trips_col_consumption">Consumo</string>
+    <string name="trips_unit_kwh_per_100km">kWh/100 km</string>
+    <string name="trips_unit_liters_per_100km">L/100 km</string>
+    <string name="trips_scroll_columns_hint">Role na horizontal para ver todas as colunas ↔</string>
+    <string name="trips_col_soc">Carga (%)</string>
     <string name="trips_col_kwh">kWh</string>
     <string name="trips_chart_kwh_chip">kWh</string>
     <string name="trips_chart_no_data">Sem dados</string>
@@ -2095,4 +2099,17 @@
     <string name="settings_nav_capture_title">Captura de navegação (depuração)</string>
     <string name="settings_nav_capture_desc">Dados privados do Google Maps ou Waze. Os dados de rota e ruas ficam neste dispositivo até serem guardados.</string>
     <string name="settings_nav_capture_open">Abrir</string>
+
+    <!-- Manual trip reset and battery summary -->
+    <string name="dashboard_trip_reset_action">Repor contador de viagem</string>
+    <string name="dashboard_trip_reset_title">Repor %1$s?</string>
+    <string name="dashboard_trip_reset_body">Os totais do contador recomeçam do zero. As viagens registadas são mantidas.</string>
+    <string name="dashboard_trip_reset_cancel">Cancelar</string>
+    <string name="dashboard_battery_status_critical">Bateria: aviso crítico</string>
+    <string name="dashboard_battery_status_warning">Bateria: aviso</string>
+    <string name="dashboard_battery_status_unavailable">Dados da bateria indisponíveis</string>
+    <string name="dashboard_battery_status_partial">Sem avisos comunicados · dados parciais</string>
+    <string name="dashboard_battery_status_clear">Sem avisos comunicados</string>
+    <string name="dashboard_view_trips">Ver viagens</string>
+    <string name="dashboard_current_trip">Viagem atual</string>
 </resources>

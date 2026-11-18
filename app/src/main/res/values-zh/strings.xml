@@ -252,7 +252,11 @@
     <string name="trips_col_time">时间</string>
     <string name="trips_col_duration">时长</string>
     <string name="trips_col_km">公里</string>
-    <string name="trips_col_soc">SOC</string>
+    <string name="trips_col_consumption">能耗</string>
+    <string name="trips_unit_kwh_per_100km">kWh/100 公里</string>
+    <string name="trips_unit_liters_per_100km">升/100 公里</string>
+    <string name="trips_scroll_columns_hint">横向滚动以查看所有列 ↔</string>
+    <string name="trips_col_soc">电量 (%)</string>
     <string name="trips_col_kwh">kWh</string>
     <string name="trips_chart_kwh_chip">kWh</string>
     <string name="trips_chart_no_data">暂无数据</string>
@@ -2213,4 +2217,17 @@
     <string name="settings_nav_capture_title">导航捕获（调试）</string>
     <string name="settings_nav_capture_desc">Google 地图或 Waze 的私有数据。路线和街道数据在保存前只保留在此设备上。</string>
     <string name="settings_nav_capture_open">打开</string>
+
+    <!-- Manual trip reset and battery summary -->
+    <string name="dashboard_trip_reset_action">重置行程计数器</string>
+    <string name="dashboard_trip_reset_title">重置%1$s？</string>
+    <string name="dashboard_trip_reset_body">计数器总计将从零开始。已记录的行程会保留。</string>
+    <string name="dashboard_trip_reset_cancel">取消</string>
+    <string name="dashboard_battery_status_critical">电池：严重警告</string>
+    <string name="dashboard_battery_status_warning">电池：警告</string>
+    <string name="dashboard_battery_status_unavailable">电池数据不可用</string>
+    <string name="dashboard_battery_status_partial">未报告警告 · 数据不完整</string>
+    <string name="dashboard_battery_status_clear">未报告警告</string>
+    <string name="dashboard_view_trips">查看行程</string>
+    <string name="dashboard_current_trip">当前行程</string>
 </resources>

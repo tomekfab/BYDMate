@@ -675,10 +675,7 @@ private fun RuleContainer(
             containerColor = if (rule.enabled) CardSurface else CardSurface.copy(alpha = 0.55f)
         ),
         shape = RULE_CARD_SHAPE,
-        border = androidx.compose.foundation.BorderStroke(
-            1.5.dp,
-            if (rule.enabled) AccentGreen.copy(alpha = 0.25f) else CardBorder
-        ),
+        border = androidx.compose.foundation.BorderStroke(1.dp, CardBorder),
         content = content,
     )
 }

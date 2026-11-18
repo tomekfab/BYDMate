@@ -2,12 +2,13 @@ package com.bydmate.app.ui.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,7 +16,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -34,6 +34,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -80,8 +81,7 @@ private fun RowLabel(
             Text(
                 text = title,
                 color = if (enabled) TextPrimary else TextMuted,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
+                style = MaterialTheme.typography.labelLarge,
             )
             // Optional "?" next to the title (not the switch) — the badge explains the feature.
             if (onHelp != null) SettingHelpBadge(onHelp)
@@ -90,8 +90,7 @@ private fun RowLabel(
             Text(
                 text = description,
                 color = if (enabled) TextSecondary else TextMuted,
-                fontSize = 12.sp,
-                lineHeight = 16.sp,
+                style = MaterialTheme.typography.labelMedium,
                 modifier = Modifier.padding(top = 2.dp),
             )
         }
@@ -169,7 +168,7 @@ fun SettingSliderRow(
         )
         Text(
             text = valueLabel,
-            color = if (enabled) AccentGreen else TextMuted,
+            color = if (enabled) TextPrimary else TextMuted,
             fontSize = 13.sp,
             fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.End,
@@ -265,7 +264,7 @@ fun SettingValueRow(
         RowLabel(title, description, enabled, Modifier.weight(1f))
         Text(
             text = value,
-            color = if (enabled) AccentGreen else TextMuted,
+            color = if (enabled) TextPrimary else TextMuted,
             fontSize = 13.sp,
             fontWeight = FontWeight.Medium,
         )
@@ -278,8 +277,9 @@ fun SettingValueRow(
     }
 }
 
-/** Row "title + hint + UnitChip group on the right" (scrolls horizontally if long). */
+/** Keep the label above wrapping choices so neither loses its width in a narrow pane. */
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 fun SettingChipRow(
     title: String,
     description: String? = null,
@@ -289,18 +289,20 @@ fun SettingChipRow(
     enabled: Boolean = true,
     onHelp: (() -> Unit)? = null,
 ) {
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 48.dp)
             .padding(vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        RowLabel(title, description, enabled, Modifier.weight(1f))
-        if (onHelp != null) SettingHelpBadge(onHelp)
-        Row(
-            modifier = Modifier.horizontalScroll(rememberScrollState()),
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            RowLabel(title, description, enabled, Modifier.weight(1f))
+            if (onHelp != null) SettingHelpBadge(onHelp)
+        }
+        FlowRow(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             options.forEachIndexed { index, label ->
                 UnitChip(
@@ -364,8 +366,7 @@ fun SettingHint(text: String) {
     Text(
         text = text,
         color = TextMuted,
-        fontSize = 12.sp,
-        lineHeight = 16.sp,
+        style = MaterialTheme.typography.labelMedium,
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp),
@@ -382,11 +383,9 @@ fun SettingDivider() {
 @Composable
 fun SettingSubhead(text: String) {
     Text(
-        text = text.uppercase(),
-        color = TextMuted,
-        fontSize = 12.sp,
-        fontWeight = FontWeight.Medium,
-        letterSpacing = 0.5.sp,
+        text = text,
+        color = TextSecondary,
+        style = MaterialTheme.typography.labelLarge,
         modifier = Modifier.padding(top = 6.dp, bottom = 2.dp),
     )
 }
@@ -475,7 +474,7 @@ internal fun UnitChip(
         shape = RoundedCornerShape(8.dp),
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = AccentGreen,
-            selectedLabelColor = Color.White,
+            selectedLabelColor = NavyDark,
             containerColor = CardSurfaceElevated,
             labelColor = TextSecondary
         ),
