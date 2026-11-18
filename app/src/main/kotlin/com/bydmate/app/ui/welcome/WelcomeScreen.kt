@@ -552,7 +552,7 @@ private fun WelcomeChip(label: String, selected: Boolean, onClick: () -> Unit) {
         shape = RoundedCornerShape(8.dp),
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = AccentGreen,
-            selectedLabelColor = Color.White,
+            selectedLabelColor = NavyDark,
             containerColor = CardSurfaceElevated,
             labelColor = TextSecondary
         ),

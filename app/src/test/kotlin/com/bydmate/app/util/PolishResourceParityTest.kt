@@ -10,6 +10,21 @@ import org.w3c.dom.Element
 class PolishResourceParityTest {
 
     @Test
+    fun `new dashboard fallback copy uses the Polish translation`() {
+        fun dashboardCopy(path: String): Map<String, String> {
+            val document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(File(path))
+            val entries = document.getElementsByTagName("string")
+            return (0 until entries.length).map { entries.item(it) as Element }
+                .associate { it.getAttribute("name") to it.textContent }
+        }
+        val fallback = dashboardCopy("src/main/res/values/strings.xml")
+        val polish = dashboardCopy("src/main/res/values-pl/strings.xml")
+        listOf("dashboard_view_trips", "dashboard_current_trip").forEach { key ->
+            assertEquals("Fallback must remain Polish: $key", polish.getValue(key), fallback.getValue(key))
+        }
+    }
+
+    @Test
     fun `base and Polish resources have identical names resource types and format signatures`() {
         resourceFiles().forEach { (base, polish) ->
             val baseEntries = readEntries(base)

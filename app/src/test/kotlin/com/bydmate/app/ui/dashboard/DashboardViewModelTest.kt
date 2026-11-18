@@ -576,6 +576,69 @@ class DashboardViewModelTest {
     }
 
     @Test
+    fun `request preserves both anchors and totals until confirmation`() = runTest {
+        val settings = spyk(SettingsRepository(FakeSettingsDao(), mockk<LocalePreferences>(relaxed = true)))
+        val vm = buildViewModel(FakeAutoservice(null, false), settingsRepositoryOverride = settings,
+            tripDaoOverride = StubTripDaoForResetBehavior())
+        testDispatcher.scheduler.advanceUntilIdle()
+        val before = vm.uiState.value.trip1
+        val anchor1 = settings.getTripResetState(1)
+        val anchor2 = settings.getTripResetState(2)
+        vm.requestTripReset(1)
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(anchor1, settings.getTripResetState(1))
+        assertEquals(anchor2, settings.getTripResetState(2))
+        assertEquals(before, vm.uiState.value.trip1)
+        assertEquals(1, vm.uiState.value.pendingTripReset)
+        coVerify(exactly = 0) { settings.setTripResetState(any(), any()) }
+    }
+
+    @Test
+    fun `cancel preserves totals and confirmation after cancel does nothing`() = runTest {
+        val vm = buildViewModel(FakeAutoservice(null, false), tripDaoOverride = StubTripDaoForResetBehavior())
+        testDispatcher.scheduler.advanceUntilIdle()
+        val before = vm.uiState.value.trip2
+        val anchor = lastTripCounterResets!!.state(2).value
+        vm.requestTripReset(2)
+        vm.cancelTripReset()
+        vm.confirmTripReset()
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertNull(vm.uiState.value.pendingTripReset)
+        assertEquals(anchor, lastTripCounterResets!!.state(2).value)
+        assertEquals(before, vm.uiState.value.trip2)
+    }
+
+    @Test
+    fun `confirm resets requested counter exactly once and leaves other counter alone`() = runTest {
+        val settings = spyk(SettingsRepository(FakeSettingsDao(), mockk<LocalePreferences>(relaxed = true)))
+        val vm = buildViewModel(FakeAutoservice(null, false), settingsRepositoryOverride = settings,
+            tripDaoOverride = StubTripDaoForResetBehavior())
+        testDispatcher.scheduler.advanceUntilIdle()
+        val other = vm.uiState.value.trip1
+        vm.requestTripReset(2)
+        assertEquals(2, vm.uiState.value.pendingTripReset)
+        vm.confirmTripReset()
+        vm.confirmTripReset()
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertNull(vm.uiState.value.pendingTripReset)
+        assertEquals(other, vm.uiState.value.trip1)
+        assertEquals(0.0, vm.uiState.value.trip2!!.km, 0.001)
+        coVerify(exactly = 1) { settings.setTripResetState(2, any()) }
+        coVerify(exactly = 0) { settings.setTripResetState(1, any()) }
+    }
+
+    @Test
+    fun `confirm without request never writes an anchor`() = runTest {
+        val settings = spyk(SettingsRepository(FakeSettingsDao(), mockk<LocalePreferences>(relaxed = true)))
+        val vm = buildViewModel(FakeAutoservice(null, false), settingsRepositoryOverride = settings)
+        testDispatcher.scheduler.advanceUntilIdle()
+        vm.confirmTripReset()
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertNull(vm.uiState.value.pendingTripReset)
+        coVerify(exactly = 0) { settings.setTripResetState(any(), any()) }
+    }
+
+    @Test
     fun trip_counters_load_from_room_stats() = runTest {
         val vm = buildViewModel(
             fakeAutoservice = FakeAutoservice(null, available = false),
@@ -603,13 +666,14 @@ class DashboardViewModelTest {
             ),
         )
         testDispatcher.scheduler.advanceUntilIdle()
-        vm.resetTripCounter(1)
+        vm.requestTripReset(1)
+        vm.confirmTripReset()
         testDispatcher.scheduler.advanceUntilIdle()
         coVerify { spySettings.setTripResetState(1, any()) }
     }
 
     /**
-     * After resetTripCounter the DAO is re-queried with the new resetTs (≫ 1).
+     * After a confirmed manual reset the DAO is re-queried with the new resetTs (≫ 1).
      * StubTripDaoForResetBehavior returns empty stats for any from > 1, so trip1.km
      * must drop to ~0 after the reset completes.
      *
@@ -625,7 +689,8 @@ class DashboardViewModelTest {
         // Initial state: resetTs=0 → DAO returns 40km.
         assertEquals(40.0, vm.uiState.value.trip1!!.km, 0.001)
 
-        vm.resetTripCounter(1)
+        vm.requestTripReset(1)
+        vm.confirmTripReset()
         testDispatcher.scheduler.advanceUntilIdle()
 
         // After reset: resetTs = System.currentTimeMillis() >> 1 → DAO returns 0.
@@ -701,7 +766,8 @@ class DashboardViewModelTest {
 
         // TrackingService.sessionStartedAt is null in tests (no running service).
         // continuous = false -> excludeStraddling = true, corrections = 0.
-        vm.resetTripCounter(1)
+        vm.requestTripReset(1)
+        vm.confirmTripReset()
         testDispatcher.scheduler.advanceUntilIdle()
 
         val loaded = settingsRepo.getTripResetState(1)
@@ -725,7 +791,8 @@ class DashboardViewModelTest {
         )
         testDispatcher.scheduler.advanceUntilIdle()
 
-        vm.resetTripCounter(1)
+        vm.requestTripReset(1)
+        vm.confirmTripReset()
         testDispatcher.scheduler.advanceUntilIdle()
 
         coVerify { spySettings.setTripResetState(1, any()) }

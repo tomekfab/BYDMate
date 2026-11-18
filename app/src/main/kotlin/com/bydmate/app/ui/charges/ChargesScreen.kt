@@ -796,7 +796,7 @@ private fun ChargesChip(label: String, selected: Boolean, onClick: () -> Unit) {
         shape = RoundedCornerShape(8.dp),
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = AccentGreen,
-            selectedLabelColor = Color.White,
+            selectedLabelColor = NavyDark,
             containerColor = CardSurface,
             labelColor = TextSecondary
         ),

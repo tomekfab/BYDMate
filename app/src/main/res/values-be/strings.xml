@@ -351,7 +351,11 @@
     <string name="trips_col_time">час</string>
     <string name="trips_col_duration">працяг.</string>
     <string name="trips_col_km">км</string>
-    <string name="trips_col_soc">SOC</string>
+    <string name="trips_col_consumption">Выдатак</string>
+    <string name="trips_unit_kwh_per_100km">кВт·гадз/100 км</string>
+    <string name="trips_unit_liters_per_100km">л/100 км</string>
+    <string name="trips_scroll_columns_hint">Прагартайце ўбок, каб убачыць усе слупкі ↔</string>
+    <string name="trips_col_soc">Зарад (%)</string>
     <string name="trips_col_kwh">кВт·гадз</string>
     <string name="trips_chart_kwh_chip">кВтгадз</string>
     <string name="trips_chart_no_data">Няма даных</string>
@@ -2251,4 +2255,17 @@
     <string name="settings_nav_capture_title">Захоп навігацыі (адладка)</string>
     <string name="settings_nav_capture_desc">Прыватныя даныя Google Maps або Waze. Даныя маршруту і вуліц застаюцца на гэтай прыладзе да захавання.</string>
     <string name="settings_nav_capture_open">Адкрыць</string>
+
+    <!-- Manual trip reset and battery summary -->
+    <string name="dashboard_trip_reset_action">Абнуліць лічыльнік паездкі</string>
+    <string name="dashboard_trip_reset_title">Абнуліць %1$s?</string>
+    <string name="dashboard_trip_reset_body">Сумы лічыльніка пачнуцца з нуля. Запісаныя паездкі застануцца.</string>
+    <string name="dashboard_trip_reset_cancel">Скасаваць</string>
+    <string name="dashboard_battery_status_critical">Батарэя: крытычнае папярэджанне</string>
+    <string name="dashboard_battery_status_warning">Батарэя: папярэджанне</string>
+    <string name="dashboard_battery_status_unavailable">Даныя батарэі недаступныя</string>
+    <string name="dashboard_battery_status_partial">Няма паведамленых папярэджанняў · няпоўныя даныя</string>
+    <string name="dashboard_battery_status_clear">Няма паведамленых папярэджанняў</string>
+    <string name="dashboard_view_trips">Адкрыць паездкі</string>
+    <string name="dashboard_current_trip">Бягучая паездка</string>
 </resources>

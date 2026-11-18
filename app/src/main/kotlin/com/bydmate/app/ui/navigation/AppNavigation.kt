@@ -264,6 +264,13 @@ fun AppNavigation(
                 }
                 DashboardScreen(
                     onOpenTechPanel = { navController.navigate("tech_panel") },
+                    onOpenTrips = {
+                        navController.navigate(Screen.Trips.route) {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                     onOpenSettings = openSettingsTab,
                     // Settings first: the periods screen takes its view model from that entry,
                     // and Back lands on Settings.

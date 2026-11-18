@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -103,6 +104,7 @@ data class DashboardUiState(
     val trip1: TripCounterUi? = null,
     val trip2: TripCounterUi? = null,
     val trip1Expanded: Boolean = false,
+    val pendingTripReset: Int? = null,
     val trip2Expanded: Boolean = false,
     // Auto-reset after charging, per counter (#235).
     val trip1AutoReset: TripAutoResetMode = TripAutoResetMode.OFF,
@@ -541,9 +543,20 @@ class DashboardViewModel @Inject constructor(
             }
     }
 
-    /** Long-press reset; the anchor logic lives in [TripCounterResets.reset]. */
-    fun resetTripCounter(n: Int) {
-        viewModelScope.launch { tripCounterResets.reset(n) }
+    /** Manual UI request only. Automatic resets still use TripCounterResets directly. */
+    fun requestTripReset(n: Int) {
+        require(n in 1..2) { "trip counter must be 1 or 2, was $n" }
+        _uiState.update { it.copy(pendingTripReset = n, trip1Expanded = false, trip2Expanded = false) }
+    }
+
+    fun cancelTripReset() {
+        _uiState.update { it.copy(pendingTripReset = null) }
+    }
+
+    /** Consume the request before launching I/O, so repeated confirmation cannot reset twice. */
+    fun confirmTripReset() {
+        val counter = _uiState.getAndUpdate { it.copy(pendingTripReset = null) }.pendingTripReset ?: return
+        viewModelScope.launch { tripCounterResets.reset(counter) }
     }
 
     /** Chip tap in the TRIP popup; the observed setting updates the state. */

@@ -85,6 +85,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -279,11 +280,8 @@ fun SettingsScreen(
                 modifier = Modifier.width(260.dp).fillMaxSize(),
             )
 
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = CardSurface),
-                modifier = Modifier.weight(1f).fillMaxSize(),
-            ) {
+            // Section cards provide the grouping; a second enclosing surface adds no meaning.
+            Column(modifier = Modifier.weight(1f).fillMaxSize()) {
                 Column(
                     modifier = Modifier
                         .padding(20.dp)
@@ -330,8 +328,7 @@ private fun SettingsRail(
                 Text(
                     stringResource(R.string.settings_rail_sections_label),
                     color = TextMuted,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                 )
 
@@ -398,7 +395,7 @@ private fun RailItem(
         Text(
             text = stringResource(section.labelRes),
             color = fg,
-            fontSize = 14.sp,
+            style = MaterialTheme.typography.bodyMedium,
             fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal,
         )
     }
@@ -449,7 +446,7 @@ private fun BatterySection(
                 keyboardType = KeyboardType.Decimal
             )
             SettingHint(stringResource(R.string.settings_battery_capacity_desc))
-            SettingDivider()
+            Spacer(Modifier.height(8.dp))
             SettingChipRow(
                 title = stringResource(R.string.settings_charge_connector_label),
                 description = stringResource(R.string.settings_charge_connector_desc),
@@ -457,7 +454,7 @@ private fun BatterySection(
                 selectedIndex = state.chargeConnector.ordinal,
                 onSelect = { idx -> viewModel.saveChargeConnector(ChargeConnector.entries[idx]) },
             )
-            SettingDivider()
+            Spacer(Modifier.height(8.dp))
             val vehicleKind by viewModel.vehicleKind.collectAsStateWithLifecycle()
             SettingActionRow(
                 title = stringResource(R.string.settings_tariff_periods_title),
@@ -492,7 +489,7 @@ private fun BatterySection(
                 keyboardType = KeyboardType.Decimal
             )
             SettingHint(stringResource(R.string.settings_consumption_good_desc))
-            SettingDivider()
+            Spacer(Modifier.height(8.dp))
             SettingsTextField(
                 label = stringResource(R.string.settings_consumption_bad_label),
                 value = state.consumptionBad,
@@ -528,7 +525,7 @@ private fun BatterySection(
                 },
             )
             if (state.rangeCalcMethod == SettingsRepository.RANGE_CALC_MANUAL) {
-                SettingDivider()
+                Spacer(Modifier.height(8.dp))
                 SettingActionRow(
                     title = stringResource(R.string.settings_range_calc_edit_table_button),
                     description = stringResource(R.string.settings_range_calc_edit_table_desc),
@@ -1142,7 +1139,7 @@ private fun DisplaySection() {
                 prefs.edit().putBoolean(ClusterProjectionManager.KEY_AUTO_CONTAINER, it).apply()
             },
         )
-        SettingDivider()
+        Spacer(Modifier.height(8.dp))
         // Transport selector: direct freeform (agent/HUD can see the navigator) vs the
         // pre-3.6 VirtualDisplay pipeline. VD also returns the system freeform flag to its
         // factory value — the fix for third-party projection apps broken by a stale flag.
@@ -1173,7 +1170,7 @@ private fun DisplaySection() {
         if (modeHelpOpen) {
             SettingHint(text = stringResource(R.string.settings_projection_mode_help))
         }
-        SettingDivider()
+        Spacer(Modifier.height(8.dp))
         // Which cluster projection surface to render on: the native mini band ("..._1", default)
         // or the full cluster ("..._0"). Only the pref is written — like the transport chip, it
         // applies at the next projection start, never to a live projection.
@@ -1228,14 +1225,14 @@ private fun DisplaySection() {
         }
         // Trigger-button row — only meaningful while the feature (and thus the a11y service) is on.
         if (enabled) {
-            SettingDivider()
+            Spacer(Modifier.height(8.dp))
             SettingValueRow(
                 title = stringResource(R.string.settings_display_button_title),
                 value = steeringButtonLabel(triggerKey),
                 onClick = { learning = true },
             )
         }
-        SettingDivider()
+        Spacer(Modifier.height(8.dp))
         // App to project — defaults to Yandex Navi. Takes effect on the next star press, not live.
         SettingValueRow(
             title = stringResource(R.string.settings_display_app_title),
@@ -1258,7 +1255,7 @@ private fun DisplaySection() {
             enabled = enabled,
             onValueChangeFinished = applyGeometry,
         )
-        SettingDivider()
+        Spacer(Modifier.height(8.dp))
         SettingSliderRow(
             title = stringResource(R.string.settings_display_size_height),
             description = stringResource(R.string.settings_display_size_height_desc),
@@ -1270,7 +1267,7 @@ private fun DisplaySection() {
             enabled = enabled,
             onValueChangeFinished = applyGeometry,
         )
-        SettingDivider()
+        Spacer(Modifier.height(8.dp))
         SettingSliderRow(
             title = stringResource(R.string.settings_display_offset_x),
             description = stringResource(R.string.settings_display_offset_x_desc),
@@ -1282,7 +1279,7 @@ private fun DisplaySection() {
             enabled = enabled,
             onValueChangeFinished = applyGeometry,
         )
-        SettingDivider()
+        Spacer(Modifier.height(8.dp))
         SettingSliderRow(
             title = stringResource(R.string.settings_display_offset_y),
             description = stringResource(R.string.settings_display_offset_y_desc),
@@ -1294,7 +1291,7 @@ private fun DisplaySection() {
             enabled = enabled,
             onValueChangeFinished = applyGeometry,
         )
-        SettingDivider()
+        Spacer(Modifier.height(8.dp))
         SettingSliderRow(
             title = stringResource(R.string.settings_display_scale),
             description = stringResource(R.string.settings_display_scale_desc),
@@ -1351,7 +1348,7 @@ private fun DisplaySection() {
                         hudController.setSpeedSignEnabled(it)
                     },
                 )
-                SettingDivider()
+                Spacer(Modifier.height(8.dp))
                 // «Sposób wyświetlania na szybę» (#266): way 1 (default) never raises the car's navigation
                 // status, ways 2 and 3 do and add their channels (HudWayChannels).
                 val hudWays = listOf(HudController.MODE_GLASS_ONLY, HudController.MODE_NAVI_STATUS, HudController.MODE_LMCN)
@@ -1379,11 +1376,11 @@ private fun DisplaySection() {
                     tag = stringResource(R.string.settings_hud_mode_trial),
                 )
                 SettingHint(text = stringResource(R.string.settings_hud_mode_pick_hint))
-                SettingDivider()
+                Spacer(Modifier.height(8.dp))
             }
             // Outside the cluster-only condition: a gateway-less car carries Waze to the cluster card too.
             WazeHudSettingsRow(hudController)
-            SettingDivider()
+            Spacer(Modifier.height(8.dp))
             SettingStatusRow(
                 title = when (hudStatus) {
                     HudController.Status.ON -> stringResource(R.string.settings_hud_status_on)
@@ -1399,7 +1396,7 @@ private fun DisplaySection() {
             SettingHint(text = stringResource(R.string.settings_hud_hint))
         }
         // Outside the switch: the check is meant to run with HUD output turned off too.
-        SettingDivider()
+        Spacer(Modifier.height(8.dp))
         HudCheckRow(onWayChosen = { hudMode = it })
     }
 
@@ -1558,7 +1555,7 @@ private fun BlindSpotCard() {
                 Trace.event(TraceArea.USER, "slider", "id" to "blindspot_threshold", "value" to thresholdKmh, "was" to was)
             },
         )
-        SettingDivider()
+        Spacer(Modifier.height(8.dp))
         SettingSliderRow(
             title = stringResource(R.string.settings_blindspot_pip_width_title),
             description = stringResource(R.string.settings_blindspot_pip_width_desc),
@@ -1574,7 +1571,7 @@ private fun BlindSpotCard() {
                 if (placing != null) positionOverlay.refreshSize()
             },
         )
-        SettingDivider()
+        Spacer(Modifier.height(8.dp))
         SettingToggleRow(
             title = stringResource(R.string.settings_blindspot_rotate_title),
             traceId = "blindspot_rotate",
@@ -1589,7 +1586,7 @@ private fun BlindSpotCard() {
             },
             enabled = enabled,
         )
-        SettingDivider()
+        Spacer(Modifier.height(8.dp))
         SettingActionRow(
             title = stringResource(R.string.settings_blindspot_position_title),
             description = stringResource(R.string.settings_blindspot_position_desc),
@@ -1607,7 +1604,7 @@ private fun BlindSpotCard() {
             },
             enabled = enabled,
         )
-        SettingDivider()
+        Spacer(Modifier.height(8.dp))
         SettingToggleRow(
             title = stringResource(R.string.settings_blindspot_both_main_title),
             traceId = "blindspot_both_main",
@@ -1630,7 +1627,7 @@ private fun BlindSpotCard() {
         // Only when the left camera is actually shown on the main screen — there is nothing to
         // place otherwise (it lives on the cluster panel).
         if (bothOnMain) {
-            SettingDivider()
+            Spacer(Modifier.height(8.dp))
             SettingActionRow(
                 title = stringResource(R.string.settings_blindspot_left_position_title),
                 description = stringResource(R.string.settings_blindspot_left_position_desc),
@@ -1648,7 +1645,7 @@ private fun BlindSpotCard() {
             )
         }
         if (hasClusterDisplay) {
-            SettingDivider()
+            Spacer(Modifier.height(8.dp))
             SettingToggleRow(
                 title = stringResource(R.string.settings_blindspot_both_cluster_title),
                 traceId = "blindspot_both_cluster",
@@ -1666,7 +1663,7 @@ private fun BlindSpotCard() {
                 enabled = enabled,
             )
         }
-        SettingDivider()
+        Spacer(Modifier.height(8.dp))
         SettingToggleRow(
             title = stringResource(R.string.settings_blindspot_glow_title),
             traceId = "blindspot_glow",
@@ -1759,7 +1756,7 @@ private fun SplitSection() {
             // "?" that toggles it sits on the section header just above.
             if (howToOpen) {
                 SettingHint(text = stringResource(R.string.settings_split_howto_body))
-                SettingDivider()
+                Spacer(Modifier.height(8.dp))
             }
             SettingToggleRow(
                 title = stringResource(R.string.settings_split_enable_title),
@@ -1788,10 +1785,10 @@ private fun SplitSection() {
                 },
             )
             if (splitEnabled && split37Firmware) {
-                SettingDivider()
+                Spacer(Modifier.height(8.dp))
                 SettingHint(text = stringResource(R.string.settings_split_mechanism_platformized_hint))
             } else if (splitEnabled) {
-                SettingDivider()
+                Spacer(Modifier.height(8.dp))
                 // Mechanism selector: our own freeform panes vs handing the pair to the
                 // firmware's split. Native is the fallback for firmwares that gate freeform.
                 SettingChipRow(
@@ -1830,7 +1827,7 @@ private fun SplitSection() {
                 SettingHint(text = hint)
             }
             if (splitEnabled) {
-                SettingDivider()
+                Spacer(Modifier.height(8.dp))
                 SettingValueRow(
                     title = stringResource(R.string.settings_split_wide_app_title),
                     value = displayWidePkg?.let { resolveAppLabel(context, it) }
@@ -1845,7 +1842,7 @@ private fun SplitSection() {
                         openPicker = SplitRole.WIDE
                     },
                 )
-                SettingDivider()
+                Spacer(Modifier.height(8.dp))
                 SettingValueRow(
                     title = stringResource(R.string.settings_split_narrow_app_title),
                     value = displayNarrowPkg?.let { resolveAppLabel(context, it) }
@@ -1859,7 +1856,7 @@ private fun SplitSection() {
                     },
                 )
             }
-            SettingDivider()
+            Spacer(Modifier.height(8.dp))
             SettingActionRow(
                 title = stringResource(R.string.settings_split_clear_pair_title),
                 description = stringResource(R.string.settings_split_clear_pair_desc),
@@ -2301,7 +2298,7 @@ private fun ServiceSection(
                         .padding(bottom = 8.dp),
                 )
             }
-            SettingDivider()
+            Spacer(Modifier.height(8.dp))
             SettingToggleRow(
                 title = stringResource(R.string.settings_cloud_wifi_title),
                 traceId = "cloud_over_wifi",
@@ -2326,7 +2323,7 @@ private fun ServiceSection(
                 cloudOverWifiStatusText(cloudOverWifiState)
             }
             cloudStatus?.let { SettingHint(text = it) }
-            SettingDivider()
+            Spacer(Modifier.height(8.dp))
             SettingToggleRow(
                 title = stringResource(R.string.settings_cloud_wifi_keep_title),
                 traceId = "cloud_keep_wifi_asleep",
@@ -2476,7 +2473,7 @@ private fun ServiceSection(
                     clusterPrefs.edit().putBoolean(com.bydmate.app.service.TrackingService.KEY_QUIET_NOTIFICATION, it).apply()
                 },
             )
-            SettingDivider()
+            Spacer(Modifier.height(8.dp))
             SettingSubhead(stringResource(R.string.settings_config_header))
             SettingActionRow(
                 title = stringResource(R.string.settings_config_save_title),
@@ -2486,7 +2483,7 @@ private fun ServiceSection(
                 style = SettingButtonStyle.Primary,
                 enabled = !state.restoreInProgress,
             )
-            SettingDivider()
+            Spacer(Modifier.height(8.dp))
             SettingActionRow(
                 title = stringResource(R.string.settings_config_restore_button),
                 description = stringResource(R.string.settings_config_restore_desc),
@@ -2500,7 +2497,7 @@ private fun ServiceSection(
                 )
             }
             AutoBackupRows(state, viewModel)
-            SettingDivider()
+            Spacer(Modifier.height(8.dp))
             DiagnosticsRows(state, viewModel)
         }
     }
@@ -2519,7 +2516,7 @@ private fun ServiceSection(
                 onClick = { viewModel.resetSeatChannel() },
                 style = SettingButtonStyle.Warning,
             )
-            SettingDivider()
+            Spacer(Modifier.height(8.dp))
             SettingActionRow(
                 title = stringResource(R.string.settings_reset_trip_source),
                 description = stringResource(R.string.settings_reset_trip_source_hint),
@@ -2593,7 +2590,7 @@ private fun DiagnosticsRows(state: SettingsUiState, viewModel: SettingsViewModel
     // Diagnostic fid recorder (-test/debug builds only): the daemon owns the run, this row
     // only reflects and toggles it, so a reopened screen still shows a recording in force.
     if (state.fidRecorderVisible) {
-        SettingDivider()
+        Spacer(Modifier.height(8.dp))
         SettingToggleRow(
             title = stringResource(R.string.settings_fid_recorder_title),
             traceId = "fid_recorder",
@@ -2613,7 +2610,7 @@ private fun DiagnosticsRows(state: SettingsUiState, viewModel: SettingsViewModel
             )
         }
     }
-    SettingDivider()
+    Spacer(Modifier.height(8.dp))
     SettingActionRow(
         title = stringResource(R.string.settings_fid_dump_button),
         description = stringResource(R.string.settings_fid_dump_desc),
@@ -2814,7 +2811,7 @@ private fun AutoBackupRows(state: SettingsUiState, viewModel: SettingsViewModel)
     val periods = AutoBackupPeriod.entries
     val locale = LocalConfiguration.current.locales[0]
     val dateFormat = remember(locale) { SimpleDateFormat("d MMM HH:mm", locale) }
-    SettingDivider()
+    Spacer(Modifier.height(8.dp))
     // Two halves instead of SettingChipRow: at the largest text size the chips wrap onto a second
     // line instead of scrolling the last one out of sight.
     Row(modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp)) {
@@ -2883,11 +2880,11 @@ private fun AutoBackupRows(state: SettingsUiState, viewModel: SettingsViewModel)
             }
         }
     }
-    SettingDivider()
+    Spacer(Modifier.height(8.dp))
     TelegramBotRows(state, viewModel, tokenFocus, botBringer)
-    SettingDivider()
+    Spacer(Modifier.height(8.dp))
     PowerOffReportRows(state, viewModel, tokenFocus, botBringer)
-    SettingDivider()
+    Spacer(Modifier.height(8.dp))
     // Needs the bot above too; the link to connect it already sits under the power-off report.
     val connected = state.tgBackupBinding != null
     SettingToggleRow(
@@ -3297,14 +3294,14 @@ private fun AppSection(state: SettingsUiState, viewModel: SettingsViewModel) {
                 selectedIndex = if (state.units == "km") 0 else 1,
                 onSelect = { idx -> viewModel.saveUnits(if (idx == 0) "km" else "miles") },
             )
-            SettingDivider()
+            Spacer(Modifier.height(8.dp))
             SettingChipRow(
                 title = stringResource(R.string.settings_app_currency_label),
                 options = SettingsRepository.CURRENCIES.map { it.code },
                 selectedIndex = SettingsRepository.CURRENCIES.indexOfFirst { it.code == state.currency }.coerceAtLeast(0),
                 onSelect = { idx -> viewModel.saveCurrency(SettingsRepository.CURRENCIES[idx].code) },
             )
-            SettingDivider()
+            Spacer(Modifier.height(8.dp))
             SettingChipRow(
                 title = stringResource(R.string.settings_map_tile_source_label),
                 options = listOf("OpenStreetMap", "Amap"),
@@ -3467,7 +3464,7 @@ private fun VoiceSettingsContent(
                 keyboardType = KeyboardType.Text,
             )
             SettingHint(stringResource(R.string.settings_agent_name_hint))
-            SettingDivider()
+            Spacer(Modifier.height(8.dp))
             val personaIds = listOf(AgentPersona.SNARKY.id, AgentPersona.NAVIGATOR.id, AgentPersona.ENGINEER.id)
             SettingChipRow(
                 title = stringResource(R.string.settings_agent_persona_label),
@@ -3479,7 +3476,7 @@ private fun VoiceSettingsContent(
                 selectedIndex = personaIds.indexOf(state.agentPersona).coerceAtLeast(0),
                 onSelect = { viewModel.setAgentPersona(personaIds[it]) },
             )
-            SettingDivider()
+            Spacer(Modifier.height(8.dp))
             val genderIds = listOf("m", "f")
             SettingChipRow(
                 title = stringResource(R.string.settings_agent_gender_label),
@@ -3491,7 +3488,7 @@ private fun VoiceSettingsContent(
                 selectedIndex = genderIds.indexOf(state.agentGender).coerceAtLeast(0),
                 onSelect = { viewModel.setAgentGender(genderIds[it]) },
             )
-            SettingDivider()
+            Spacer(Modifier.height(8.dp))
             // #190/#200: the map app every route/search command opens (voice agent and automation).
             val routeNavigatorIds = listOf(
                 com.bydmate.app.data.automation.RouteNavigatorUris.YANDEX,
@@ -3579,7 +3576,7 @@ private fun VoiceSettingsContent(
             state.modelTestResult?.let {
                 Text(it, color = TextSecondary, fontSize = 11.sp, fontFamily = FontFamily.Monospace)
             }
-            SettingDivider()
+            Spacer(Modifier.height(8.dp))
             SettingHint(stringResource(R.string.agent_model_shared_caption))
         }
     }
@@ -4027,8 +4024,7 @@ private fun SectionHeader(text: String, onHelp: (() -> Unit)? = null) {
         Text(
             text = text,
             color = TextPrimary,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.weight(1f)
         )
         // Optional "?" badge (SettingHelpBadge idiom) for sections that need a how-to.
@@ -4052,6 +4048,7 @@ private fun SettingsTextField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
+        textStyle = MaterialTheme.typography.bodyMedium,
         label = { Text(label) },
         singleLine = singleLine,
         minLines = if (singleLine) 1 else 2,
@@ -4073,8 +4070,8 @@ private fun SettingsTextField(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
+            focusedTextColor = TextPrimary,
+            unfocusedTextColor = TextPrimary,
             focusedBorderColor = AccentGreen,
             unfocusedBorderColor = CardBorder,
             focusedLabelColor = PrimaryColor,
@@ -4184,8 +4181,8 @@ private fun ModelPickerDialog(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(8.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
+                            focusedTextColor = TextPrimary,
+                            unfocusedTextColor = TextPrimary,
                             focusedBorderColor = AccentGreen,
                             unfocusedBorderColor = CardBorder,
                             focusedLabelColor = AccentGreen,

@@ -140,7 +140,9 @@ class OpenClawPhoneFlowTest {
         // The production wiring (VoiceModule) over a closed local port: a real connect attempt that
         // fails the same way every time, with no Gateway and no other provider.
         prefs().apply { setEnabled(true); setEndpointText("wss://127.0.0.1:9/") }
-        val production = VoiceModule.provideOpenClawAssistant(prefs(), identityStore(), conversationStore())
+        val production = VoiceModule.provideOpenClawAssistant(
+            prefs(), identityStore(), conversationStore(), NoAssistantActions,
+        )
         val probe = AssistantConnectionProbe(production, engineWithoutGosia()) { false }
 
         probe.send("Cześć")

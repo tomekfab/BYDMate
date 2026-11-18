@@ -36,7 +36,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -132,27 +131,29 @@ fun bydSwitchColors(): SwitchColors = SwitchDefaults.colors(
 )
 
 // ============================================================================
-// SocGauge - Premium circular arc gauge with gradient and glow
+// SocGauge - Charge arc with text-scale-aware content sizing
 // ============================================================================
 
-private val SocGaugeStroke = 14.dp
-private val SocGaugeIconSize = 18.dp
-private val SocGaugeNumberSize = 32.sp
-private val SocGaugeLabelSize = 12.sp
+internal val SocGaugeStroke = 8.dp
+internal val SocGaugeIconSize = 18.dp
+internal val SocGaugeNumberSize = 32.sp
+internal val SocGaugeNumberLineHeight = 38.sp
+internal val SocGaugeLabelSize = 12.sp
+internal val SocGaugeLabelLineHeight = 16.sp
 private const val SOC_GAUGE_LABEL = "SOC %"
 
 @Composable
 fun SocGauge(
-    soc: Int,
+    soc: Int?,
     modifier: Modifier = Modifier,
     isCharging: Boolean = false,
 ) {
-    val clampedSoc = soc.coerceIn(0, 100)
-    val color = socColor(clampedSoc)
+    val clampedSoc = soc?.coerceIn(0, 100)
+    val color = clampedSoc?.let(::socColor) ?: TextMuted
     val startAngle = 150f
     val totalSweep = 240f
     val animatedSoc by animateFloatAsState(
-        targetValue = clampedSoc / 100f,
+        targetValue = (clampedSoc ?: 0) / 100f,
         animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
         label = "socSweep"
     )
@@ -175,20 +176,6 @@ fun SocGauge(
             )
             val topLeft = Offset(padding, padding)
 
-            // Subtle glow behind arc
-            if (clampedSoc > 0) {
-                val glowStroke = Stroke(width = strokeWidth.toPx() * 2.5f, cap = StrokeCap.Round)
-                drawArc(
-                    color = color.copy(alpha = 0.1f),
-                    startAngle = startAngle,
-                    sweepAngle = socSweep,
-                    useCenter = false,
-                    topLeft = topLeft,
-                    size = arcSize,
-                    style = glowStroke
-                )
-            }
-
             // Background track arc
             drawArc(
                 color = CardBorder.copy(alpha = 0.4f),
@@ -201,7 +188,7 @@ fun SocGauge(
             )
 
             // Foreground SOC arc
-            if (clampedSoc > 0) {
+            if ((clampedSoc ?: 0) > 0) {
                 drawArc(
                     color = color,
                     startAngle = startAngle,
@@ -224,17 +211,19 @@ fun SocGauge(
                 )
             }
             Text(
-                text = "$clampedSoc",
+                text = clampedSoc?.toString() ?: "—",
                 color = TextPrimary,
                 fontSize = SocGaugeNumberSize,
+                lineHeight = SocGaugeNumberLineHeight,
                 fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.Monospace,
+                style = LocalTextStyle.current.copy(fontFeatureSettings = "tnum"),
                 textAlign = TextAlign.Center
             )
             Text(
                 text = SOC_GAUGE_LABEL,
                 color = TextMuted,
                 fontSize = SocGaugeLabelSize,
+                lineHeight = SocGaugeLabelLineHeight,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center
             )
@@ -262,8 +251,8 @@ internal fun socGaugeMinSizePx(rows: List<GaugeContentRow>, strokePx: Float): Fl
 
 /**
  * Smallest SocGauge size that keeps «100», «SOC %» and, while charging, the bolt clear of the
- * arc at the current text scale (app setting times system font scale). Glyphs of the 32 sp
- * number are taller than the theme line height, so the ink comes from the platform paint.
+ * arc at the current text scale (app setting times system font scale). Ink bounds come from
+ * platform paint so sizing accounts for the actual glyphs as well as the explicit line heights.
  */
 @Composable
 fun rememberSocGaugeMinSize(isCharging: Boolean): Dp {
@@ -278,11 +267,13 @@ fun rememberSocGaugeMinSize(isCharging: Boolean): Dp {
                     add(GaugeContentRow(icon, 0f, icon, icon))
                 }
                 add(gaugeTextRow(measurer, "100",
-                    baseStyle.merge(TextStyle(fontSize = SocGaugeNumberSize, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)),
-                    android.graphics.Typeface.create(android.graphics.Typeface.MONOSPACE, android.graphics.Typeface.BOLD),
+                    baseStyle.merge(TextStyle(fontSize = SocGaugeNumberSize, lineHeight = SocGaugeNumberLineHeight,
+                        fontWeight = FontWeight.Bold, fontFeatureSettings = "tnum")),
+                    android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD),
                     SocGaugeNumberSize.toPx()))
                 add(gaugeTextRow(measurer, SOC_GAUGE_LABEL,
-                    baseStyle.merge(TextStyle(fontSize = SocGaugeLabelSize, fontWeight = FontWeight.Medium)),
+                    baseStyle.merge(TextStyle(fontSize = SocGaugeLabelSize, lineHeight = SocGaugeLabelLineHeight,
+                        fontWeight = FontWeight.Medium)),
                     android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, FontWeight.Medium.weight, false),
                     SocGaugeLabelSize.toPx()))
             }

@@ -1,7 +1,6 @@
 package com.bydmate.app.ui.dashboard
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -25,6 +24,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.HelpOutline
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material.icons.outlined.DirectionsCar
 import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material.icons.outlined.Schedule
@@ -38,6 +42,8 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.produceState
@@ -54,14 +60,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.SubcomposeLayout
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -83,6 +85,7 @@ import com.bydmate.app.data.remote.DynamicMetric
 import com.bydmate.app.data.trips.TripAutoResetMode
 import com.bydmate.app.data.trips.TripCounterUi
 import com.bydmate.app.domain.calculator.Trend
+import com.bydmate.app.ui.components.AppAlertDialog
 import com.bydmate.app.ui.components.AdbVerdictDialog
 import com.bydmate.app.ui.components.CardDetailDialog
 import com.bydmate.app.ui.components.SocGauge
@@ -101,12 +104,12 @@ import kotlin.math.ceil
 @Composable
 fun DashboardScreen(
     onOpenTechPanel: () -> Unit,
+    onOpenTrips: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenTariffPeriods: () -> Unit,
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
     // The verdict the dialog was opened for; cleared when the problem goes away so the dialog
     // cannot pop up by itself the next time a verdict appears.
     var openAdbVerdict by remember { mutableStateOf<AdbVerdict?>(null) }
@@ -156,192 +159,40 @@ fun DashboardScreen(
             // LEFT COLUMN: blocks keep their own height, only the gauge yields when space runs out
             BoxWithConstraints(modifier = Modifier.weight(0.4f)) {
                 val scrollState = rememberScrollState()
-                // The scroll container reaches GaugeGlowRoom above the column so its clip leaves the
-                // glow over the gauge alone; the content starts that much lower to stay in place.
-                val density = LocalDensity.current
-                val glowRoomPx = with(density) { GaugeGlowRoom.roundToPx() }
-                val contentMinHeight = with(density) { (constraints.maxHeight + glowRoomPx).toDp() }
-                // Ghost car background
-                Image(
-                    painter = painterResource(R.drawable.leopard3),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer { alpha = 0.06f },
-                    contentScale = ContentScale.Fit,
-                    alignment = Alignment.Center
-                )
+                val contentMinHeight = with(LocalDensity.current) { constraints.maxHeight.toDp() }
                 GaugeYieldingColumn(
                     gaugeMinSize = rememberSocGaugeMinSize(state.isCharging),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .layout { measurable, c ->
-                            val p = measurable.measure(c.copy(maxHeight = c.maxHeight + glowRoomPx))
-                            layout(p.width, c.constrainHeight(p.height - glowRoomPx)) { p.place(0, -glowRoomPx) }
-                        }
                         .verticalScroll(scrollState)
                         .heightIn(min = contentMinHeight)
-                        .padding(top = GaugeGlowRoom + 4.dp, bottom = 4.dp),
+                        .padding(vertical = 4.dp),
                 ) {
-                    // TOP: SOC gauge + 4 widget-style stats around it (mirrors FloatingWidgetView).
-                    // Two symmetric rows wrap the gauge:
-                    //   row mid    — duration | odometer | inside temp
-                    //   row bottom — trip km | range km + label | consumption + trend
-                    SocGauge(
-                        soc = state.soc ?: 0,
-                        isCharging = state.isCharging,
-                    )
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        // Live-ticking duration text (refresh every 15s, like in widget).
-                        val durationText by produceState(
-                            initialValue = formatDurationShort(context, state.sessionStartedAt),
-                            state.sessionStartedAt
-                        ) {
-                            while (true) {
-                                value = formatDurationShort(context, state.sessionStartedAt)
-                                delay(15_000L)
-                            }
-                        }
+                    SocGauge(soc = state.soc, isCharging = state.isCharging)
+                    LiveReadings(state)
 
-                        // Row mid: schedule | odometer | inside temp
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
-                                CornerStat(
-                                    icon = Icons.Outlined.Schedule,
-                                    text = durationText,
-                                )
-                            }
-                            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                                Text(
-                                    text = if (state.odometer != null) "%.1f km".format(state.odometer) else "— km",
-                                    color = TextSecondary,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    fontFamily = FontFamily.Monospace
-                                )
-                            }
-                            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
-                                CornerStat(
-                                    icon = Icons.Outlined.DirectionsCar,
-                                    text = formatCabinOutside(state.insideTemp, state.exteriorTemp),
-                                    iconLast = true,
-                                )
-                            }
-                        }
-
-                        // Row bottom: trip km | range km + label | consumption + trend
-                        // Trend logic mirrors widget: suppress arrow within first 300m of session.
-                        val effectiveTrend = if (
-                            state.sessionStartedAt != null &&
-                            (state.tripDistanceKm ?: 0.0) < TRIP_DISTANCE_TREND_THRESHOLD_KM
-                        ) Trend.NONE else state.consumptionTrend
-                        val trendColor = when (effectiveTrend) {
-                            Trend.DOWN -> AccentGreen
-                            Trend.UP -> SocYellow
-                            Trend.FLAT -> TextPrimary
-                            Trend.NONE -> TextMuted
-                        }
-                        // DM-i: the car's own range on battery; our SOC-based estimate means nothing there.
-                        val hybrid = state.vehicleKind == VehicleKind.HYBRID
-                        val rangeText = if (hybrid) state.evRangeKm?.let { "~$it" } ?: "—"
-                            else state.estimatedRangeKm?.let { "~${"%.0f".format(it)}" } ?: "—"
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
-                                CornerStat(
-                                    icon = Icons.Outlined.Route,
-                                    text = formatTripKm(context, state.tripDistanceKm),
-                                )
-                            }
-                            Column(
-                                modifier = Modifier.weight(1f),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                            ) {
-                                Row(verticalAlignment = Alignment.Bottom) {
-                                    Text(rangeText, color = AccentGreen, fontSize = 32.sp, fontWeight = FontWeight.Bold,
-                                        fontFamily = FontFamily.Monospace)
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text(stringResource(R.string.dashboard_unit_km), color = AccentGreen.copy(alpha = 0.7f), fontSize = 18.sp,
-                                        fontWeight = FontWeight.Medium, modifier = Modifier.padding(bottom = 4.dp))
-                                }
-                                if (hybrid) {
-                                    Text(stringResource(R.string.dashboard_range_label_battery), color = TextMuted, fontSize = 12.sp,
-                                        maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                } else {
-                                    Text(stringResource(R.string.dashboard_range_label), color = TextMuted, fontSize = 12.sp)
-                                }
-                            }
-                            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    if (effectiveTrend != Trend.NONE) {
-                                        Icon(
-                                            imageVector = when (effectiveTrend) {
-                                                Trend.DOWN -> Icons.Outlined.TrendingDown
-                                                Trend.UP -> Icons.Outlined.TrendingUp
-                                                else -> Icons.Outlined.TrendingFlat
-                                            },
-                                            contentDescription = null,
-                                            tint = trendColor,
-                                            modifier = Modifier.size(16.dp),
-                                        )
-                                        Spacer(Modifier.width(4.dp))
-                                    }
-                                    Text(
-                                        text = state.consumption?.let { "%.1f".format(it) } ?: "—",
-                                        fontSize = 18.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        fontFamily = FontFamily.Monospace,
-                                        // Number colour is decoupled from the trend: it always reflects
-                                        // the consumption magnitude (consumptionColor). Trend direction is
-                                        // conveyed solely by the arrow above, which hides on Trend.NONE.
-                                        // Fixes the mid-trip "grey number" report where a momentary
-                                        // Trend.NONE greyed out a number that was still updating.
-                                        color = state.consumption?.let { consumptionColor(it) } ?: TextMuted,
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    // 3 compact cards: insight, battery, idle drain
+                    // Battery summary and counters precede the optional insight.
                     Column(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        // AI Insight card
-                        val insightColor = when (state.effectiveInsightTone) {
-                            "critical" -> SocRed
-                            "warning" -> SocYellow
-                            else -> AccentGreen
-                        }
-                        InsightCard(
-                            title = state.insightTitle,
-                            summary = state.insightSummary,
-                            borderColor = insightColor,
-                            onClick = { viewModel.toggleInsightExpanded() }
-                        )
-                        // Battery card — 3 values: SoH | battery temperature | 12V system
+                        // Battery details remain reachable from the compact summary.
                         val sohStatus = when {
                             (state.currentSoh ?: 100f) < 80f -> "critical"
                             (state.currentSoh ?: 100f) < 90f -> "warning"
                             else -> "ok"
                         }
-                        val sohColor = when (sohStatus) {
-                            "critical" -> SocRed; "warning" -> SocYellow; else -> AccentGreen
+                        val sohColor = when {
+                            state.currentSoh == null -> TextMuted
+                            sohStatus == "critical" -> SocRed
+                            sohStatus == "warning" -> SocYellow
+                            else -> TextPrimary
                         }
-                        val tempColor = when (state.batteryHealthStatus) {
-                            "critical" -> SocRed; "warning" -> SocYellow; else -> AccentGreen
+                        val tempColor = if (state.avgBatTemp == null) TextMuted else when (state.batteryHealthStatus) {
+                            "critical" -> SocRed; "warning" -> SocYellow; else -> TextPrimary
                         }
-                        val voltageColor = when (state.voltage12vStatus) {
-                            "critical" -> SocRed; "warning" -> SocYellow; else -> AccentGreen
+                        val voltageColor = if (state.voltage12v == null) TextMuted else when (state.voltage12vStatus) {
+                            "critical" -> SocRed; "warning" -> SocYellow; else -> TextPrimary
                         }
                         // MΩ: ≥1 healthy, 0.5-1 watch, <0.5 the pack is leaking to the body.
                         val insulationMohm = state.insulationKohm?.let { it / 1000.0 }
@@ -353,21 +204,10 @@ fun DashboardScreen(
                         }
                         val insulationColor = when (insulationStatus) {
                             "critical" -> SocRed; "warning" -> SocYellow
-                            else -> if (insulationMohm == null) TextPrimary else AccentGreen
+                            else -> TextPrimary
                         }
-                        // batteryHealthStatus already folds in the cell delta (same 50/90 mV
-                        // thresholds as the cell colour), so the border only gains insulation here.
-                        val worstColor = when {
-                            sohStatus == "critical" ||
-                                state.batteryHealthStatus == "critical" ||
-                                state.voltage12vStatus == "critical" ||
-                                insulationStatus == "critical" -> SocRed
-                            sohStatus == "warning" ||
-                                state.batteryHealthStatus == "warning" ||
-                                state.voltage12vStatus == "warning" ||
-                                insulationStatus == "warning" -> SocYellow
-                            else -> AccentGreen
-                        }
+                        val summary = batterySummary(state)
+                        val summaryColor = batterySummaryColor(summary)
                         BatteryCompactCard(
                             sohText = state.currentSoh?.let { "%.0f%%".format(it) } ?: "—",
                             sohColor = sohColor,
@@ -377,11 +217,13 @@ fun DashboardScreen(
                             voltageColor = voltageColor,
                             cellDeltaText = state.cellVoltageDelta
                                 ?.let { stringResource(R.string.tech_value_mv, Math.round(it * 1000.0).toInt()) } ?: "—",
-                            cellDeltaColor = com.bydmate.app.ui.tech.cellDeltaColor(state.cellVoltageDelta, state.soc),
+                            cellDeltaColor = com.bydmate.app.ui.tech.cellDeltaColor(state.cellVoltageDelta, state.soc)
+                                .let { if (it == AccentGreen) TextPrimary else it },
                             insulationText = insulationMohm
                                 ?.let { stringResource(R.string.tech_value_mohm, it) } ?: "—",
                             insulationColor = insulationColor,
-                            borderColor = worstColor,
+                            summary = summary,
+                            borderColor = summaryColor,
                             onClick = onOpenTechPanel
                         )
                         if (state.vehicleKind == VehicleKind.HYBRID) {
@@ -393,19 +235,24 @@ fun DashboardScreen(
                             )
                         }
                         // TRIP 1 / TRIP 2 resettable counters row
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            TripCounterButton(stringResource(R.string.dashboard_trip1_label), state.trip1,
-                                Modifier.weight(1f),
-                                onClick = { viewModel.toggleTripExpanded(1) },
-                                onLongClick = { viewModel.resetTripCounter(1) })
-                            TripCounterButton(stringResource(R.string.dashboard_trip2_label), state.trip2,
-                                Modifier.weight(1f),
-                                onClick = { viewModel.toggleTripExpanded(2) },
-                                onLongClick = { viewModel.resetTripCounter(2) })
+                        TripCounterRow(
+                            state = state,
+                            onToggle = viewModel::toggleTripExpanded,
+                            onRequestReset = viewModel::requestTripReset,
+                        )
+                        // AI Insight card
+                        val insightColor = when (state.effectiveInsightTone) {
+                            "critical" -> SocRed
+                            "warning" -> SocYellow
+                            else -> TextPrimary
                         }
+                        InsightCard(
+                            title = state.insightTitle,
+                            summary = state.insightSummary,
+                            borderColor = insightColor,
+                            onClick = { viewModel.toggleInsightExpanded() }
+                        )
+
                     }
 
                     // Pop-up dialogs
@@ -420,7 +267,7 @@ fun DashboardScreen(
                         val insightDialogColor = when (state.effectiveInsightTone) {
                             "critical" -> SocRed
                             "warning" -> SocYellow
-                            else -> AccentGreen
+                            else -> TextPrimary
                         }
                         CardDetailDialog(
                             title = null,
@@ -513,12 +360,16 @@ fun DashboardScreen(
                             }
                         }
                     }
+                    state.pendingTripReset?.let { counter ->
+                        TripResetConfirmation(counter, viewModel::cancelTripReset, viewModel::confirmTripReset)
+                    }
                     // TRIP 1 popup
                     state.trip1?.let { t ->
                         if (state.trip1Expanded) TripCounterDialog(
                             stringResource(R.string.dashboard_trip1_label), t, state.currencySymbol,
                             mode = state.trip1AutoReset,
                             onModeChange = { viewModel.setTripAutoReset(1, it) },
+                            onRequestReset = { viewModel.requestTripReset(1) },
                         ) { viewModel.toggleTripExpanded(1) }
                     }
                     // TRIP 2 popup
@@ -527,6 +378,7 @@ fun DashboardScreen(
                             stringResource(R.string.dashboard_trip2_label), t, state.currencySymbol,
                             mode = state.trip2AutoReset,
                             onModeChange = { viewModel.setTripAutoReset(2, it) },
+                            onRequestReset = { viewModel.requestTripReset(2) },
                         ) { viewModel.toggleTripExpanded(2) }
                     }
                 }
@@ -555,64 +407,140 @@ fun DashboardScreen(
                         HybridStatCards(state)
                     } else {
                         StatCard(stringResource(R.string.dashboard_stat_distance), stringResource(R.string.dashboard_stat_km_value, state.totalKm), stringResource(R.string.dashboard_trip_count, state.tripCount), Color.White, Modifier.weight(1f))
-                        StatCard(stringResource(R.string.dashboard_stat_energy), stringResource(R.string.dashboard_stat_kwh_value, state.totalKwh), null, AccentBlue, Modifier.weight(1f))
+                        StatCard(stringResource(R.string.dashboard_stat_energy), stringResource(R.string.dashboard_stat_kwh_value, state.totalKwh), null, TextPrimary, Modifier.weight(1f))
                         val consColor = if (state.avgConsumption > 0) consumptionColor(state.avgConsumption) else TextSecondary
                         StatCard(stringResource(R.string.dashboard_stat_consumption), if (state.avgConsumption > 0) "%.1f/100".format(state.avgConsumption) else "—", null, consColor, Modifier.weight(1f))
-                        StatCard(stringResource(R.string.dashboard_stat_cost), "%.2f %s".format(state.totalCost, state.currencySymbol), null, AccentGreen, Modifier.weight(1f))
+                        StatCard(stringResource(R.string.dashboard_stat_cost), "%.2f %s".format(state.totalCost, state.currencySymbol), null, TextPrimary, Modifier.weight(1f))
                     }
                 }
 
-                SectionHeader(text = stringResource(R.string.dashboard_recent_trips_title))
-                // DM-i adds the "l" column between kWh and /100; EV keeps today's six weights.
-                val showFuel = state.vehicleKind == VehicleKind.HYBRID
-                val weights = com.bydmate.app.ui.trips.columnWeights(state.vehicleKind)
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(stringResource(R.string.dashboard_col_time), color = TextMuted, fontSize = 11.sp, modifier = Modifier.weight(weights[0]))
-                    Text(stringResource(R.string.dashboard_col_duration), color = TextMuted, fontSize = 11.sp, textAlign = TextAlign.End, modifier = Modifier.weight(weights[1]))
-                    Text(stringResource(R.string.dashboard_unit_km), color = TextMuted, fontSize = 11.sp, textAlign = TextAlign.End, modifier = Modifier.weight(weights[2]))
-                    Text(stringResource(R.string.dashboard_unit_kwh), color = TextMuted, fontSize = 11.sp, textAlign = TextAlign.End, modifier = Modifier.weight(weights[3]))
-                    if (showFuel) {
-                        Text(stringResource(R.string.dashboard_unit_liters), color = TextMuted, fontSize = 11.sp, textAlign = TextAlign.End,
-                            maxLines = 1, modifier = Modifier.weight(weights[4]))
-                    }
-                    Text(stringResource(R.string.dashboard_col_per100), color = TextMuted, fontSize = 11.sp, textAlign = TextAlign.End, modifier = Modifier.weight(weights[weights.size - 2]))
-                    Text(state.currencySymbol, color = TextMuted, fontSize = 11.sp, textAlign = TextAlign.End, modifier = Modifier.weight(weights.last()))
+                RecentTripsSection(state, onOpenTrips = onOpenTrips, modifier = Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+/** Charge/range lead; current-trip readings stay grouped below. */
+@Composable
+private fun LiveReadings(state: DashboardUiState) {
+    val context = LocalContext.current
+    val durationText by produceState(formatDurationShort(context, state.sessionStartedAt), state.sessionStartedAt) {
+        while (true) {
+            value = formatDurationShort(context, state.sessionStartedAt)
+            delay(15_000L)
+        }
+    }
+    val hybrid = state.vehicleKind == VehicleKind.HYBRID
+    val rangeText = if (hybrid) state.evRangeKm?.let { "~$it" } ?: "—"
+        else state.estimatedRangeKm?.let { "~${"%.0f".format(it)}" } ?: "—"
+    val effectiveTrend = if (state.sessionStartedAt != null &&
+        (state.tripDistanceKm ?: 0.0) < TRIP_DISTANCE_TREND_THRESHOLD_KM) Trend.NONE else state.consumptionTrend
+    Column(Modifier.fillMaxWidth().padding(horizontal = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(rangeText, color = TextPrimary, style = MaterialTheme.typography.headlineLarge,
+                    fontFamily = FontFamily.Monospace)
+                Spacer(Modifier.width(4.dp))
+                Text(stringResource(R.string.dashboard_unit_km), color = TextSecondary,
+                    style = MaterialTheme.typography.bodyLarge)
+            }
+            Text(stringResource(if (hybrid) R.string.dashboard_range_label_battery else R.string.dashboard_range_label),
+                color = TextMuted, style = MaterialTheme.typography.labelMedium)
+        }
+        Text(stringResource(R.string.dashboard_current_trip), color = TextSecondary,
+            style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 8.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            CornerStat(Icons.Outlined.Route, formatTripKm(context, state.tripDistanceKm))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (effectiveTrend != Trend.NONE) {
+                    Icon(when (effectiveTrend) {
+                        Trend.DOWN -> Icons.Outlined.TrendingDown
+                        Trend.UP -> Icons.Outlined.TrendingUp
+                        else -> Icons.Outlined.TrendingFlat
+                    }, contentDescription = null,
+                        tint = when (effectiveTrend) { Trend.DOWN -> AccentGreen; Trend.UP -> SocYellow; else -> TextSecondary },
+                        modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(4.dp))
                 }
-                if (state.recentTrips.isNotEmpty()) {
-                    // The bottom padding matches the left column's, so the last row ends level
-                    // with the TRIP cards.
-                    WholeRowsColumn(
-                        rowSpacing = 4.dp,
-                        maxRows = DASHBOARD_TRIP_ROWS,
-                        modifier = Modifier.weight(1f).padding(bottom = 4.dp),
-                    ) {
-                        state.recentTrips.forEach { trip ->
-                            TripCard(
-                                trip = trip,
-                                onClick = { },
-                                currencySymbol = state.currencySymbol,
-                                verticalPadding = 6.dp,
-                                showFuel = showFuel,
-                            )
-                        }
-                    }
-                } else {
-                    PlaceholderText(text = stringResource(R.string.dashboard_empty_no_trips))
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(state.consumption?.let { "%.1f".format(it) } ?: "—",
+                        color = state.consumption?.let { consumptionColor(it) } ?: TextMuted,
+                        style = MaterialTheme.typography.titleMedium, fontFamily = FontFamily.Monospace)
+                    Text(stringResource(R.string.summary_unit_kwh_per_100km), color = TextMuted,
+                        style = MaterialTheme.typography.labelMedium)
                 }
             }
+        }
+        Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.weight(1f)) { CornerStat(Icons.Outlined.Schedule, durationText) }
+            Text(state.odometer?.let { "%.1f km".format(it) } ?: "— km", color = TextSecondary,
+                style = MaterialTheme.typography.labelMedium, fontFamily = FontFamily.Monospace,
+                modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+            Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+                CornerStat(Icons.Outlined.DirectionsCar, formatCabinOutside(state.insideTemp, state.exteriorTemp), iconLast = true)
+            }
+        }
+    }
+}
+
+@Composable
+internal fun RecentTripsSection(
+    state: DashboardUiState,
+    onOpenTrips: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.dashboard_recent_trips_title), color = TextSecondary,
+                style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+            TextButton(onClick = onOpenTrips) { Text(stringResource(R.string.dashboard_view_trips)) }
+        }
+        // DM-i adds the "l" column between kWh and /100; EV keeps today's six weights.
+        val showFuel = state.vehicleKind == VehicleKind.HYBRID
+        val weights = com.bydmate.app.ui.trips.columnWeights(state.vehicleKind)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(stringResource(R.string.dashboard_col_time), color = TextMuted, style = MaterialTheme.typography.labelMedium, modifier = Modifier.weight(weights[0]))
+            Text(stringResource(R.string.dashboard_col_duration), color = TextMuted, style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.End, modifier = Modifier.weight(weights[1]))
+            Text(stringResource(R.string.dashboard_unit_km), color = TextMuted, style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.End, modifier = Modifier.weight(weights[2]))
+            Text(stringResource(R.string.dashboard_unit_kwh), color = TextMuted, style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.End, modifier = Modifier.weight(weights[3]))
+            if (showFuel) {
+                Text(stringResource(R.string.dashboard_unit_liters), color = TextMuted, style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.End,
+                    maxLines = 1, modifier = Modifier.weight(weights[4]))
+            }
+            Text(stringResource(R.string.dashboard_col_per100), color = TextMuted, style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.End, modifier = Modifier.weight(weights[weights.size - 2]))
+            Text(state.currencySymbol, color = TextMuted, style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.End, modifier = Modifier.weight(weights.last()))
+        }
+        if (state.recentTrips.isNotEmpty()) {
+            // The bottom padding matches the left column's, so the last row ends level
+            // with the TRIP cards.
+            WholeRowsColumn(
+                rowSpacing = 4.dp,
+                maxRows = DASHBOARD_TRIP_ROWS,
+                modifier = Modifier.weight(1f).padding(bottom = 4.dp),
+            ) {
+                state.recentTrips.take(DASHBOARD_TRIP_ROWS).forEach { trip ->
+                    TripCard(
+                        trip = trip,
+                        onClick = onOpenTrips,
+                        currencySymbol = state.currencySymbol,
+                        verticalPadding = 6.dp,
+                        showFuel = showFuel,
+                    )
+                }
+            }
+        } else {
+            PlaceholderText(text = stringResource(R.string.dashboard_empty_no_trips))
         }
     }
 }
 
 private val GaugeMaxSize = 180.dp
 
-private const val DASHBOARD_TRIP_ROWS = 6
-
-// The gauge glow reaches 10.5 dp above its square; the column's 4 dp top padding covers the rest.
-private val GaugeGlowRoom = 8.dp
+private const val DASHBOARD_TRIP_ROWS = 3
 
 /**
  * Left column of Główna. [content] emits the gauge, the rows under it and the card stack, in
@@ -800,10 +728,6 @@ private fun InsightCard(
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = CardSurface),
-        border = androidx.compose.foundation.BorderStroke(
-            1.5.dp,
-            if (title != null) borderColor.copy(alpha = 0.5f) else TextMuted.copy(alpha = 0.3f)
-        ),
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
@@ -821,16 +745,14 @@ private fun InsightCard(
                     Text(
                         title,
                         color = borderColor,
-                        fontSize = 14.sp,
+                        style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
-                        maxLines = 1
                     )
                     if (summary != null) {
                         Text(
                             summary,
-                            color = borderColor.copy(alpha = 0.8f),
-                            fontSize = 12.sp,
-                            maxLines = 1
+                            color = TextSecondary,
+                            style = MaterialTheme.typography.bodyMedium,
                         )
                     }
                 }
@@ -849,9 +771,9 @@ private fun InsightCard(
 // TRIP 1 / TRIP 2 counter button
 // ============================================================================
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
-private fun TripCounterButton(
+internal fun TripCounterButton(
     label: String,
     ui: TripCounterUi?,
     modifier: Modifier,
@@ -861,30 +783,35 @@ private fun TripCounterButton(
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = CardSurface),
-        border = androidx.compose.foundation.BorderStroke(1.5.dp, AccentGreen.copy(alpha = 0.5f)),
-        modifier = modifier.combinedClickable(onClick = onClick, onLongClick = onLongClick)
+        modifier = modifier.combinedClickable(
+            onClick = onClick,
+            onLongClickLabel = stringResource(R.string.dashboard_trip_reset_action),
+            onLongClick = onLongClick,
+        )
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(label, color = AccentGreen, fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            Text(label, color = TextSecondary, style = MaterialTheme.typography.labelMedium)
+            FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("%.0f".format(ui?.km ?: 0.0), color = AccentGreen,
+                    Text("%.0f".format(ui?.km ?: 0.0), color = TextPrimary,
                         fontSize = 18.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
-                    Text(stringResource(R.string.dashboard_unit_km), color = TextMuted, fontSize = 10.sp)
+                    Text(stringResource(R.string.dashboard_unit_km), color = TextMuted, style = MaterialTheme.typography.labelMedium)
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("%.1f".format(ui?.kwh ?: 0.0), color = AccentGreen,
+                    Text("%.1f".format(ui?.kwh ?: 0.0), color = TextPrimary,
                         fontSize = 18.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
-                    Text(stringResource(R.string.dashboard_unit_kwh), color = TextMuted, fontSize = 10.sp)
+                    Text(stringResource(R.string.dashboard_unit_kwh), color = TextMuted, style = MaterialTheme.typography.labelMedium)
                 }
             }
         }
     }
 }
 
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun BatteryCompactCard(
     sohText: String,
@@ -897,22 +824,43 @@ private fun BatteryCompactCard(
     cellDeltaColor: Color,
     insulationText: String,
     insulationColor: Color,
+    summary: BatterySummary,
     borderColor: Color,
     onClick: () -> Unit,
 ) {
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = CardSurface),
-        border = androidx.compose.foundation.BorderStroke(1.5.dp, borderColor.copy(alpha = 0.5f)),
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            val statusIcon = when (summary) {
+                BatterySummary.CRITICAL -> Icons.Outlined.ErrorOutline
+                BatterySummary.WARNING -> Icons.Outlined.WarningAmber
+                BatterySummary.UNAVAILABLE -> Icons.Outlined.HelpOutline
+                BatterySummary.PARTIAL -> Icons.Outlined.Info
+                BatterySummary.NO_WARNINGS -> Icons.Outlined.CheckCircle
+            }
+            val statusLabel = when (summary) {
+                BatterySummary.CRITICAL -> R.string.dashboard_battery_status_critical
+                BatterySummary.WARNING -> R.string.dashboard_battery_status_warning
+                BatterySummary.UNAVAILABLE -> R.string.dashboard_battery_status_unavailable
+                BatterySummary.PARTIAL -> R.string.dashboard_battery_status_partial
+                BatterySummary.NO_WARNINGS -> R.string.dashboard_battery_status_clear
+            }
+            Icon(statusIcon, contentDescription = null, tint = borderColor, modifier = Modifier.size(20.dp))
+            Text(stringResource(statusLabel), color = borderColor, style = MaterialTheme.typography.labelMedium)
+        }
+        FlowRow(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             BatteryCell(value = sohText, label = "SoH", color = sohColor)
             BatteryCell(value = tempText, label = stringResource(R.string.dashboard_battery_temp_label), color = tempColor)
@@ -929,7 +877,6 @@ private fun FuelCompactCard(tankText: String, rangeText: String, onClick: () -> 
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = CardSurface),
-        border = androidx.compose.foundation.BorderStroke(1.5.dp, AccentOrange.copy(alpha = 0.5f)),
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
@@ -940,7 +887,7 @@ private fun FuelCompactCard(tankText: String, rangeText: String, onClick: () -> 
                 .padding(horizontal = 8.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            FuelCell(value = tankText, label = stringResource(R.string.dashboard_fuel_tank), color = AccentOrange)
+            FuelCell(value = tankText, label = stringResource(R.string.dashboard_fuel_tank), color = TextPrimary)
             FuelCell(value = rangeText, label = stringResource(R.string.dashboard_fuel_range), color = TextPrimary)
         }
     }
@@ -1010,7 +957,7 @@ private fun RowScope.HybridStatCards(state: DashboardUiState) {
         stringResource(R.string.dashboard_stat_energy),
         stringResource(R.string.dashboard_stat_kwh_value, state.totalKwh),
         state.periodLiters?.let { stringResource(R.string.dashboard_energy_fuel_subtitle, it) },
-        AccentBlue, Modifier.weight(1f), valueMaxLines = 1,
+        TextPrimary, Modifier.weight(1f), valueMaxLines = 1,
     )
     val litersPer100 = periodLitersPer100(state.periodLiters, state.periodLitersKm)
     if (litersPer100 != null) {
@@ -1018,7 +965,7 @@ private fun RowScope.HybridStatCards(state: DashboardUiState) {
             stringResource(R.string.dashboard_stat_consumption),
             stringResource(R.string.dashboard_consumption_fuel_value, litersPer100),
             if (state.avgConsumption > 0) stringResource(R.string.dashboard_consumption_elec_subtitle, state.avgConsumption) else null,
-            AccentOrange, Modifier.weight(1f), valueMaxLines = 1,
+            TextPrimary, Modifier.weight(1f), valueMaxLines = 1,
         )
     } else {
         StatCard(
@@ -1034,7 +981,7 @@ private fun RowScope.HybridStatCards(state: DashboardUiState) {
         state.periodFuelCost?.let {
             stringResource(R.string.dashboard_cost_split_subtitle, state.periodElecCost ?: 0.0, it)
         },
-        AccentGreen, Modifier.weight(1f), valueMaxLines = 1,
+        TextPrimary, Modifier.weight(1f), valueMaxLines = 1,
     )
 }
 
@@ -1043,7 +990,7 @@ private fun BatteryCell(value: String, label: String, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(value, color = color, fontSize = 17.sp, fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.Monospace)
-        Text(label, color = TextMuted, fontSize = 10.sp)
+        Text(label, color = TextMuted, style = MaterialTheme.typography.labelMedium)
     }
 }
 
@@ -1071,15 +1018,16 @@ private fun TripDetailRow(
 
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
-private fun TripCounterDialog(
+internal fun TripCounterDialog(
     label: String,
     ui: TripCounterUi,
     currencySymbol: String,
     mode: TripAutoResetMode,
     onModeChange: (TripAutoResetMode) -> Unit,
+    onRequestReset: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    CardDetailDialog(title = null, borderColor = AccentGreen, onDismiss = onDismiss) {
+    CardDetailDialog(title = null, borderColor = AccentGreen, onDismiss = onDismiss, dismissOnCardTap = false) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Bottom) {
             Text(label, color = AccentGreen, fontSize = 14.sp, fontWeight = FontWeight.Bold)
@@ -1134,8 +1082,9 @@ private fun TripCounterDialog(
                 TripAutoResetChip(stringResource(chipLabel), selected = m == mode) { onModeChange(m) }
             }
         }
-        Text(stringResource(R.string.dashboard_trip_reset_hint), color = TextMuted, fontSize = 11.sp,
-            modifier = Modifier.padding(top = 6.dp))
+        TextButton(onClick = onRequestReset, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.dashboard_trip_reset_action))
+        }
     }
 }
 
@@ -1174,7 +1123,7 @@ private fun DynamicsRow(metric: DynamicMetric) {
         )
         if (metric.previous != null) {
             Spacer(modifier = Modifier.width(6.dp))
-            Text("\u2190", color = TextMuted, fontSize = 10.sp)
+            Text("\u2190", color = TextMuted, style = MaterialTheme.typography.labelMedium)
             Spacer(modifier = Modifier.width(6.dp))
             Text(
                 metric.previous,
@@ -1259,17 +1208,6 @@ private fun DetailRow(label: String, value: String, valueColor: Color) {
 // ============================================================================
 
 @Composable
-private fun SectionHeader(text: String) {
-    Text(
-        text = text,
-        color = TextPrimary,
-        fontSize = 18.sp,
-        fontWeight = FontWeight.SemiBold,
-        modifier = Modifier.fillMaxWidth()
-    )
-}
-
-@Composable
 private fun DashboardPeriodChip(label: String, selected: Boolean, onClick: () -> Unit) {
     androidx.compose.material3.FilterChip(
         selected = selected,
@@ -1278,7 +1216,7 @@ private fun DashboardPeriodChip(label: String, selected: Boolean, onClick: () ->
         shape = RoundedCornerShape(8.dp),
         colors = androidx.compose.material3.FilterChipDefaults.filterChipColors(
             selectedContainerColor = AccentGreen,
-            selectedLabelColor = Color.White,
+            selectedLabelColor = NavyDark,
             containerColor = CardSurface,
             labelColor = TextSecondary
         ),
@@ -1301,7 +1239,7 @@ private fun TripAutoResetChip(label: String, selected: Boolean, onClick: () -> U
         shape = RoundedCornerShape(8.dp),
         colors = androidx.compose.material3.FilterChipDefaults.filterChipColors(
             selectedContainerColor = AccentGreen,
-            selectedLabelColor = Color.White,
+            selectedLabelColor = NavyDark,
             containerColor = CardSurfaceElevated,
             labelColor = TextSecondary
         ),
@@ -1329,14 +1267,15 @@ private fun StatCard(
         modifier = modifier
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp).padding(horizontal = 12.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp).padding(horizontal = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(title, color = TextSecondary, fontSize = 11.sp)
+            Text(title, color = TextSecondary, style = MaterialTheme.typography.labelMedium,
+                textAlign = TextAlign.Center)
             Text(value, color = accentColor, fontSize = 14.sp, fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace, maxLines = valueMaxLines, overflow = TextOverflow.Ellipsis)
-            Text(subtitle ?: "", color = TextMuted, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (subtitle != null) Text(subtitle, color = TextMuted, style = MaterialTheme.typography.labelMedium)
         }
     }
 }
@@ -1402,5 +1341,35 @@ private fun CornerStat(
                 modifier = Modifier.size(14.dp),
             )
         }
+    }
+}
+
+/** Presentation entry point for the pending manual reset. */
+@Composable
+internal fun TripResetConfirmation(counter: Int, onCancel: () -> Unit, onConfirm: () -> Unit) {
+    val label = stringResource(if (counter == 1) R.string.dashboard_trip1_label else R.string.dashboard_trip2_label)
+    AppAlertDialog(
+        onDismissRequest = onCancel,
+        title = { Text(stringResource(R.string.dashboard_trip_reset_title, label)) },
+        text = { Text(stringResource(R.string.dashboard_trip_reset_body)) },
+        confirmButton = { TextButton(onClick = onConfirm) { Text(stringResource(R.string.dashboard_trip_reset_action)) } },
+        dismissButton = { TextButton(onClick = onCancel) { Text(stringResource(R.string.dashboard_trip_reset_cancel)) } },
+    )
+}
+
+private fun batterySummaryColor(summary: BatterySummary): Color = when (summary) {
+    BatterySummary.CRITICAL -> SocRed
+    BatterySummary.WARNING -> SocYellow
+    BatterySummary.UNAVAILABLE, BatterySummary.PARTIAL -> TextSecondary
+    BatterySummary.NO_WARNINGS -> AccentGreen
+}
+
+@Composable
+internal fun TripCounterRow(state: DashboardUiState, onToggle: (Int) -> Unit, onRequestReset: (Int) -> Unit) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        TripCounterButton(stringResource(R.string.dashboard_trip1_label), state.trip1, Modifier.weight(1f),
+            onClick = { onToggle(1) }, onLongClick = { onRequestReset(1) })
+        TripCounterButton(stringResource(R.string.dashboard_trip2_label), state.trip2, Modifier.weight(1f),
+            onClick = { onToggle(2) }, onLongClick = { onRequestReset(2) })
     }
 }
